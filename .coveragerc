@@ -1,0 +1,21 @@
+[run]
+branch = True
+omit = 
+    asamint/tests/*
+
+[report]
+exclude_lines =
+
+    pragma: no cover
+
+    def __repr__
+    if self\.debug
+
+    except ImportError
+
+    raise AssertionError
+    
+    if 0:
+    if __name__ == .__main__.:
+
+ignore_errors = True
