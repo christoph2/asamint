@@ -3,7 +3,7 @@ bumpversion
 wheel
 watchdog
 flake8
-tox=
+tox
 coverage
 Sphinx
 twine
