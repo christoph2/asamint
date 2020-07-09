@@ -5,11 +5,14 @@
 
 import pytest
 
+from asammdf import MDF, Signal
 import asamint
+from pya2l import DB
 
-db = asamint.mdf.DB()
+db = DB()
 session = db.open_existing("ASAP2_Demo_V161")
 
-mdf = asamint.mdf.mdf.MDF(name = "ASAP2_Demo_V161", version = "4.10")
-mdf.save()
+#mdf = MDF(name = "ASAP2_Demo_V161", version = "4.10")
+mdf = MDF(version = "4.10")
+mdf.save("ASAP2_Demo_V161.mf4")
 
