@@ -24,7 +24,8 @@ __copyright__ = """
 
    s. FLOSS-EXCEPTION.txt
 """
-__author__  = 'Christoph Schueler'
+__author__ = 'Christoph Schueler'
+
 
 from asamint import utils
 
@@ -34,45 +35,90 @@ from pya2l import DB
 import pya2l.model as model
 
 
-    # IDENTICAL     -
-    # FORM          -
-    # LINEAR        -
-    # RAT_FUNC      -
-    # TAB_INTP      -
-    # TAB_NOINTP    -
-    # TAB_VERB      -
-
+def create_mdf(session_obj, mdf_obj, mdf_filename = None):
     """
-    0 = 1:1 conversion 0 0                                                      - IDENTICAL
-    1 = parametric, linear 0 2                                                  - LINEAR
-    2 = rational conversion formula 0 6                                         - RAT_FUNC
-    3 = algebraic conversion (MCD-2 MC text formula) 1 0                        - FORM
-
-    4 = value to value tabular look-up with interpolation 0 2 x n               - TAB_INTP
-    5 = value to value tabular look-up without interpolation 0 2 x n            - TAB_NOINTP
-
-    6 = value range to value tabular look-up 0 3 x n + 1
-
-    7 = value to text/scale conversion tabular look-up n + 1 n
-    8 = value range to text/scale conversion tabular look-up  n + 1 2 x n
-    9 = text to value tabular look-up n n + 1
-    10 = text to text tabular look-up (translation) 2 x n + 1 0
+    Parameters
+    ----------
     """
 
-
-
-def create_conversion_channel(a2ldb, mdf_version):
-    """
-    """
-    block = ChannelConversion(
-        address = address,
-        stream = stream,
-        mapped = mapped,
-        tx_map = tx_map,
-    )
-
-
-def create_mdf(session, mdf):
-    measurements = session.query(model.Measurement).order_by(model.Measurement.name).all()
-    for m in measurements:
-        print("{:48} {:12} 0x{:08x} [{}]".format(m.name, m.datatype, m.ecu_address.address, m.conversion))
+    signals = []
+    measurements = session_obj.query(model.Measurement).order_by(model.Measurement.name).all()
+    for measurement in measurements:
+        #print("\tMEAS", measurement)
+        cm_name = measurement.conversion
+        comment = measurement.longIdentifier
+        unit = None
+        data_type = measurement.datatype # Don't know how to set data types on Signals...
+        conversion = None
+        if cm_name == "NO_COMPU_METHOD":
+            conversion = None
+        else:
+            cm = session_obj.query(model.CompuMethod).filter(model.CompuMethod.name ==  cm_name).first()
+            cm_type = cm.conversionType
+            unit = cm.unit
+            if cm_type == "IDENTICAL":
+                conversion = None
+            elif cm_type == "FORM":
+                formula_inv = cm.formula.formula_inv.g_x if cm.formula.formula_inv else None
+                conversion = {
+                    "formula": cm.formula.f_x
+                }
+            elif cm_type == "LINEAR":
+                conversion = {
+                    "a": cm.coeffs_linear.a,
+                    "b": cm.coeffs_linear.b,
+                }
+            elif cm_type == "RAT_FUNC":
+                conversion = {
+                    "P1": cm.coeffs.a,
+                    "P2": cm.coeffs.b,
+                    "P3": cm.coeffs.c,
+                    "P4": cm.coeffs.d,
+                    "P5": cm.coeffs.e,
+                    "P6": cm.coeffs.f,
+                }
+            elif cm_type in ("TAB_INTP", "TAB_NOINTP"):
+                interpolation = True if cm_type == "TAB_INTP" else False
+                cvt = session_obj.query(model.CompuTab).filter(model.CompuTab.name == cm.compu_tab_ref.conversionTable).first()
+                pairs = cvt.pairs
+                num_values = len(pairs)
+                default_value = cvt.default_value_numeric.display_value if cvt.default_value_numeric else None
+                print("\tTAB_INTP", measurement.name, cvt.pairs, default_value)
+                in_values = [x.inVal for x in pairs]
+                out_values = [x.outVal for x in pairs]
+                conversion = {"raw_{}".format(i): in_values[i] for i in range(num_values)}
+                conversion.update({"phys_{}".format(i): out_values[i] for i in range(num_values)})
+                conversion.update(default = default_value)
+                conversion.update(interpolation = interpolation)
+            elif cm_type == "TAB_VERB":
+                cvt = session_obj.query(model.CompuVtab).filter(model.CompuVtab.name == cm.compu_tab_ref.conversionTable).first()
+                if cvt:
+                    pairs = cvt.pairs
+                    num_values = len(pairs)
+                    in_values = [x.inVal for x in pairs]
+                    out_values = [x.outVal for x in pairs]
+                    conversion = {"val_{}".format(i): in_values[i] for i in range(num_values)}
+                    conversion.update({"text_{}".format(i): out_values[i] for i in range(num_values)})
+                    conversion.update(default = cvt.default_value.display_string if cvt.default_value else None)
+                else:
+                    cvt = session_obj.query(model.CompuVtabRange).filter(model.CompuVtabRange.name == \
+                            cm.compu_tab_ref.conversionTable).first()
+                    if cvt:
+                        triples = cvt.triples
+                        num_values = len(triples)
+                        lower_values = [x.inValMin for x in triples]
+                        upper_values = [x.inValMax for x in triples]
+                        text_values = [x.outVal for x in triples]
+                        conversion = {"lower_{}".format(i): lower_values[i] for i in range(num_values)}
+                        conversion.update({"upper_{}".format(i): upper_values[i] for i in range(num_values)})
+                        conversion.update({"text_{}".format(i): text_values[i] for i in range(num_values)})
+                        conversion.update(default = bytes(cvt.default_value.display_string, encoding = "utf-8") \
+                                if cvt.default_value else b'') # Asymetric, not to say strange...
+                    else:
+                        print("\t\tNO TAB:", measurement.name)
+                        conversion = None
+        print(measurement.name, conversion)
+        signal = Signal(samples = [0, 0, 0, 0], timestamps = [0, 0, 0, 0], name = measurement.name, unit = unit, conversion = conversion, comment = comment)
+        signals.append(signal)
+    mdf_obj.append(signals)
+    mdf_obj.save(dst = mdf_filename, overwrite = True)
