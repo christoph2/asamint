@@ -26,6 +26,7 @@ __copyright__ = """
 """
 __author__ = 'Christoph Schueler'
 
+import logging
 
 from asamint import utils
 
@@ -33,6 +34,65 @@ import asammdf
 from asammdf import MDF, Signal
 from pya2l import DB
 import pya2l.model as model
+from pya2l.api.inspect import Measurement
+
+class Foo:
+
+    logger = logging.getlogger(__name__)
+
+    def __init__(self):
+        pass
+
+
+def create_mdf2(session_obj, mdf_obj, mdf_filename = None):
+    signals = []
+    meas_names = session_obj.query(model.Measurement).order_by(model.Measurement.name).all()
+    for meas_name in meas_names:
+        conversion = None
+        meas = Measurement(meas_name)
+        cm = meas.compuMethod
+        if cm.type == "NO_COMPU_METHOD":
+            pass
+        else:
+            #unit
+            #longIdentifier
+            conversion = {}
+            if cm.type == "IDENTICAL":
+                pass
+            elif cm.type == "FORM":
+                conversion = {
+                    "formula": cm.formula
+                    #"formula_inv": cm.formula_inv
+                }
+            elif cm.type == "LINEAR":
+                conversion = {
+                    "a": cm.a,
+                    "b": cm.b,
+                }
+            elif cm.type == "RAT_FUNC":
+                conversion = {
+                    "P1": cm.a,
+                    "P2": cm.b,
+                    "P3": cm.c,
+                    "P4": cm.d,
+                    "P5": cm.e,
+                    "P6": cm.f,
+                }
+            elif cm.type in ("TAB_INTP", "TAB_NOINTP"):
+                conversion = {"raw_{}".format(i): cm.in_values[i] for i in range(cm.num_values)}
+                conversion.update({"phys_{}".format(i): cm.out_values[i] for i in range(cm.num_values)})
+                conversion.update(default = cm.default_value)
+                conversion.update(interpolation = cm.interpolation)
+            elif cm.type == "TAB_VERB":
+                conversion = {"lower_{}".format(i): cm.lower_values[i] for i in range(cm.num_values)}
+                conversion.update({"upper_{}".format(i): cm.upper_values[i] for i in range(cm.num_values)})
+                conversion.update({"text_{}".format(i): cm.text_values[i] for i in range(cm.num_values)})
+                conversion.update(default = bytes(cm.default_value, encoding = "utf-8"))
+        print(measurement.name, conversion)
+        signal = Signal(samples = [0, 0, 0, 0], timestamps = [0, 0, 0, 0], name = measurement.name, unit = unit, conversion = conversion, comment = comment)
+        signals.append(signal)
+    mdf_obj.append(signals)
+    mdf_obj.save(dst = mdf_filename, overwrite = True)
 
 
 def create_mdf(session_obj, mdf_obj, mdf_filename = None):
