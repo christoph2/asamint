@@ -54,8 +54,6 @@ def create_mdf2(session_obj, mdf_obj, mdf_filename = None):
         if cm.type == "NO_COMPU_METHOD":
             pass
         else:
-            #unit
-            #longIdentifier
             conversion = {}
             if cm.type == "IDENTICAL":
                 pass
@@ -89,7 +87,13 @@ def create_mdf2(session_obj, mdf_obj, mdf_filename = None):
                 conversion.update({"text_{}".format(i): cm.text_values[i] for i in range(cm.num_values)})
                 conversion.update(default = bytes(cm.default_value, encoding = "utf-8"))
         print(measurement.name, conversion)
-        signal = Signal(samples = [0, 0, 0, 0], timestamps = [0, 0, 0, 0], name = measurement.name, unit = unit, conversion = conversion, comment = comment)
+        signal = Signal(
+            samples = [0, 0, 0, 0], timestamps = [0, 0, 0, 0],
+            name = meas.name,
+            unit = cm.unit,
+            conversion = conversion,
+            comment = cm.longIdentifier
+        )
         signals.append(signal)
     mdf_obj.append(signals)
     mdf_obj.save(dst = mdf_filename, overwrite = True)

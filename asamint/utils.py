@@ -30,6 +30,7 @@ __copyright__ = """
 """
 __author__  = 'Christoph Schueler'
 
+from lxml.etree import SubElement
 
 def convert_name(name):
     """
@@ -40,3 +41,11 @@ def convert_name(name):
     """
     return name.replace(".", "_")
 
+def create_elem(parent, name, text = None, attrib = {}):
+    """
+
+    """
+    elem = SubElement(parent, name, attrib)
+    if text:
+        elem.text = text
+    return elem
