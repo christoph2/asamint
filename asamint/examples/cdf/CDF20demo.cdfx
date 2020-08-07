@@ -1,0 +1,513 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE MSRSW PUBLIC "-//ASAM//DTD CALIBRATION DATA FORMAT:V2.0.0:LAI:IAI:XML:CDF200.XSD//EN" "cdf_v2.0.0.sl.dtd">
+
+<MSRSW>
+  <SHORT-NAME>CalDemo_V2</SHORT-NAME>
+  <CATEGORY>CDF20</CATEGORY>
+
+
+<SW-SYSTEMS>
+  <SW-SYSTEM>
+    <SHORT-NAME>information-not-available</SHORT-NAME>
+
+
+
+
+
+
+    <SW-INSTANCE-SPEC>
+      <SW-INSTANCE-TREE>
+        <SHORT-NAME>ETAS\CalDemo_V2a\CalDemo_V2\CalDemo_V2_1</SHORT-NAME>
+        <CATEGORY>VCD</CATEGORY>
+
+<!--  ==================== Functions====================================== -->
+
+        <SW-CS-COLLECTIONS>
+          <SW-CS-COLLECTION>
+            <CATEGORY>FEATURE</CATEGORY>
+            <SW-FEATURE-REF>CDF20_Array</SW-FEATURE-REF>
+            <REVISION>1.10</REVISION>
+            <SW-CS-HISTORY>
+              <CS-ENTRY>
+                <STATE>changed</STATE>
+                <DATE>2006-04-24</DATE>
+                <CSUS>thwenzel</CSUS>
+                <CSPR>Function History</CSPR>
+                <CSWP>Summer test</CSWP>
+                <CSTO>red test car</CSTO>
+                <CSTV>Manual gear</CSTV>
+                <CSPI>CalDemo_V2d</CSPI>
+                <CSDI>CalDemo_V2d_01</CSDI>
+                <REMARK><P>Comment for function</P></REMARK>
+              </CS-ENTRY>
+            </SW-CS-HISTORY>
+          </SW-CS-COLLECTION>
+          <SW-CS-COLLECTION>
+            <CATEGORY>FEATURE</CATEGORY>
+            <SW-FEATURE-REF>CDF20_Axis</SW-FEATURE-REF>
+            <REVISION>9.99</REVISION>
+          </SW-CS-COLLECTION>
+          <SW-CS-COLLECTION>
+            <CATEGORY>FEATURE</CATEGORY>
+            <SW-FEATURE-REF>CDF20_Curve</SW-FEATURE-REF>
+          </SW-CS-COLLECTION>
+          <SW-CS-COLLECTION>
+            <CATEGORY>FEATURE</CATEGORY>
+            <SW-FEATURE-REF>CDF20_Map</SW-FEATURE-REF>
+          </SW-CS-COLLECTION>
+          <SW-CS-COLLECTION>
+            <CATEGORY>FEATURE</CATEGORY>
+            <SW-FEATURE-REF>CDF20_Scalar</SW-FEATURE-REF>
+          </SW-CS-COLLECTION>
+          <SW-CS-COLLECTION>
+            <CATEGORY>COLLECTION</CATEGORY>
+            <SW-COLLECTION-REF>CDF20_Group_Root</SW-COLLECTION-REF>
+          </SW-CS-COLLECTION>
+          <SW-CS-COLLECTION>
+            <CATEGORY>COLLECTION</CATEGORY>
+            <SW-COLLECTION-REF>CDF20_Group_Scalar</SW-COLLECTION-REF>
+          </SW-CS-COLLECTION>
+        </SW-CS-COLLECTIONS>
+        
+
+        
+                
+<!--  ==================== Scalar ======================================== -->
+
+        <SW-INSTANCE>
+          <SHORT-NAME>CDF20.scalar.FW_wU16</SHORT-NAME>
+          <LONG-NAME>Scalar FW U16</LONG-NAME>
+          <CATEGORY>VALUE</CATEGORY>
+          <SW-FEATURE-REF>CDF20_Scalar</SW-FEATURE-REF>
+          <SW-INSTANCE-PROPS-VARIANTS>
+            <SW-INSTANCE-PROPS-VARIANT>
+              <SW-VALUE-CONT>
+                <UNIT-DISPLAY-NAME></UNIT-DISPLAY-NAME>
+                <SW-VALUES-PHYS><V>0.4150517288735618</V></SW-VALUES-PHYS>
+              </SW-VALUE-CONT>
+            </SW-INSTANCE-PROPS-VARIANT>
+          </SW-INSTANCE-PROPS-VARIANTS>
+        </SW-INSTANCE>
+
+        <SW-INSTANCE>
+          <SHORT-NAME>CDF20.BOOLEAN.FW_wU8</SHORT-NAME>
+          <LONG-NAME>BIT_MASK 0x0001</LONG-NAME>
+          <CATEGORY>BOOLEAN</CATEGORY>
+          <SW-FEATURE-REF>CDF20_Scalar</SW-FEATURE-REF>
+          <SW-INSTANCE-PROPS-VARIANTS>
+            <SW-INSTANCE-PROPS-VARIANT>
+              <SW-VALUE-CONT>
+                <UNIT-DISPLAY-NAME></UNIT-DISPLAY-NAME>
+                <SW-VALUES-PHYS><VT>true</VT></SW-VALUES-PHYS>
+              </SW-VALUE-CONT>
+            </SW-INSTANCE-PROPS-VARIANT>
+          </SW-INSTANCE-PROPS-VARIANTS>
+        </SW-INSTANCE>
+
+        <SW-INSTANCE>
+          <SHORT-NAME>CDF20.ASCII.N42_wU8</SHORT-NAME>
+          <LONG-NAME></LONG-NAME> 
+          <CATEGORY>ASCII</CATEGORY>
+          <SW-FEATURE-REF>CDF20_Array</SW-FEATURE-REF>
+          <SW-INSTANCE-PROPS-VARIANTS>
+            <SW-INSTANCE-PROPS-VARIANT>
+              <SW-VALUE-CONT>
+                <UNIT-DISPLAY-NAME></UNIT-DISPLAY-NAME>
+                <SW-VALUES-PHYS><VT>CDF20 Test String                         </VT></SW-VALUES-PHYS>
+              </SW-VALUE-CONT>
+              <SW-CS-HISTORY>
+                <CS-ENTRY>
+                  <STATE>changed</STATE>
+                  <DATE>2006-04-24</DATE>
+                  <CSUS>thwenzel</CSUS>
+                  <CSPR>Function History</CSPR>
+                  <CSWP>Summer test</CSWP>
+                  <CSTO>red test car</CSTO>
+                  <CSTV>Manual gear</CSTV>
+                  <CSPI>CalDemo_V2d</CSPI>
+                  <CSDI>CalDemo_V2d_01</CSDI>
+                  <REMARK><P>Comment for function</P></REMARK>
+                </CS-ENTRY>
+              </SW-CS-HISTORY>
+          
+            </SW-INSTANCE-PROPS-VARIANT>
+          </SW-INSTANCE-PROPS-VARIANTS>
+        </SW-INSTANCE>
+
+<!--  ==================== Matrix ======================================== -->
+
+        <SW-INSTANCE>
+          <SHORT-NAME>CDF20.MATRIX_DIM.N341_wS8</SHORT-NAME>
+          <LONG-NAME>Comment of MATRIX_DIM</LONG-NAME>
+          <CATEGORY>VALUE_ARRAY</CATEGORY>
+          <SW-FEATURE-REF>CDF20_Array</SW-FEATURE-REF>
+          <SW-INSTANCE-PROPS-VARIANTS>
+            <SW-INSTANCE-PROPS-VARIANT>
+              <SW-VALUE-CONT>
+                <UNIT-DISPLAY-NAME></UNIT-DISPLAY-NAME>
+                <SW-ARRAYSIZE><V>3</V><V>4</V></SW-ARRAYSIZE>
+                <SW-VALUES-PHYS>
+                  <VG><LABEL></LABEL>
+                    <V>0.0976592303231910</V><V>0.1953184606463820</V><V>0.3051850947599719</V></VG>
+                  <VG><LABEL></LABEL>
+                    <V>0.4028443250831629</V><V>0.5005035554063539</V><V>0.5981627857295450</V></VG>
+                  <VG><LABEL></LABEL>
+                    <V>0.6958220160527360</V><V>0.8056886501663259</V><V>0.9033478804895169</V></VG>
+                  <VG><LABEL></LABEL>
+                    <V>1.0010071108127079</V><V>1.0986663411358988</V><V>1.1963255714590899</V></VG>
+                </SW-VALUES-PHYS>
+              </SW-VALUE-CONT>
+            </SW-INSTANCE-PROPS-VARIANT>
+          </SW-INSTANCE-PROPS-VARIANTS>
+        </SW-INSTANCE>
+
+<!--  ==================== Dependent ======================================== -->
+
+        <SW-INSTANCE>
+          <SHORT-NAME>CDF20.Dependent.Base.FW_wU16</SHORT-NAME>
+          <LONG-NAME>Dependent Base</LONG-NAME>
+          <CATEGORY>VALUE</CATEGORY>
+          <SW-FEATURE-REF>CDF20_Scalar</SW-FEATURE-REF>
+          <SW-INSTANCE-PROPS-VARIANTS>
+            <SW-INSTANCE-PROPS-VARIANT>
+              <SW-VALUE-CONT>
+                <UNIT-DISPLAY-NAME></UNIT-DISPLAY-NAME>
+                <SW-VALUES-PHYS><V>17.0000000000000000</V></SW-VALUES-PHYS>
+              </SW-VALUE-CONT>
+            </SW-INSTANCE-PROPS-VARIANT>
+          </SW-INSTANCE-PROPS-VARIANTS>
+        </SW-INSTANCE>
+
+        <SW-INSTANCE>
+          <SHORT-NAME>CDF20.Dependent.Ref_1.FW_wU16</SHORT-NAME>
+          <LONG-NAME>Dependent Reference U16 1</LONG-NAME>
+          <CATEGORY>DEPEDNDENT_VALUE</CATEGORY>
+          <SW-FEATURE-REF>CDF20_Scalar</SW-FEATURE-REF>
+          <SW-INSTANCE-PROPS-VARIANTS>
+            <SW-INSTANCE-PROPS-VARIANT>
+              <SW-VALUE-CONT>
+                <UNIT-DISPLAY-NAME></UNIT-DISPLAY-NAME>
+                <SW-VALUES-PHYS><V>85.0000000000000000</V></SW-VALUES-PHYS>
+              </SW-VALUE-CONT>
+            </SW-INSTANCE-PROPS-VARIANT>
+          </SW-INSTANCE-PROPS-VARIANTS>
+        </SW-INSTANCE>
+
+<!--  ==================== Fix Axis ======================================== -->
+
+        <SW-INSTANCE>
+          <SHORT-NAME>CDF20.curve.FKL_xFIX_wU8</SHORT-NAME>
+          <LONG-NAME>Curve fix axis</LONG-NAME>
+          <CATEGORY>CURVE</CATEGORY>
+          <SW-FEATURE-REF>CDF20_Curve</SW-FEATURE-REF>
+          <SW-INSTANCE-PROPS-VARIANTS>
+            <SW-INSTANCE-PROPS-VARIANT>
+              <SW-VALUE-CONT>
+                <UNIT-DISPLAY-NAME>grad C</UNIT-DISPLAY-NAME>
+                <SW-VALUES-PHYS>
+                  <V>0.0000000000000000</V><V>0.1014000000000000</V><V>0.1989000000000000</V><V>0.3003000000000000</V><V>0.4017000000000000</V><V>0.4992000000000000</V>
+                </SW-VALUES-PHYS>
+              </SW-VALUE-CONT>
+              <SW-AXIS-CONTS>
+                <SW-AXIS-CONT>
+                  <CATEGORY>FIX_AXIS</CATEGORY>
+                  <UNIT-DISPLAY-NAME>°C</UNIT-DISPLAY-NAME>
+                  <SW-VALUES-PHYS>
+                    <V>-49.0000000000000000</V><V>-48.0000000000000000</V><V>-47.0000000000000000</V><V>-46.0000000000000000</V><V>-45.0000000000000000</V><V>-44.0000000000000000</V>
+                  </SW-VALUES-PHYS>
+                </SW-AXIS-CONT>
+              </SW-AXIS-CONTS>
+            </SW-INSTANCE-PROPS-VARIANT>
+          </SW-INSTANCE-PROPS-VARIANTS>
+        </SW-INSTANCE>
+
+<!--  ==================== Std Axis ======================================== -->
+
+        <SW-INSTANCE>
+          <SHORT-NAME>CDF20.curve.KL_xU8_wU8</SHORT-NAME>
+          <LONG-NAME>Curve standard axis</LONG-NAME>
+          <CATEGORY>CURVE</CATEGORY>
+          <SW-FEATURE-REF>CDF20_Curve</SW-FEATURE-REF>
+          <SW-INSTANCE-PROPS-VARIANTS>
+            <SW-INSTANCE-PROPS-VARIANT>
+        
+              <SW-VALUE-CONT>
+                <UNIT-DISPLAY-NAME>grad C</UNIT-DISPLAY-NAME>
+                <SW-VALUES-PHYS>
+                  <V>0.0429000000000000</V><V>0.0468000000000000</V><V>0.0507000000000000</V><V>0.0546000000000000</V><V>0.0585000000000000</V><V>0.0624000000000000</V><V>0.0663000000000000</V><V>0.0702000000000000</V><V>0.0741000000000000</V><V>0.0780000000000000</V>
+                </SW-VALUES-PHYS>
+              </SW-VALUE-CONT>
+        
+              <SW-AXIS-CONTS>
+                <SW-AXIS-CONT>
+                  <CATEGORY>STD_AXIS</CATEGORY>
+                  <SW-VALUES-PHYS>
+                    <V>-49.0000000000000000</V><V>-48.0000000000000000</V><V>-47.0000000000000000</V><V>-46.0000000000000000</V><V>-45.0000000000000000</V><V>-44.0000000000000000</V><V>-43.0000000000000000</V><V>-42.0000000000000000</V><V>-41.0000000000000000</V><V>-40.0000000000000000</V>
+                  </SW-VALUES-PHYS>
+                </SW-AXIS-CONT>
+              </SW-AXIS-CONTS>
+            </SW-INSTANCE-PROPS-VARIANT>
+          </SW-INSTANCE-PROPS-VARIANTS>
+        </SW-INSTANCE>
+
+<!--  ==================== Com Axis ======================================== -->
+
+<!-- CATEGORY at SW-AXIS-CONT not necessary when referenced -->
+
+        <SW-INSTANCE>
+          <SHORT-NAME>CDF20.curve.GKL_xCOM_wU16</SHORT-NAME>
+          <LONG-NAME>GKL</LONG-NAME>
+          <CATEGORY>CURVE</CATEGORY>
+          <SW-FEATURE-REF>CDF20_Curve</SW-FEATURE-REF>
+          <SW-INSTANCE-PROPS-VARIANTS>
+            <SW-INSTANCE-PROPS-VARIANT>
+              <SW-VALUE-CONT>
+                <UNIT-DISPLAY-NAME>grad C</UNIT-DISPLAY-NAME>
+                <SW-VALUES-PHYS>
+                  <V>0.1287000000000000</V><V>0.1326000000000000</V><V>0.1365000000000000</V><V>0.1404000000000000</V><V>0.1443000000000000</V>
+                </SW-VALUES-PHYS>
+              </SW-VALUE-CONT>
+              <SW-AXIS-CONTS>
+                <SW-AXIS-CONT>
+                  <CATEGORY>COM_AXIS</CATEGORY>
+                  <SW-INSTANCE-REF>CDF20.axis.X_AXIS_xU16</SW-INSTANCE-REF>
+                </SW-AXIS-CONT>
+              </SW-AXIS-CONTS>
+            </SW-INSTANCE-PROPS-VARIANT>
+          </SW-INSTANCE-PROPS-VARIANTS>
+        </SW-INSTANCE>
+
+<!-- Different CATEGORY for different axis types necessary -->
+
+        <SW-INSTANCE>
+          <SHORT-NAME>CDF20.axis.X_AXIS_xU16</SHORT-NAME>
+          <LONG-NAME>X-Achse für KFZW</LONG-NAME>
+          <CATEGORY>COM_AXIS</CATEGORY>
+          <SW-FEATURE-REF>CDF20_Axis</SW-FEATURE-REF>
+          <SW-INSTANCE-PROPS-VARIANTS>
+            <SW-INSTANCE-PROPS-VARIANT>
+              <SW-VALUE-CONT>
+                <UNIT-DISPLAY-NAME>°C</UNIT-DISPLAY-NAME>
+                <SW-VALUES-PHYS>
+                  <V>2.0000000000000000</V><V>5.0000000000000000</V><V>6.0000000000000000</V><V>14.0000000000000000</V><V>16.0000000000000000</V>
+                </SW-VALUES-PHYS>
+              </SW-VALUE-CONT>
+            </SW-INSTANCE-PROPS-VARIANT>
+          </SW-INSTANCE-PROPS-VARIANTS>
+        </SW-INSTANCE>
+
+
+<!--  ==================== Curve Axis ======================================== -->
+
+        <SW-INSTANCE>
+          <SHORT-NAME>CDF20.map.KF_xCURu16u8_yCURu16u8_wU8</SHORT-NAME>
+          <LONG-NAME>Kennfeld mit CURVE_AXIS</LONG-NAME>
+          <CATEGORY>MAP</CATEGORY>
+          <SW-FEATURE-REF>CDF20_Map</SW-FEATURE-REF>
+          <SW-INSTANCE-PROPS-VARIANTS>
+            <SW-INSTANCE-PROPS-VARIANT>
+              <SW-VALUE-CONT>
+                <UNIT-DISPLAY-NAME>Cluster</UNIT-DISPLAY-NAME>
+                <SW-VALUES-PHYS>
+                  <VG><LABEL>256.0000000000000000</LABEL>
+                  <V>0.1000000000000000</V>
+                  <V>0.2000000000000000</V>
+                  <V>0.3000000000000000</V>
+                  <V>0.4000000000000000</V>
+                  <V>0.5000000000000000</V>
+                  <V>0.6000000000000000</V>
+                  <V>0.7000000000000000</V>
+                  </VG>
+                  <VG><LABEL>320.0000000000000000</LABEL>
+                  <V>0.8000000000000000</V>
+                  <V>0.9000000000000000</V>
+                  <V>1.0000000000000000</V>
+                  <V>1.1000000000000001</V>
+                  <V>1.2000000000000000</V>
+                  <V>1.3000000000000000</V>
+                  <V>1.3999999999999999</V>
+                  </VG>
+                  <VG><LABEL>320.0000000000000000</LABEL>
+                  <V>1.5000000000000000</V>
+                  <V>1.6000000000000001</V>
+                  <V>1.7000000000000000</V>
+                  <V>1.8000000000000000</V>
+                  <V>1.8999999999999999</V>
+                  <V>2.0000000000000000</V>
+                  <V>2.1000000000000001</V>
+                  </VG>
+                  <VG><LABEL>320.0000000000000000</LABEL>
+                  <V>2.2000000000000002</V>
+                  <V>2.2999999999999998</V>
+                  <V>2.3999999999999999</V>
+                  <V>2.5000000000000000</V>
+                  <V>2.6000000000000001</V>
+                  <V>2.7000000000000002</V>
+                  <V>2.7999999999999998</V>
+                  </VG>
+                  <VG><LABEL>320.0000000000000000</LABEL>
+                  <V>2.8999999999999999</V>
+                  <V>3.0000000000000000</V>
+                  <V>3.1000000000000001</V>
+                  <V>3.2000000000000002</V>
+                  <V>3.2999999999999998</V>
+                  <V>3.3999999999999999</V>
+                  <V>3.5000000000000000</V>
+                  </VG>
+                  <VG><LABEL>320.0000000000000000</LABEL>
+                  <V>3.6000000000000001</V>
+                  <V>3.7000000000000002</V>
+                  <V>3.7999999999999998</V>
+                  <V>3.8999999999999999</V>
+                  <V>4.0000000000000000</V>
+                  <V>4.0999999999999996</V>
+                  <V>4.2000000000000002</V>
+                  </VG>
+                </SW-VALUES-PHYS>
+              </SW-VALUE-CONT>
+          
+<!-- SW-VALUES-PHYS + SW-INSTANCE-REF for rescale and curve axis as they are calculated ? -->
+          
+              <SW-AXIS-CONTS>
+                <SW-AXIS-CONT>
+                  <CATEGORY>CURVE_AXIS</CATEGORY>
+                  <SW-INSTANCE-REF>CDF20.axis.X_CU_AXIS_xU16_wU8</SW-INSTANCE-REF>
+                  <SW-ARRAYSIZE><V>7</V></SW-ARRAYSIZE>
+
+<!-- not necessary for referenced axis
+                  <SW-VALUES-PHYS>
+                    <V>206.0000000000000000</V><V>318.0000000000000000</V><V>318.0000000000000000</V><V>318.0000000000000000</V><V>318.0000000000000000</V><V>318.0000000000000000</V><V>318.0000000000000000</V>
+                  </SW-VALUES-PHYS>
+-->          
+                </SW-AXIS-CONT>
+                <SW-AXIS-CONT>
+                  <CATEGORY>CURVE_AXIS</CATEGORY>
+                  <SW-INSTANCE-REF>CDF20.axis.Y_CU_AXIS_xU16_wU8</SW-INSTANCE-REF>
+                  <SW-ARRAYSIZE><V>6</V></SW-ARRAYSIZE>
+
+<!--  should be optional possible        
+                  <SW-VALUES-PHYS>
+                    <V>256.0000000000000000</V><V>320.0000000000000000</V><V>320.0000000000000000</V><V>320.0000000000000000</V><V>320.0000000000000000</V><V>320.0000000000000000</V>
+                  </SW-VALUES-PHYS>
+-->          
+                </SW-AXIS-CONT>
+              </SW-AXIS-CONTS>
+            </SW-INSTANCE-PROPS-VARIANT>
+          </SW-INSTANCE-PROPS-VARIANTS>
+        </SW-INSTANCE>
+
+        <SW-INSTANCE>
+          <SHORT-NAME>CDF20.axis.X_CU_AXIS_xU16_wU8</SHORT-NAME>
+          <LONG-NAME>X Curve Axis</LONG-NAME>
+          <CATEGORY>CURVE_AXIS</CATEGORY>
+          <SW-FEATURE-REF>CDF20_Axis</SW-FEATURE-REF>
+          <SW-INSTANCE-PROPS-VARIANTS>
+            <SW-INSTANCE-PROPS-VARIANT>
+              <SW-VALUE-CONT>
+                <UNIT-DISPLAY-NAME>Cluster</UNIT-DISPLAY-NAME>
+                <SW-VALUES-PHYS>
+                  <V>0.0000000000000000</V><V>0.1000000000000000</V><V>0.2000000000000000</V><V>0.3000000000000000</V><V>0.8000000000000000</V>
+                </SW-VALUES-PHYS>
+              </SW-VALUE-CONT>
+              <SW-AXIS-CONTS>
+                <SW-AXIS-CONT>
+                  <CATEGORY>STD_AXIS</CATEGORY>
+                  <UNIT-DISPLAY-NAME>°C</UNIT-DISPLAY-NAME>
+                  <SW-VALUES-PHYS>
+                    <V>206.0000000000000000</V><V>238.0000000000000000</V><V>286.0000000000000000</V><V>302.0000000000000000</V><V>318.0000000000000000</V>
+                  </SW-VALUES-PHYS>
+                </SW-AXIS-CONT>
+              </SW-AXIS-CONTS>
+            </SW-INSTANCE-PROPS-VARIANT>
+          </SW-INSTANCE-PROPS-VARIANTS>
+        </SW-INSTANCE>
+
+        <SW-INSTANCE>
+          <SHORT-NAME>CDF20.axis.Y_CU_AXIS_xU16_wU8</SHORT-NAME>
+          <LONG-NAME>Y Curve Axis</LONG-NAME>
+          <CATEGORY>CURVE_AXIS</CATEGORY>
+          <SW-FEATURE-REF>CDF20_Axis</SW-FEATURE-REF>
+          <SW-INSTANCE-PROPS-VARIANTS>
+            <SW-INSTANCE-PROPS-VARIANT>
+              <SW-VALUE-CONT>
+                <UNIT-DISPLAY-NAME>Cluster</UNIT-DISPLAY-NAME>
+                <SW-VALUES-PHYS>
+                  <V>0.1000000000000000</V><V>0.3000000000000000</V><V>0.4000000000000000</V><V>0.5000000000000000</V>
+                </SW-VALUES-PHYS>
+              </SW-VALUE-CONT>
+              <SW-AXIS-CONTS>
+                <SW-AXIS-CONT>
+                  <CATEGORY>STD_AXIS</CATEGORY>
+                  <UNIT-DISPLAY-NAME>Um/p</UNIT-DISPLAY-NAME>
+                  <SW-VALUES-PHYS>
+                    <V>256.0000000000000000</V><V>272.0000000000000000</V><V>288.0000000000000000</V><V>320.0000000000000000</V>
+                  </SW-VALUES-PHYS>
+                </SW-AXIS-CONT>
+              </SW-AXIS-CONTS>
+            </SW-INSTANCE-PROPS-VARIANT>
+          </SW-INSTANCE-PROPS-VARIANTS>
+        </SW-INSTANCE>
+
+
+
+
+<!--  ==================== Res Axis ======================================== -->
+
+        <SW-INSTANCE>
+          <SHORT-NAME>CDF20.curve.KL_xRESs8_wS16</SHORT-NAME>
+          <LONG-NAME>Kennlinie mit RES_AXIS Umrechnung 1:1</LONG-NAME>
+          <CATEGORY>CURVE</CATEGORY>
+          <SW-FEATURE-REF>CDF20_Curve</SW-FEATURE-REF>
+          <SW-INSTANCE-PROPS-VARIANTS>
+            <SW-INSTANCE-PROPS-VARIANT>
+              <SW-VALUE-CONT>
+                <UNIT-DISPLAY-NAME>grad C</UNIT-DISPLAY-NAME>
+                <SW-VALUES-PHYS>
+                  <V>0.0000000000000000</V><V>0.0195000000000000</V><V>0.0663000000000000</V><V>0.1287000000000000</V><V>0.1365000000000000</V><V>0.1443000000000000</V><V>0.3978000000000000</V><V>0.4680000000000000</V><V>0.5928000000000000</V>
+                </SW-VALUES-PHYS>
+              </SW-VALUE-CONT>
+              <SW-AXIS-CONTS>
+                <SW-AXIS-CONT>
+                  <CATEGORY>RES_AXIS</CATEGORY>
+                  <UNIT-DISPLAY-NAME></UNIT-DISPLAY-NAME>
+                  <SW-INSTANCE-REF>CDF20.axis.X_RE_AXIS_xS8</SW-INSTANCE-REF>
+                  <SW-ARRAYSIZE><V>9</V></SW-ARRAYSIZE>
+<!--
+                  <SW-VALUES-PHYS>
+                    <V>10.0000000000000000</V><V>85.0000000000000000</V><V>85.0000000000000000</V><V>85.0000000000000000</V><V>85.0000000000000000</V><V>85.0000000000000000</V><V>85.0000000000000000</V><V>85.0000000000000000</V><V>85.0000000000000000</V>
+                  </SW-VALUES-PHYS>
+-->
+                </SW-AXIS-CONT>
+              </SW-AXIS-CONTS>
+            </SW-INSTANCE-PROPS-VARIANT>
+          </SW-INSTANCE-PROPS-VARIANTS>
+        </SW-INSTANCE>
+
+        <SW-INSTANCE>
+          <SHORT-NAME>CDF20.axis.X_RE_AXIS_xS8</SHORT-NAME>
+          <LONG-NAME>X-Achse für KL_xRESs8_wS16</LONG-NAME>
+          <CATEGORY>RES_AXIS</CATEGORY>
+          <SW-FEATURE-REF>CDF20_Axis</SW-FEATURE-REF>
+          <SW-INSTANCE-PROPS-VARIANTS>
+            <SW-INSTANCE-PROPS-VARIANT>
+              <SW-VALUE-CONT>
+                <UNIT-DISPLAY-NAME></UNIT-DISPLAY-NAME>
+                <SW-VALUES-PHYS>
+                  <VG><V>10.0000000000000000</V><V>2</V></VG><VG><V>18.0000000000000000</V><V>3</V></VG><VG><V>33.0000000000000000</V><V>4</V></VG><VG><V>51.0000000000000000</V><V>5</V></VG><VG><V>52.0000000000000000</V><V>6</V></VG><VG><V>68.0000000000000000</V><V>7</V></VG><VG><V>85.0000000000000000</V><V>8</V></VG>
+                </SW-VALUES-PHYS>
+              </SW-VALUE-CONT>
+            </SW-INSTANCE-PROPS-VARIANT>
+          </SW-INSTANCE-PROPS-VARIANTS>
+        </SW-INSTANCE>
+
+
+
+      </SW-INSTANCE-TREE>
+    </SW-INSTANCE-SPEC>
+
+
+
+
+  </SW-SYSTEM>
+</SW-SYSTEMS>
+</MSRSW>
