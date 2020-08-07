@@ -1,0 +1,772 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:ho="http://www.asam.net/xml" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.asam.net/xml" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.1.1">
+	<xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="xml.xsd"/>
+	<xs:attribute name="BASE-DATA-TYPE">
+		<xs:annotation>
+			<xs:documentation>Specifying an ASAM harmonized data type. Use OTHER if none of them matches.</xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+			<xs:restriction base="xs:token">
+				<xs:enumeration value="A_UINT8"/>
+				<xs:enumeration value="A_INT8"/>
+				<xs:enumeration value="A_UINT16"/>
+				<xs:enumeration value="A_INT16"/>
+				<xs:enumeration value="A_UINT32"/>
+				<xs:enumeration value="A_INT32"/>
+				<xs:enumeration value="A_UINT64"/>
+				<xs:enumeration value="A_INT64"/>
+				<xs:enumeration value="A_FLOAT32"/>
+				<xs:enumeration value="A_FLOAT64"/>
+				<xs:enumeration value="A_ASCIISTRING"/>
+				<xs:enumeration value="A_UNICODE2STRING"/>
+				<xs:enumeration value="A_BYTEFIELD"/>
+				<xs:enumeration value="A_BITFIELD"/>
+				<xs:enumeration value="OTHER"/>
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:attribute>
+	<xs:attribute name="OID" type="ho:IDENTIFIER-TYPE">
+		<xs:annotation>
+			<xs:documentation>This attribute is supposed to be set when the object is created. After this, the attribute value must not be changed any more. It is fixed over the whole life cycle of the object. The setting of the attribute value is process-specific. The process owner is responsible to ensure the uniqueness of the OID throughout the overall process chain. The usage of Universally Unique Identifiers (UUIDs) as described in ISO/IEC 11578:1996 is recommended.</xs:documentation>
+		</xs:annotation>
+	</xs:attribute>
+	<xs:complexType name="INTERVAL-TYPE">
+		<xs:annotation>
+			<xs:documentation>For reusability an intervals content model is specified using a type definition (according to the ASAM convention)</xs:documentation>
+		</xs:annotation>
+		<xs:simpleContent>
+			<xs:extension base="xs:double">
+				<xs:attribute name="INTERVAL-TYPE" use="optional" default="CLOSED">
+					<xs:simpleType>
+						<xs:restriction base="xs:token">
+							<xs:enumeration value="OPEN"/>
+							<xs:enumeration value="CLOSED"/>
+							<xs:enumeration value="INFINITE"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:attribute>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="REVISION-TYPE">
+		<xs:annotation>
+			<xs:documentation>For reusability revisions content model is specified using a type definition.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="TEAM-MEMBER-REF" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Referencing a team member</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:attribute name="ID-REF" type="xs:IDREF" use="required"/>
+				</xs:complexType>
+			</xs:element>
+			<xs:element ref="ho:REVISION-LABEL" minOccurs="0"/>
+			<xs:element ref="ho:STATE" minOccurs="0"/>
+			<xs:element ref="ho:DATE" minOccurs="0"/>
+			<xs:element name="COMPANY-REVISION-INFOS" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Containing company-specific mappings for the referencing docRevision</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="COMPANY-REVISION-INFO">
+							<xs:annotation>
+								<xs:documentation>Describing a company-specific mapping for the referencing docRevision</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element ref="ho:COMPANY-DATA-REF"/>
+									<xs:element ref="ho:REVISION-LABEL" minOccurs="0"/>
+									<xs:element ref="ho:STATE" minOccurs="0"/>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="MODIFICATIONS" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Collecting all modifications made in the referencing docRevision</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="MODIFICATION" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Describing a modification made in the referencing docRevision</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="CHANGE" type="ho:LONG-STRING">
+										<xs:annotation>
+											<xs:documentation>Describing a change made in the referencing docRevision</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element name="REASON" type="ho:LONG-STRING" minOccurs="0">
+										<xs:annotation>
+											<xs:documentation>Explaining a change made in the referencing docRevision</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="SCALE-CONSTR-TYPE">
+		<xs:annotation>
+			<xs:documentation>For reusability scale constraints content model is specified using a type definition.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="SCALE-CONSTR" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>One ASAM Scale Constraint on the validity given as attribute. So a signals EROR-VALUE is encoded with validity ERROR, its NO-VALUE as NOT-AVAILABLE.</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element ref="ho:LOWER-LIMIT" minOccurs="0"/>
+						<xs:element ref="ho:UPPER-LIMIT" minOccurs="0"/>
+					</xs:sequence>
+					<xs:attribute name="VALIDITY" use="optional" default="VALID">
+						<xs:annotation>
+							<xs:documentation>Use Validity ERROR to encode the signals ERROR-VALUE (indicating that the computition of its actual value failed) and NOT-AVAILABLE to encode the signals NO-VALUE</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:token">
+								<xs:enumeration value="VALID"/>
+								<xs:enumeration value="NOT-VALID"/>
+								<xs:enumeration value="NOT-AVAILABLE"/>
+								<xs:enumeration value="NOT-DEFINED"/>
+								<xs:enumeration value="ERROR"/>
+								<xs:enumeration value="OTHER"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:element name="ADMIN-DATA">
+		<xs:annotation>
+			<xs:documentation>Containing document management information</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="DOC-REVISIONS" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Containing the entire change history</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="DOC-REVISION" type="ho:REVISION-TYPE" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Describing a documents state</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="BIT-LENGTH" type="xs:unsignedInt">
+		<xs:annotation>
+			<xs:documentation>Data Length in bits</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="CODED-TYPE">
+		<xs:annotation>
+			<xs:documentation>Coded Type of data on communication system.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:choice>
+				<xs:element ref="ho:BIT-LENGTH"/>
+				<xs:sequence>
+					<xs:element name="MIN-LENGTH" type="xs:unsignedInt"/>
+					<xs:element name="MAX-LENGTH" type="xs:unsignedInt" minOccurs="0"/>
+				</xs:sequence>
+			</xs:choice>
+			<xs:attribute ref="ho:BASE-DATA-TYPE" use="optional"/>
+			<xs:attribute name="CATEGORY" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:token">
+						<xs:enumeration value="LEADING-LENGTH-INFO-TYPE"/>
+						<xs:enumeration value="END-OF-PDU"/>
+						<xs:enumeration value="MIN-MAX-LENGTH-TYPE"/>
+						<xs:enumeration value="STANDARD-LENGTH-TYPE"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="ENCODING" use="optional">
+				<xs:annotation>
+					<xs:documentation>Specifying the data encoding if not defined by the data type.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:token">
+						<xs:enumeration value="SIGNED"/>
+						<xs:enumeration value="UNSIGNED"/>
+						<xs:enumeration value="BIT"/>
+						<xs:enumeration value="IEEE-FLOATING-TYPE"/>
+						<xs:enumeration value="BCD"/>
+						<xs:enumeration value="DSP-FRACTIONAL"/>
+						<xs:enumeration value="SM"/>
+						<xs:enumeration value="BCD-P"/>
+						<xs:enumeration value="BCD-UP"/>
+						<xs:enumeration value="1C"/>
+						<xs:enumeration value="2C"/>
+						<xs:enumeration value="UTF-8"/>
+						<xs:enumeration value="UCS-2"/>
+						<xs:enumeration value="ISO-8859-1"/>
+						<xs:enumeration value="ISO-8859-2"/>
+						<xs:enumeration value="WINDOWS-1252"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="TERMINATION" use="optional">
+				<xs:simpleType>
+					<xs:restriction base="xs:token">
+						<xs:enumeration value="NONE"/>
+						<xs:enumeration value="ZERO"/>
+						<xs:enumeration value="HEX-FF"/>
+						<xs:enumeration value="LENGTH"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="COMPANIES-DATA">
+		<xs:annotation>
+			<xs:documentation>Collecting the companies involved in project</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="COMPANY-DATA" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Describing a company involved in project</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:group ref="ho:NAME-DETAILS"/>
+							<xs:element name="TEAM-MEMBERS" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Collecting a companies members involved in a project</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="TEAM-MEMBER" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Desribing a companies member involved in a project</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence>
+													<xs:group ref="ho:NAME-DETAILS"/>
+													<xs:element name="ROLES" minOccurs="0">
+														<xs:annotation>
+															<xs:documentation>Collecting a team members roles</xs:documentation>
+														</xs:annotation>
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="ROLE" type="ho:FULL-STRING" maxOccurs="unbounded">
+																	<xs:annotation>
+																		<xs:documentation>Describing a team members role</xs:documentation>
+																	</xs:annotation>
+																</xs:element>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+													<xs:element name="DEPARTMENT" type="ho:FULL-STRING" minOccurs="0"/>
+													<xs:element name="ADDRESS" type="ho:FULL-STRING" minOccurs="0"/>
+													<xs:element name="ZIP" type="ho:FULL-STRING" minOccurs="0"/>
+													<xs:element name="CITY" type="ho:FULL-STRING" minOccurs="0"/>
+													<xs:element name="PHONE" type="ho:FULL-STRING" minOccurs="0"/>
+													<xs:element name="FAX" type="ho:FULL-STRING" minOccurs="0"/>
+													<xs:element name="EMAIL" type="ho:FULL-STRING" minOccurs="0"/>
+													<xs:element name="HOMEPAGE" type="xs:anyURI" minOccurs="0"/>
+												</xs:sequence>
+												<xs:attribute name="ID" type="xs:ID" use="required"/>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="ID" type="xs:ID" use="required"/>
+						<xs:attribute name="ROLE" use="required">
+							<xs:annotation>
+								<xs:documentation>Manufacturer or supplier</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:token">
+									<xs:enumeration value="MANUFACTURER"/>
+									<xs:enumeration value="SUPPLIER"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="COMPANY-DATA-REF">
+		<xs:annotation>
+			<xs:documentation>Referencing a company</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:attribute name="ID-REF" type="xs:IDREF" use="required"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="COMPU-METHOD">
+		<xs:annotation>
+			<xs:documentation>Method to calulate the transmitted value to the physical representation</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:group ref="ho:NAME-DETAILS"/>
+				<xs:element name="CATEGORY">
+					<xs:annotation>
+						<xs:documentation>Type of the compu method</xs:documentation>
+					</xs:annotation>
+					<xs:simpleType>
+						<xs:restriction base="xs:token">
+							<xs:enumeration value="IDENTICAL"/>
+							<xs:enumeration value="LINEAR"/>
+							<xs:enumeration value="SCALE-LINEAR"/>
+							<xs:enumeration value="TEXTTABLE"/>
+							<xs:enumeration value="TAB-NOINTP"/>
+							<xs:enumeration value="FORMULA"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element ref="ho:UNIT-REF" minOccurs="0"/>
+				<xs:element name="PHYS-CONSTRS" type="ho:SCALE-CONSTR-TYPE" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Contraints on the physical data representation</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="INTERNAL-CONSTRS" type="ho:SCALE-CONSTR-TYPE" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Contraints on the data transmitted over the communication system</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="COMPU-INTERNAL-TO-PHYS" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>How to gain a phyiscal representation from internal data transmitted over the communication system.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="COMPU-SCALES">
+								<xs:annotation>
+									<xs:documentation>Domains and computition rules to convert an internal data (transmitted over the communication system) into phyiscal data of an application.</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="COMPU-SCALE" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Domain and computition rule to convert an internal data (transmitted over the communication system) into phyiscal data of an application.</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element ref="ho:DESC" minOccurs="0" maxOccurs="unbounded"/>
+													<xs:element name="LOWER-LIMIT" type="ho:INTERVAL-TYPE" minOccurs="0">
+														<xs:annotation>
+															<xs:documentation>Smallest internal value on which the referencing compu method is applied.</xs:documentation>
+														</xs:annotation>
+													</xs:element>
+													<xs:element name="UPPER-LIMIT" type="ho:INTERVAL-TYPE" minOccurs="0">
+														<xs:annotation>
+															<xs:documentation>Uppermost internal value on which the referencing compu method is applied.</xs:documentation>
+														</xs:annotation>
+													</xs:element>
+													<xs:choice minOccurs="0">
+														<xs:element name="COMPU-CONST">
+															<xs:annotation>
+																<xs:documentation>Computition constant.</xs:documentation>
+															</xs:annotation>
+															<xs:complexType>
+																<xs:choice>
+																	<xs:element ref="ho:V"/>
+																	<xs:element ref="ho:VT"/>
+																</xs:choice>
+															</xs:complexType>
+														</xs:element>
+														<xs:element name="COMPU-RATIONAL-COEFFS">
+															<xs:annotation>
+																<xs:documentation>ASAM rational coefficient.</xs:documentation>
+															</xs:annotation>
+															<xs:complexType>
+																<xs:sequence>
+																	<xs:element name="COMPU-NUMERATOR">
+																		<xs:annotation>
+																			<xs:documentation>ASAM numerators.</xs:documentation>
+																		</xs:annotation>
+																		<xs:complexType>
+																			<xs:sequence>
+																				<xs:element ref="ho:V" maxOccurs="unbounded"/>
+																			</xs:sequence>
+																		</xs:complexType>
+																	</xs:element>
+																	<xs:element name="COMPU-DENOMINATOR" minOccurs="0">
+																		<xs:annotation>
+																			<xs:documentation>ASAM denumerators.</xs:documentation>
+																		</xs:annotation>
+																		<xs:complexType>
+																			<xs:sequence>
+																				<xs:element ref="ho:V" maxOccurs="unbounded"/>
+																			</xs:sequence>
+																		</xs:complexType>
+																	</xs:element>
+																</xs:sequence>
+															</xs:complexType>
+														</xs:element>
+														<xs:element name="COMPU-GENERIC-MATH" type="xs:string">
+															<xs:annotation>
+																<xs:documentation>ASAM mathematical description</xs:documentation>
+															</xs:annotation>
+														</xs:element>
+													</xs:choice>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="COMPU-DEFAULT-VALUE" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Default value for the phyiscal data of an application that should be used if a converted value is not available. </xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:choice>
+										<xs:element ref="ho:V"/>
+										<xs:element ref="ho:VT"/>
+									</xs:choice>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<!--xs:choice-->
+				<!--/xs:choice-->
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="COMPU-METHODS">
+		<xs:annotation>
+			<xs:documentation>Container for COMPU-METHOD elements</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="ho:COMPU-METHOD" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="DATE" type="xs:dateTime">
+		<xs:annotation>
+			<xs:documentation>Timestamp. See http://www.w3.org/TR/2001/REC-xmlschema-2-20010502/#datetime for syntax explanation.</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="DESC">
+		<xs:annotation>
+			<xs:documentation>An elements description in the language and for the aspect given as attributes</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:simpleContent>
+				<xs:extension base="ho:LONG-STRING">
+					<xs:attribute ref="xml:lang"/>
+					<xs:attribute name="TYPE" type="xs:NMTOKEN" use="optional"/>
+				</xs:extension>
+			</xs:simpleContent>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="LONG-NAME">
+		<xs:annotation>
+			<xs:documentation>The elements full name in the language given as attribute</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:simpleContent>
+				<xs:extension base="ho:FULL-STRING">
+					<xs:attribute ref="xml:lang"/>
+				</xs:extension>
+			</xs:simpleContent>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="LOWER-LIMIT" type="ho:INTERVAL-TYPE">
+		<xs:annotation>
+			<xs:documentation>Smallest possible value</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="PHYSICAL-TYPE">
+		<xs:annotation>
+			<xs:documentation>Application Type of data.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="PRECISION" type="xs:double" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Precision of data object</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute ref="ho:BASE-DATA-TYPE"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="REVISION-LABEL" type="ho:FULL-STRING">
+		<xs:annotation>
+			<xs:documentation>A revision label / version in the manufacturers nomenclature</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="SHORT-NAME" type="ho:IDENTIFIER-TYPE">
+		<xs:annotation>
+			<xs:documentation>The elements language independent denotation (shall be unique for all elements of the same type)</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="STATE" type="ho:FULL-STRING">
+		<xs:annotation>
+			<xs:documentation>A revisions/versions state in the manufacturers nomenclature</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="UNIT-REF">
+		<xs:annotation>
+			<xs:documentation>Referencing a unit</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:attribute name="ID-REF" type="xs:IDREF" use="required"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="UNIT-SPEC">
+		<xs:annotation>
+			<xs:documentation>Root element of ASAM unit specification.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="ho:ADMIN-DATA" minOccurs="0"/>
+				<xs:element name="PHYSICAL-DIMENSIONS" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>All physicall dimension definitions</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="PHYSICAL-DIMENSION" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Physical dimension definition</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:group ref="ho:NAME-DETAILS"/>
+										<xs:element name="LENGTH-EXP" type="xs:double" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Exponent of physical dimension length</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="MASS-EXP" type="xs:double" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Exponent of physical dimension mass</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="TIME-EXP" type="xs:double" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Exponent of physical dimension time</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="CURRENT-EXP" type="xs:double" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Exponent of physical dimension current</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="TEMPERATURE-EXP" type="xs:double" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Exponent of physical dimension temperature</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="MOLAR-AMOUNT-EXP" type="xs:double" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Exponent of physical dimension molar amount</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="LUMINOUS-INTENSITY-EXP" type="xs:double" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Exponent of physical dimension luminous intensity</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="ID" type="xs:ID" use="required"/>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="UNITGROUPS" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>All unit groups</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="UNITGROUP" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>ASAM unit group definition</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:group ref="ho:NAME-DETAILS"/>
+										<xs:element name="CATEGORY">
+											<xs:annotation>
+												<xs:documentation>Unit Group category</xs:documentation>
+											</xs:annotation>
+											<xs:simpleType>
+												<xs:restriction base="xs:token">
+													<xs:enumeration value="COUNTRY"/>
+													<xs:enumeration value="EQUIV-UNITS"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="UNIT-REFS" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Units contained in unit group</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element ref="ho:UNIT-REF" maxOccurs="unbounded"/>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="UNITS" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>root element of all units defined</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="UNIT" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>ASAM unit definition</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:group ref="ho:NAME-DETAILS"/>
+										<xs:element name="DISPLAY-NAME" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>The name the unit should be displayed with</xs:documentation>
+											</xs:annotation>
+											<xs:simpleType>
+												<xs:restriction base="xs:token"/>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="FACTOR-SI-TO-UNIT" type="xs:double" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>factor to calculate physical dimension to unit</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="OFFSET-SI-TO-UNIT" type="xs:double" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>offset to calculate physical dimension to unit</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="PHYSICAL-DIMENSION-REF" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Referencing a physical dimension</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="ID-REF" type="xs:IDREF" use="required"/>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="ID" type="xs:ID" use="required"/>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="UPPER-LIMIT" type="ho:INTERVAL-TYPE">
+		<xs:annotation>
+			<xs:documentation>Uppermost value</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="V" type="xs:double">
+		<xs:annotation>
+			<xs:documentation>Numerical value</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="VT" type="xs:string">
+		<xs:annotation>
+			<xs:documentation>Textual value</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:group name="COMMON-ELEMENT-DETAILS">
+		<xs:annotation>
+			<xs:documentation>Common elements attributes</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:group ref="ho:NAME-DETAILS"/>
+			<xs:element name="ELEMENT-REVISIONS" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Containing an elements change history</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="ELEMENT-REVISION" type="ho:REVISION-TYPE" maxOccurs="unbounded">
+							<xs:annotation>
+								<xs:documentation>Describing an elements state</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:group>
+	<xs:group name="NAME-DETAILS">
+		<xs:annotation>
+			<xs:documentation>Common naming attributes</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element ref="ho:SHORT-NAME"/>
+			<xs:element ref="ho:LONG-NAME" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="ho:DESC" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:group>
+	<xs:simpleType name="FULL-STRING">
+		<xs:annotation>
+			<xs:documentation>For uniformity we use 3 types of String. This is the usual one supporting strings up to 255 chars.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="255"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="IDENTIFIER-TYPE">
+		<xs:restriction base="ho:SHORT-STRING">
+			<xs:pattern value="[a-zA-Z0-9_]+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="LONG-STRING">
+		<xs:annotation>
+			<xs:documentation>For uniformity we use 3 types of String. This is the long one supporting strings up to 65335 chars.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="65335"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="SHORT-STRING">
+		<xs:annotation>
+			<xs:documentation>For uniformity we use 3 types of String. This is the short one supporting strings up to 128 chars.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="128"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="VERSION-LABEL-TYPE">
+		<xs:annotation>
+			<xs:documentation>This type ensures the ASAM policy for version labels. An ASAM Version label consists in an application profile number, a version number, a revision number and optionaly a patch level.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:token">
+			<xs:pattern value="[0-9]+\.[0-9]+\.[0-9]+[a-z]*"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

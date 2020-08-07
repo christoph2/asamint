@@ -1,0 +1,965 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--*******************************************************************
+ASAM Automotive Electronics - Calibration Data Format 2.0.0 [CDF 2.0.0]
+
+CONTACT: If you want to read more about ASAM Automotive Electronics and their documentation
+check out the website below:
+
+http://www.asam.net/
+
+COPYRIGHT: Copyright 2006 ASAM e.V
+All rights reserved.
+
+
+DISCLAIMER OF WARRANTY
+
+ALTHOUGH THIS XML MODEL WAS CREATED WITH THE UTMOST CARE IT CANNOT
+BE GUARANTEED THAT IT IS COMPLETELY FREE OF ERRORS OR INCONSISTENCIES.
+ASAM E.V. MAKES NO REPRESENTATIONS OR WARRANTIES WITH RESPECT TO THE
+CONTENTS OR USE OF THIS XML MODEL, AND SPECIFICALLY DISCLAIMS ANY
+EXPRESSED OR IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR ANY
+PARTICULAR PURPOSE. NEITHER ASAM NOR THE AUTHOR(S) THEREFORE ACCEPT
+ANY LIABILITY FOR DAMAGES OR OTHER CONSEQUENCES THAT ARISE FROM THE
+USE OF THIS XML MODEL AND IT'S DOCUMENTATION.
+ASAM E.V. RESERVES THE RIGHT TO REVISE THIS PUBLICATION AND TO MAKE
+CHANGES TO ITS CONTENT, AT ANY TIME, WITHOUT OBLIGATION TO NOTIFY
+ANY PERSON OR ENTITY OF SUCH REVISIONS OR CHANGES.
+
+Contributed by Herbert Klein (XI-Works)
+
+$Id:$
+$Log:$
+
+*******************************************************************-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	<xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="xml.xsd"/>
+	<xs:complexType name="CATEGORYType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="CATEGORYinSW-INSTANCEType">
+		<xs:simpleContent>
+			<xs:restriction base="CATEGORYType">
+				<xs:enumeration value="ASCII"/>
+				<xs:enumeration value="BOOLEAN"/>
+				<xs:enumeration value="COM_AXIS"/>
+				<xs:enumeration value="CURVE"/>
+				<xs:enumeration value="CURVE_ARRAY"/>
+				<xs:enumeration value="CURVE_AXIS"/>
+				<xs:enumeration value="DEPENDENT_VALUE"/>
+				<xs:enumeration value="MAP"/>
+				<xs:enumeration value="MAP_ARRAY"/>
+				<xs:enumeration value="RES_AXIS"/>
+				<xs:enumeration value="STRUCTURE"/>
+				<xs:enumeration value="STRUCTURE_ARRAY"/>
+				<xs:enumeration value="UNION"/>
+				<xs:enumeration value="VALUE"/>
+				<xs:enumeration value="VALUE_ARRAY"/>
+				<xs:enumeration value="VAL_BLK"/>
+			</xs:restriction>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="CATEGORYinSW-AXIS-CONTType">
+		<xs:simpleContent>
+			<xs:restriction base="CATEGORYType">
+				<xs:enumeration value="COM_AXIS"/>
+				<xs:enumeration value="CURVE_AXIS"/>
+				<xs:enumeration value="FIX_AXIS"/>
+				<xs:enumeration value="RES_AXIS"/>
+				<xs:enumeration value="STD_AXIS"/>
+			</xs:restriction>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="CATEGORYinSW-CS-COLLECTIONType">
+		<xs:simpleContent>
+			<xs:restriction base="CATEGORYType">
+				<xs:enumeration value="COLLECTION"/>
+				<xs:enumeration value="FEATURE"/>
+			</xs:restriction>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="CATEGORYinSW-CS-FLAGType">
+		<xs:simpleContent>
+			<xs:restriction base="CATEGORYType">
+				<xs:enumeration value="LOCK"/>
+				<xs:enumeration value="REVIEW"/>
+			</xs:restriction>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="CS-ENTRYType">
+		<xs:sequence>
+			<xs:element name="STATE" type="STATEType"/>
+			<xs:element name="DATE" type="DATEType"/>
+			<xs:element name="CSUS" type="CSUSType"/>
+			<xs:element name="CSPR" type="CSPRType" minOccurs="0"/>
+			<xs:element name="CSWP" type="CSWPType" minOccurs="0"/>
+			<xs:element name="CSTO" type="CSTOType" minOccurs="0"/>
+			<xs:element name="CSTV" type="CSTVType" minOccurs="0"/>
+			<xs:element name="CSPI" type="CSPIType" minOccurs="0"/>
+			<xs:element name="CSDI" type="CSDIType" minOccurs="0"/>
+			<xs:element name="REMARK" type="REMARKType" minOccurs="0"/>
+			<xs:element name="SD" type="SDType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="CSDIType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="CSPIType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="CSPRType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="CSTOType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="CSTVType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="CSUSType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="CSWPType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="DATA-FILEType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="DATEType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="DISPLAY-NAMEType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="FLAGType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="LABELType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="LOCSType">
+		<xs:sequence>
+			<xs:element name="NAMELOC" type="NAMELOCType" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="LONG-NAMEType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:element name="MSRSW">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="SHORT-NAME" type="SHORT-NAMEType" minOccurs="0"/>
+				<xs:element name="CATEGORY" type="CATEGORYType" minOccurs="0"/>
+				<xs:element name="SW-SYSTEMS" type="SW-SYSTEMSType" minOccurs="0"/>
+				<xs:element name="SDGS" type="SDGSType" minOccurs="0"/>
+				<xs:element name="LOCS" type="LOCSType" minOccurs="0"/>
+			</xs:sequence>
+			<xs:attribute name="C" type="xs:string"/>
+			<xs:attribute name="CREATOR" type="xs:string"/>
+			<xs:attribute name="CREATOR-VERSION" type="xs:string"/>
+			<xs:attribute name="F-CM-TOOL-ID" type="xs:string" fixed="$Id$"/>
+			<xs:attribute name="F-DTD-BUILD" type="xs:string" fixed="9"/>
+			<xs:attribute name="F-DTD-VERSION" type="xs:string" fixed="3.0.0"/>
+			<xs:attribute name="F-PUBID" type="xs:string" fixed="-//ASAM//DTD MSR SOFTWARE DTD:V3.0.0:LAI:IAI:XML:MSRSW.DTD//EN"/>
+			<xs:attribute name="LC" type="xs:string"/>
+			<xs:attribute name="PUBID" type="xs:string" default="-//ASAM//DTD CALIBRATION DATA FORMAT:V2.0.0:LAI:IAI:XML:CDF200.XSD//EN"/>
+			<xs:attribute name="S" type="xs:string"/>
+			<xs:attribute name="SI" type="xs:string"/>
+			<xs:attribute name="T" type="xs:string"/>
+			<xs:attribute name="TI" type="xs:string"/>
+			<xs:attribute name="VIEW" type="xs:string"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="NAMELOCType">
+		<xs:sequence>
+			<xs:element name="SHORT-NAME" type="SHORT-NAMEType"/>
+			<xs:element name="LONG-NAME" type="LONG-NAMEType" minOccurs="0"/>
+			<xs:element name="NMLIST" type="NMLISTType"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="EXT-ID-CLASS" type="xs:NMTOKEN"/>
+		<xs:attribute name="F-ID-CLASS" type="xs:NMTOKEN" fixed="EXTERNAL"/>
+		<xs:attribute name="HYTIME" type="xs:NMTOKEN" fixed="NAMELOC"/>
+		<xs:attribute name="ID" type="xs:ID"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="NMLISTType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="DOCORSUB" type="xs:string"/>
+				<xs:attribute name="HYTIME" type="xs:NMTOKEN" fixed="NMLIST"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="NAMETYPE" default="ELEMENT">
+					<xs:simpleType>
+						<xs:restriction base="xs:NMTOKEN">
+							<xs:enumeration value="ENTITY"/>
+							<xs:enumeration value="ELEMENT"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:attribute>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="PType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="HELP-ENTRY" type="xs:string"/>
+				<xs:attribute name="KEEP-WITH-PREVIOUS">
+					<xs:simpleType>
+						<xs:restriction base="xs:NMTOKEN">
+							<xs:enumeration value="KEEP"/>
+							<xs:enumeration value="NO-KEEP"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:attribute>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="REMARKType">
+		<xs:sequence>
+			<xs:element name="P" type="PType" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="REVISIONType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="SYSCOND" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="SDType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="GID" type="xs:string" use="required"/>
+				<xs:attribute name="ID-CLASS" type="xs:NMTOKEN"/>
+				<xs:attribute name="ID-REF" type="xs:IDREF"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="SDGType">
+		<xs:sequence>
+			<xs:element name="SDG-CAPTION" type="SDG-CAPTIONType" minOccurs="0"/>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element name="SD" type="SDType" minOccurs="0"/>
+				<xs:element name="SDG" type="SDGType" minOccurs="0"/>
+			</xs:choice>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="GID" type="xs:string" use="required"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SDG-CAPTIONType">
+		<xs:sequence>
+			<xs:element name="SHORT-NAME" type="SHORT-NAMEType"/>
+			<xs:element name="LONG-NAME" type="LONG-NAMEType" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="F-ID-CLASS" type="xs:NMTOKEN" fixed="SDG"/>
+		<xs:attribute name="ID" type="xs:ID"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SDGSType">
+		<xs:sequence>
+			<xs:element name="SDG" type="SDGType" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SHORT-NAMEType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="STATEType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="SW-ARRAY-INDEXType">
+		<xs:simpleContent>
+			<xs:extension base="xs:nonNegativeInteger">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="SW-ARRAYSIZEType">
+		<xs:sequence>
+			<xs:element name="V" type="VType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SW-AXIS-CONTType">
+		<xs:sequence>
+			<xs:element name="CATEGORY" type="CATEGORYinSW-AXIS-CONTType" minOccurs="0"/>
+			<xs:element name="UNIT-DISPLAY-NAME" type="UNIT-DISPLAY-NAMEType" minOccurs="0"/>
+			<xs:element name="SW-INSTANCE-REF" type="SW-INSTANCE-REFType" minOccurs="0"/>
+			<xs:element name="SW-ARRAYSIZE" type="SW-ARRAYSIZEType" minOccurs="0"/>
+			<xs:element name="SW-VALUES-PHYS" type="SW-VALUES-PHYSType" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SW-AXIS-CONTSType">
+		<xs:sequence>
+			<xs:element name="SW-AXIS-CONT" type="SW-AXIS-CONTType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SW-COLLECTION-REFType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="F-ID-CLASS" type="xs:NMTOKEN" fixed="SW-COLLECTION"/>
+				<xs:attribute name="HYNAMES" type="xs:NMTOKENS" fixed="LINKEND ID-REF"/>
+				<xs:attribute name="HYTIME" type="xs:NMTOKEN" fixed="CLINK"/>
+				<xs:attribute name="ID-REF" type="xs:IDREF"/>
+				<xs:attribute name="INVERT" default="NO-INVERT">
+					<xs:simpleType>
+						<xs:restriction base="xs:NMTOKEN">
+							<xs:enumeration value="INVERT"/>
+							<xs:enumeration value="NO-INVERT"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:attribute>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="SW-CS-COLLECTIONType">
+		<xs:sequence>
+			<xs:element name="CATEGORY" type="CATEGORYinSW-CS-COLLECTIONType" minOccurs="0"/>
+			<xs:element name="SW-FEATURE-REF" type="SW-FEATURE-REFType" minOccurs="0"/>
+			<xs:element name="REVISION" type="REVISIONType" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="SW-COLLECTION-REF" type="SW-COLLECTION-REFType" minOccurs="0"/>
+			<xs:element name="SW-CS-HISTORY" type="SW-CS-HISTORYType" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SW-CS-COLLECTIONSType">
+		<xs:sequence>
+			<xs:element name="SW-CS-COLLECTION" type="SW-CS-COLLECTIONType" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SW-CS-FLAGType">
+		<xs:sequence>
+			<xs:element name="CATEGORY" type="CATEGORYinSW-CS-FLAGType" minOccurs="0"/>
+			<xs:element name="FLAG" type="FLAGType" minOccurs="0"/>
+			<xs:element name="CSUS" type="CSUSType" minOccurs="0"/>
+			<xs:element name="DATE" type="DATEType" minOccurs="0"/>
+			<xs:element name="REMARK" type="REMARKType" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SW-CS-FLAGSType">
+		<xs:sequence>
+			<xs:element name="SW-CS-FLAG" type="SW-CS-FLAGType" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SW-CS-HISTORYType">
+		<xs:sequence>
+			<xs:element name="CS-ENTRY" type="CS-ENTRYType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SW-FEATURE-REFType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="F-ID-CLASS" type="xs:NMTOKEN" fixed="SW-FEATURE"/>
+				<xs:attribute name="HYNAMES" type="xs:NMTOKENS" fixed="LINKEND ID-REF"/>
+				<xs:attribute name="HYTIME" type="xs:NMTOKEN" fixed="CLINK"/>
+				<xs:attribute name="ID-REF" type="xs:IDREF"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="SW-INSTANCEType">
+		<xs:sequence>
+			<xs:choice>
+				<xs:element name="SHORT-NAME" type="SHORT-NAMEType"/>
+				<xs:element name="SW-ARRAY-INDEX" type="SW-ARRAY-INDEXType"/>
+			</xs:choice>
+			<xs:element name="LONG-NAME" type="LONG-NAMEType" minOccurs="0"/>
+			<xs:element name="DISPLAY-NAME" type="DISPLAY-NAMEType" minOccurs="0"/>
+			<xs:element name="CATEGORY" type="CATEGORYinSW-INSTANCEType" minOccurs="0"/>
+			<xs:element name="SW-FEATURE-REF" type="SW-FEATURE-REFType" minOccurs="0"/>
+			<xs:choice>
+				<xs:sequence>
+					<xs:element name="SW-VALUE-CONT" type="SW-VALUE-CONTType" minOccurs="0"/>
+					<xs:element name="SW-AXIS-CONTS" type="SW-AXIS-CONTSType" minOccurs="0"/>
+					<xs:element name="SW-CS-HISTORY" type="SW-CS-HISTORYType" minOccurs="0"/>
+					<xs:element name="SW-CS-FLAGS" type="SW-CS-FLAGSType" minOccurs="0"/>
+				</xs:sequence>
+				<xs:element name="SW-INSTANCE-PROPS-VARIANTS" type="SW-INSTANCE-PROPS-VARIANTSType" minOccurs="0"/>
+			</xs:choice>
+			<xs:element name="SW-INSTANCE" type="SW-INSTANCEType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="F-ID-CLASS" type="xs:string" fixed="SW-INSTANCE"/>
+		<xs:attribute name="F-NAMESPACE" type="xs:NMTOKEN" fixed="SW-INSTANCE"/>
+		<xs:attribute name="ID" type="xs:ID"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="PW" default="PRECISE">
+			<xs:simpleType>
+				<xs:restriction base="xs:NMTOKEN">
+					<xs:enumeration value="NOT-PRECISE"/>
+					<xs:enumeration value="PRECISE"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SW-INSTANCE-PROPS-VARIANTType">
+		<xs:sequence>
+			<xs:element name="SW-VCD-CRITERION-VALUES" type="SW-VCD-CRITERION-VALUESType" minOccurs="0"/>
+			<xs:element name="SW-VALUE-CONT" type="SW-VALUE-CONTType" minOccurs="0"/>
+			<xs:element name="SW-AXIS-CONTS" type="SW-AXIS-CONTSType" minOccurs="0"/>
+			<xs:element name="SW-CS-HISTORY" type="SW-CS-HISTORYType" minOccurs="0"/>
+			<xs:element name="SW-CS-FLAGS" type="SW-CS-FLAGSType" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SW-INSTANCE-PROPS-VARIANTSType">
+		<xs:sequence>
+			<xs:element name="SW-INSTANCE-PROPS-VARIANT" type="SW-INSTANCE-PROPS-VARIANTType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SW-INSTANCE-REFType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="F-ID-CLASS" type="xs:NMTOKEN" fixed="SW-INSTANCE"/>
+				<xs:attribute name="HYNAMES" type="xs:NMTOKENS" fixed="LINKEND ID-REF"/>
+				<xs:attribute name="HYTIME" type="xs:NMTOKEN" fixed="CLINK"/>
+				<xs:attribute name="ID-REF" type="xs:IDREF"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="SW-INSTANCE-SPECType">
+		<xs:sequence>
+			<xs:element name="SW-INSTANCE-TREE" type="SW-INSTANCE-TREEType" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SW-INSTANCE-TREEType">
+		<xs:sequence>
+			<xs:element name="SHORT-NAME" type="SHORT-NAMEType"/>
+			<xs:element name="LONG-NAME" type="LONG-NAMEType" minOccurs="0"/>
+			<xs:element name="CATEGORY" type="CATEGORYType" minOccurs="0"/>
+			<xs:element name="SW-INSTANCE-TREE-ORIGIN" type="SW-INSTANCE-TREE-ORIGINType" minOccurs="0"/>
+			<xs:element name="SW-CS-COLLECTIONS" type="SW-CS-COLLECTIONSType" minOccurs="0"/>
+			<xs:element name="SW-INSTANCE" type="SW-INSTANCEType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="F-ID-CLASS" type="xs:NMTOKEN" fixed="SW-INSTANCE-TREE"/>
+		<xs:attribute name="F-NAMESPACE" type="xs:NMTOKEN" fixed="SW-INSTANCE"/>
+		<xs:attribute name="ID" type="xs:ID"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SW-INSTANCE-TREE-ORIGINType">
+		<xs:sequence>
+			<xs:element name="SYMBOLIC-FILE" type="SYMBOLIC-FILEType" minOccurs="0"/>
+			<xs:element name="DATA-FILE" type="DATA-FILEType" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SW-SYSTEMType">
+		<xs:sequence>
+			<xs:element name="SHORT-NAME" type="SHORT-NAMEType"/>
+			<xs:element name="LONG-NAME" type="LONG-NAMEType" minOccurs="0"/>
+			<xs:element name="CATEGORY" type="CATEGORYType" minOccurs="0"/>
+			<xs:element name="SW-INSTANCE-SPEC" type="SW-INSTANCE-SPECType" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="F-ID-CLASS" type="xs:NMTOKEN" fixed="SW-SYSTEM"/>
+		<xs:attribute name="F-NAMESPACE" type="xs:NMTOKENS" fixed="BASE-TYPE CHAPTER COMPU-METHOD CONF-ITEM CONF-RULE DATA-CONSTR DEF-ITEM FIGURE FORMULA PHYSICAL-DIMENSION PRM SDG STD SW-ADDR-METHOD SW-AXIS-TYPE SW-CALIBRATION-METHOD SW-CALPRM SW-CALPRM-PROTOTYPE SW-CLASS SW-CLASS-ATTR-IMPL SW-CLASS-INSTANCE SW-CLASS-PROTOTYPE SW-CODE-SYNTAX SW-COLLECTION SW-CPU-MEM-SEG SW-EVENT SW-EVENT-SOURCE SW-FEATURE SW-FEATURE-INTERFACE SW-FEATURE-VARIANT SW-GENERIC-AXIS-PARAM-TYPE SW-INSTANCE SW-INSTANCE-TREE SW-OPER-MODE SW-RECORD-LAYOUT SW-SERVICE SW-SERVICE-ARG SW-SERVICE-PROTOTYPE SW-SERVICE-RETURN SW-SYSTEMCONST SW-TASK SW-TEMPLATE SW-USER-ACCESS-CASE SW-USER-GROUP SW-VARIABLE SW-VARIABLE-PROTOTYPE SW-VCD-CRITERION SYNOPSIS TABLE TOPIC UNIT-GROUP UNIT XDOC XFILE XREF-TARGET"/>
+		<xs:attribute name="ID" type="xs:ID"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SW-SYSTEMSType">
+		<xs:sequence>
+			<xs:element name="SW-SYSTEM" type="SW-SYSTEMType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SW-VALUE-CONTType">
+		<xs:sequence>
+			<xs:element name="UNIT-DISPLAY-NAME" type="UNIT-DISPLAY-NAMEType" minOccurs="0"/>
+			<xs:element name="SW-ARRAYSIZE" type="SW-ARRAYSIZEType" minOccurs="0"/>
+			<xs:element name="SW-VALUES-PHYS" type="SW-VALUES-PHYSType" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SW-VALUES-PHYSType">
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="VT" type="VTType"/>
+			<xs:element name="V" type="VType"/>
+			<xs:element name="VG" type="VGType"/>
+		</xs:choice>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SW-VCD-CRITERION-REFType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="F-ID-CLASS" type="xs:NMTOKEN" fixed="SW-VCD-CRITERION"/>
+				<xs:attribute name="HYNAMES" type="xs:NMTOKENS" fixed="LINKEND ID-REF"/>
+				<xs:attribute name="HYTIME" type="xs:NMTOKEN" fixed="CLINK"/>
+				<xs:attribute name="ID-REF" type="xs:IDREF"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="SW-VCD-CRITERION-VALUEType">
+		<xs:sequence>
+			<xs:element name="SW-VCD-CRITERION-REF" type="SW-VCD-CRITERION-REFType"/>
+			<xs:element name="VT" type="VTType"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SW-VCD-CRITERION-VALUESType">
+		<xs:sequence>
+			<xs:element name="SW-VCD-CRITERION-VALUE" type="SW-VCD-CRITERION-VALUEType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="SYMBOLIC-FILEType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="UNIT-DISPLAY-NAMEType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+				<xs:attribute ref="xml:space"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="VType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:complexType name="VGType">
+		<xs:sequence>
+			<xs:element name="LABEL" type="LABELType" minOccurs="0"/>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element name="VT" type="VTType"/>
+				<xs:element name="V" type="VType"/>
+				<xs:element name="VG" type="VGType"/>
+			</xs:choice>
+		</xs:sequence>
+		<xs:attribute name="C" type="xs:string"/>
+		<xs:attribute name="LC" type="xs:string"/>
+		<xs:attribute name="S" type="xs:string"/>
+		<xs:attribute name="SI" type="xs:string"/>
+		<xs:attribute name="T" type="xs:string"/>
+		<xs:attribute name="TI" type="xs:string"/>
+		<xs:attribute name="VIEW" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="VTType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="C" type="xs:string"/>
+				<xs:attribute name="LC" type="xs:string"/>
+				<xs:attribute name="S" type="xs:string"/>
+				<xs:attribute name="SI" type="xs:string"/>
+				<xs:attribute name="T" type="xs:string"/>
+				<xs:attribute name="TI" type="xs:string"/>
+				<xs:attribute name="VIEW" type="xs:string"/>
+				<xs:attribute ref="xml:space"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+</xs:schema>

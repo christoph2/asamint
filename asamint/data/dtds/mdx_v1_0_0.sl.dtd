@@ -1,0 +1,5839 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!--DOCTYPE MSRSW [
+*******************************************************************
+ASAM Automotive Electronics - Meta Data Exchange Format for Software Module Sharing 1.0.0 [MDX 1.0.0]
+
+CONTACT: If you want to read more about ASAM Automotive Electronics and their documentation
+check out the website below:
+
+http://www.asam.net/
+
+COPYRIGHT: Copyright 2006 ASAM e.V
+All rights reserved.
+
+
+DISCLAIMER OF WARRANTY
+
+ALTHOUGH THIS XML MODEL WAS CREATED WITH THE UTMOST CARE IT CANNOT
+BE GUARANTEED THAT IT IS COMPLETELY FREE OF ERRORS OR INCONSISTENCIES.
+ASAM E.V. MAKES NO REPRESENTATIONS OR WARRANTIES WITH RESPECT TO THE
+CONTENTS OR USE OF THIS XML MODEL, AND SPECIFICALLY DISCLAIMS ANY
+EXPRESSED OR IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR ANY
+PARTICULAR PURPOSE. NEITHER ASAM NOR THE AUTHOR(S) THEREFORE ACCEPT
+ANY LIABILITY FOR DAMAGES OR OTHER CONSEQUENCES THAT ARISE FROM THE
+USE OF THIS XML MODEL AND IT'S DOCUMENTATION.
+ASAM E.V. RESERVES THE RIGHT TO REVISE THIS PUBLICATION AND TO MAKE
+CHANGES TO ITS CONTENT, AT ANY TIME, WITHOUT OBLIGATION TO NOTIFY
+ANY PERSON OR ENTITY OF SUCH REVISIONS OR CHANGES.
+
+Contributed by Herbert Klein (XI-Works)
+
+$Id:$
+
+*******************************************************************
+-->
+<!-- undefined elements: 
+
+-->
+
+<!-- undefined masters: 
+
+-->
+
+
+<!ENTITY % dtdmaker.standardattributes    "SI S SYSCOND T TI VIEW C LC">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT MSRSW
+        (
+          SHORT-NAME? ,
+          CATEGORY? ,
+          SW-SYSTEMS? ,
+          MATCHING-DCIS? ,
+          SDGS? ,
+          LOCS?
+        )
+>
+
+<!ATTLIST MSRSW
+
+          C               CDATA     #IMPLIED
+          CREATOR         CDATA     #IMPLIED
+          CREATOR-VERSION CDATA     #IMPLIED
+          F-CM-TOOL-ID    CDATA     #FIXED  "$Id$"
+          F-DTD-BUILD     CDATA     #FIXED  "9"
+          F-DTD-VERSION   CDATA     #FIXED  "3.0.0"
+          F-PUBID         CDATA     #FIXED  "-//ASAM//DTD MSR SOFTWARE DTD:V3.0.0:LAI:IAI:XML:MSRSW.DTD//EN"
+          LC              CDATA     #IMPLIED
+          PUBID           CDATA             "-//ASAM//DTD META DATA EXCHANGE FORMAT FOR SOFTWARE MODULE SHARING:V1.0.0:LAI:IAI:XML:MDX100.XSD//EN"
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % MSRSW.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT ADMIN-DATA
+        (
+          DOC-REVISIONS? ,
+          SDGS?
+        )
+>
+
+<!ATTLIST ADMIN-DATA
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % ADMIN-DATA.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT BASE-TYPE
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          (
+            BASE-TYPE-SIZE? |
+            MAX-BASE-TYPE-SIZE?
+          ) ,
+          BASE-TYPE-ENCODING ,
+          MEM-ALIGNMENT? ,
+          BYTE-ORDER?
+        )
+>
+
+<!ATTLIST BASE-TYPE
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "BASE-TYPE"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % BASE-TYPE.master      "SW-BASE-TYPE_TYPE">
+<!ENTITY % BASE-TYPE.derived-as  "extendAttributes">
+
+<!ENTITY % BASE-TYPE.status    "current">
+<!ENTITY % BASE-TYPE.comment   "Should also have NCOI elements such as SW-CODE-SYNTAX">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT BASE-TYPE-ENCODING
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST BASE-TYPE-ENCODING
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT BASE-TYPE-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST BASE-TYPE-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "BASE-TYPE"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % BASE-TYPE-REF.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT BASE-TYPE-SIZE
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST BASE-TYPE-SIZE
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % BASE-TYPE-SIZE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT BASE-TYPES
+        (
+          BASE-TYPE*
+        )
+>
+
+<!ATTLIST BASE-TYPES
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % BASE-TYPES.status    "current">
+
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT BIT-POSITION
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST BIT-POSITION
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % BIT-POSITION.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT BR EMPTY
+>
+
+<!ATTLIST BR
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % BR.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT BYTE-ORDER
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST BYTE-ORDER
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          TYPE            (MOST-SIGNIFICANT-BYTE-FIRST|MOST-SIGNIFICANT-BYTE-LAST)  #REQUIRED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % BYTE-ORDER.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT CATEGORY
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST CATEGORY
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % CATEGORY.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT COMPU-CONST
+        (
+          VF |
+          V |
+          VT
+        )
+>
+
+<!ATTLIST COMPU-CONST
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % COMPU-CONST.master      "COMPU-CONST_TYPE">
+<!ENTITY % COMPU-CONST.derived-as  "identical">
+
+<!ENTITY % COMPU-CONST.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT COMPU-DEFAULT-VALUE
+        (
+          VF |
+          VT |
+          V
+        )
+>
+
+<!ATTLIST COMPU-DEFAULT-VALUE
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % COMPU-DEFAULT-VALUE.master      "COMPU-CONST_TYPE">
+<!ENTITY % COMPU-DEFAULT-VALUE.derived-as  "identical">
+
+<!ENTITY % COMPU-DEFAULT-VALUE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT COMPU-DENOMINATOR
+        (
+          VF |
+          V
+        )*
+>
+
+<!ATTLIST COMPU-DENOMINATOR
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % COMPU-DENOMINATOR.master      "COMPU-NOMINATOR_DENOMINATOR_TYPE">
+<!ENTITY % COMPU-DENOMINATOR.derived-as  "identical">
+
+<!ENTITY % COMPU-DENOMINATOR.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT COMPU-INTERNAL-TO-PHYS
+        (
+          COMPU-SCALES,
+          COMPU-DEFAULT-VALUE?
+        )
+>
+
+<!ATTLIST COMPU-INTERNAL-TO-PHYS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % COMPU-INTERNAL-TO-PHYS.master      "COMPU_TYPE">
+<!ENTITY % COMPU-INTERNAL-TO-PHYS.derived-as  "identical">
+
+<!ENTITY % COMPU-INTERNAL-TO-PHYS.status    "current">
+
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT COMPU-METHOD
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          UNIT-REF? ,
+          COMPU-INTERNAL-TO-PHYS? ,
+          COMPU-PHYS-TO-INTERNAL?
+        )
+>
+
+<!ATTLIST COMPU-METHOD
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "COMPU-METHOD"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % COMPU-METHOD.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT COMPU-METHOD-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST COMPU-METHOD-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "COMPU-METHOD"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % COMPU-METHOD-REF.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT COMPU-METHOD-REFS
+        (
+          COMPU-METHOD-REF
+        )*
+>
+
+<!ATTLIST COMPU-METHOD-REFS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % COMPU-METHOD-REFS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT COMPU-METHODS
+        (
+          COMPU-METHOD*
+        )
+>
+
+<!ATTLIST COMPU-METHODS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % COMPU-METHODS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT COMPU-NUMERATOR
+        (
+          VF |
+          V
+        )*
+>
+
+<!ATTLIST COMPU-NUMERATOR
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % COMPU-NUMERATOR.master      "COMPU-NOMINATOR_DENOMINATOR_TYPE">
+<!ENTITY % COMPU-NUMERATOR.derived-as  "identical">
+
+<!ENTITY % COMPU-NUMERATOR.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT COMPU-PHYS-TO-INTERNAL
+        (
+          COMPU-SCALES ,
+          COMPU-DEFAULT-VALUE?
+        )
+>
+
+<!ATTLIST COMPU-PHYS-TO-INTERNAL
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % COMPU-PHYS-TO-INTERNAL.master      "COMPU_TYPE">
+<!ENTITY % COMPU-PHYS-TO-INTERNAL.derived-as  "identical">
+
+<!ENTITY % COMPU-PHYS-TO-INTERNAL.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT COMPU-RATIONAL-COEFFS
+        (
+          COMPU-NUMERATOR ,
+          COMPU-DENOMINATOR
+        )
+>
+
+<!ATTLIST COMPU-RATIONAL-COEFFS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % COMPU-RATIONAL-COEFFS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT COMPU-SCALE
+        (
+          LOWER-LIMIT? ,
+          UPPER-LIMIT? ,          
+          (
+            COMPU-CONST |
+            COMPU-RATIONAL-COEFFS
+          )?
+        )
+>
+
+<!ATTLIST COMPU-SCALE
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % COMPU-SCALE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT COMPU-SCALES
+        (
+          COMPU-SCALE*
+        )
+>
+
+<!ATTLIST COMPU-SCALES
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % COMPU-SCALES.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT CURRENT-EXP
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST CURRENT-EXP
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT DATA-CONSTR
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          DATA-CONSTR-RULES?
+        )
+>
+
+<!ATTLIST DATA-CONSTR
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "DATA-CONSTR"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT DATA-CONSTR-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST DATA-CONSTR-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "DATA-CONSTR"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT DATA-CONSTR-REFS
+        (
+          DATA-CONSTR-REF
+        )*
+>
+
+<!ATTLIST DATA-CONSTR-REFS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT DATA-CONSTR-RULE
+        (
+          PHYS-CONSTRS? ,
+          INTERNAL-CONSTRS?
+        )
+>
+
+<!ATTLIST DATA-CONSTR-RULE
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT DATA-CONSTR-RULES
+        (
+          DATA-CONSTR-RULE+
+        )
+>
+
+<!ATTLIST DATA-CONSTR-RULES
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT DATA-CONSTRS
+        (
+          DATA-CONSTR*
+        )
+>
+
+<!ATTLIST DATA-CONSTRS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT DATE
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST DATE
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % DATE.master      "ml-data-10">
+<!ENTITY % DATE.derived-as  "identical">
+
+<!ENTITY % DATE.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT DISPLAY-NAME
+        (
+          #PCDATA 
+        )
+>
+
+<!ATTLIST DISPLAY-NAME
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % DISPLAY-NAME.master      "sl-data-3">
+<!ENTITY % DISPLAY-NAME.derived-as  "identical">
+
+<!ENTITY % DISPLAY-NAME.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT DOC-REVISION
+        (
+          REVISION-LABEL? ,
+          REVISION-LABEL-P1? ,
+          REVISION-LABEL-P2? ,
+          DATE? 
+        )
+>
+
+<!ATTLIST DOC-REVISION
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % DOC-REVISION.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT DOC-REVISIONS
+        (
+          DOC-REVISION
+        )
+>
+
+<!ATTLIST DOC-REVISIONS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % DOC-REVISIONS.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT FACTOR-SI-TO-UNIT
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST FACTOR-SI-TO-UNIT
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT FORMULA
+        (
+         VERBATIM? 
+        )
+>
+
+<!ATTLIST FORMULA
+
+          C               CDATA     #IMPLIED
+          KEEP-WITH-PREVIOUS        (KEEP|NO-KEEP)  #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % FORMULA.master      "ml-formula">
+<!ENTITY % FORMULA.derived-as  "identical">
+
+<!ENTITY % FORMULA.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT INTERNAL-CONSTRS
+        (
+          LOWER-LIMIT? ,
+          UPPER-LIMIT? 
+        )
+>
+
+<!ATTLIST INTERNAL-CONSTRS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % INTERNAL-CONSTRS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT LABEL
+        (
+          #PCDATA  
+        ) 
+>
+
+<!ATTLIST LABEL
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % LABEL.master      "ml-data-4">
+<!ENTITY % LABEL.derived-as  "identical">
+
+<!ENTITY % LABEL.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT LENGTH-EXP
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST LENGTH-EXP
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT LOCS
+        (
+          NAMELOC+
+        )
+>
+
+<!ATTLIST LOCS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % LOCS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT LONG-NAME
+        (
+          #PCDATA  
+        ) 
+>
+
+<!ATTLIST LONG-NAME
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % LONG-NAME.master      "ml-data-4">
+<!ENTITY % LONG-NAME.derived-as  "identical">
+
+<!ENTITY % LONG-NAME.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT LOWER-LIMIT
+        (
+          #PCDATA |
+          SW-SYSTEMCONST-CODED-REF |
+          SW-SYSTEMCONST-PHYS-REF
+        )*
+>
+
+<!ATTLIST LOWER-LIMIT
+
+          C               CDATA     #IMPLIED
+          INTERVAL-TYPE   (OPEN|CLOSED|INFINITE)    "CLOSED"
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % LOWER-LIMIT.master      "LIMIT_TYPE">
+<!ENTITY % LOWER-LIMIT.derived-as  "identical">
+
+<!ENTITY % LOWER-LIMIT.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT LUMINOUS-INTENSITY-EXP
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST LUMINOUS-INTENSITY-EXP
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT MASS-EXP
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST MASS-EXP
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT MATCHING-DCI
+        (
+          LABEL? ,
+          SHORT-LABEL? ,
+          URL?  
+        )
+>
+
+<!ATTLIST MATCHING-DCI
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % MATCHING-DCI.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT MATCHING-DCIS
+        (
+          MATCHING-DCI+
+        )
+>
+
+<!ATTLIST MATCHING-DCIS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % MATCHING-DCIS.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT MAX-BASE-TYPE-SIZE
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST MAX-BASE-TYPE-SIZE
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT MEM-ALIGNMENT
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST MEM-ALIGNMENT
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT MOLAR-AMOUNT-EXP
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST MOLAR-AMOUNT-EXP
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT NAMELOC
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          NMLIST
+        )
+>
+
+<!ATTLIST NAMELOC
+
+          C               CDATA     #IMPLIED
+          EXT-ID-CLASS    NMTOKEN   #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "EXTERNAL"
+          HYTIME          NMTOKEN   #FIXED  "NAMELOC"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % NAMELOC.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT NMLIST
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST NMLIST
+
+          C               CDATA     #IMPLIED
+          DOCORSUB        CDATA    #IMPLIED
+          HYTIME          NMTOKEN   #FIXED  "NMLIST"
+          LC              CDATA     #IMPLIED
+          NAMETYPE        (ENTITY|ELEMENT)  "ELEMENT"
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % NMLIST.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT NUMBER-OF-BITS
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST NUMBER-OF-BITS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % NUMBER-OF-BITS.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT OFFSET-SI-TO-UNIT
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST OFFSET-SI-TO-UNIT
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT PHYS-CONSTRS
+        (
+          LOWER-LIMIT? ,
+          UPPER-LIMIT? 
+        )
+>
+
+<!ATTLIST PHYS-CONSTRS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % PHYS-CONSTRS.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT PHYSICAL-DIMENSION
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          LENGTH-EXP? ,
+          MASS-EXP? ,
+          TIME-EXP? ,
+          CURRENT-EXP? ,
+          TEMPERATURE-EXP? ,
+          MOLAR-AMOUNT-EXP? ,
+          LUMINOUS-INTENSITY-EXP?
+        )
+>
+
+<!ATTLIST PHYSICAL-DIMENSION
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "PHYSICAL-DIMENSION"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT PHYSICAL-DIMENSION-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST PHYSICAL-DIMENSION-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "PHYSICAL-DIMENSION"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT PHYSICAL-DIMENSIONS
+        (
+          PHYSICAL-DIMENSION+
+        )
+>
+
+<!ATTLIST PHYSICAL-DIMENSIONS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT REVISION-LABEL
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST REVISION-LABEL
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % REVISION-LABEL.master      "ml-data-10">
+<!ENTITY % REVISION-LABEL.derived-as  "identical">
+
+<!ENTITY % REVISION-LABEL.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT REVISION-LABEL-P1
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST REVISION-LABEL-P1
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % REVISION-LABEL-P1.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT REVISION-LABEL-P2
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST REVISION-LABEL-P2
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % REVISION-LABEL-P2.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SD
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SD
+
+          C               CDATA     #IMPLIED
+          GID             CDATA     #REQUIRED
+          ID-CLASS        NMTOKEN   #IMPLIED
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SD.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SDG
+        (
+          SDG-CAPTION? ,
+          
+          (
+            SD? |
+            SDG?
+          )*
+        )
+>
+
+<!ATTLIST SDG
+
+          C               CDATA     #IMPLIED
+          GID             CDATA     #REQUIRED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SDG.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SDG-CAPTION
+        (
+          SHORT-NAME ,
+          LONG-NAME?  
+        )
+>
+
+<!ATTLIST SDG-CAPTION
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SDG"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SDG-CAPTION.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SDGS
+        (
+          SDG+
+        )
+>
+
+<!ATTLIST SDGS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SDGS.master      "SDGS_TYPE">
+<!ENTITY % SDGS.derived-as  "identical">
+
+<!ENTITY % SDGS.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SHORT-LABEL
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SHORT-LABEL
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SHORT-LABEL.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SHORT-NAME
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SHORT-NAME
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SHORT-NAME.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-ACCESSED-CLASS-INSTANCES
+        (
+          SW-CLASS-INSTANCE-REF?
+        )*
+>
+
+<!ATTLIST SW-ACCESSED-CLASS-INSTANCES
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-ACCESSED-CLASS-INSTANCES.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-ACCESSED-SERVICE
+        (
+          SW-SERVICE-REF 
+        )
+>
+
+<!ATTLIST SW-ACCESSED-SERVICE
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-ACCESSED-SERVICE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-ACCESSED-SERVICES
+        (
+          SW-ACCESSED-SERVICE*
+        )
+>
+
+<!ATTLIST SW-ACCESSED-SERVICES
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-ACCESSED-SERVICES.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-ACCESSED-VARIABLE
+        (
+          SW-VARIABLE-REF? ,
+          SW-VARIABLE-USAGE? ,
+          SW-VARIABLE-ACCESS-IMPL? 
+        )
+>
+
+<!ATTLIST SW-ACCESSED-VARIABLE
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-ACCESSED-VARIABLE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-ACCESSED-VARIABLES
+        (
+          SW-ACCESSED-VARIABLE*
+        )
+>
+
+<!ATTLIST SW-ACCESSED-VARIABLES
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-ACCESSED-VARIABLES.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-ADDR-METHOD
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          SW-CPU-MEM-SEG-REF? 
+        )
+>
+
+<!ATTLIST SW-ADDR-METHOD
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-ADDR-METHOD"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-ADDR-METHOD.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-ADDR-METHOD-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-ADDR-METHOD-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-ADDR-METHOD"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-ADDR-METHOD-REF.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-ADDR-METHODS
+        (
+          SW-ADDR-METHOD*
+        )
+>
+
+<!ATTLIST SW-ADDR-METHODS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-ADDR-METHODS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-ARRAYSIZE
+        (
+          VF |
+          V
+        )*
+>
+
+<!ATTLIST SW-ARRAYSIZE
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-ARRAYSIZE.master      "SW-ARRAYSIZE_TYPE">
+<!ENTITY % SW-ARRAYSIZE.derived-as  "identical">
+
+<!ENTITY % SW-ARRAYSIZE.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-AXIS-GENERIC
+        (
+          SW-AXIS-TYPE-REF ,
+          SW-GENERIC-AXIS-PARAMS? 
+        )
+>
+
+<!ATTLIST SW-AXIS-GENERIC
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-AXIS-GENERIC.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-AXIS-GROUPED
+        (
+          SW-CALPRM-REF
+        )
+>
+
+<!ATTLIST SW-AXIS-GROUPED
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-AXIS-GROUPED.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-AXIS-INDEX
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-AXIS-INDEX
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-AXIS-INDEX.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-AXIS-INDIVIDUAL
+        (
+          SW-VARIABLE-REFS? ,
+          COMPU-METHOD-REF? ,
+          UNIT-REF? ,
+          SW-MAX-AXIS-POINTS? ,
+          SW-MIN-AXIS-POINTS? ,
+          DATA-CONSTR-REF? ,
+          SW-AXIS-GENERIC?
+        )
+>
+
+<!ATTLIST SW-AXIS-INDIVIDUAL
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-AXIS-INDIVIDUAL.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-AXIS-TYPE
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          SW-GENERIC-AXIS-DESC? ,
+          SW-GENERIC-AXIS-PARAM-TYPES?
+        )
+>
+
+<!ATTLIST SW-AXIS-TYPE
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-AXIS-TYPE"
+          F-NAMESPACE     NMTOKENS  #FIXED  "SW-GENERIC-AXIS-PARAM-TYPE"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-AXIS-TYPE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-AXIS-TYPE-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-AXIS-TYPE-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-AXIS-TYPE"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-AXIS-TYPE-REF.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-AXIS-TYPE-REFS
+        (
+          SW-AXIS-TYPE-REF
+        )*
+>
+
+<!ATTLIST SW-AXIS-TYPE-REFS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-AXIS-TYPE-REFS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-AXIS-TYPES
+        (
+          SW-AXIS-TYPE*
+        )
+>
+
+<!ATTLIST SW-AXIS-TYPES
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-AXIS-TYPES.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-BIT-REPRESENTATION
+        (
+          BIT-POSITION? ,
+          NUMBER-OF-BITS?
+        )
+>
+
+<!ATTLIST SW-BIT-REPRESENTATION
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-BIT-REPRESENTATION.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CALIBRATION-ACCESS
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-CALIBRATION-ACCESS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CALIBRATION-ACCESS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CALPRM
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          SW-ARRAYSIZE? ,
+          SW-DATA-DEF-PROPS? ,
+          SW-CALPRMS? 
+        )
+>
+
+<!ATTLIST SW-CALPRM
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-CALPRM"
+          F-NAMESPACE     NMTOKEN   #FIXED  "SW-CALPRM"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CALPRM.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CALPRM-AXIS
+        (
+          SW-AXIS-INDEX? ,
+          CATEGORY?,
+          
+          (
+            SW-AXIS-INDIVIDUAL |
+            SW-AXIS-GROUPED
+          ) ,
+          SW-CALIBRATION-ACCESS? ,
+          BASE-TYPE-REF?
+        )
+>
+
+<!ATTLIST SW-CALPRM-AXIS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CALPRM-AXIS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CALPRM-AXIS-SET
+        (
+          SW-CALPRM-AXIS*
+        )
+>
+
+<!ATTLIST SW-CALPRM-AXIS-SET
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CALPRM-AXIS-SET.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CALPRM-IMPL
+        (
+          SW-CALPRM-PROTOTYPE-REF ,
+          SW-DATA-DEF-PROPS?
+        )
+>
+
+<!ATTLIST SW-CALPRM-IMPL
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CALPRM-IMPL.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CALPRM-IMPLS
+        (
+          SW-CALPRM-IMPL*
+        )
+>
+
+<!ATTLIST SW-CALPRM-IMPLS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CALPRM-IMPLS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-MAX-TEXT-SIZE
+        (
+          #PCDATA |
+          SW-SYSTEMCONST-CODED-REF |
+          SW-SYSTEMCONST-PHYS-REF
+        )*
+>
+
+<!ATTLIST SW-MAX-TEXT-SIZE
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-MAX-TEXT-SIZE.master      "VF_TYPE">
+<!ENTITY % SW-MAX-TEXT-SIZE.derived-as  "identical">
+
+<!ENTITY % SW-MAX-TEXT-SIZE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CALPRM-PROTOTYPE
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          SW-DATA-DEF-PROPS? 
+        )
+>
+
+<!ATTLIST SW-CALPRM-PROTOTYPE
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      CDATA     #FIXED  "SW-CALPRM-PROTOTYPE"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CALPRM-PROTOTYPE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CALPRM-PROTOTYPE-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-CALPRM-PROTOTYPE-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-CALPRM-PROTOTYPE"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CALPRM-PROTOTYPE-REF.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CALPRM-PROTOTYPES
+        (
+          SW-CALPRM-PROTOTYPE*
+        )
+>
+
+<!ATTLIST SW-CALPRM-PROTOTYPES
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CALPRM-PROTOTYPES.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CALPRM-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-CALPRM-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-CALPRM"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CALPRM-REF.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CALPRM-REFS
+        (
+          SW-CALPRM-REF
+        )*
+>
+
+<!ATTLIST SW-CALPRM-REFS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CALPRM-REFS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-TEXT-PROPS
+        (
+          SW-MAX-TEXT-SIZE? ,
+          SW-FILL-CHARACTER?
+        )
+>
+
+<!ATTLIST SW-TEXT-PROPS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-TEXT-PROPS.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CALPRMS
+        (
+          SW-CALPRM*
+        )
+>
+
+<!ATTLIST SW-CALPRMS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CALPRMS.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CLASS
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          SW-CLASS-ATTR? ,
+          SW-CLASS-ATTR-IMPLS? ,
+          SW-DATA-DEF-PROPS?
+        )
+>
+
+<!ATTLIST SW-CLASS
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-CLASS"
+          F-NAMESPACE     NMTOKENS  #FIXED  "BASE-TYPE CHAPTER COMPU-METHOD DATA-CONSTR DEF-ITEM FIGURE FORMULA PHYSICAL-DIMENSION PRM SDG STD SW-ADDR-METHOD SW-AXIS-TYPE SW-CALPRM SW-CALPRM-PROTOTYPE SW-CLASS-ATTR-IMPL SW-CLASS-INSTANCE SW-CLASS-PROTOTYPE SW-CODE-SYNTAX SW-FEATURE-INTERFACE SW-GENERIC-AXIS-PARAM-TYPE SW-RECORD-LAYOUT SW-SERVICE SW-SERVICE-ARG SW-SERVICE-PROTOTYPE SW-SERVICE-RETURN SW-SYSTEMCONST SW-TEMPLATE SW-VARIABLE SW-VARIABLE-PROTOTYPE SYNOPSIS TABLE TOPIC UNIT UNIT-GROUP XDOC XFILE XREF-TARGET"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CLASS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CLASS-ATTR
+        (
+          SW-VARIABLE-PROTOTYPES? ,
+          SW-CALPRM-PROTOTYPES?
+        )
+>
+
+<!ATTLIST SW-CLASS-ATTR
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CLASS-ATTR.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CLASS-ATTR-IMPL
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          SW-DATA-DEF-PROPS? ,
+          SW-VARIABLE-IMPLS? ,
+          SW-CALPRM-IMPLS? 
+        )
+>
+
+<!ATTLIST SW-CLASS-ATTR-IMPL
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      CDATA     #FIXED  "SW-CLASS-ATTR-IMPL"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CLASS-ATTR-IMPL.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CLASS-ATTR-IMPL-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-CLASS-ATTR-IMPL-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-CLASS-ATTR-IMPL"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CLASS-ATTR-IMPL-REF.status    "current">
+
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CLASS-ATTR-IMPLS
+        (
+          SW-CLASS-ATTR-IMPL*
+        )
+>
+
+<!ATTLIST SW-CLASS-ATTR-IMPLS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CLASS-ATTR-IMPLS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CLASS-ATTR-INSTANCE-IMPL
+        (
+          SW-VARIABLE-IMPLS? ,
+          SW-CALPRM-IMPLS? ,
+          SW-CLASS-IMPLS?
+        )
+>
+
+<!ATTLIST SW-CLASS-ATTR-INSTANCE-IMPL
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CLASS-ATTR-INSTANCE-IMPL.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CLASS-IMPL
+        (
+          SW-CLASS-PROTOTYPE-REF ,
+          SW-DATA-DEF-PROPS?
+        )
+>
+
+<!ATTLIST SW-CLASS-IMPL
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CLASS-IMPL.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CLASS-IMPLS
+        (
+          SW-CLASS-IMPL*
+        )
+>
+
+<!ATTLIST SW-CLASS-IMPLS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CLASS-IMPLS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CLASS-INSTANCE
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          SW-DATA-DEF-PROPS? ,
+          SW-CLASS-ATTR-INSTANCE-IMPL?
+        )
+>
+
+<!ATTLIST SW-CLASS-INSTANCE
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-CLASS-INSTANCE"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CLASS-INSTANCE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CLASS-INSTANCE-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-CLASS-INSTANCE-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-CLASS-INSTANCE"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CLASS-INSTANCE-REF.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CLASS-INSTANCE-REFS
+        (
+          SW-CLASS-INSTANCE-REF
+        )*
+>
+
+<!ATTLIST SW-CLASS-INSTANCE-REFS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CLASS-INSTANCE-REFS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CLASS-INSTANCES
+        (
+          SW-CLASS-INSTANCE*
+        )
+>
+
+<!ATTLIST SW-CLASS-INSTANCES
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CLASS-INSTANCES.status    "current">
+
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CLASS-PROTOTYPE-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-CLASS-PROTOTYPE-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-CLASS-PROTOTYPE"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CLASS-PROTOTYPE-REF.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CLASS-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-CLASS-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-CLASS"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CLASS-REF.status    "current">
+
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CLASS-REFS
+        (
+          SW-CLASS-REF
+        )*
+>
+
+<!ATTLIST SW-CLASS-REFS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CLASS-REFS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CLASSES
+        (
+          SW-CLASS*
+        )
+>
+
+<!ATTLIST SW-CLASSES
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CLASSES.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CODE-SYNTAX
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? 
+        )
+>
+
+<!ATTLIST SW-CODE-SYNTAX
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-CODE-SYNTAX"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CODE-SYNTAX.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CODE-SYNTAX-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-CODE-SYNTAX-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-CODE-SYNTAX"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CODE-SYNTAX-REF.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CODE-SYNTAXES
+        (
+          SW-CODE-SYNTAX*
+        )
+>
+
+<!ATTLIST SW-CODE-SYNTAXES
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CODE-SYNTAXES.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-COLLECTION
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          SW-COLLECTION-REFS? ,
+          SW-COLLECTION-CONT?
+        )
+>
+
+<!ATTLIST SW-COLLECTION
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-COLLECTION"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          ROOT            (ROOT|NO-ROOT)    "NO-ROOT"
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-COLLECTION.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-COLLECTION-CONT
+        (
+          SW-FEATURE-REFS? ,
+          SW-VARIABLE-REFS? ,
+          SW-CALPRM-REFS? ,
+          SW-CLASS-INSTANCE-REFS? ,
+          SW-SYSTEMCONST-REFS? 
+        )
+>
+
+<!ATTLIST SW-COLLECTION-CONT
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-COLLECTION-CONT.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-COLLECTION-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-COLLECTION-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-COLLECTION"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          INVERT          (INVERT|NO-INVERT)        "NO-INVERT"
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-COLLECTION-REF.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-COLLECTION-REFS
+        (
+          SW-COLLECTION-REF*
+        )
+>
+
+<!ATTLIST SW-COLLECTION-REFS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-COLLECTION-REFS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-COLLECTION-SPEC
+        (
+          SW-COLLECTIONS?
+        )
+>
+
+<!ATTLIST SW-COLLECTION-SPEC
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-COLLECTION-SPEC.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-COLLECTIONS
+        (
+          SW-COLLECTION*
+        )
+>
+
+<!ATTLIST SW-COLLECTIONS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-COLLECTIONS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-COMPONENT-SPEC
+        (
+          SW-COMPONENTS?
+        )
+>
+
+<!ATTLIST SW-COMPONENT-SPEC
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-COMPONENT-SPEC.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-COMPONENTS
+        (
+          SW-FEATURE
+        )*
+>
+
+<!ATTLIST SW-COMPONENTS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-COMPONENTS.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CPU-MEM-SEG
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          SW-MEM-PROGRAM-TYPE? ,
+          SW-MEM-TYPE? ,
+          SW-MEM-ATTR? ,
+          SW-MEM-BASE-ADDR? ,
+          SW-MEM-SIZE? ,
+          SW-MEM-OFFSETS?  
+        )
+>
+
+<!ATTLIST SW-CPU-MEM-SEG
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      CDATA     #FIXED  "SW-CPU-MEM-SEG"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CPU-MEM-SEG.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CPU-MEM-SEG-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-CPU-MEM-SEG-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-CPU-MEM-SEG"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CPU-MEM-SEG-REF.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CPU-MEM-SEGS
+        (
+          SW-CPU-MEM-SEG*
+        )
+>
+
+<!ATTLIST SW-CPU-MEM-SEGS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CPU-MEM-SEGS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-CPU-SPEC
+        (
+          SW-CPU-MEM-SEGS? 
+        )
+>
+
+<!ATTLIST SW-CPU-SPEC
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-CPU-SPEC.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-DATA-DEF-PROPS
+        (
+          SW-ADDR-METHOD-REF? ,
+          BASE-TYPE-REF? ,
+          SW-BIT-REPRESENTATION? ,
+          SW-CALIBRATION-ACCESS? ,
+          SW-VALUE-BLOCK-SIZE? ,
+          SW-CALPRM-AXIS-SET? ,
+          SW-TEXT-PROPS? ,
+          SW-CLASS-ATTR-IMPL-REF? ,
+          SW-CLASS-REF? ,
+          SW-CODE-SYNTAX-REF? ,
+          COMPU-METHOD-REF? ,
+          DATA-CONSTR-REF? ,
+          SW-DATA-DEPENDENCY? ,
+          SW-HOST-VARIABLE? ,
+          SW-IMPL-POLICY? ,
+          SW-POINTER? ,
+          SW-RECORD-LAYOUT-REF? ,
+          UNIT-REF? ,
+          SW-VARIABLE-ACCESS-IMPL-POLICY?
+        )
+>
+
+<!ATTLIST SW-DATA-DEF-PROPS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-DATA-DEF-PROPS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-DATA-DEPENDENCY
+        (
+          SW-DATA-DEPENDENCY-FORMULA? ,
+          SW-DATA-DEPENDENCY-ARGS?
+        )
+>
+
+<!ATTLIST SW-DATA-DEPENDENCY
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-DATA-DEPENDENCY.status    "strange">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-DATA-DEPENDENCY-ARGS
+        (
+          SW-CALPRM-REF 
+        )*
+>
+
+<!ATTLIST SW-DATA-DEPENDENCY-ARGS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-DATA-DEPENDENCY-ARGS.status    "strange">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-DATA-DEPENDENCY-FORMULA
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-DATA-DEPENDENCY-FORMULA
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-DATA-DEPENDENCY-FORMULA.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-DATA-DICTIONARY-SPEC
+        (
+          UNIT-SPEC? ,
+          SW-VARIABLES? ,
+          SW-CALPRMS? ,
+          SW-SYSTEMCONSTS? ,
+          SW-CLASS-INSTANCES? ,
+          COMPU-METHODS? ,
+          SW-ADDR-METHODS? ,
+          SW-RECORD-LAYOUTS? ,
+          SW-CODE-SYNTAXES? ,
+          BASE-TYPES? ,
+          DATA-CONSTRS? ,
+          SW-AXIS-TYPES? ,
+          SW-SERVICES? ,
+          SW-CLASSES?
+        )
+>
+
+<!ATTLIST SW-DATA-DICTIONARY-SPEC
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-DATA-DICTIONARY-SPEC.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-FEATURE
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          ADMIN-DATA? ,
+          SW-DATA-DICTIONARY-SPEC? ,
+          SW-FEATURE-OWNED-ELEMENT-SETS? ,
+          SW-FEATURE-INTERFACES?  
+        )
+>
+
+<!ATTLIST SW-FEATURE
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-FEATURE"
+          F-NAMESPACE     NMTOKENS  #FIXED  "BASE-TYPE CHAPTER COMPU-METHOD DATA-CONSTR DEF-ITEM FIGURE FORMULA PHYSICAL-DIMENSION PRM SDG STD SW-ADDR-METHOD SW-AXIS-TYPE SW-CALPRM SW-CALPRM-PROTOTYPE SW-CLASS SW-CLASS-ATTR-IMPL SW-CLASS-INSTANCE SW-CLASS-PROTOTYPE SW-CODE-SYNTAX SW-FEATURE-INTERFACE SW-FEATURE-VARIANT SW-GENERIC-AXIS-PARAM-TYPE SW-RECORD-LAYOUT SW-SERVICE SW-SERVICE-ARG SW-SERVICE-PROTOTYPE SW-SERVICE-RETURN SW-SYSTEMCONST SW-TEMPLATE SW-VARIABLE SW-VARIABLE-PROTOTYPE SYNOPSIS TABLE TOPIC UNIT UNIT-GROUP XDOC XFILE XREF-TARGET"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-FEATURE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-FEATURE-ELEMENTS
+        (
+          SW-AXIS-TYPE-REFS? ,
+          SW-CALPRM-REFS? ,
+          SW-CLASS-INSTANCE-REFS? ,
+          SW-CLASS-REFS? ,
+          COMPU-METHOD-REFS? ,
+          DATA-CONSTR-REFS? ,
+          SW-SERVICE-REFS? ,
+          SW-SYSTEMCONST-REFS? ,
+          SW-VARIABLE-REFS?
+        )
+>
+
+<!ATTLIST SW-FEATURE-ELEMENTS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-FEATURE-ELEMENTS.status    "to-be-renamed">
+<!ENTITY % SW-FEATURE-ELEMENTS.comment   "could be called SW-FEATURE-INTERFACE-ELEMENTS">
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-FEATURE-INTERFACE
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          SW-INTERFACE-EXPORTS? ,
+          SW-INTERFACE-IMPORTS?
+        )
+>
+
+<!ATTLIST SW-FEATURE-INTERFACE
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-FEATURE-INTERFACE"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-FEATURE-INTERFACE.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-FEATURE-INTERFACES
+        (
+          SW-FEATURE-INTERFACE*
+        )
+>
+
+<!ATTLIST SW-FEATURE-INTERFACES
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-FEATURE-INTERFACES.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-FEATURE-OWNED-ELEMENT-SET
+        (
+          SW-FEATURE-ELEMENTS?
+        )
+>
+
+<!ATTLIST SW-FEATURE-OWNED-ELEMENT-SET
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-FEATURE-OWNED-ELEMENT-SET.master      "SW-FEATURE-OWNED-ELEMENT-SET_TYPE">
+<!ENTITY % SW-FEATURE-OWNED-ELEMENT-SET.derived-as  "identical">
+
+<!ENTITY % SW-FEATURE-OWNED-ELEMENT-SET.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-FEATURE-OWNED-ELEMENT-SETS
+        (
+          SW-FEATURE-OWNED-ELEMENT-SET*
+        )
+>
+
+<!ATTLIST SW-FEATURE-OWNED-ELEMENT-SETS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-FEATURE-OWNED-ELEMENT-SETS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-FEATURE-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-FEATURE-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-FEATURE"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-FEATURE-REF.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-FEATURE-REFS
+        (
+          SW-FEATURE-REF 
+        )*
+>
+
+<!ATTLIST SW-FEATURE-REFS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-FEATURE-REFS.status    "current">
+
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-FILL-CHARACTER
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-FILL-CHARACTER
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-FILL-CHARACTER.status    "current">
+
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-GENERIC-AXIS-DESC
+        (
+          FORMULA
+        )*
+>
+
+<!ATTLIST SW-GENERIC-AXIS-DESC
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-GENERIC-AXIS-DESC.master      "ITEM-CONTENT-MODEL_TYPE">
+<!ENTITY % SW-GENERIC-AXIS-DESC.derived-as  "identical">
+
+<!ENTITY % SW-GENERIC-AXIS-DESC.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-GENERIC-AXIS-PARAM
+        (
+          SW-GENERIC-AXIS-PARAM-TYPE-REF ,
+          (
+  		   VF |
+		   V
+          )*
+        )
+>
+
+<!ATTLIST SW-GENERIC-AXIS-PARAM
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-GENERIC-AXIS-PARAM.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-GENERIC-AXIS-PARAM-TYPE
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? 
+        )
+>
+
+<!ATTLIST SW-GENERIC-AXIS-PARAM-TYPE
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-GENERIC-AXIS-PARAM-TYPE"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-GENERIC-AXIS-PARAM-TYPE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-GENERIC-AXIS-PARAM-TYPE-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-GENERIC-AXIS-PARAM-TYPE-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-GENERIC-AXIS-PARAM-TYPE"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-GENERIC-AXIS-PARAM-TYPE-REF.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-GENERIC-AXIS-PARAM-TYPES
+        (
+          SW-GENERIC-AXIS-PARAM-TYPE*
+        )
+>
+
+<!ATTLIST SW-GENERIC-AXIS-PARAM-TYPES
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-GENERIC-AXIS-PARAM-TYPES.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-GENERIC-AXIS-PARAMS
+        (
+          SW-GENERIC-AXIS-PARAM*
+        )
+>
+
+<!ATTLIST SW-GENERIC-AXIS-PARAMS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-GENERIC-AXIS-PARAMS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-HOST-VARIABLE
+        (
+          SW-VARIABLE-REF
+        )
+>
+
+<!ATTLIST SW-HOST-VARIABLE
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-HOST-VARIABLE.master      "SW-VARIABLE-REF_TYPE">
+<!ENTITY % SW-HOST-VARIABLE.derived-as  "identical">
+
+<!ENTITY % SW-HOST-VARIABLE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-IMPL-POLICY
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-IMPL-POLICY
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-IMPL-POLICY.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-INTERFACE-EXPORT
+        (
+          SW-INTERFACE-EXPORT-SCOPE? ,
+          SW-FEATURE-ELEMENTS?
+        )
+>
+
+<!ATTLIST SW-INTERFACE-EXPORT
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-INTERFACE-EXPORT.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-INTERFACE-EXPORT-LEVEL
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-INTERFACE-EXPORT-LEVEL
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-INTERFACE-EXPORT-LEVEL.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-INTERFACE-EXPORT-SCOPE
+        (
+          SW-INTERFACE-EXPORT-LEVEL |
+          SW-FEATURE-REFS
+        )
+>
+
+<!ATTLIST SW-INTERFACE-EXPORT-SCOPE
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-INTERFACE-EXPORT-SCOPE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-INTERFACE-EXPORTS
+        (
+          SW-INTERFACE-EXPORT*
+        )
+>
+
+<!ATTLIST SW-INTERFACE-EXPORTS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-INTERFACE-EXPORTS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-INTERFACE-IMPORT
+        (
+          SW-FEATURE-ELEMENTS?
+        )
+>
+
+<!ATTLIST SW-INTERFACE-IMPORT
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-INTERFACE-IMPORT.master      "SW-FEATURE-OWNED-ELEMENT-SET_TYPE">
+<!ENTITY % SW-INTERFACE-IMPORT.derived-as  "identical">
+
+<!ENTITY % SW-INTERFACE-IMPORT.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-INTERFACE-IMPORTS
+        (
+          SW-INTERFACE-IMPORT*
+        )
+>
+
+<!ATTLIST SW-INTERFACE-IMPORTS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-INTERFACE-IMPORTS.status    "current">
+
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-MAX-AXIS-POINTS
+        (
+          #PCDATA |
+          SW-SYSTEMCONST-CODED-REF |
+          SW-SYSTEMCONST-PHYS-REF
+        )*
+>
+
+<!ATTLIST SW-MAX-AXIS-POINTS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-MAX-AXIS-POINTS.master      "VF_TYPE">
+<!ENTITY % SW-MAX-AXIS-POINTS.derived-as  "identical">
+
+<!ENTITY % SW-MAX-AXIS-POINTS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-MEM-ATTR
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-MEM-ATTR
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-MEM-ATTR.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-MEM-BASE-ADDR
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-MEM-BASE-ADDR
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-MEM-BASE-ADDR.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-MEM-OFFSET
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-MEM-OFFSET
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-MEM-OFFSET.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-MEM-OFFSETS
+        (
+          SW-MEM-OFFSET*
+        )
+>
+
+<!ATTLIST SW-MEM-OFFSETS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-MEM-OFFSETS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-MEM-PROGRAM-TYPE
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-MEM-PROGRAM-TYPE
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-MEM-PROGRAM-TYPE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-MEM-SIZE
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-MEM-SIZE
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-MEM-SIZE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-MEM-TYPE
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-MEM-TYPE
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-MEM-TYPE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-MIN-AXIS-POINTS
+        (
+          #PCDATA |
+          SW-SYSTEMCONST-CODED-REF |
+          SW-SYSTEMCONST-PHYS-REF
+        )*
+>
+
+<!ATTLIST SW-MIN-AXIS-POINTS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-MIN-AXIS-POINTS.master      "VF_TYPE">
+<!ENTITY % SW-MIN-AXIS-POINTS.derived-as  "identical">
+
+<!ENTITY % SW-MIN-AXIS-POINTS.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-POINTER
+        (
+          SW-DATA-DEF-PROPS?
+        )
+>
+
+<!ATTLIST SW-POINTER
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-POINTER.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-RECORD-LAYOUT
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          SW-RECORD-LAYOUT-GROUP*
+        )
+>
+
+<!ATTLIST SW-RECORD-LAYOUT
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-RECORD-LAYOUT"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-RECORD-LAYOUT.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-RECORD-LAYOUT-COMPONENT
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-RECORD-LAYOUT-COMPONENT
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-RECORD-LAYOUT-COMPONENT.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-RECORD-LAYOUT-GROUP
+        (
+          SW-RECORD-LAYOUT-GROUP-AXIS? ,
+          SW-RECORD-LAYOUT-GROUP-INDEX? ,
+          SW-RECORD-LAYOUT-GROUP-FROM? ,
+          SW-RECORD-LAYOUT-GROUP-TO? ,
+          SW-RECORD-LAYOUT-GROUP-STEP? ,
+          SW-RECORD-LAYOUT-COMPONENT? ,
+          
+          (
+            SW-RECORD-LAYOUT-REF |
+            SW-RECORD-LAYOUT-V |
+            SW-RECORD-LAYOUT-GROUP
+          )*
+        )
+>
+
+<!ATTLIST SW-RECORD-LAYOUT-GROUP
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-RECORD-LAYOUT-GROUP.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-RECORD-LAYOUT-GROUP-AXIS
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-RECORD-LAYOUT-GROUP-AXIS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-RECORD-LAYOUT-GROUP-AXIS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-RECORD-LAYOUT-GROUP-FROM
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-RECORD-LAYOUT-GROUP-FROM
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-RECORD-LAYOUT-GROUP-FROM.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-RECORD-LAYOUT-GROUP-INDEX
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-RECORD-LAYOUT-GROUP-INDEX
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-RECORD-LAYOUT-GROUP-INDEX.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-RECORD-LAYOUT-GROUP-STEP
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-RECORD-LAYOUT-GROUP-STEP
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-RECORD-LAYOUT-GROUP-STEP.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-RECORD-LAYOUT-GROUP-TO
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-RECORD-LAYOUT-GROUP-TO
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-RECORD-LAYOUT-GROUP-TO.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-RECORD-LAYOUT-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-RECORD-LAYOUT-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-RECORD-LAYOUT"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-RECORD-LAYOUT-REF.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-RECORD-LAYOUT-V
+        (
+          BASE-TYPE-REF? ,
+          SW-RECORD-LAYOUT-V-AXIS? ,
+          SW-RECORD-LAYOUT-V-PROP? ,
+          SW-RECORD-LAYOUT-V-INDEX? ,
+          SW-RECORD-LAYOUT-V-FIX-VALUE? ,
+          SW-RECORD-LAYOUT-REF?
+        )
+>
+
+<!ATTLIST SW-RECORD-LAYOUT-V
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-RECORD-LAYOUT-V.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-RECORD-LAYOUT-V-AXIS
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-RECORD-LAYOUT-V-AXIS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-RECORD-LAYOUT-V-AXIS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-RECORD-LAYOUT-V-FIX-VALUE
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-RECORD-LAYOUT-V-FIX-VALUE
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-RECORD-LAYOUT-V-FIX-VALUE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-RECORD-LAYOUT-V-INDEX
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-RECORD-LAYOUT-V-INDEX
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-RECORD-LAYOUT-V-INDEX.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-RECORD-LAYOUT-V-PROP
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-RECORD-LAYOUT-V-PROP
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-RECORD-LAYOUT-V-PROP.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-RECORD-LAYOUTS
+        (
+          SW-RECORD-LAYOUT*
+        )
+>
+
+<!ATTLIST SW-RECORD-LAYOUTS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-RECORD-LAYOUTS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-SERVICE
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          SW-SERVICE-RETURN? ,
+          SW-SERVICE-ARGS? ,
+          SW-SERVICE-ACCESSED-ELEMENT-SETS? ,
+          SW-SERVICE-PROPS? 
+        )
+>
+
+<!ATTLIST SW-SERVICE
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-SERVICE"
+          F-NAMESPACE     NMTOKENS  #FIXED  "SW-SERVICE-ARG SW-SERVICE-RETURN"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-SERVICE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-SERVICE-ACCESSED-ELEMENT-SET
+        (
+          SW-ACCESSED-VARIABLES? ,
+          SW-ACCESSED-CLASS-INSTANCES? ,
+          SW-ACCESSED-SERVICES?
+        )
+>
+
+<!ATTLIST SW-SERVICE-ACCESSED-ELEMENT-SET
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-SERVICE-ACCESSED-ELEMENT-SETS
+        (
+          SW-SERVICE-ACCESSED-ELEMENT-SET*
+        )
+>
+
+<!ATTLIST SW-SERVICE-ACCESSED-ELEMENT-SETS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-SERVICE-ARG
+        (
+          SHORT-NAME? ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          SW-DATA-DEF-PROPS? 
+        )
+>
+
+<!ATTLIST SW-SERVICE-ARG
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-SERVICE-ARG"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-SERVICE-ARG.master      "SW-SERVICE-ARG_TYPE">
+<!ENTITY % SW-SERVICE-ARG.derived-as  "identical">
+
+<!ENTITY % SW-SERVICE-ARG.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-SERVICE-ARGS
+        (
+          SW-SERVICE-ARG*
+        )
+>
+
+<!ATTLIST SW-SERVICE-ARGS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-SERVICE-ARGS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-SERVICE-PROPS
+        (
+          SW-SERVICE-REENTRANCE? ,
+          SW-IMPL-POLICY?
+        )
+>
+
+<!ATTLIST SW-SERVICE-PROPS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-SERVICE-PROPS.status    "strange">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-SERVICE-REENTRANCE
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-SERVICE-REENTRANCE
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-SERVICE-REENTRANCE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-SERVICE-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-SERVICE-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-SERVICE"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-SERVICE-REF.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-SERVICE-REFS
+        (
+          SW-SERVICE-REF
+        )*
+>
+
+<!ATTLIST SW-SERVICE-REFS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-SERVICE-REFS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-SERVICE-RETURN
+        (
+          SHORT-NAME? ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          SW-DATA-DEF-PROPS?
+         )
+>
+
+<!ATTLIST SW-SERVICE-RETURN
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-SERVICE-ARG"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-SERVICE-RETURN.master      "SW-SERVICE-ARG_TYPE">
+<!ENTITY % SW-SERVICE-RETURN.derived-as  "identical">
+
+<!ENTITY % SW-SERVICE-RETURN.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-SERVICES
+        (
+          SW-SERVICE*
+        )
+>
+
+<!ATTLIST SW-SERVICES
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-SERVICES.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-SYSTEM
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          SW-DATA-DICTIONARY-SPEC? ,
+          SW-COMPONENT-SPEC? ,
+          SW-COLLECTION-SPEC? ,
+          SW-CPU-SPEC?
+        )
+>
+
+<!ATTLIST SW-SYSTEM
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-SYSTEM"
+          F-NAMESPACE     NMTOKENS  #FIXED  "BASE-TYPE CHAPTER COMPU-METHOD CONF-ITEM CONF-RULE DATA-CONSTR DEF-ITEM FIGURE FORMULA PHYSICAL-DIMENSION PRM SDG STD SW-ADDR-METHOD SW-AXIS-TYPE SW-CALIBRATION-METHOD SW-CALPRM SW-CALPRM-PROTOTYPE SW-CLASS SW-CLASS-ATTR-IMPL SW-CLASS-INSTANCE SW-CLASS-PROTOTYPE SW-CODE-SYNTAX SW-COLLECTION SW-CPU-MEM-SEG SW-EVENT SW-EVENT-SOURCE SW-FEATURE SW-FEATURE-INTERFACE SW-FEATURE-VARIANT SW-GENERIC-AXIS-PARAM-TYPE SW-INSTANCE SW-INSTANCE-TREE SW-OPER-MODE SW-RECORD-LAYOUT SW-SERVICE SW-SERVICE-ARG SW-SERVICE-PROTOTYPE SW-SERVICE-RETURN SW-SYSTEMCONST SW-TASK SW-TEMPLATE SW-USER-ACCESS-CASE SW-USER-GROUP SW-VARIABLE SW-VARIABLE-PROTOTYPE SW-VCD-CRITERION SYNOPSIS TABLE TOPIC UNIT-GROUP UNIT XDOC XFILE XREF-TARGET"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-SYSTEM.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-SYSTEMCONST
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          SW-VALUES-PHYS? ,
+          SW-VALUES-CODED? ,
+          SW-DATA-DEF-PROPS?
+        )
+>
+
+<!ATTLIST SW-SYSTEMCONST
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-SYSTEMCONST"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-SYSTEMCONST.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-SYSTEMCONST-CODED-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-SYSTEMCONST-CODED-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-SYSTEMCONST"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-SYSTEMCONST-CODED-REF.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-SYSTEMCONST-PHYS-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-SYSTEMCONST-PHYS-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-SYSTEMCONST"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-SYSTEMCONST-PHYS-REF.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-SYSTEMCONST-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-SYSTEMCONST-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-SYSTEMCONST"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-SYSTEMCONST-REF.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-SYSTEMCONST-REFS
+        (
+          SW-SYSTEMCONST-REF
+        )*
+>
+
+<!ATTLIST SW-SYSTEMCONST-REFS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-SYSTEMCONST-REFS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-SYSTEMCONSTS
+        (
+          SW-SYSTEMCONST*
+        )
+>
+
+<!ATTLIST SW-SYSTEMCONSTS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-SYSTEMCONSTS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-SYSTEMS
+        (
+          SW-SYSTEM*
+        )
+>
+
+<!ATTLIST SW-SYSTEMS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-SYSTEMS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-VALUE-BLOCK-SIZE
+        (
+          VF |
+          V
+        )*
+>
+
+<!ATTLIST SW-VALUE-BLOCK-SIZE
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-VALUE-BLOCK-SIZE.master      "SW-ARRAYSIZE_TYPE">
+<!ENTITY % SW-VALUE-BLOCK-SIZE.derived-as  "identical">
+
+<!ENTITY % SW-VALUE-BLOCK-SIZE.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-VALUES-CODED
+        (
+          VF |
+          V 
+        )
+>
+
+<!ATTLIST SW-VALUES-CODED
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-VALUES-CODED.master      "SW-VALUES_TYPE">
+<!ENTITY % SW-VALUES-CODED.derived-as  "identical">
+
+<!ENTITY % SW-VALUES-CODED.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-VALUES-PHYS
+        (
+          VF |
+          VT |
+          V 
+        )
+>
+
+<!ATTLIST SW-VALUES-PHYS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-VALUES-PHYS.master      "SW-VALUES_TYPE">
+<!ENTITY % SW-VALUES-PHYS.derived-as  "identical">
+
+<!ENTITY % SW-VALUES-PHYS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-VARIABLE
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          SW-ARRAYSIZE? ,
+          SW-DATA-DEF-PROPS? ,
+          SW-VARIABLES?
+        )
+>
+
+<!ATTLIST SW-VARIABLE
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-VARIABLE"
+          F-NAMESPACE     NMTOKENS  #FIXED  "SW-VARIABLE"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-VARIABLE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-VARIABLE-ACCESS-IMPL
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-VARIABLE-ACCESS-IMPL
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-VARIABLE-ACCESS-IMPL.status    "current">
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-VARIABLE-ACCESS-IMPL-POLICY
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-VARIABLE-ACCESS-IMPL-POLICY
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-VARIABLE-ACCESS-IMPL-POLICY.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-VARIABLE-IMPL
+        (
+          SW-VARIABLE-PROTOTYPE-REF ,
+          SW-DATA-DEF-PROPS? 
+        )
+>
+
+<!ATTLIST SW-VARIABLE-IMPL
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-VARIABLE-IMPL.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-VARIABLE-IMPLS
+        (
+          SW-VARIABLE-IMPL*
+        )
+>
+
+<!ATTLIST SW-VARIABLE-IMPLS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-VARIABLE-IMPLS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-VARIABLE-PROTOTYPE
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          SW-DATA-DEF-PROPS?
+        )
+>
+
+<!ATTLIST SW-VARIABLE-PROTOTYPE
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      CDATA     #FIXED  "SW-VARIABLE-PROTOTYPE"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-VARIABLE-PROTOTYPE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-VARIABLE-PROTOTYPE-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-VARIABLE-PROTOTYPE-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-VARIABLE-PROTOTYPE"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-VARIABLE-PROTOTYPE-REF.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-VARIABLE-PROTOTYPES
+        (
+          SW-VARIABLE-PROTOTYPE*
+        )
+>
+
+<!ATTLIST SW-VARIABLE-PROTOTYPES
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-VARIABLE-PROTOTYPES.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-VARIABLE-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-VARIABLE-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "SW-VARIABLE"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-VARIABLE-REF.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-VARIABLE-REFS
+        (
+          SW-VARIABLE-REF 
+        )*
+>
+
+<!ATTLIST SW-VARIABLE-REFS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-VARIABLE-REFS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-VARIABLE-USAGE
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST SW-VARIABLE-USAGE
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-VARIABLE-USAGE.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT SW-VARIABLES
+        (
+          SW-VARIABLE*
+        )
+>
+
+<!ATTLIST SW-VARIABLES
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % SW-VARIABLES.status    "current">
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT TEMPERATURE-EXP
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST TEMPERATURE-EXP
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT TIME-EXP
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST TIME-EXP
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT UNIT
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          DISPLAY-NAME? ,
+          FACTOR-SI-TO-UNIT? ,
+          OFFSET-SI-TO-UNIT? ,
+          PHYSICAL-DIMENSION-REF?
+        )
+>
+
+<!ATTLIST UNIT
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "UNIT"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT UNIT-GROUP
+        (
+          SHORT-NAME ,
+          LONG-NAME? ,
+          CATEGORY? ,
+          UNIT-REFS?
+        )
+>
+
+<!ATTLIST UNIT-GROUP
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "UNIT-GROUP"
+          ID              ID        #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT UNIT-GROUPS
+        (
+          UNIT-GROUP+
+        )
+>
+
+<!ATTLIST UNIT-GROUPS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT UNIT-REF
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST UNIT-REF
+
+          C               CDATA     #IMPLIED
+          F-ID-CLASS      NMTOKEN   #FIXED  "UNIT"
+          HYNAMES         NMTOKENS  #FIXED  "LINKEND ID-REF"
+          HYTIME          NMTOKEN   #FIXED  "CLINK"
+          ID-REF          IDREF     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT UNIT-REFS
+        (
+          UNIT-REF
+        )*
+>
+
+<!ATTLIST UNIT-REFS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % UNIT-REFS.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT UNIT-SPEC
+        (
+          UNIT-GROUPS? ,
+          UNITS? ,
+          PHYSICAL-DIMENSIONS?
+        )
+>
+
+<!ATTLIST UNIT-SPEC
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT UNITS
+        (
+          UNIT+
+        )
+>
+
+<!ATTLIST UNITS
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT UPPER-LIMIT
+        (
+          #PCDATA |
+          SW-SYSTEMCONST-CODED-REF |
+          SW-SYSTEMCONST-PHYS-REF
+        )*
+>
+
+<!ATTLIST UPPER-LIMIT
+
+          C               CDATA     #IMPLIED
+          INTERVAL-TYPE   (OPEN|CLOSED|INFINITE)    "CLOSED"
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % UPPER-LIMIT.master      "LIMIT_TYPE">
+<!ENTITY % UPPER-LIMIT.derived-as  "identical">
+
+<!ENTITY % UPPER-LIMIT.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT URL
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST URL
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          MIME-TYPE       CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % URL.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT V
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST V
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % V.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT VERBATIM
+        (
+          #PCDATA |
+          BR
+        )*
+>
+
+<!ATTLIST VERBATIM
+
+          ALLOW-BREAK     NMTOKEN   "1"
+          C               CDATA     #IMPLIED
+          FLOAT           (FLOAT|NO-FLOAT)  #IMPLIED
+          HELP-ENTRY      CDATA     #IMPLIED
+          KEEP-WITH-PREVIOUS        (KEEP|NO-KEEP)  #IMPLIED
+          LC              CDATA     #IMPLIED
+          PGWIDE          (PGWIDE|NO-PGWIDE)        #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+          xml:space       (preserve)        #FIXED  "preserve"
+>
+
+<!ENTITY % VERBATIM.master      "ml-data-5">
+<!ENTITY % VERBATIM.derived-as  "identical">
+
+<!ENTITY % VERBATIM.status    "current">
+
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT VF
+        (
+          #PCDATA |
+          SW-SYSTEMCONST-CODED-REF |
+          SW-SYSTEMCONST-PHYS-REF
+        )*
+>
+
+<!ATTLIST VF
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+>
+
+<!ENTITY % VF.master      "VF_TYPE">
+<!ENTITY % VF.derived-as  "identical">
+
+<!ENTITY % VF.status    "current">
+
+
+<!-- from msrsw_v3_0_0_rc8.sl.dtd -->
+<!ELEMENT VT
+        (
+          #PCDATA
+        )
+>
+
+<!ATTLIST VT
+
+          C               CDATA     #IMPLIED
+          LC              CDATA     #IMPLIED
+          S               CDATA     #IMPLIED
+          SI              CDATA     #IMPLIED
+          SYSCOND         CDATA     #IMPLIED
+          T               CDATA     #IMPLIED
+          TI              CDATA     #IMPLIED
+          VIEW            CDATA     #IMPLIED
+          xml:space       (preserve)        #FIXED  "preserve"
+>
+
+<!ENTITY % VT.status    "current">
+
+
+<!--]-->
