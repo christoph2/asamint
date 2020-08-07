@@ -39,7 +39,11 @@ setup(
     name='asamint',
     #packages=find_packages(include=['asamint']),
     packages=find_packages(),
-    setup_requires=setup_requirements,
+    include_package_data = True,
+    package_data = {
+        "dtds": glob('data/dtds/*.*'),
+    },
+   setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/christoph2/asam_integration_package',
