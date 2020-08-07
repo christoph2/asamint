@@ -22,7 +22,7 @@ uint32_t XCP_ComputeKeyFromSeed (uint8_t resource, uint8_t seedLen, uint8_t cons
     uint32_t result = XcpSkExtFncAck;
     uint8_t idx;
 
-    keyPtr[0] = seedPtr[0] ^ INITIAL_VALUE;
+    keyPtr[0] = (seedPtr[0] + seedPtr[3]) ^ INITIAL_VALUE;
     for (idx = 1; idx < seedLen; idx++) {
         keyPtr[idx] = seedPtr[idx] ^ keyPtr[idx - 1];
     }
