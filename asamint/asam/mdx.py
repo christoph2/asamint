@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import pkgutil
 
 from pprint import pprint
 
@@ -22,6 +23,8 @@ clean up namespaces during parsing:
 >>> tree = etree.parse(StringIO(xml), parser)
 >>> etree.tostring(tree.getroot())
 """
+
+#TEMPLATE = pkgutil.get_data("pydbc", "cgen/templates/dbc.tmpl")
 
 MDX_DTD = "mdx_v1_0_0.sl.dtd"
 
