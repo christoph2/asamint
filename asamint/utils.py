@@ -32,6 +32,8 @@ __author__  = 'Christoph Schueler'
 
 from lxml.etree import SubElement
 
+SINGLE_BITS = frozenset([2 ** b for b in range(64)])
+
 def convert_name(name):
     """
     ASAP2 permits dotted, 'hierachical' names (like 'ASAM.M.SCALAR.UBYTE.TAB_NOINTP_DEFAULT_VALUE'),
@@ -49,3 +51,32 @@ def create_elem(parent, name, text = None, attrib = {}):
     if text:
         elem.text = text
     return elem
+
+class Bunch(dict):
+    """
+    """
+    def __init__(self, *args, **kwds):
+        super(Bunch, self).__init__(*args, **kwds)
+        self.__dict__ = self
+
+def make_2darray(arr):
+    """Reshape higher dimensional array to two dimensions.
+
+    Probably the most anti-idiomatic Numpy code in the universe...
+
+    """
+    if arr.ndim > 2:
+        ndim = x.ndim
+        shape = list(x.shape)
+        reshaped = []
+        while ndim > 2:
+            reshaped.append(shape[0] * shape[1])
+            ndim -= 1
+            shape.pop(0)
+            shape.pop(0)
+            print(reshaped)
+        if shape:
+            reshaped.extend(shape)
+        return arr.reshape(tuple(reshaped))
+    else:
+        return arr
