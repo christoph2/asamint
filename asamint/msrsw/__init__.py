@@ -35,6 +35,8 @@ __email__ = 'cpu12.gems@googlemail.com'
 from lxml.etree import (Comment, Element, ElementTree, DTD, SubElement, XMLSchema, parse, tounicode)
 from lxml import etree
 
+from asamint.utils import create_elem
+
 class Creator:
 
     def __init__(self, session_obj):
@@ -64,3 +66,11 @@ class Creator:
             tag = "VT"
         for value in values:
             create_elem(cont, tag, text = str(value))
+
+    @staticmethod
+    def common_elements(elem, short_name, long_name = None, category = None):
+        create_elem(elem, "SHORT-NAME", short_name)
+        if long_name:
+            create_elem(elem, "LONG-NAME", long_name)
+        if category:
+            create_elem(elem, "CATEGORY", category)
