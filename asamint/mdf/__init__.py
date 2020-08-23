@@ -36,13 +36,6 @@ from pya2l import DB
 import pya2l.model as model
 from pya2l.api.inspect import Measurement
 
-class Foo:
-
-    logger = logging.getlogger(__name__)
-
-    def __init__(self):
-        pass
-
 
 def create_mdf(session_obj, mdf_obj, mdf_filename = None):
     """
