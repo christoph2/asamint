@@ -1,0 +1,976 @@
+<!DOCTYPE MSRSW PUBLIC "-//MSR//DTD MSR SOFTWARE DTD:V2.2.0:MSRSW.DTD//EN">
+<msrsw>
+<short-name>_70192</short-name>
+<project-data>
+<project>
+<label>ASAP2-Example</label>
+<companies>
+<company role="MANUFACTURER" id = "MSRSW">
+<long-name>MSR Software Working Group</long-name>
+<short-name>msrsw</short-name>
+<team-members>
+<team-member id="OJ">
+<long-name>Herr Smith</long-name>
+<short-name>HS</short-name>
+<roles>
+<role>
+<!--   <?xm-replace_text {ROLE}></role> -->
+</roles>
+</team-member>
+</team-members>
+</company>
+</companies>
+</project>
+</project-data>
+<sw-systems>
+<sw-system id="DIM">
+<long-name>this is SW-SYSTEM DIM</long-name>
+<short-name>DIM</short-name>
+<sw-data-dictionary-spec>
+<admin-data>
+<language>en</language>
+<lite-revisions>
+<lite-revision>
+<revision-label>1.65 & more</revision-label>
+</lite-revision>
+</lite-revisions>
+</admin-data>
+<sw-data-dictionary>
+<sw-units>
+<sw-unit id="KELVIN">
+<long-name>Kelvin</long-name>
+<short-name>kelvin</short-name>
+<sw-unit-display>K</sw-unit-display>
+<si-unit thermodynamic-temperature-expo="1"></si-unit>
+</sw-unit>
+<sw-unit id="GRAD-C">
+<long-name>Grad C</long-name>
+<short-name>Grad-C</short-name>
+<sw-unit-display>Grad C</sw-unit-display>
+<sw-unit-conversion-method>
+<sw-unit-gradient>1</sw-unit-gradient>
+<sw-unit-offset>-273.15</sw-unit-offset>
+</sw-unit-conversion-method>
+<sw-unit-ref id-ref="KELVIN">KELVIN</sw-unit-ref>
+</sw-unit>
+<sw-unit id="SEC">
+<long-name>Seconds</long-name>
+<short-name>sec</short-name>
+<sw-unit-display>s</sw-unit-display>
+<si-unit time-expo="1"></si-unit>
+</sw-unit>
+<sw-unit id="MSEC">
+<long-name>Milliseconds</long-name>
+<short-name>msec</short-name>
+<sw-unit-display>msec</sw-unit-display>
+<sw-unit-conversion-method>
+<sw-unit-gradient>0.001</sw-unit-gradient>
+<sw-unit-offset>0</sw-unit-offset>
+</sw-unit-conversion-method>
+<sw-unit-ref id-ref="SEC">SEC</sw-unit-ref>
+</sw-unit>
+<sw-unit id="HERTZ">
+<long-name>Hertz</long-name>
+<short-name>Hz</short-name>
+<sw-unit-display>Hz</sw-unit-display>
+<si-unit time-expo="-1"></si-unit>
+</sw-unit>
+<sw-unit id="UPM">
+<long-name>Rotates per minute</long-name>
+<short-name>Upm</short-name>
+<sw-unit-display>U/min</sw-unit-display>
+<sw-unit-conversion-method>
+<sw-unit-gradient> 0.01666666666667</sw-unit-gradient>
+<sw-unit-offset>0</sw-unit-offset>
+</sw-unit-conversion-method>
+<sw-unit-ref id-ref="HERTZ">HERTZ</sw-unit-ref>
+</sw-unit>
+<sw-unit id="NM">
+<long-name>Newton meter</long-name>
+<short-name>Nm</short-name>
+<sw-unit-display>Nm</sw-unit-display>
+<si-unit length-expo="2" mass-expo ="1"></si-unit>
+</sw-unit>
+<sw-unit id="NO-UNIT">
+<long-name>No unit</long-name>
+<short-name>no-unit</short-name>
+<sw-unit-display>-</sw-unit-display>
+<si-unit></si-unit>
+</sw-unit>
+</sw-units>
+<sw-variables>
+<sw-variable id="NMOT">
+<long-name>engine speed</long-name>
+<short-name>nmot</short-name>
+<sw-data-def-props>
+<sw-base-type-ref id-ref="UBYTE">UBYTE</sw-base-type-ref>
+<sw-compu-method-ref id-ref="NMOT-UB-Q40">NMOT-UB-Q40</sw-compu-method-ref>
+<sw-data-constr-ref id-ref="DC-NMOT">DC-NMOT</sw-data-constr-ref>
+<sw-display-format>%5.0</sw-display-format>
+</sw-data-def-props>
+</sw-variable>
+<sw-variable id="TEVFA-W-KGE">
+<long-name>this is SW-VARIABLE TEVFA-W-KGE</long-name>
+<short-name>tevfa_w_kge</short-name>
+<sw-data-def-props>
+<sw-base-type-ref id-ref="UWORD">UWORD</sw-base-type-ref>
+<sw-compu-method-ref id-ref="TINJECTION-SY">TINJECTION-SY</sw-compu-method-ref>
+<sw-data-constr-ref id-ref="DC-TEVFA-W-KGE">DC-TEVFA-W-KGE</sw-data-constr-ref>
+<sw-display-format>%5.0</sw-display-format>
+</sw-data-def-props>
+</sw-variable>
+<sw-variable id="B-2PH">
+<long-name>Condition for the second phase edge</long-name>
+<short-name>B_2ph</short-name>
+<sw-data-def-props>
+<sw-base-type-ref id-ref="UWORD">UWORD</sw-base-type-ref>
+<sw-compu-method-ref id-ref="B-TRUE">B-TRUE</sw-compu-method-ref>
+<sw-display-format>%13.11</sw-display-format>
+</sw-data-def-props>
+</sw-variable>
+</sw-variables>
+<sw-calprms>
+<sw-calprm id="ABGMSIGH">
+<long-name>threshold for exh. temp. for
+wiring-interruption with Ri-diagnosis downstr. ca</long-name>
+<short-name>ABGMSIGH</short-name>
+<category>VALUE</category>
+<sw-data-def-props>
+<sw-compu-method-ref id-ref="TEMP-UB-Q5-O50">temp_ub_q5_o50</sw-compu-method-ref>
+<sw-data-constr-ref id-ref="DC-ABGMSIGH">DC-ABGMSIGH</sw-data-constr-ref>
+<sw-display-format>%5.0</sw-display-format>
+<sw-record-layout-ref id-ref="KWUB">KWUB</sw-record-layout-ref>
+</sw-data-def-props>
+</sw-calprm>
+<sw-calprm id="ANALUN">
+<long-name>
+number of combustions for deactivation
+after detected misfire</long-name>
+<short-name>ANALUN</short-name>
+<category>CURVE</category>
+<sw-data-def-props>
+<sw-calibration-access>CALIBRATION</sw-calibration-access>
+<sw-calprm-axis-set>
+<sw-calprm-axis>
+<sw-axis-index>1</sw-axis-index>
+<sw-axis-grouped>
+<sw-axis-index>1</sw-axis-index>
+<sw-calprm-ref id-ref="SNM08DMUB">SNM08DMUB</sw-calprm-ref>
+</sw-axis-grouped>
+</sw-calprm-axis>
+</sw-calprm-axis-set>
+<sw-compu-method-ref id-ref="DEZ">DEZ</sw-compu-method-ref>
+<sw-data-constr-ref id-ref="DC-ANALUN">DC-ANALUN</sw-data-constr-ref>
+<sw-display-format>%5.1</sw-display-format>
+<sw-interpolation-method>linear</sw-interpolation-method>
+<sw-record-layout-ref id-ref="SIMPLE-CURVE">SIMPLE-CURVE</sw-record-layout-ref>
+</sw-data-def-props>
+</sw-calprm>
+<sw-calprm id="SNM08DMUB">
+<long-name>this is SW-PARAM SNM08DMUB</long-name>
+<short-name>SNM08DMUB</short-name>
+<desc>
+This is the x-axis of the ANALUN. "Missing" stuff
+is fetched from the referenced variable nmot.
+If needed the properties of nmot could be override.</desc>
+<category>COM_AXIS</category>
+<sw-data-def-props>
+<sw-calprm-axis-set>
+<sw-calprm-axis>
+<sw-axis-index>1</sw-axis-index>
+<sw-axis-individual>
+<sw-variable-refs>
+<sw-variable-ref id-ref="NMOT">NMOT</sw-variable-ref>
+</sw-variable-refs>
+<sw-max-axis-points>8</sw-max-axis-points>
+</sw-axis-individual>
+</sw-calprm-axis>
+</sw-calprm-axis-set>
+<sw-record-layout-ref id-ref="COMMON-X-AXIS">COMMON-X-AXIS</sw-record-layout-ref>
+</sw-data-def-props>
+</sw-calprm>
+<sw-calprm id="FKKVS">
+<long-name>factor to correct fuel delivary system</long-name>
+<short-name>FKKVS</short-name>
+<desc></desc>
+<category>MAP</category>
+<sw-data-def-props>
+<sw-calibration-access>CALIBRATION</sw-calibration-access>
+<sw-calprm-axis-set>
+<sw-calprm-axis>
+<sw-axis-index>1</sw-axis-index>
+<sw-axis-individual>
+<sw-variable-refs>
+<sw-variable-ref id-ref="NMOT">NMOT</sw-variable-ref>
+</sw-variable-refs>
+<sw-max-axis-points>16</sw-max-axis-points>
+</sw-axis-individual>
+</sw-calprm-axis>
+<sw-calprm-axis>
+<sw-axis-index>2</sw-axis-index>
+<sw-axis-individual>
+<sw-variable-refs>
+<sw-variable-ref id-ref="TEVFA-W-KGE">TEVFA-W-KGE</sw-variable-ref>
+</sw-variable-refs>
+<sw-max-axis-points>16</sw-max-axis-points>
+</sw-axis-individual>
+</sw-calprm-axis>
+</sw-calprm-axis-set>
+<sw-compu-method-ref id-ref="FAK-UW-B2">FAK-UW-B2</sw-compu-method-ref>
+<sw-data-constr-ref id-ref="DC-FKKVS">DC-FKKVS</sw-data-constr-ref>
+<sw-display-format>%8.6</sw-display-format>
+<sw-interpolation-method>linear</sw-interpolation-method>
+<sw-record-layout-ref id-ref="SIMPLE-MAP">SIMPLE-MAP</sw-record-layout-ref>
+</sw-data-def-props>
+</sw-calprm>
+</sw-calprms>
+<sw-systemconsts>
+<sw-systemconst id="EPK-MAX-LEN">
+<long-name>this is SW-SYSTEM-CONSTANT EPK-MAX-LEN</long-name>
+<short-name>EPK_MAX_LEN</short-name>
+<sw-values-phys><v>80</v></sw-values-phys>
+</sw-systemconst>
+<sw-systemconst id="SWOFFDL-REQUEST-MASK">
+<long-name>this is SW-SYSTEM-CONSTANT SWOFFDL-REQUEST-MASK</long-name>
+<short-name>SWOFFDL_REQUEST_MASK</short-name>
+<sw-values-phys><v>16383</v></sw-values-phys>
+</sw-systemconst>
+<sw-systemconst id="SY-2SG">
+<long-name>this is SW-SYSTEM-CONSTANT SY-2SG</long-name>
+<short-name>SY_2SG</short-name>
+<sw-values-phys><v>0</v></sw-values-phys>
+</sw-systemconst>
+</sw-systemconsts>
+<sw-compu-methods>
+<sw-compu-method id="TEMP-UB-Q5-O50">
+<long-name>this is SW-COMPU-METHOD TEMP-UB-Q5-O50</long-name>
+<short-name>temp_ub_q5_o50</short-name>
+<sw-display-format>%6.2</sw-display-format>
+<sw-unit-ref id-ref="GRAD-C">GRAD-C</sw-unit-ref>
+<sw-compu-phys-to-internal>
+<sw-compu-scales>
+<sw-compu-scale>
+<sw-compu-inverse-value>
+<v>1</v>
+</sw-compu-inverse-value>
+<sw-compu-rational-coeffs>
+<sw-compu-numerator>
+<vf>50</vf>
+<vf>1</vf>
+</sw-compu-numerator>
+<sw-compu-denominator>
+<vf>5</vf>
+</sw-compu-denominator>
+</sw-compu-rational-coeffs>
+</sw-compu-scale>
+</sw-compu-scales>
+</sw-compu-phys-to-internal>
+</sw-compu-method>
+<sw-compu-method id="DEZ">
+<long-name>1 : 1 conversion (dez/hex)</long-name>
+<short-name>dez</short-name>
+<sw-display-format>%6.2</sw-display-format>
+<sw-compu-identity></sw-compu-identity>
+</sw-compu-method>
+<sw-compu-method id="NMOT-UB-Q40">
+<long-name>this is SW-COMPU-METHOD NMOT-UB-Q40</long-name>
+<short-name>nmot_ub_q40</short-name>
+<sw-display-format>%6.1</sw-display-format>
+<sw-unit-ref id-ref="GRAD-C">GRAD-C</sw-unit-ref>
+<sw-compu-phys-to-internal>
+<sw-compu-scales>
+<sw-compu-scale>
+<sw-compu-inverse-value>
+<v>1</v>
+</sw-compu-inverse-value>
+<sw-compu-rational-coeffs>
+<sw-compu-numerator>
+<vf>0</vf>
+<vf>1</vf>
+</sw-compu-numerator>
+<sw-compu-denominator>
+<vf>40</vf>
+</sw-compu-denominator>
+</sw-compu-rational-coeffs>
+</sw-compu-scale>
+</sw-compu-scales>
+</sw-compu-phys-to-internal>
+</sw-compu-method>
+<sw-compu-method id="B-TRUE">
+<long-name>this is SW-COMPU-METHOD B-TRUE</long-name>
+<short-name>B_TRUE</short-name>
+<sw-display-format>%6.3</sw-display-format>
+<sw-compu-internal2phys>
+<sw-compu-scales>
+<sw-compu-scale>
+<lower-limit interval-type="CLOSED">0</lower-limit>
+<upper-limit interval-type="CLOSED">0</upper-limit>
+<sw-compu-inverse-value>
+<v>0</v>
+</sw-compu-inverse-value>
+<sw-compu-const>
+<vt>—-</vt>
+</sw-compu-const>
+</sw-compu-scale>
+<sw-compu-scale>
+<lower-limit interval-type="CLOSED">1</lower-limit>
+<upper-limit interval-type="CLOSED">1</upper-limit>
+<sw-compu-inverse-value>
+<v>1</v>
+</sw-compu-inverse-value>
+<sw-compu-const>
+<vt>TRUE</vt>
+</sw-compu-const>
+</sw-compu-scale>
+<sw-compu-scale>
+<lower-limit interval-type="CLOSED">2</lower-limit>
+<upper-limit interval-type="CLOSED">2</upper-limit>
+<sw-compu-inverse-value>
+<v>2</v>
+</sw-compu-inverse-value>
+<sw-compu-const>
+<vt></vt>
+</sw-compu-const>
+</sw-compu-scale>
+</sw-compu-scales>
+</sw-compu-internal2phys>
+</sw-compu-method>
+<sw-compu-method id="TINJECTION-SY">
+<long-name>this is SW-COMPU-METHOD TINJECTION-SY</long-name>
+<short-name>tinjection_sy</short-name>
+<sw-display-format>%6.4</sw-display-format>
+<sw-unit-ref id-ref="MSEC">MSEC</sw-unit-ref>
+<sw-compu-phys-to-internal>
+<sw-compu-scales>
+<sw-compu-scale>
+<sw-compu-inverse-value>
+<v>1</v>
+</sw-compu-inverse-value>
+<sw-compu-rational-coeffs>
+<sw-compu-numerator>
+<vf>0</vf>
+<vf>500</vf>
+</sw-compu-numerator>
+<sw-compu-denominator>
+<vf>1</vf>
+</sw-compu-denominator>
+</sw-compu-rational-coeffs>
+</sw-compu-scale>
+</sw-compu-scales>
+</sw-compu-phys-to-internal>
+</sw-compu-method>
+<sw-compu-method id="FAK-UW-B2">
+<long-name>this is SW-COMPU-METHOD FAK-UW-B2</long-name>
+<short-name>fak_uw_b2</short-name>
+<sw-display-format>%7.6</sw-display-format>
+<sw-unit-ref id-ref="NO-UNIT">NO-UNIT</sw-unit-ref>
+<sw-compu-phys-to-internal>
+<sw-compu-scales>
+<sw-compu-scale>
+<sw-compu-inverse-value>
+<v>1</v>
+</sw-compu-inverse-value>
+<sw-compu-rational-coeffs>
+<sw-compu-numerator>
+<vf>0</vf>
+<vf>65536</vf>
+</sw-compu-numerator>
+<sw-compu-denominator>
+<vf>2</vf>
+</sw-compu-denominator>
+</sw-compu-rational-coeffs>
+</sw-compu-scale>
+</sw-compu-scales>
+</sw-compu-phys-to-internal>
+</sw-compu-method>
+</sw-compu-methods>
+<sw-record-layouts>
+<sw-record-layout id="KWUB">
+<long-name>this is SW-RECORD-LAYOUT KWUB</long-name>
+<short-name>KwUb</short-name>
+<sw-record-layout-group>
+<sw-record-layout-group-from>1</sw-record-layout-group-from>
+<sw-record-layout-group-to>-1</sw-record-layout-group-to>
+<sw-record-layout-v>
+<sw-base-type-ref id-ref="UBYTE">UBYTE</sw-base-type-ref>
+<sw-record-layout-v-prop>VALUE</sw-record-layout-v-prop>
+</sw-record-layout-v>
+</sw-record-layout-group>
+</sw-record-layout>
+<sw-record-layout id="SIMPLE-CURVE">
+<long-name>This is the record layout for a simple curve.</long-name>
+<short-name>rly-simple-curve</short-name>
+<sw-record-layout-group>
+<sw-record-layout-v>
+<sw-base-type-ref id-ref="UBYTE">UBYTE</sw-base-type-ref>
+<sw-record-layout-v-prop>SOURCE-ADR</sw-record-layout-v-prop>
+</sw-record-layout-v>
+<sw-record-layout-v>
+<sw-record-layout-v-prop>COUNT</sw-record-layout-v-prop>
+</sw-record-layout-v>
+<sw-record-layout-group>
+<desc>Here are the values of the x axis.</desc>
+<sw-record-layout-group-axis>1</sw-record-layout-group-axis>
+<sw-record-layout-group-index>x</sw-record-layout-group-index>
+<sw-record-layout-group-from>1</sw-record-layout-group-from>
+<sw-record-layout-group-to>-1</sw-record-layout-group-to>
+<sw-record-layout-v>
+<sw-record-layout-v-prop>VALUE</sw-record-layout-v-prop>
+<sw-record-layout-v-index>x</sw-record-layout-v-index>
+</sw-record-layout-v>
+</sw-record-layout-group>
+<sw-record-layout-group>
+<desc>Here are the values of the value axis.</desc>
+<sw-record-layout-group-axis>0</sw-record-layout-group-axis>
+<sw-record-layout-group-index>v</sw-record-layout-group-index>
+<sw-record-layout-group-from>1</sw-record-layout-group-from>
+<sw-record-layout-group-to>-1</sw-record-layout-group-to>
+<sw-record-layout-v>
+<sw-record-layout-v-prop>VALUE</sw-record-layout-v-prop>
+<sw-record-layout-v-index>v</sw-record-layout-v-index>
+</sw-record-layout-v>
+</sw-record-layout-group>
+</sw-record-layout-group>
+</sw-record-layout>
+<sw-record-layout id="ALTERNATIVE-CURVE">
+<long-name>This is the record layout for an alternative curve.</long-name>
+<short-name>alternative-curve</short-name>
+<sw-record-layout-group>
+<sw-record-layout-v>
+<sw-base-type-ref id-ref="UBYTE">UBYTE</sw-base-type-ref>
+<sw-record-layout-v-prop>SOURCE-ADR</sw-record-layout-v-prop>
+</sw-record-layout-v>
+<sw-record-layout-v>
+<sw-record-layout-v-prop>COUNT</sw-record-layout-v-prop>
+</sw-record-layout-v>
+<sw-record-layout-group>
+<desc>Here are the values of the x axis.</desc>
+<sw-record-layout-group-axis>1</sw-record-layout-group-axis>
+<sw-record-layout-group-index>x</sw-record-layout-group-index>
+<sw-record-layout-group-from>1</sw-record-layout-group-from>
+<sw-record-layout-group-to>-1</sw-record-layout-group-to>
+<sw-record-layout-v>
+<sw-record-layout-v-axis>1</sw-record-layout-v-axis>
+<sw-record-layout-v-prop>VALUE</sw-record-layout-v-prop>
+<sw-record-layout-v-index>x</sw-record-layout-v-index>
+</sw-record-layout-v>
+<sw-record-layout-v>
+<sw-record-layout-v-axis>0</sw-record-layout-v-axis>
+<sw-record-layout-v-prop>VALUE</sw-record-layout-v-prop>
+<sw-record-layout-v-index>x</sw-record-layout-v-index>
+</sw-record-layout-v>
+</sw-record-layout-group>
+</sw-record-layout-group>
+</sw-record-layout>
+<sw-record-layout id="SIMPLE-MAP">
+<long-name>This is the record layout for a simple map.</long-name>
+<short-name>simple-map</short-name>
+<desc>Appendix B in ASAP2-specification (KEBUSS).</desc>
+<sw-record-layout-group>
+<sw-record-layout-group>
+<sw-record-layout-v>
+<sw-base-type-ref id-ref="UBYTE">UBYTE</sw-base-type-ref>
+<sw-record-layout-v-axis>1</sw-record-layout-v-axis>
+<sw-record-layout-v-prop>COUNT</sw-record-layout-v-prop>
+</sw-record-layout-v>
+<sw-record-layout-v>
+<sw-record-layout-v-axis>1</sw-record-layout-v-axis>
+<sw-record-layout-v-prop>COUNT</sw-record-layout-v-prop>
+</sw-record-layout-v>
+</sw-record-layout-group>
+<sw-record-layout-group>
+<desc>Here are the values of the x axis.</desc>
+<sw-record-layout-group-axis>1</sw-record-layout-group-axis>
+<sw-record-layout-group-index>x</sw-record-layout-group-index>
+<sw-record-layout-group-from>-1</sw-record-layout-group-from>
+<sw-record-layout-group-to>1</sw-record-layout-group-to>
+<sw-record-layout-v>
+<sw-base-type-ref id-ref="UBYTE">UBYTE</sw-base-type-ref>
+<sw-record-layout-v-axis>1</sw-record-layout-v-axis>
+<sw-record-layout-v-prop>VALUE</sw-record-layout-v-prop>
+<sw-record-layout-v-index>x</sw-record-layout-v-index>
+</sw-record-layout-v>
+</sw-record-layout-group>
+<sw-record-layout-group>
+<desc>Here are the values of the y axis.</desc>
+<sw-record-layout-group-axis>2</sw-record-layout-group-axis>
+<sw-record-layout-group-index>y</sw-record-layout-group-index>
+<sw-record-layout-group-from>-1</sw-record-layout-group-from>
+<sw-record-layout-group-to>1</sw-record-layout-group-to>
+<sw-record-layout-v>
+<sw-base-type-ref id-ref="UWORD">UWORD</sw-base-type-ref>
+<sw-record-layout-v-axis>2</sw-record-layout-v-axis>
+<sw-record-layout-v-prop>VALUE</sw-record-layout-v-prop>
+<sw-record-layout-v-index>x</sw-record-layout-v-index>
+</sw-record-layout-v>
+</sw-record-layout-group>
+<sw-record-layout-group>
+<sw-record-layout-group-axis>2</sw-record-layout-group-axis>
+<sw-record-layout-group-index>y</sw-record-layout-group-index>
+<sw-record-layout-group-from>-1</sw-record-layout-group-from>
+<sw-record-layout-group-to>1</sw-record-layout-group-to>
+<sw-record-layout-group>
+<sw-record-layout-group-axis>1</sw-record-layout-group-axis>
+<sw-record-layout-group-index>x</sw-record-layout-group-index>
+<sw-record-layout-group-from>-1</sw-record-layout-group-from>
+<sw-record-layout-group-to>1</sw-record-layout-group-to>
+<sw-record-layout-v>
+<sw-base-type-ref id-ref="UWORD">UWORD</sw-base-type-ref>
+<sw-record-layout-v-axis>0</sw-record-layout-v-axis>
+<sw-record-layout-v-prop>VALUE</sw-record-layout-v-prop>
+<sw-record-layout-v-index>x y</sw-record-layout-v-index>
+</sw-record-layout-v>
+</sw-record-layout-group>
+</sw-record-layout-group>
+</sw-record-layout-group>
+</sw-record-layout>
+<sw-record-layout id="COMMON-X-AXIS">
+<long-name>This is the record layout for a common x Axis.</long-name>
+<short-name>common-x-axis</short-name>
+<desc></desc>
+<sw-record-layout-group>
+<sw-record-layout-group>
+<sw-record-layout-v>
+<sw-base-type-ref id-ref="UBYTE">UBYTE</sw-base-type-ref>
+<sw-record-layout-v-axis>1</sw-record-layout-v-axis>
+<sw-record-layout-v-prop>COUNT</sw-record-layout-v-prop>
+</sw-record-layout-v>
+</sw-record-layout-group>
+<sw-record-layout-group>
+<desc>Here are the values of the x axis.</desc>
+<sw-record-layout-group-axis>1</sw-record-layout-group-axis>
+<sw-record-layout-group-index>x</sw-record-layout-group-index>
+<sw-record-layout-group-from>1</sw-record-layout-group-from>
+<sw-record-layout-group-to>-1</sw-record-layout-group-to>
+<sw-record-layout-v>
+<sw-base-type-ref id-ref="UBYTE">UBYTE</sw-base-type-ref>
+<sw-record-layout-v-axis>1</sw-record-layout-v-axis>
+<sw-record-layout-v-prop>VALUE</sw-record-layout-v-prop>
+<sw-record-layout-v-index>x</sw-record-layout-v-index>
+</sw-record-layout-v>
+</sw-record-layout-group>
+</sw-record-layout-group>
+</sw-record-layout>
+<sw-base-types>
+<sw-base-type id="UBYTE">
+<long-name>Unsigned byte</long-name>
+<short-name>ubyte</short-name>
+<sw-base-type-size>8</sw-base-type-size>
+<sw-coded-type>unsigned</sw-coded-type>
+<sw-mem-alignment>8</sw-mem-alignment>
+<byte-order type="MOST-SIGNIFICANT-BYTE-LAST"></byte-order>
+</sw-base-type>
+<sw-base-type id="UWORD">
+<long-name>Unsigned word</long-name>
+<short-name>uword</short-name>
+<sw-base-type-size>16</sw-base-type-size>
+<sw-coded-type>unsigned</sw-coded-type>
+<sw-mem-alignment>16</sw-mem-alignment>
+<byte-order type="MOST-SIGNIFICANT-BYTE-LAST"></byte-order>
+</sw-base-type>
+</sw-base-types>
+<sw-data-constrs>
+<sw-data-constr id="DC-NMOT">
+<long-name>this is SW-DATA-CONSTRAINT DC-NMOT</long-name>
+<short-name>nmot</short-name>
+<sw-data-constr-rule>
+<sw-constr-level></sw-constr-level>
+<sw-phys-constrs>
+<sw-scale-constrs>
+<sw-scale-constr>
+<lower-limit interval-type="CLOSED">0</lower-limit>
+<upper-limit interval-type="CLOSED">10200</upper-limit>
+</sw-scale-constr>
+</sw-scale-constrs>
+</sw-phys-constrs>
+</sw-data-constr-rule>
+</sw-data-constr>
+<sw-data-constr id="DC-ABGMSIGH">
+<long-name>this is SW-DATA-CONSTRAINT DC-ABGMSIGH</long-name>
+<short-name>ABGMSIGH</short-name>
+<sw-data-constr-rule>
+<sw-constr-level>0</sw-constr-level>
+<sw-phys-constrs>
+<sw-scale-constrs>
+<sw-scale-constr>
+<lower-limit interval-type="CLOSED">-50.00</lower-limit>
+<upper-limit interval-type="CLOSED">1225</upper-limit>
+</sw-scale-constr>
+</sw-scale-constrs>
+</sw-phys-constrs>
+</sw-data-constr-rule>
+</sw-data-constr>
+<sw-data-constr id="DC-ANALUN">
+<long-name>this is SW-DATA-CONSTRAINT DC-ANALUN</long-name>
+<short-name>ANALUN</short-name>
+<category></category>
+<sw-data-constr-rule>
+<sw-constr-level>0</sw-constr-level>
+<sw-phys-constrs>
+<sw-scale-constrs>
+<sw-scale-constr>
+<lower-limit interval-type="CLOSED">0.0</lower-limit>
+<upper-limit interval-type="CLOSED">255.0</upper-limit>
+</sw-scale-constr>
+</sw-scale-constrs>
+</sw-phys-constrs>
+</sw-data-constr-rule>
+</sw-data-constr>
+<sw-data-constr id="DC-TEVFA-W-KGE">
+<long-name>this is SW-DATA-CONSTRAINT DC-TEVFA-W-KGE</long-name>
+<short-name>tevfa_w_kge</short-name>
+<sw-data-constr-rule>
+<sw-constr-level>0</sw-constr-level>
+<sw-phys-constrs>
+<sw-scale-constrs>
+<sw-scale-constr>
+<lower-limit interval-type="CLOSED">0.0</lower-limit>
+<upper-limit interval-type="CLOSED">131.07</upper-limit>
+</sw-scale-constr>
+</sw-scale-constrs>
+</sw-phys-constrs>
+</sw-data-constr-rule>
+</sw-data-constr>
+<sw-data-constr id="DC-FKKVS">
+<long-name>this is SW-DATA-CONSTRAINT DC-FKKVS</long-name>
+<short-name>FKKVS</short-name>
+<category></category>
+<sw-data-constr-rule>
+<sw-constr-level>0</sw-constr-level>
+<sw-phys-constrs>
+<sw-scale-constrs>
+<sw-scale-constr>
+<lower-limit interval-type="CLOSED">0.0</lower-limit>
+<upper-limit interval-type="CLOSED">1.999969</upper-limit>
+</sw-scale-constr>
+</sw-scale-constrs>
+</sw-phys-constrs>
+</sw-data-constr-rule>
+</sw-data-constr>
+</sw-data-constrs>
+</sw-data-dictionary-spec>
+<sw-instance-spec>
+<sw-instance-tree>
+<short-name>_70192</short-name>
+<sw-instance id="IT-NMOT">
+<long-name>engine-speed (measurement)</long-name>
+<short-name>nmot</short-name>
+<sw-instance-props-variants>
+<sw-instance-props-variant>
+<sw-addr-infos>
+<sw-addr-info>
+<sw-base-addr>0xF86C</sw-base-addr>
+</sw-addr-info>
+</sw-addr-infos>
+<sw-instance id="IT-B-2PH">
+<long-name>Condition for the second phase edge (measurement)</long-name>
+<short-name>B_2ph</short-name>
+<sw-instance-props-variants>
+<sw-instance-props-variant>
+<sw-addr-infos>
+<sw-addr-info>
+<sw-base-addr>0xFD0C</sw-base-addr>
+</sw-addr-info>
+</sw-addr-infos>
+<sw-mc-instance-interfaces>
+<sw-mc-instance-interface>
+<sw-mc-interface-ref id-ref="ETK">ETK</sw-mc-interface-ref>
+<sw-mc-kp-blob-conts>
+0xFD0C 0x0 0x2
+</sw-mc-kp-blob-conts>
+</sw-mc-instance-interface>
+<sw-mc-instance-interface>
+<sw-mc-interface-ref id-ref="ADDRESS">ADDRESS</sw-mc-interface-ref>
+<sw-mc-kp-blob-conts>
+0xFD0C
+</sw-mc-kp-blob-conts>
+</sw-mc-instance-interface>
+</sw-mc-instance-interfaces>
+</sw-instance-props-variant>
+</sw-instance-props-variants>
+</sw-instance>
+<sw-instance id="IT-ABGMSIGH">
+<long-name>threshold for exh. temp. for wiring-interruption with Ri-diagnosis downstr. cat (s
+<short-name>ABGMSIGH</short-name>
+<sw-instance-props-variants>
+<sw-instance-props-variant>
+<sw-addr-infos>
+<sw-addr-info>
+<sw-base-addr>0x1A0A8</sw-base-addr>
+</sw-addr-info>
+</sw-addr-infos>
+<sw-mc-instance-interfaces>
+<sw-mc-instance-interface>
+<sw-mc-interface-ref id-ref="ETK">ETK</sw-mc-interface-ref>
+<sw-mc-dp-blob-conts>
+0x1A0A8 0x1
+</sw-mc-dp-blob-conts>
+</sw-mc-instance-interface>
+</sw-mc-instance-interfaces>
+</sw-instance-props-variant>
+</sw-instance-props-variants>
+</sw-instance>
+<sw-instance id="IT-ANALUN">
+<long-name>(curve)</long-name>
+<short-name>ANALUN</short-name>
+<sw-instance-props-variants>
+<sw-instance-props-variant>
+<sw-addr-infos>
+<sw-addr-info>
+<sw-base-addr>0x1125C</sw-base-addr>
+</sw-addr-info>
+</sw-addr-infos>
+<sw-mc-instance-interfaces>
+<sw-mc-instance-interface>
+<sw-mc-interface-ref id-ref="ETK">ETK</sw-mc-interface-ref>
+<sw-mc-dp-blob-conts>
+0x1125C 0x8
+</sw-mc-dp-blob-conts>
+</sw-mc-instance-interface>
+</sw-mc-instance-interfaces>
+</sw-instance-props-variant>
+</sw-instance-props-variants>
+</sw-instance>
+<sw-instance id="IT-TEVFA-W-KGE">
+<long-name>(measurement)</long-name>
+<short-name>tevfa_w_kge</short-name>
+<sw-instance-props-variants>
+<sw-instance-props-variant>
+<sw-addr-infos>
+<sw-addr-info>
+<sw-base-addr>0x3012A2</sw-base-addr>
+</sw-addr-info>
+</sw-addr-infos>
+<sw-mc-instance-interfaces>
+<sw-mc-instance-interface>
+<sw-mc-interface-ref id-ref="ETK">ETK</sw-mc-interface-ref>
+<sw-mc-kp-blob-conts>0x3012A2 0x1 0x2</sw-mc-kp-blob-conts>
+</sw-mc-instance-interface>
+<sw-mc-instance-interface>
+<sw-mc-interface-ref id-ref="ADDRESS">ADDRESS</sw-mc-interface-ref>
+<sw-mc-kp-blob-conts>
+0x3012A2
+</sw-mc-kp-blob-conts>
+</sw-mc-instance-interface>
+</sw-mc-instance-interfaces>
+</sw-instance-props-variant>
+</sw-instance-props-variants>
+</sw-instance>
+<sw-instance id="IT-SNM08DMUB">
+<long-name>(x axis)</long-name>
+<short-name>SNM08DMUB</short-name>
+<sw-instance-props-variants>
+<sw-instance-props-variant>
+<sw-addr-infos>
+<sw-addr-info>
+<sw-base-addr>0xD918</sw-base-addr>
+</sw-addr-info>
+</sw-addr-infos>
+<sw-mc-instance-interfaces>
+<sw-mc-instance-interface>
+<sw-mc-interface-ref id-ref="ETK">ETK</sw-mc-interface-ref>
+<sw-mc-dp-blob-conts>
+0xD918 0x9
+</sw-mc-dp-blob-conts>
+</sw-mc-instance-interface>
+</sw-mc-instance-interfaces>
+</sw-instance-props-variant>
+</sw-instance-props-variants>
+</sw-instance>
+<sw-instance id="IT-FKKVS">
+<long-name>factor to correct fuel delivary system (map)</long-name>
+<short-name>FKKVS</short-name>
+<sw-instance-props-variants>
+<sw-instance-props-variant>
+<sw-addr-infos>
+<sw-addr-info>
+<sw-base-addr>0x1FA40</sw-base-addr>
+</sw-addr-info>
+</sw-addr-infos>
+<sw-mc-instance-interfaces>
+<sw-mc-instance-interface>
+<sw-mc-interface-ref id-ref="ETK">ETK</sw-mc-interface-ref>
+<sw-mc-dp-blob-conts>0x1FA40 0x232</sw-mc-dp-blob-conts>
+</sw-mc-instance-interface>
+</sw-mc-instance-interfaces>
+</sw-instance-props-variant>
+</sw-instance-props-variants>
+</sw-instance>
+</sw-instance-tree>
+</sw-instance-spec>
+<sw-cpu-mem-segs>
+<sw-cpu-mem-seg id="MEM-SEG-1">
+<short-name>mem-seg-1</short-name>
+<sw-mem-program-type>CODE</sw-mem-program-type>
+<sw-mem-type>rom</sw-mem-type>
+<sw-mem-attr>intern</sw-mem-attr>
+<sw-mem-base-addr>0x0</sw-mem-base-addr>
+<sw-mem-size>0xc000</sw-mem-size>
+<sw-mc-instance-interfaces>
+<sw-mc-instance-interface>
+<sw-mc-interface-ref id-ref="ETK">ETK</sw-mc-interface-ref>
+<sw-mc-dp-blob-conts>
+0x0 0xc000
+</sw-mc-dp-blob-conts>
+</sw-mc-instance-interface>
+</sw-mc-instance-interfaces>
+</sw-cpu-mem-seg>
+<sw-cpu-mem-seg id="MEM-SEG-2">
+<short-name>mem-seg-2</short-name>
+<sw-mem-program-type>DATA</sw-mem-program-type>
+<sw-mem-type>ram</sw-mem-type>
+<sw-mem-attr>intern</sw-mem-attr>
+<sw-mem-base-addr>0xc000</sw-mem-base-addr>
+<sw-mem-size>0x2000</sw-mem-size>
+<sw-mc-instance-interfaces>
+<sw-mc-instance-interface>
+<sw-mc-interface-ref id-ref="ETK">ETK</sw-mc-interface-ref>
+<sw-mc-dp-blob-conts>
+0xc000 0x2000
+</sw-mc-dp-blob-conts>
+</sw-mc-instance-interface>
+</sw-mc-instance-interfaces>
+</sw-cpu-mem-seg>
+</sw-cpu-mem-segs>
+<sw-cpu-epk></sw-cpu-epk>
+<sw-cpu-addr-epk>
+<sw-addr-info>
+<sw-base-addr>0xFFFF</sw-base-addr>
+</sw-addr-info>
+</sw-cpu-addr-epk>
+<sw-cpu-type>S80166</sw-cpu-type>
+</sw-cpu-spec>
+</sw-system>
+<sw-mc-communication-spec>
+<sw-mc-communication-spec>
+<sw-mc-interface-spec>
+<sw-mc-interface id="ETK">
+<short-name>ETK</short-name>
+<sw-mc-blob-layouts>
+<sw-mc-tp-blob-layout>
+long; /* Trigger-Segment-Adresse */
+int; /* Ausgabeformat der Displaytabelle 1=byte 2=word */
+int; /* Trigger-Modus (spezielle Codierung) */
+int; /* Typ der Displaytabelle (12, 11, 20) */
+int; /* Byte-Reihenfolge 1 = high first, 2 = low first */
+</sw-mc-tp-blob-layout>
+<sw-mc-qp-blob-layout>
+int; /* Max. Groesse Displaytabelle */
+long; /* Adresse Displaytabelle */
+</sw-mc-qp-blob-layout>
+<sw-mc-kp-blob-layout>
+long; /* Anfangs-Adresse */
+int; /* Adress-Ort (0=intern, 1=extern) */
+int; /* Anzahl der Bytes */
+</sw-mc-kp-blob-layout>
+<sw-mc-dp-blob-layout>
+long; /* Anfangs-Adresse */
+long; /* Laenge */
+</sw-mc-dp-blob-layout>
+</sw-mc-blob-layouts>
+</sw-mc-interface>
+<sw-mc-interface id="ADDRESS">
+<short-name>ADDRESS</short-name>
+<sw-mc-blob-layouts>
+<sw-mc-kp-blob-layout>
+long; /* Anfangs-Adresse */
+</sw-mc-kp-blob-layout>
+</sw-mc-blob-layouts>
+</sw-mc-interface>
+</sw-mc-interface-spec>
+<sw-mc-base-types>
+<sw-mc-base-type id="LONG">
+<long-name>this is SW-MC-BASE-TYPE LONG</long-name>
+<short-name>long</short-name>
+<sw-base-type-size>32</sw-base-type-size>
+<sw-coded-type>signed</sw-coded-type>
+<sw-mem-alignment>32</sw-mem-alignment>
+<byte-order type="MOST-SIGNIFICANT-BYTE-LAST"></byte-order>
+</sw-mc-base-type>
+<sw-mc-base-type id="INT">
+<long-name>this is SW-MC-BASE-TYPE INT</long-name>
+<short-name>int</short-name>
+<sw-base-type-size>16</sw-base-type-size>
+<sw-coded-type>signed</sw-coded-type>
+<sw-mem-alignment>16</sw-mem-alignment>
+<byte-order type="MOST-SIGNIFICANT-BYTE-LAST"></byte-order>
+</sw-mc-base-type>
+<sw-mc-base-type id="CHAR">
+<long-name>this is SW-MC-BASE-TYPE CHAR</long-name>
+<short-name>char</short-name>
+<sw-base-type-size>8</sw-base-type-size>
+<sw-coded-type>signed</sw-coded-type>
+<sw-mem-alignment>8</sw-mem-alignment>
+<byte-order type="MOST-SIGNIFICANT-BYTE-LAST"></byte-order>
+</sw-mc-base-type>
+<sw-mc-base-type id="ASCII">
+<long-name>this is SW-MC-BASE-TYPE ASCII</long-name>
+<short-name>ascii</short-name>
+<sw-base-type-size>8</sw-base-type-size>
+<sw-coded-type>ascii</sw-coded-type>
+<sw-mem-alignment>8</sw-mem-alignment>
+<byte-order type="MOST-SIGNIFICANT-BYTE-LAST"></byte-order>
+</sw-mc-base-type>
+</sw-mc-base-types>
+<sw-mc-interface-impls>
+<sw-mc-interface-impl>
+<sw-mc-interface-ref id-ref="ETK">ETK</sw-mc-interface-ref>
+<sw-mc-tp-blob-conts>
+<sw-mc-blob-value>
+0x303FC0 0x1 0x27 0xC 2
+</sw-mc-blob-value>
+</sw-mc-tp-blob-conts>
+<sw-mc-interface-sources>
+<sw-mc-interface-source id="IF-SYNCHRO">
+<long-name>Combustion sychronous</long-name>
+<short-name>Synchro</short-name>
+<sw-refresh-timing>
+<sw-cse-code>103</sw-cse-code>
+<sw-cse-code-factor>1</sw-cse-code-factor>
+</sw-refresh-timing>
+<sw-mc-qp-blob-contents>
+<sw-mc-blob-value>
+<vf>0xa</vf>
+</sw-mc-blob-value>
+<sw-mc-blob-value>
+<vf>0x17F68</vf>
+</sw-mc-blob-value>
+</sw-mc-qp-blob-contents>
+</sw-mc-interface-source>
+<sw-mc-interface-source id="IF-10MS">
+<long-name>this is SW-MC-INTERFACE-SOURCE IF-10MS</long-name>
+<short-name>10ms</short-name>
+<sw-refresh-timing>
+<sw-cse-code>4</sw-cse-code>
+<sw-cse-code-factor>1</sw-cse-code-factor>
+</sw-refresh-timing>
+<sw-mc-qp-blob-contents>
+<sw-mc-blob-value>
+<vf>0x19</vf>
+</sw-mc-blob-value>
+<sw-mc-blob-value>
+<vf>0x17F7E</vf>
+</sw-mc-blob-value>
+</sw-mc-qp-blob-contents>
+</sw-mc-interface-source>
+<sw-mc-interface-source id="IF-100MS">
+<long-name>this is SW-MC-INTERFACE-SOURCE IF-100MS</long-name>
+<short-name>100ms</short-name>
+<sw-refresh-timing>
+<sw-cse-code>5</sw-cse-code>
+<sw-cse-code-factor>1</sw-cse-code-factor>
+</sw-refresh-timing>
+<sw-mc-qp-blob-contents>
+<sw-mc-blob-value>
+<vf>0x23</vf>
+</sw-mc-blob-value>
+<sw-mc-blob-value>
+<vf>0x17FB4</vf>
+</sw-mc-blob-value>
+</sw-mc-qp-blob-contents>
+</sw-mc-interface-source>
+</sw-mc-interface-sources>
+</sw-mc-interface-impl>
+</sw-mc-interface-impls>
+</sw-mc-communication-spec>
+</msrsw>

@@ -1,0 +1,344 @@
+ASAP2_VERSION 1 31
+/* Erstellt von DAMOS++ V1.15B-3 */
+/begin PROJECT _70192 "Objektspeicher ME7.0"
+    /begin HEADER ""
+    VERSION "_70192"
+    PROJECT_NO _70192
+    /end HEADER
+    /begin MODULE DIM ""
+        /begin A2ML
+            taggedunion if_data {
+            /********************************************************************/
+            /* */
+            /* ASAP2-Meta-Beschreibung für ETK */
+            /* - nur in ASAP V1.2 anwendbar - */
+            /* */
+            /* Robert Bosch GmbH K3/EES4-Hünerfeld */
+            /* Stand 0.2, 12.Aug.96 */
+            /* Stand 0.3, 28.05.97 ASAP1B_ADDRESS */
+            /* */
+            /********************************************************************/
+            "ASAP1B_ETK" taggedstruct
+            {
+            (block "SOURCE" struct
+            {
+            struct
+            {
+            char [100]; /* Source-Name */
+            int; /* Minimale Periodendauer gemessen in CSE */
+            long; /* Minimale Anzahl von Perioden */
+            };
+            taggedstruct
+            {
+            "QP_BLOB" struct /* QP_BLOB fuer ASAP1b */
+            {
+            int; /* Max. Groesse Displaytabelle */
+            long; /* Adresse Displaytabelle */
+            };
+            };
+            };
+            ) *; /* SOURCE kann mehrfach auftreten */
+            "TP_BLOB" struct /* TP_BLOB fuer ASAP1b */
+            {
+            long; /* Trigger-Segment-Adresse */
+            int; /* Ausgabeformat der Displaytabelle 1=byte 2=word */
+            int; /* Trigger-Modus (spezielle Codierung) */
+            int; /* Typ der Displaytabelle (12, 11, 20) */
+            int; /* Byte-Reihenfolge 1 = high first, 2 = low first */
+            };
+            "DP_BLOB" struct /* DP_BLOB fuer ASAP1b */
+            {
+            long; /* Anfangs-Adresse */
+            long; /* Laenge */
+            };
+            "KP_BLOB" struct /* KP_BLOB fuer ASAP1b */
+            {
+            long; /* Anfangs-Adresse */
+            int; /* Adress-Ort (0=intern, 1=extern) */
+            int; /* Anzahl der Bytes */
+            };
+            };
+            "ASAP1B_ADDRESS" taggedstruct
+            {
+            "KP_BLOB" struct /* KP_BLOB fuer ASAP1b */
+            {
+            long; /* Anfangs-Adresse */
+            };
+            };
+            /* CMS REPLACEMENT HISTORY, Element ETK.AML */
+            /* *5 27-JUN-1997 11:30:01 K3EES4_HD "¿block¿ bei KB_BLOB entfernt" */
+            /* *4 28-MAY-1997 15:38:29 K3EES4_HD "leeren PA_BLOB entfernt" */
+            /* *3 28-MAY-1997 10:41:57 K3EES4_BA "Erweiterungen zu ASAP1B_ADDRESS" */
+            /* *2 12-AUG-1996 13:25:27 K3EES4_HD "Neustrukturierung aufgrund Volvo-Besuch 1.8.96" */
+            /* *1 16-JUL-1996 14:54:49 K3EES4_HD "ASAP-Meta-Language für ETK" */
+            /* CMS REPLACEMENT HISTORY, Element ETK.AML */
+            };
+        /end A2ML
+        /begin MOD_PAR "Objektspeicher ME7.0"
+            VERSION "1.65"
+            ADDR_EPK 0xFFFF
+            EPK ""
+            CUSTOMER_NO "MSR SW Working group"
+            USER "Herr Smith"
+            PHONE_NO ""
+            CPU_TYPE "S80166"
+            ECU ""
+            /begin MEMORY_SEGMENT
+                mem-seg-1
+                ""
+                CODE
+                ROM
+                INTERN
+                0x0 0xC000 -1 -1 -1 -1 -1
+                /begin IF_DATA 
+                    ASAP1B_ETK DP_BLOB 0x0 0xC000
+                /end IF_DATA
+            /end MEMORY_SEGMENT
+            /begin MEMORY_SEGMENT
+                mem-seg-2
+                ""
+                DATA
+                RAM
+                INTERN
+                0xC000 0x2000 -1 -1 -1 -1 -1
+                /begin IF_DATA
+                    ASAP1B_ETK DP_BLOB 0xC000 0x2000
+                /end IF_DATA
+            /end MEMORY_SEGMENT
+            SYSTEM_CONSTANT "EPK_MAX_LEN" "80"
+            SYSTEM_CONSTANT "SWOFFDL_REQUEST_MASK" "16383"
+            SYSTEM_CONSTANT "SY_2SG" "0"
+        /end MOD_PAR
+        /begin MOD_COMMON ""
+            BYTE_ORDER MSB_LAST
+            S_REC_LAYOUT DAMOS
+        /end MOD_COMMON
+        /* ¿ AgI-Objekt für ETK (ASAP V1.2), Stand 1.0 27.6.97 ¿ */
+        /begin IF_DATA ASAP1B_ETK
+            TP_BLOB 0x303FC0 0x1 0x27 0xC 2
+            /begin SOURCE "Synchro" 103 1
+                QP_BLOB 0xA 0x17F68
+            /end SOURCE
+            /begin SOURCE "10ms" 4 1
+                QP_BLOB 0x19 0x17F7E
+            /end SOURCE
+            /begin SOURCE "100ms" 5 1
+                QP_BLOB 0x23 0x17FB4
+            /end SOURCE
+        /end IF_DATA
+        /begin CHARACTERISTIC
+        ABGMSIGH
+        "threshold for exh. temp. for wiring-interruption with Ri-diagnosis downstr. cat"
+        VALUE
+        0x1A0A8
+        KwUb
+        1275.
+        temp_ub_q5_o50
+        -50.00
+        1225.
+        FORMAT "%5.0"
+        /begin IF_DATA
+            ASAP1B_ETK DP_BLOB 0x1A0A8 0x1
+        /end IF_DATA
+        /end CHARACTERISTIC
+        /begin RECORD_LAYOUT KwUb
+            FNC_VALUES 1 UBYTE COLUMN_DIR DIRECT
+        /end RECORD_LAYOUT
+        /begin COMPU_METHOD
+            temp_ub_q5_o50
+            ""
+            RAT_FUNC
+            "%6.2"
+            "Grad C"
+            COEFFS 0 1 50 0 0 5
+        /end COMPU_METHOD
+        /begin CHARACTERISTIC
+            ANALUN
+            "number of combustions for deactivation after detected misfire"
+            CURVE
+            0x1125C
+            GklWUb
+            255.0
+            dez
+            0.00
+            255.0
+            FORMAT "%5.1"
+            /begin IF_DATA
+                ASAP1B_ETK DP_BLOB 0x1125C 0x8
+            /end IF_DATA
+            /begin AXIS_DESCR
+                COM_AXIS
+                nmot
+                nmot_ub_q40
+                8
+                0.00
+                10200.
+                AXIS_PTS_REF SNM08DMUB
+            /end AXIS_DESCR
+        /end CHARACTERISTIC
+        /begin RECORD_LAYOUT GklWUb
+            FNC_VALUES 1 UBYTE COLUMN_DIR DIRECT
+        /end RECORD_LAYOUT
+        /begin COMPU_METHOD
+            dez
+            "1 : 1 conversion (dez/hex)"
+            RAT_FUNC
+            "%6.2"
+            ""
+            COEFFS 0 1 0 0 0 1
+        /end COMPU_METHOD
+        /begin COMPU_METHOD
+            nmot_ub_q40
+            ""
+            RAT_FUNC
+            "%6.1"
+            "Upm"
+            COEFFS 0 1 0 0 0 40
+        /end COMPU_METHOD
+        /begin AXIS_PTS
+            SNM08DMUB
+            ""
+            0xD91A
+            nmot
+            SstAUbSstUb
+            10200.
+            nmot_ub_q40
+            8
+            0.00
+            10200.
+            DEPOSIT ABSOLUTE
+            /begin IF_DATA
+                ASAP1B_ETK DP_BLOB 0xD91A 0x9
+            /end IF_DATA
+        /end AXIS_PTS
+        /begin RECORD_LAYOUT SstAUbSstUb
+            NO_AXIS_PTS_X 1 UBYTE
+            AXIS_PTS_X 2 UBYTE INDEX_INCR DIRECT
+        /end RECORD_LAYOUT
+        /begin CHARACTERISTIC
+            FKKVS
+            "factor to correct fuel delivary system"
+            MAP
+            0x1FA40
+            KfAxUbAyUbSstxUbSstyUwWUw
+            1.999969
+            fak_uw_b2
+            0.00
+            1.999969
+            FORMAT "%8.6"
+            /begin IF_DATA
+                ASAP1B_ETK DP_BLOB 0x1FA40 0x232
+            /end IF_DATA
+            /begin AXIS_DESCR
+                STD_AXIS
+                nmot
+                nmot_ub_q40
+                16
+                0.00
+                10200.
+                DEPOSIT ABSOLUTE
+            /end AXIS_DESCR
+            /begin AXIS_DESCR
+                STD_AXIS
+                tevfa_w_kge
+                tinjection_sy
+                16
+                0.00
+                131.0700
+                DEPOSIT ABSOLUTE
+            /end AXIS_DESCR
+        /end CHARACTERISTIC
+        /begin RECORD_LAYOUT KfAxUbAyUbSstxUbSstyUwWUw
+            NO_AXIS_PTS_X 1 UBYTE
+            NO_AXIS_PTS_Y 2 UBYTE
+            AXIS_PTS_X 3 UBYTE INDEX_INCR DIRECT
+            AXIS_PTS_Y 4 UWORD INDEX_INCR DIRECT
+            FNC_VALUES 5 UWORD ROW_DIR DIRECT
+        /end RECORD_LAYOUT
+        /begin COMPU_METHOD
+            fak_uw_b2
+            ""
+            RAT_FUNC
+            "%7.6"
+            "-"
+            COEFFS 0 65536 0 0 0 2
+        /end COMPU_METHOD
+        /begin COMPU_METHOD
+            tinjection_sy
+            ""
+            RAT_FUNC
+            "%6.4"
+            "ms"
+            COEFFS 0 500 0 0 0 1
+        /end COMPU_METHOD
+        /begin MEASUREMENT
+            nmot
+            "engine speed"
+            UBYTE
+            nmot_ub_q40
+            1
+            100
+            0
+            10200
+            FORMAT "%5.0"
+            /begin IF_DATA
+            ASAP1B_ADDRESS KP_BLOB 0xF86C
+            /end IF_DATA
+            /begin IF_DATA
+            ASAP1B_ETK KP_BLOB 0xF86C 0x0 0x1
+            /end IF_DATA
+        /end MEASUREMENT
+        /begin MEASUREMENT
+            B_2ph
+            "Condition for the second phase edge"
+            UWORD
+            B_TRUE
+            1
+            100
+            0
+            1
+            BIT_MASK 0x800
+            FORMAT "%13.11"
+            /begin IF_DATA
+                ASAP1B_ADDRESS KP_BLOB 0xFD0C
+            /end IF_DATA
+            /begin IF_DATA
+                ASAP1B_ETK KP_BLOB 0xFD0C 0x0 0x2
+            /end IF_DATA
+        /end MEASUREMENT
+        /begin COMPU_METHOD
+            B_TRUE
+            ""
+            TAB_VERB
+            "%6.3"
+            ""
+            COMPU_TAB_REF B_TRUE
+        /end COMPU_METHOD
+        /begin COMPU_VTAB
+            B_TRUE
+            ""
+            TAB_VERB
+            2
+            0 "¿-"
+            1 "TRUE"
+        /end COMPU_VTAB
+        /begin MEASUREMENT
+            tevfa_w_kge
+            ""
+            UWORD
+            tinjection_sy
+            1
+            100
+            0
+            131.07
+            FORMAT "%8.4"
+            /begin IF_DATA
+                ASAP1B_ADDRESS KP_BLOB 0x3012A2
+            /end IF_DATA
+            /begin IF_DATA
+                ASAP1B_ETK KP_BLOB 0x3012A2 0x1 0x2
+            /end IF_DATA
+        /end MEASUREMENT
+    /end MODULE
+/end PROJECT
+
