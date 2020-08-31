@@ -103,10 +103,11 @@ class Creator(msrsw.Creator):
         for c in characteristics:
             chx = Characteristic(self.session_obj, c.name)
             datatype = chx.deposit.fncValues['datatype']
-
-            np_dtype = chx.np_dtype
-            np_shape = chx.np_shape
-            np_order = chx.np_order
+            fnc_asam_dtype = chx.fnc_asam_dtype
+            fnc_np_dtype = chx.fnc_np_dtype
+            #print("TYPEZ", chx.type, fnc_asam_dtype, fnc_np_dtype)
+            fnc_np_shape = chx.fnc_np_shape
+            fnc_np_order = chx.fnc_np_order
             type_size = TYPE_SIZES[datatype]
             if chx.byteOrder is None:
                 chx.byteOrder = "MSB_LAST"
@@ -115,102 +116,88 @@ class Creator(msrsw.Creator):
             cm_obj = self.query(model.CompuMethod).filter(model.CompuMethod.name == chx._conversionRef).first()
             cm = CompuMethod(self.session_obj, cm_obj)
             unit = chx.physUnit
-            print("CHAR:", chx.name, chx.type, chx.np_dtype, chx.np_shape, chx.np_order, chx.deposit.components, cm_obj.conversionType)
+            #print("CHAR:", chx.name, chx.type, chx.fnc_np_dtype, chx.fnc_np_shape, chx.fnc_np_order, chx.deposit.components, cm_obj.conversionType)
             if chx.type == "VALUE":
                 value = HEX.read_numeric(chx.address, reader, bit_mask = chx.bitMask)
                 conv_value = cm.int_to_physical(value)
-                print("VALUE:", chx.name, chx.type, hex(chx.address), chx.deposit.fncValues['datatype'], hex(chx.bitMask), value, conv_value)
+                #print("VALUE:", chx.name, chx.type, hex(chx.address), chx.deposit.fncValues['datatype'], hex(chx.bitMask), value, conv_value)
                 result.append(MCObject(chx.name, chx.address, type_size))
-
                 if chx.dependentCharacteristic is not None:
                     category = "DEPENDENT_VALUE"
                 else:
                     category = "VALUE"
                 self.instance_scalar(chx.name, chx.longIdentifier, conv_value, unit = unit, category = category)
                 if conv_value in SINGLE_BITS:
-                    print("\t***BOOL", conv_value)
+                    #print("\t***BOOL", conv_value)
+                    pass
             elif chx.type == "ASCII":
                 length = chx.matrixDim["x"]
                 value = HEX.read_string(chx.address, length = length)
-                print("*ASCII: '''{}'''".format(value), len(value))
+                #print("*ASCII: '''{}'''".format(value), len(value))
                 result.append(MCObject(chx.name, chx.address, length))
                 self.instance_scalar(chx.name, chx.longIdentifier, value, category = "ASCII", unit = unit)
             elif chx.type == "VAL_BLK":
                 x, y, z = chx.matrixDim['x'], chx.matrixDim['y'], chx.matrixDim['z']
                 length = x * y *z
-                np_arr = HEX.read_ndarray(addr = chx.address, length = length, dtype = reader, shape = chx.np_shape, order = chx.np_order, bit_mask = chx.bitMask)
-                pprint(cm.int_to_physical(np_arr))
+                np_arr = HEX.read_ndarray(addr = chx.address, length = length, dtype = reader, shape = chx.fnc_np_shape, order = chx.fnc_np_order, bit_mask = chx.bitMask)
                 result.append(MCObject(chx.name, chx.address, length))
                 self.value_array(
                     name = chx.name, descr = chx.longIdentifier, value = cm.int_to_physical(np_arr), unit = unit
                 )
             elif chx.type == "CURVE":
-                if chx.name == "CDF20.curve.KL_xRESs8_wS16":
-                    pass
-                    #print(chx)
-                # CDF20.curve.KL_xU8_wU8 CURVE
-                for idx, axis in enumerate(chx.axisDescriptions):
-                    #axisPtsRef
-                    #print("*** AXIS #{} {}".format(idx, axis))
-                    if axis.attribute == "FIX_AXIS":
-                        """
-                        fixAxisPar      = None;
-                        fixAxisParDist  = {'numberapo': 6, 'offset': 1, 'distance': 1};
-                        fixAxisParList  = [];
-                        """
+                axis_descr = chx.axisDescriptions[0]
+                maxAxisPoints = axis_descr.maxAxisPoints
+                print("\tCOMPO:", chx.deposit.components, hex(axis_descr.axisPtsRef.address) if axis_descr.axisPtsRef else "NO_REF")
+                #print("*** AXIS {}".format(axis_descr))
+                if axis_descr.attribute == "FIX_AXIS":
+                    if axis_descr.fixAxisParDist:
+                        par_dist = axis_descr.fixAxisParDist
+                        raw_axis_values = fix_axis_par_dist(par_dist['offset'], par_dist['distance'], par_dist['numberapo'])
+                    elif axis_descr.fixAxisParList:
+                        raw_axis_values = axis.fixAxisParList
+                    elif axis_descr.fixAxisPar:
+                        par = axis_descr.fixAxisPar
+                        raw_axis_values = fix_axis_par(par['offset'], par['shift'], par['numberapo'])
+                    #else:
+                    #    pass
+                    axis_cm_obj = self.query(model.CompuMethod).filter(model.CompuMethod.name == axis_descr._conversionRef).first()
+                    axis_cm = CompuMethod(self.session_obj, axis_cm_obj)
+                    axis_values = axis_cm.int_to_physical(raw_axis_values)
 
-                        """
-                        The keywords FIX_AXIS_PAR, FIX_AXIS_PAR_DIST, DEPOSIT and FIX_AXIS_PAR_LIST are mutually exclusive,
-                        i.e. at most one of these keywords is allowed to be used at the same AXIS_DESCR record.
-                        """
-                        if axis.fixAxisParDist:
-                            par_dist = axis.fixAxisParDist
-                            raw_axis_values = fix_axis_par_dist(par_dist['offset'], par_dist['distance'], par_dist['numberapo'])
-
-                            axis_cm_obj = self.query(model.CompuMethod).filter(model.CompuMethod.name == axis._conversionRef).first()
-                            axis_cm = CompuMethod(self.session_obj, axis_cm_obj)
-                            axis_values = axis_cm.int_to_physical(raw_axis_values)
-
-                            print("\tAXIS_VALUES:", raw_axis_values, axis_values, axis._conversionRef, axis.compuMethod)
-                        elif axis.fixAxisParList:
-                            raw_axis_values =axis.fixAxisParList
-
-                            axis_cm_obj = self.query(model.CompuMethod).filter(model.CompuMethod.name == axis._conversionRef).first()
-                            axis_cm = CompuMethod(self.session_obj, axis_cm_obj)
-                            axis_values = axis_cm.int_to_physical(raw_axis_values)
-
-                        elif axis.fixAxisPar:
-                            par = axis.fixAxisPar
-                            raw_axis_values = fix_axis_par(par['offset'], par['shift'], par['numberapo'])
-
-                            axis_cm_obj = self.query(model.CompuMethod).filter(model.CompuMethod.name == axis._conversionRef).first()
-                            axis_cm = CompuMethod(self.session_obj, axis_cm_obj)
-                            axis_values = axis_cm.int_to_physical(raw_axis_values)
-
-                            print("\tAXIS_VALUES [SHIFT]:", raw_axis_values, axis_values, axis._conversionRef, axis.compuMethod)
-
-                        else:
-                            pass
-                    elif axis.attribute == "STD_AXIS":
-                        print("\t*RES_AXIS")
-                        #print("*** STD-AXIS #{} {}".format(idx, axis))
-                    elif axis.attribute == "RES_AXIS":
-                        print("\t*RES_AXIS")
-                        #print("*** RES-AXIS #{} {}".format(idx, axis.axisPtsRef.depositAttr.components))
-                    elif axis.attribute == "COM_AXIS":
-                        components = axis.axisPtsRef.depositAttr.components
-                        print("*** COM-AXIS #{} {}".format(idx, axis.axisPtsRef))   # .depositAttr.components
-
-                        print("\tCOMPO:", chx.deposit.components, components)
-                        #address = axis.address
-                        maxAxisPoints = axis.maxAxisPoints
-                        #reader = get_section_reader(datatype, byte_order)
-
-                        #np_arr = HEX.read_ndarray(addr = address, length = length, dtype = reader, shape = chx.np_shape, order = chx.np_order, bit_mask = chx.bitMask)
-                    else:
-                        print("\t*NOW?")    # FIX_AXIS,STD_AXIS, RES_AXIS, COM_AXIS, CURVE_AXIS,
-            #
+                    """
+                    RecordLayoutComponents(
+                        1 ==> {'position': 1, 'datatype': 'UWORD', 'type': ('noAxisPts', 'X')}
+                        2 ==> {'type': 'fncValues', 'values': {
+                            'indexMode': 'COLUMN_DIR', 'position':2, 'datatype': 'UBYTE', 'addresstype': 'DIRECT'}
+                        }
+                    )
+                    """
+                    self.fix_axis_curve(
+                        chx.name, chx.longIdentifier, axis_values, [], axis_unit = axis_descr.compuMethod["unit"]
+                    )
+                    print("*** FIX-AXIS", hex(chx.address), chx.deposit.components)
+                elif axis_descr.attribute == "STD_AXIS":
+                ##
+                ##
+                ##
+                    print("*** STD-AXIS")
+                elif axis_descr.attribute == "RES_AXIS":
+                    print("*** RES-AXIS {}".format(axis_descr.axisPtsRef.depositAttr.components))
+                elif axis_descr.attribute == "COM_AXIS":
+                    components = axis_descr.axisPtsRef.depositAttr.components
+                    print("*** COM-AXIS {}".format(axis_descr.axisPtsRef.depositAttr.components))   #
+                elif axis_descr.attribute == "CURVE_AXIS":
+                    print("*** CURVE-AXIS {}".format(axis_descr.axisPtsRef))   # .depositAttr.components
         make_continuous_blocks(result)
+
+
+    def int_to_physical(self, cm_name, raw_values):
+        """
+        """
+        cm_obj = self.query(model.CompuMethod).filter(model.CompuMethod.name == cm_name).first()
+        cm = CompuMethod(self.session_obj, cm_obj)
+        values = axis_cm.int_to_physical(raw_values)
+        return values
 
     def instance_scalar(self, name, descr, value, category = "VALUE", unit = "", feature_ref = None):
         """
@@ -233,7 +220,7 @@ class Creator(msrsw.Creator):
         STRUCTURE
         UNION
         """
-        cont = self.value_container(name, descr, value, category, unit, feature_ref)
+        cont = self.no_axis_container(name, descr, category, unit, feature_ref)
         values = create_elem(cont, "SW-VALUES-PHYS")
 
         if isinstance(value, str) and value:
@@ -241,18 +228,37 @@ class Creator(msrsw.Creator):
         else:
             create_elem(values, "V", text = str(value))
 
+    def add_axis(self, axis_conts, axis_values, category, unit = ""):
+        axis_cont = create_elem(axis_conts, "SW-AXIS-CONT")
+        create_elem(axis_cont, "CATEGORY", text = category)
+        if unit:
+            create_elem(axis_cont, "UNIT-DISPLAY-NAME", text = unit)
+        self.output_1darray(axis_cont, "SW-VALUES-PHYS", axis_values)
+
+    def fix_axis_curve(self, name, descr, x_axis_values, func_values, axis_unit = "", values_unit = "", feature_ref = None):
+        value_cont, axis_conts = self.axis_container(name, descr, "CURVE", axis_unit, feature_ref)
+
+        self.add_axis(axis_conts, x_axis_values, "FIX_AXIS", axis_unit)
+
+        #self.output_1darray(value_cont, "SW-ARRAYSIZE", reversed(func_values.shape))
+        #values_phys = create_elem(value_cont, "SW-VALUES-PHYS")
+        #values = make_2darray(func_values)
+        #for idx in range(values.shape[0]):
+        #    row = values[idx: idx + 1].reshape(values.shape[1])
+        #    vg = create_elem(values_phys, "VG")
+        #    self.output_1darray(vg, None, row)
+
     def value_array(self, name, descr, value, unit = "", feature_ref = None):
-        cont = self.value_container(name, descr, value, "VAL_BLK", unit, feature_ref)
+        cont = self.no_axis_container(name, descr, "VALUE_ARRAY", unit, feature_ref)
         self.output_1darray(cont, "SW-ARRAYSIZE", reversed(value.shape))
         values_cont = create_elem(cont, "SW-VALUES-PHYS")
         values = make_2darray(value)
-
         for idx in range(values.shape[0]):
             row = values[idx: idx + 1].reshape(values.shape[1])
             vg = create_elem(values_cont, "VG")
             self.output_1darray(vg, None, row)
 
-    def value_container(self, name, descr, value, category = "VALUE", unit = "", feature_ref = None):
+    def sw_instance(self, name, descr, category = "VALUE", feature_ref = None):
         instance_tree = self.sub_trees["SW-INSTANCE-TREE"]
         instance = create_elem(instance_tree, "SW-INSTANCE")
         create_elem(instance, "SHORT-NAME", text = name)
@@ -263,10 +269,22 @@ class Creator(msrsw.Creator):
             create_elem(instance, "SW-FEATURE-REF", text = feature_ref)
         variants = create_elem(instance, "SW-INSTANCE-PROPS-VARIANTS")
         variant = create_elem(variants, "SW-INSTANCE-PROPS-VARIANT")
-        cont = create_elem(variant, "SW-VALUE-CONT")
+        return variant
+
+    def no_axis_container(self, name, descr, category = "VALUE", unit = "", feature_ref = None):
+        variant = self.sw_instance(name, descr, category = category, feature_ref = None)
+        value_cont = create_elem(variant, "SW-VALUE-CONT")
         if unit:
-            create_elem(cont, "UNIT-DISPLAY-NAME", text = unit)
-        return cont
+            create_elem(value_cont, "UNIT-DISPLAY-NAME", text = unit)
+        return value_cont
+
+    def axis_container(self, name, descr, category = "VALUE", unit = "", feature_ref = None):
+        variant = self.sw_instance(name, descr, category = category, feature_ref = None)
+        value_cont = create_elem(variant, "SW-VALUE-CONT")
+        if unit:
+            create_elem(value_cont, "UNIT-DISPLAY-NAME", text = unit)
+        axis_conts = create_elem(variant, "SW-AXIS-CONTS")
+        return value_cont, axis_conts
 
     def instance_value_block(self, name, descr, value):
         """
@@ -289,9 +307,8 @@ session = db.open_existing(FNAME)
 cr = Creator(session)
 
 with open("ASAP2_Demo_V161.cdfx", "wb") as of:
-    of.write(etree.tostring(cr.tree, encoding = "ISO-8859-1", pretty_print = True, xml_declaration = True, doctype = DOCTYPE))
+    of.write(etree.tostring(cr.tree, encoding = "UTF-8", pretty_print = True, xml_declaration = True, doctype = DOCTYPE))
 
-#print(etree.tostring(cr.tree, pretty_print = True, xml_declaration = True, doctype = DOCTYPE))
 
 dtd = DTD(CDF_DTD)
 
