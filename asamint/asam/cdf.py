@@ -105,10 +105,9 @@ class Creator(msrsw.Creator):
             datatype = chx.deposit.fncValues['datatype']
             fnc_asam_dtype = chx.fnc_asam_dtype
             fnc_np_dtype = chx.fnc_np_dtype
-            #print("TYPEZ", chx.type, fnc_asam_dtype, fnc_np_dtype)
             fnc_np_shape = chx.fnc_np_shape
             fnc_np_order = chx.fnc_np_order
-            type_size = TYPE_SIZES[datatype]
+            fnc_element_size = chx.fnc_element_size
             if chx.byteOrder is None:
                 chx.byteOrder = "MSB_LAST"
             byte_order = ByteOrder.LITTE_ENDIAN if chx.byteOrder in ("MSB_LAST", "LITTLE_ENDIAN") else ByteOrder.BIG_ENDIAN
@@ -116,12 +115,14 @@ class Creator(msrsw.Creator):
             cm_obj = self.query(model.CompuMethod).filter(model.CompuMethod.name == chx._conversionRef).first()
             cm = CompuMethod(self.session_obj, cm_obj)
             unit = chx.physUnit
-            #print("CHAR:", chx.name, chx.type, chx.fnc_np_dtype, chx.fnc_np_shape, chx.fnc_np_order, chx.deposit.components, cm_obj.conversionType)
+
+            print("MS_FNC", chx.fnc_num_elements)
+            #print("AXEL", chx.record_layout_components._axel.keys())
+
             if chx.type == "VALUE":
                 value = HEX.read_numeric(chx.address, reader, bit_mask = chx.bitMask)
                 conv_value = cm.int_to_physical(value)
-                #print("VALUE:", chx.name, chx.type, hex(chx.address), chx.deposit.fncValues['datatype'], hex(chx.bitMask), value, conv_value)
-                result.append(MCObject(chx.name, chx.address, type_size))
+                result.append(MCObject(chx.name, chx.address, fnc_element_size))
                 if chx.dependentCharacteristic is not None:
                     category = "DEPENDENT_VALUE"
                 else:
@@ -133,7 +134,6 @@ class Creator(msrsw.Creator):
             elif chx.type == "ASCII":
                 length = chx.matrixDim["x"]
                 value = HEX.read_string(chx.address, length = length)
-                #print("*ASCII: '''{}'''".format(value), len(value))
                 result.append(MCObject(chx.name, chx.address, length))
                 self.instance_scalar(chx.name, chx.longIdentifier, value, category = "ASCII", unit = unit)
             elif chx.type == "VAL_BLK":
@@ -147,8 +147,7 @@ class Creator(msrsw.Creator):
             elif chx.type == "CURVE":
                 axis_descr = chx.axisDescriptions[0]
                 maxAxisPoints = axis_descr.maxAxisPoints
-                print("\tCOMPO:", chx.deposit.components, hex(axis_descr.axisPtsRef.address) if axis_descr.axisPtsRef else "NO_REF")
-                #print("*** AXIS {}".format(axis_descr))
+                print("\tCOMPO:", chx.record_layout_components, hex(axis_descr.axisPtsRef.address) if axis_descr.axisPtsRef else "NO_REF")
                 if axis_descr.attribute == "FIX_AXIS":
                     if axis_descr.fixAxisParDist:
                         par_dist = axis_descr.fixAxisParDist
@@ -164,6 +163,7 @@ class Creator(msrsw.Creator):
                     axis_cm = CompuMethod(self.session_obj, axis_cm_obj)
                     axis_values = axis_cm.int_to_physical(raw_axis_values)
 
+                    mem_size = (axis_descr.maxAxisPoints * fnc_element_size) + chx.record_layout_components.sizeof
                     """
                     RecordLayoutComponents(
                         1 ==> {'position': 1, 'datatype': 'UWORD', 'type': ('noAxisPts', 'X')}
@@ -175,17 +175,21 @@ class Creator(msrsw.Creator):
                     self.fix_axis_curve(
                         chx.name, chx.longIdentifier, axis_values, [], axis_unit = axis_descr.compuMethod["unit"]
                     )
-                    print("*** FIX-AXIS", hex(chx.address), chx.deposit.components)
+                    print("*** FIX-AXIS", hex(chx.address), chx.record_layout_components, chx.record_layout_components.axes, mem_size)
+
+                    result.append(MCObject(
+                        chx.name, chx.address, mem_size)
+                    )
                 elif axis_descr.attribute == "STD_AXIS":
                 ##
                 ##
                 ##
-                    print("*** STD-AXIS")
+                    mem_size = (axis_descr.maxAxisPoints * fnc_element_size) + chx.record_layout_components.sizeof
+                    print("*** STD-AXIS", chx.name, axis_descr, chx.record_layout_components, mem_size)
                 elif axis_descr.attribute == "RES_AXIS":
-                    print("*** RES-AXIS {}".format(axis_descr.axisPtsRef.depositAttr.components))
+                    print("*** RES-AXIS {}".format(axis_descr.axisPtsRef.depositAttr))
                 elif axis_descr.attribute == "COM_AXIS":
-                    components = axis_descr.axisPtsRef.depositAttr.components
-                    print("*** COM-AXIS {}".format(axis_descr.axisPtsRef.depositAttr.components))   #
+                    print("*** COM-AXIS {}".format(axis_descr.axisPtsRef.depositAttr))   #
                 elif axis_descr.attribute == "CURVE_AXIS":
                     print("*** CURVE-AXIS {}".format(axis_descr.axisPtsRef))   # .depositAttr.components
         make_continuous_blocks(result)
