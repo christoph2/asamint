@@ -66,16 +66,20 @@ class MDFCreator:
         Parameters
         ----------
         """
-        elem_root = Element("HDcomment")
-        create_elem(elem_root, "TX", comment)   # Required element.
-        if time_source:
-            create_elem(elem_root, "time_source", time_source)
-        if sys_constants:
-            elem_constants = create_elem(elem_root, "constants")
-            for name, value in sys_constants.items():
-                print("{} ==> {}".format(name, value))
-                create_elem(elem_constants, "const", text = str(value), attrib = {"name": name})
-        return tostring(elem_root, encoding = "UTF-8", pretty_print = True)
+        mdf_ver_major = int(self._mdf_obj.version.split(".")[0])
+        if mdf_ver_major < 4:
+            pass
+        else:
+            elem_root = Element("HDcomment")
+            create_elem(elem_root, "TX", comment)   # Required element.
+            if time_source:
+                create_elem(elem_root, "time_source", time_source)
+            if sys_constants:
+                elem_constants = create_elem(elem_root, "constants")
+                for name, value in sys_constants.items():
+                    print("{} ==> {}".format(name, value))
+                    create_elem(elem_constants, "const", text = str(value), attrib = {"name": name})
+            return tostring(elem_root, encoding = "UTF-8", pretty_print = True)
 
         """
         MDF4 by using the generic <e> tag on top level of
