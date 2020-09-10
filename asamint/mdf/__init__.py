@@ -28,13 +28,101 @@ __author__ = 'Christoph Schueler'
 
 import logging
 
-from asamint import utils
+from asamint.utils import create_elem
 
 import asammdf
 from asammdf import MDF, Signal
 from pya2l import DB
 import pya2l.model as model
-from pya2l.api.inspect import Measurement
+from pya2l.api.inspect import Measurement, ModPar
+
+from lxml.etree import (Comment, Element, ElementTree, DTD, SubElement, XMLSchema, parse, tostring)
+
+"""
+Channel name (cn)           Acquisition name (gn)   Source name (cs,gs)
+
+MCD-2 MC CHARACTERISTIC /   SOURCE / EVENT name     PROJECT name
+MEASUREMENT /
+AXIS_PTS name
+"""
+
+class MDFCreator:
+    """
+    """
+
+    def __init__(self, session_obj, mdf_obj, mdf_filename = None, header_comment = "comment"):
+        self._session_obj = session_obj
+        self._mdf_obj = mdf_obj
+        self._mdf_filename = mdf_filename
+
+        self._mod_par = ModPar(self._session_obj)
+        systemConstants = self._mod_par.systemConstants
+
+        hd_comment = self.hd_comment(header_comment, "local PC reference timer", systemConstants)
+        print(header_comment)
+
+    def hd_comment(self, comment, time_source = "local PC reference timer", sys_constants = None, units = None):
+        """
+        Parameters
+        ----------
+        """
+        elem_root = Element("HDcomment")
+        elem_comment = create_elem(elem_text_root, "TX", comment)   # Required element.
+        if time_source:
+            elem_time_source = create_elem(elem_root, "time_source", time_source)
+        if sys_constants:
+            elem_constants = create_elem(elem_root, "constants")
+            for name, value in sys_constants:
+                print("{} ==> {}".format(name, value))
+                create_elem(elem_root, "elem_constants", text = str(value), attrib = {"name": name})
+        return tostring(elem_root, encoding = "UTF-8", pretty_print = True)
+
+        """
+        MDF4 by using the generic <e> tag on top level of
+        <common_properties>
+            with the following values for the name attribute: "author", "department", "project" and "subject".
+        """
+        #const
+##
+##        <constants>
+##            <const name="PI">3.14159265</const>
+##            <const name="DED2RAD">PI/180</const>
+##            <const name="sin_45">sin(45*DEG2RAD)</const>
+##        </constants>
+##
+
+        """
+        <ho:UNIT-SPEC>
+            <ho:PHYSICAL-DIMENSIONS>
+                <ho:PHYSICAL-DIMENSION ID="siBase_m">
+                    <ho:SHORT-NAME>length</ho:SHORT-NAME>
+                    <ho:LONG-NAME xml:lang="de">Länge</ho:LONG-NAME>
+                    <ho:LONG-NAME xml:lang="en">length</ho:LONG-NAME>
+                    <ho:DESC xml:lang="en">base quantity: length</ho:DESC>
+                    <ho:LENGTH-EXP>1</ho:LENGTH-EXP>
+                </ho:PHYSICAL-DIMENSION>
+            </ho:PHYSICAL-DIMENSIONS>
+            <ho:UNITGROUPS>
+                <ho:UNITGROUP>
+                <ho:SHORT-NAME>Metric</ho:SHORT-NAME>
+                <ho:CATEGORY>COUNTRY</ho:CATEGORY>
+                <ho:UNIT-REFS>
+                    <ho:UNIT-REF ID-REF="siBase_m"/>
+                </ho:UNIT-REFS>
+                </ho:UNITGROUP>
+            </ho:UNITGROUPS>
+            <ho:UNITS>
+                <ho:UNIT ID="unitSiBase_meter">
+                    <ho:SHORT-NAME>meter</ho:SHORT-NAME>
+                    <ho:LONG-NAME xml:lang="de">Meter</ho:LONG-NAME>
+                    <ho:LONG-NAME xml:lang="en">meter</ho:LONG-NAME>
+                    <ho:DESC xml:lang="en">named SI unit for base quantity</ho:DESC>
+                    <ho:DISPLAY-NAME>m</ho:DISPLAY-NAME>
+                    <ho:PHYSICAL-DIMENSION-REF ID-REF="siBase_m"/>
+                </ho:UNIT>
+            </ho:UNITS>
+        </ho:UNIT-SPEC>
+        """
 
 
 def create_mdf(session_obj, mdf_obj, mdf_filename = None):
