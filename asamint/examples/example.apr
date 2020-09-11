@@ -1,5 +1,6 @@
 LOGLEVEL = "WARN"
 MDF_VERSION = "4.10"
+A2L_FILE = "ASAP2_Demo_V161.a2l"
 AUTHOR = "John Doe"
 DEPARTMENT = "Engineering"
-PROJECT = "Example"
+PROJECT = "Example23"
