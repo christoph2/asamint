@@ -31,7 +31,9 @@ __copyright__ = """
 __author__  = 'Christoph Schueler'
 
 import hashlib
+import os
 import re
+import time
 
 from lxml.etree import SubElement
 
@@ -69,11 +71,10 @@ def make_2darray(arr):
     """Reshape higher dimensional array to two dimensions.
 
     Probably the most anti-idiomatic Numpy code in the universe...
-
     """
     if arr.ndim > 2:
-        ndim = x.ndim
-        shape = list(x.shape)
+        ndim = arr.ndim
+        shape = list(arr.shape)
         reshaped = []
         while ndim > 2:
             reshaped.append(shape[0] * shape[1])
@@ -88,6 +89,22 @@ def make_2darray(arr):
         return arr
 
 def almost_equal(x, y, places = 7):
-    """
+    """Floating-point comparison done right.
     """
     return round(abs(x - y), places) == 0
+
+
+def generate_filename(project_config, experiment_config, extension):
+    """Automatically generate filename from configuration plus timestamp.
+    """
+    project = project_config.get("PROJECT")
+    subject = experiment_config.get("SUBJECT")
+    return "{}_{}_{}.{}".format(project, subject, time.strftime("%Y%m%d_%H%M%S"), extension)
+
+def cond_create_directories():
+    """
+    """
+    SUB_DIRS = ["measurements", "parameters", "hexfiles"]
+    for d in SUB_DIRS:
+        if not os.access(d, os.F_OK):
+            os.mkdir(d)
