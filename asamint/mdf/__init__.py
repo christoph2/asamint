@@ -28,44 +28,47 @@ __author__ = 'Christoph Schueler'
 
 import logging
 
-from asamint.utils import create_elem
+from asamint.utils import (create_elem, cond_create_directories)
 from asamint.config import Configuration
 
-import asammdf
-from asammdf import MDF, Signal
+from asammdf import (MDF, Signal)
+
+from lxml.etree import (Comment, Element, tostring)
 
 from pya2l import DB
 import pya2l.model as model
-from pya2l.api.inspect import Measurement, ModPar
+from pya2l.api.inspect import (Measurement, ModPar)
 
-from lxml.etree import (Comment, Element, ElementTree, DTD, SubElement, XMLSchema, parse, tostring)
 
-"""
-Channel name (cn)           Acquisition name (gn)   Source name (cs,gs)
-
-MCD-2 MC CHARACTERISTIC /   SOURCE / EVENT name     PROJECT name
-MEASUREMENT /
-AXIS_PTS name
-
-"""
 
 class MDFCreator:
     """
+    Parameters
+    ----------
+
+    Note: if `mdf_filename` is None, automatic filename generation kicks in and the file gets written
+    to `measurements/` sub-directory.
+
+    The other consequence is ...
+
+    Also note the consequences:
+        - Filename generation means always create a new file.
+        - If `mdf_filename` is not None, **always overwrite** file.
     """
 
     PROJECT_PARAMETER_MAP = {
         #                           Type     Req'd   Default
         "LOGLEVEL":                 (str,    False,  "WARN"),
         "MDF_VERSION":              (str,    False,   "4.10"),
+        "A2L_FILE":                 (str,    True,   ""),
         "AUTHOR":                   (str,    False,  ""),
         "DEPARTMENT":               (str,    False,  ""),
-        "PROJECT":                  (str,    False,  ""), # Contributes to filename generation.
-        #"SUBJECT":                  (str,    False,  ""),
+        "PROJECT":                  (str,    True,   ""), # Contributes to filename generation.
     }
 
     EXPERIMENT_PARAMETER_MAP = {
         #                           Type     Req'd   Default
-        "SUBJECT":                  (str,    False,  ""), # Contributes to filename generation.
+        "SUBJECT":                  (str,    True,   ""), # Contributes to filename generation.
         "DESCRIPTION":              (str,    False,  ""), # Long description, used as header comment.
         "TIME_SOURCE":              (str,    False,  "local PC reference timer"),
         "FUNCTIONS":                (list,   False,  []),
@@ -73,8 +76,8 @@ class MDFCreator:
         "MEASUREMENTS":             (list,   False,  []),
     }
 
-    def __init__(self, session_obj, mdf_obj, mdf_filename = None, project_config = None, experiment_config = None):
-        self._session_obj = session_obj
+    def __init__(self, mdf_obj, mdf_filename = None, project_config = None, experiment_config = None):
+        db = DB()
         self._mdf_obj = mdf_obj
         self._mdf_filename = mdf_filename
 
@@ -83,13 +86,21 @@ class MDFCreator:
         self.logger = logging.getLogger("MDFCreator")
         self.logger.setLevel(self.project_config.get("LOGLEVEL"))
 
+        self._session_obj = db.open_create(self.project_config.get("A2L_FILE"))
+
         self._mod_par = ModPar(self._session_obj)
-        systemConstants = self._mod_par.systemConstants
-
-        hd_comment = self.hd_comment(systemConstants)
+        hd_comment = self.hd_comment()
         print(hd_comment)
+        cond_create_directories()
+        """
+        session = db.open_existing("ASAP2_Demo_V161")
 
-    def hd_comment(self, sys_constants = None, units = None):
+        mdf = MDF(version = "4.10")
+
+        mxx = MDFCreator(session_obj = session, mdf_obj = mdf, mdf_filename = "ASAP2_Demo_V161.mf4")
+        """
+
+    def hd_comment(self):
         """
         Parameters
         ----------
@@ -103,6 +114,7 @@ class MDFCreator:
             time_source = self.experiment_config.get("TIME_SOURCE")
             if time_source:
                 create_elem(elem_root, "time_source", time_source)
+            systemConstants = self._mod_par.systemConstants
             if sys_constants:
                 elem_constants = create_elem(elem_root, "constants")
                 for name, value in sys_constants.items():
@@ -114,6 +126,9 @@ class MDFCreator:
             create_elem(cps, "e", attrib = {"name": "subject"}, text = self.experiment_config.get("SUBJECT"))
             return tostring(elem_root, encoding = "UTF-8", pretty_print = True)
 
+    def save(self, data):
+        pass
+
 
 def create_mdf(session_obj, mdf_obj, mdf_filename = None):
     """
@@ -124,7 +139,6 @@ def create_mdf(session_obj, mdf_obj, mdf_filename = None):
     signals = []
     measurements = session_obj.query(model.Measurement).order_by(model.Measurement.name).all()
     for measurement in measurements:
-        #print("\tMEAS", measurement)
         cm_name = measurement.conversion
         comment = measurement.longIdentifier
         unit = None
