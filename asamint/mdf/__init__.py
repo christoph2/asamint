@@ -29,9 +29,11 @@ __author__ = 'Christoph Schueler'
 import logging
 
 from asamint.utils import create_elem
+from asamint.config import Configuration
 
 import asammdf
 from asammdf import MDF, Signal
+
 from pya2l import DB
 import pya2l.model as model
 from pya2l.api.inspect import Measurement, ModPar
@@ -44,16 +46,32 @@ Channel name (cn)           Acquisition name (gn)   Source name (cs,gs)
 MCD-2 MC CHARACTERISTIC /   SOURCE / EVENT name     PROJECT name
 MEASUREMENT /
 AXIS_PTS name
+
 """
 
 class MDFCreator:
     """
     """
 
-    def __init__(self, session_obj, mdf_obj, mdf_filename = None, header_comment = "comment"):
+    PARAMETER_MAP = {
+        #                           Type    Req'd   Default
+        "LOGLEVEL":                 (str,    False,  "WARN"),
+        "MDF_VERSION":              (str,    True,   "4.10"),
+        "AUTHOR":                   (str,    False,  ""),
+        "DEPARTMENT":               (str,    False,  ""),
+        "PROJECT":                  (str,    False,  ""),
+        "SUBJECT":                  (str,    False,  ""),
+    }
+
+    def __init__(self, session_obj, mdf_obj, mdf_filename = None, config = None, header_comment = "comment"):
         self._session_obj = session_obj
         self._mdf_obj = mdf_obj
         self._mdf_filename = mdf_filename
+        self._header_comment = header_comment
+
+        self.config = Configuration(MDFCreator.PARAMETER_MAP or {}, config or {})
+        self.logger = logging.getLogger("MDFCreator")
+        self.logger.setLevel(self.config.get("LOGLEVEL"))
 
         self._mod_par = ModPar(self._session_obj)
         systemConstants = self._mod_par.systemConstants
@@ -61,7 +79,7 @@ class MDFCreator:
         hd_comment = self.hd_comment(header_comment, "local PC reference timer", systemConstants)
         print(hd_comment)
 
-    def hd_comment(self, comment, time_source = "local PC reference timer", sys_constants = None, units = None):
+    def hd_comment(self, time_source = "local PC reference timer", sys_constants = None, units = None):
         """
         Parameters
         ----------
@@ -71,7 +89,7 @@ class MDFCreator:
             pass
         else:
             elem_root = Element("HDcomment")
-            create_elem(elem_root, "TX", comment)   # Required element.
+            create_elem(elem_root, "TX", self._header_comment)
             if time_source:
                 create_elem(elem_root, "time_source", time_source)
             if sys_constants:
@@ -79,22 +97,12 @@ class MDFCreator:
                 for name, value in sys_constants.items():
                     print("{} ==> {}".format(name, value))
                     create_elem(elem_constants, "const", text = str(value), attrib = {"name": name})
+            cps = create_elem(elem_root, "common_properties")
+            create_elem(cps, "e", attrib = {"name": "author"}, text = self.config.get("AUTHOR"))
+            create_elem(cps, "e", attrib = {"name": "department"}, text = self.config.get("DEPARTMENT"))
+            create_elem(cps, "e", attrib = {"name": "project"}, text = self.config.get("PROJECT"))
+            create_elem(cps, "e", attrib = {"name": "subject"}, text = self.config.get("SUBJECT"))
             return tostring(elem_root, encoding = "UTF-8", pretty_print = True)
-
-        """
-        MDF4 by using the generic <e> tag on top level of
-        <common_properties>
-            with the following values for the name attribute: "author", "department", "project" and "subject".
-        """
-        #const
-##
-##        <constants>
-##            <const name="PI">3.14159265</const>
-##            <const name="DED2RAD">PI/180</const>
-##            <const name="sin_45">sin(45*DEG2RAD)</const>
-##        </constants>
-##
-
 
 
 def create_mdf(session_obj, mdf_obj, mdf_filename = None):
