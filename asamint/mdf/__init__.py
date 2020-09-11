@@ -53,8 +53,8 @@ class MDFCreator:
     """
     """
 
-    PARAMETER_MAP = {
-        #                           Type    Req'd   Default
+    PROJECT_PARAMETER_MAP = {
+        #                           Type     Req'd   Default
         "LOGLEVEL":                 (str,    False,  "WARN"),
         "MDF_VERSION":              (str,    True,   "4.10"),
         "AUTHOR":                   (str,    False,  ""),
@@ -63,23 +63,29 @@ class MDFCreator:
         "SUBJECT":                  (str,    False,  ""),
     }
 
-    def __init__(self, session_obj, mdf_obj, mdf_filename = None, config = None, header_comment = "comment"):
+    EXPERIMENT_PARAMETER_MAP = {
+        #                           Type     Req'd   Default
+        "DESCRIPTION":              (str,    False,  ""),
+        "TIME_SOURCE":              (str,    False,  "local PC reference timer"),
+    }
+
+    def __init__(self, session_obj, mdf_obj, mdf_filename = None, project_config = None, experiment_config = None):
         self._session_obj = session_obj
         self._mdf_obj = mdf_obj
         self._mdf_filename = mdf_filename
-        self._header_comment = header_comment
 
-        self.config = Configuration(MDFCreator.PARAMETER_MAP or {}, config or {})
+        self.project_config = Configuration(MDFCreator.PROJECT_PARAMETER_MAP or {}, project_config or {})
+        self.experiment_config = Configuration(MDFCreator.EXPERIMENT_PARAMETER_MAP or {}, project_config or {})
         self.logger = logging.getLogger("MDFCreator")
-        self.logger.setLevel(self.config.get("LOGLEVEL"))
+        self.logger.setLevel(self.project_config.get("LOGLEVEL"))
 
         self._mod_par = ModPar(self._session_obj)
         systemConstants = self._mod_par.systemConstants
 
-        hd_comment = self.hd_comment(header_comment, "local PC reference timer", systemConstants)
+        hd_comment = self.hd_comment(systemConstants)
         print(hd_comment)
 
-    def hd_comment(self, time_source = "local PC reference timer", sys_constants = None, units = None):
+    def hd_comment(self, sys_constants = None, units = None):
         """
         Parameters
         ----------
@@ -89,19 +95,18 @@ class MDFCreator:
             pass
         else:
             elem_root = Element("HDcomment")
-            create_elem(elem_root, "TX", self._header_comment)
+            create_elem(elem_root, "TX", self.experiment_config.get("DESCRIPTION"))
             if time_source:
-                create_elem(elem_root, "time_source", time_source)
+                create_elem(elem_root, "time_source", self.experiment_config.get("TIME_SOURCE"))
             if sys_constants:
                 elem_constants = create_elem(elem_root, "constants")
                 for name, value in sys_constants.items():
-                    print("{} ==> {}".format(name, value))
                     create_elem(elem_constants, "const", text = str(value), attrib = {"name": name})
             cps = create_elem(elem_root, "common_properties")
-            create_elem(cps, "e", attrib = {"name": "author"}, text = self.config.get("AUTHOR"))
-            create_elem(cps, "e", attrib = {"name": "department"}, text = self.config.get("DEPARTMENT"))
-            create_elem(cps, "e", attrib = {"name": "project"}, text = self.config.get("PROJECT"))
-            create_elem(cps, "e", attrib = {"name": "subject"}, text = self.config.get("SUBJECT"))
+            create_elem(cps, "e", attrib = {"name": "author"}, text = self.project_config.get("AUTHOR"))
+            create_elem(cps, "e", attrib = {"name": "department"}, text = self.project_config.get("DEPARTMENT"))
+            create_elem(cps, "e", attrib = {"name": "project"}, text = self.project_config.get("PROJECT"))
+            create_elem(cps, "e", attrib = {"name": "subject"}, text = self.project_config.get("SUBJECT"))
             return tostring(elem_root, encoding = "UTF-8", pretty_print = True)
 
 
