@@ -59,14 +59,18 @@ class MDFCreator:
         "MDF_VERSION":              (str,    False,   "4.10"),
         "AUTHOR":                   (str,    False,  ""),
         "DEPARTMENT":               (str,    False,  ""),
-        "PROJECT":                  (str,    False,  ""),
-        "SUBJECT":                  (str,    False,  ""),
+        "PROJECT":                  (str,    False,  ""), # Contributes to filename generation.
+        #"SUBJECT":                  (str,    False,  ""),
     }
 
     EXPERIMENT_PARAMETER_MAP = {
         #                           Type     Req'd   Default
-        "DESCRIPTION":              (str,    False,  ""),
+        "SUBJECT":                  (str,    False,  ""), # Contributes to filename generation.
+        "DESCRIPTION":              (str,    False,  ""), # Long description, used as header comment.
         "TIME_SOURCE":              (str,    False,  "local PC reference timer"),
+        "FUNCTIONS":                (list,   False,  []),
+        "GROUPS":                   (list,   False,  []),
+        "MEASUREMENTS":             (list,   False,  []),
     }
 
     def __init__(self, session_obj, mdf_obj, mdf_filename = None, project_config = None, experiment_config = None):
@@ -96,8 +100,9 @@ class MDFCreator:
         else:
             elem_root = Element("HDcomment")
             create_elem(elem_root, "TX", self.experiment_config.get("DESCRIPTION"))
+            time_source = self.experiment_config.get("TIME_SOURCE")
             if time_source:
-                create_elem(elem_root, "time_source", self.experiment_config.get("TIME_SOURCE"))
+                create_elem(elem_root, "time_source", time_source)
             if sys_constants:
                 elem_constants = create_elem(elem_root, "constants")
                 for name, value in sys_constants.items():
@@ -106,7 +111,7 @@ class MDFCreator:
             create_elem(cps, "e", attrib = {"name": "author"}, text = self.project_config.get("AUTHOR"))
             create_elem(cps, "e", attrib = {"name": "department"}, text = self.project_config.get("DEPARTMENT"))
             create_elem(cps, "e", attrib = {"name": "project"}, text = self.project_config.get("PROJECT"))
-            create_elem(cps, "e", attrib = {"name": "subject"}, text = self.project_config.get("SUBJECT"))
+            create_elem(cps, "e", attrib = {"name": "subject"}, text = self.experiment_config.get("SUBJECT"))
             return tostring(elem_root, encoding = "UTF-8", pretty_print = True)
 
 
@@ -158,7 +163,7 @@ def create_mdf(session_obj, mdf_obj, mdf_filename = None):
                 pairs = cvt.pairs
                 num_values = len(pairs)
                 default_value = cvt.default_value_numeric.display_value if cvt.default_value_numeric else None
-                print("\tTAB_INTP", measurement.name, cvt.pairs, default_value)
+                #print("\tTAB_INTP", measurement.name, cvt.pairs, default_value)
                 in_values = [x.inVal for x in pairs]
                 out_values = [x.outVal for x in pairs]
                 conversion = {"raw_{}".format(i): in_values[i] for i in range(num_values)}
