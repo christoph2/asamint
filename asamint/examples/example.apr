@@ -1,0 +1,6 @@
+LOGLEVEL = "WARN"
+MDF_VERSION = "4.10"
+AUTHOR = "John Doe"
+DEPARTMENT = "Engineering"
+PROJECT = "Example"
+SUBJECT = "Measurement"
