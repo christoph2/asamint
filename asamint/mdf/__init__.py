@@ -56,7 +56,7 @@ class MDFCreator:
     PROJECT_PARAMETER_MAP = {
         #                           Type     Req'd   Default
         "LOGLEVEL":                 (str,    False,  "WARN"),
-        "MDF_VERSION":              (str,    True,   "4.10"),
+        "MDF_VERSION":              (str,    False,   "4.10"),
         "AUTHOR":                   (str,    False,  ""),
         "DEPARTMENT":               (str,    False,  ""),
         "PROJECT":                  (str,    False,  ""),
