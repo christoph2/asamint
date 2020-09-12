@@ -42,7 +42,7 @@ from pya2l.api.inspect import ModCommon, _dissect_conversion, Characteristic
 from pya2l.functions import CompuMethod, fix_axis_par, fix_axis_par_dist, axis_rescale
 
 from asamint.asam import get_dtd, MCObject, TYPE_SIZES, make_continuous_blocks, ByteOrder, get_section_reader
-from asamint.utils import create_elem, make_2darray, SINGLE_BITS
+from asamint.utils import create_elem, make_2darray, SINGLE_BITS, cond_create_directories
 import asamint.msrsw as msrsw
 
 from objutils import load
@@ -56,13 +56,14 @@ CDF_DTD = get_dtd("cdf_v2.0.0.sl")
 HEX = load("ihex", open("CDF20Demo.hex", "rb"))
 
 
-class Creator(msrsw.Creator):
+class CDFCreator(msrsw.Creator):
     """
     """
 
     def on_init(self):
         self.mod_common = ModCommon(self.session_obj)
         self.byte_order = self.mod_common.byteOrder
+        cond_create_directories()
         self.cs_collections()
         self.instances()
 
@@ -115,9 +116,9 @@ class Creator(msrsw.Creator):
             cm_obj = self.query(model.CompuMethod).filter(model.CompuMethod.name == chx._conversionRef).first()
             cm = CompuMethod(self.session_obj, cm_obj)
             unit = chx.physUnit
+            dim = chx.dim
 
-            print("MS_FNC", chx.fnc_num_elements)
-            #print("AXEL", chx.record_layout_components._axel.keys())
+            print("MS_FNC", chx.type, chx.fnc_allocated_memory, chx.axes_allocated_memory, dim)
 
             if chx.type == "VALUE":
                 value = HEX.read_numeric(chx.address, reader, bit_mask = chx.bitMask)
@@ -138,7 +139,7 @@ class Creator(msrsw.Creator):
                 self.instance_scalar(chx.name, chx.longIdentifier, value, category = "ASCII", unit = unit)
             elif chx.type == "VAL_BLK":
                 x, y, z = chx.matrixDim['x'], chx.matrixDim['y'], chx.matrixDim['z']
-                length = x * y *z
+                length = chx.fnc_allocated_memory
                 np_arr = HEX.read_ndarray(addr = chx.address, length = length, dtype = reader, shape = chx.fnc_np_shape, order = chx.fnc_np_order, bit_mask = chx.bitMask)
                 result.append(MCObject(chx.name, chx.address, length))
                 self.value_array(
@@ -308,7 +309,7 @@ session = db.open_existing(FNAME)
 #session = db.import_a2l("CDF20demo.a2l")
 
 
-cr = Creator(session)
+cr = CDFCreator(session)
 
 with open("ASAP2_Demo_V161.cdfx", "wb") as of:
     of.write(etree.tostring(cr.tree, encoding = "UTF-8", pretty_print = True, xml_declaration = True, doctype = DOCTYPE))
