@@ -82,7 +82,7 @@ class MDFCreator:
         self._mdf_filename = mdf_filename
 
         self.project_config = Configuration(MDFCreator.PROJECT_PARAMETER_MAP or {}, project_config or {})
-        self.experiment_config = Configuration(MDFCreator.EXPERIMENT_PARAMETER_MAP or {}, project_config or {})
+        self.experiment_config = Configuration(MDFCreator.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
         self.logger = logging.getLogger("MDFCreator")
         self.logger.setLevel(self.project_config.get("LOGLEVEL"))
 
@@ -92,13 +92,6 @@ class MDFCreator:
         hd_comment = self.hd_comment()
         print(hd_comment)
         cond_create_directories()
-        """
-        session = db.open_existing("ASAP2_Demo_V161")
-
-        mdf = MDF(version = "4.10")
-
-        mxx = MDFCreator(session_obj = session, mdf_obj = mdf, mdf_filename = "ASAP2_Demo_V161.mf4")
-        """
 
     def hd_comment(self):
         """
@@ -114,7 +107,7 @@ class MDFCreator:
             time_source = self.experiment_config.get("TIME_SOURCE")
             if time_source:
                 create_elem(elem_root, "time_source", time_source)
-            systemConstants = self._mod_par.systemConstants
+            sys_constants = self._mod_par.systemConstants
             if sys_constants:
                 elem_constants = create_elem(elem_root, "constants")
                 for name, value in sys_constants.items():
