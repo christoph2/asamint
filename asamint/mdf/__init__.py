@@ -76,16 +76,15 @@ class MDFCreator:
         "MEASUREMENTS":             (list,   False,  []),
     }
 
-    def __init__(self, mdf_obj, mdf_filename = None, project_config = None, experiment_config = None):
-        db = DB()
-        self._mdf_obj = mdf_obj
+    def __init__(self, mdf_filename = None, project_config = None, experiment_config = None):
         self._mdf_filename = mdf_filename
 
         self.project_config = Configuration(MDFCreator.PROJECT_PARAMETER_MAP or {}, project_config or {})
         self.experiment_config = Configuration(MDFCreator.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
         self.logger = logging.getLogger("MDFCreator")
         self.logger.setLevel(self.project_config.get("LOGLEVEL"))
-
+        self._mdf_obj = MDF(version = self.project_config.get("MDF_VERSION" ))
+        db = DB()
         self._session_obj = db.open_create(self.project_config.get("A2L_FILE"))
 
         self._mod_par = ModPar(self._session_obj)
