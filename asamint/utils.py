@@ -99,7 +99,7 @@ def generate_filename(project_config, experiment_config, extension):
     """
     project = project_config.get("PROJECT")
     subject = experiment_config.get("SUBJECT")
-    return "{}_{}_{}.{}".format(project, subject, time.strftime("%Y%m%d_%H%M%S"), extension)
+    return "{}_{}_{}.{}".format(project, subject, time.strftime("%Y%m%d%H%M%S"), extension)
 
 def cond_create_directories():
     """
