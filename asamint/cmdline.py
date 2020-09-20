@@ -62,6 +62,7 @@ class ArgumentParser:
             help = 'Experiment specific configuration.')
 
         self._parser.add_argument('-l', '--loglevel', choices = ["ERROR", "WARN", "INFO", "DEBUG"], default = "INFO")
+        self._parser.add_argument("-u", '--unlock', help = "Unlock protected resources", dest = "unlock", action = "store_true")
         #self._parser.epilog = "".format(self._parser.prog)
         self._args = []
 
