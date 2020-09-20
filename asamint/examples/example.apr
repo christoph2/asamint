@@ -4,6 +4,9 @@ A2L_FILE = "ASAP2_Demo_V161.a2l"
 AUTHOR = "John Doe"
 DEPARTMENT = "Engineering"
 PROJECT = "Example23"
+
+SEED_N_KEY_DLL = "SeedNKeyXcp.dll"
+
 ##
 ## XCPonEth parameters.
 ##
