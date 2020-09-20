@@ -4,7 +4,7 @@
 __copyright__ = """
     pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2009-2019 by Christoph Schueler <cpu12.gems@googlemail.com>
+   (C) 2009-2020 by Christoph Schueler <cpu12.gems@googlemail.com>
 
    All Rights Reserved
 
@@ -23,21 +23,17 @@ __copyright__ = """
   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """
 
-import json
+import io
 import pathlib
-
-try:
-    import toml
-except ImportError:
-    HAS_TOML = False
-else:
-    HAS_TOML = True
+import toml
 
 
-def readConfiguration(conf):
-    """Read a configuration file either in JSON or TOML format.
+def read_configuration(conf):
+    """Read a configuration file either in TOML format.
     """
     if conf:
+        if isinstance(conf, io.IOBase):
+            conf = toml.load(conf)
         if isinstance(conf, dict):
             return dict(conf)
         pth = pathlib.Path(conf.name)
