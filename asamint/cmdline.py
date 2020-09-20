@@ -76,13 +76,13 @@ class ArgumentParser:
         """
         self._args = self.parser.parse_args()
         args = self.args
-        project = read_configuration(args.project)
-        experiment = read_configuration(args.experiment)
-        project["LOGLEVEL"] = args.loglevel
-        if not "TRANSPORT" in project:
+        self.project = read_configuration(args.project)
+        self.experiment = read_configuration(args.experiment)
+        self.project["LOGLEVEL"] = args.loglevel
+        if not "TRANSPORT" in self.project:
             raise AttributeError("TRANSPORT must be specified in config!")
-        transport = project['TRANSPORT'].lower()
-        master = Master(transport, config = project) if self.use_xcp else None
+        transport = self.project['TRANSPORT'].lower()
+        master = Master(transport, config = self.project) if self.use_xcp else None
         if self.callout:
             self.callout(master, args)
         return master
