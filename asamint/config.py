@@ -34,6 +34,7 @@ def read_configuration(conf):
     if conf:
         if isinstance(conf, io.IOBase):
             conf = toml.load(conf)
+            return conf
         if isinstance(conf, dict):
             return dict(conf)
         pth = pathlib.Path(conf.name)
