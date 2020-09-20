@@ -40,9 +40,49 @@ from pprint import pprint
 
 import pkgutil
 
-from asamint import utils
+from asamint.utils import cond_create_directories
+from asamint.config import Configuration
+from pya2l import DB
 
-#MCObject = namedtuple("MCObject", "name address length")
+
+class AsamBaseType:
+    """
+    Parameters
+    ----------
+
+    Note: if `mdf_filename` is None, automatic filename generation kicks in and the file gets written
+    to `measurements/` sub-directory.
+
+    The other consequence is ...
+
+    Also note the consequences:
+        - Filename generation means always create a new file.
+        - If `mdf_filename` is not None, **always overwrite** file.
+    """
+
+    PROJECT_PARAMETER_MAP = {
+        #                           Type     Req'd   Default
+        "LOGLEVEL":                 (str,    False,  "WARN"),
+        "A2L_FILE":                 (str,    True,   ""),
+    }
+
+    EXPERIMENT_PARAMETER_MAP = {
+        #                           Type     Req'd   Default
+    }
+
+    def __init__(self, project_config = None, experiment_config = None, *args, **kws):
+        self.project_config = Configuration(self.__class__.PROJECT_PARAMETER_MAP or {}, project_config or {})
+        self.experiment_config = Configuration(self.__class__.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.setLevel(self.project_config.get("LOGLEVEL"))
+        db = DB()
+        self._session_obj = db.open_create(self.project_config.get("A2L_FILE"))
+        cond_create_directories()
+        self.on_init(*args, **kws)
+
+    def on_init(self, *args, **kws):
+        raise NotImplementedError()
+
 
 class MCObject:
 
