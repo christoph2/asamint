@@ -84,7 +84,11 @@ class AsamBaseType:
         raise NotImplementedError()
 
 
-class MCObject:
+class McObject:
+    """Measurement and Calibration objects have an address and a length.
+
+    Used as input for optimization algorithms.
+    """
 
     def __init__(self, name = "", address = 0, length = 0):
         self.name = name
@@ -92,7 +96,7 @@ class MCObject:
         self.length = length
 
     def __repr__(self):
-        return 'MCObject(name = "{}", address = 0x{:08x}, length = {})'.format(self.name, self.address, self.length)
+        return 'McObject(name = "{}", address = 0x{:08x}, length = {})'.format(self.name, self.address, self.length)
 
 
 TYPE_SIZES = {
@@ -143,7 +147,7 @@ def make_continuous_blocks(chunks):
     tmp = sorted(chunks, key = attrgetter("address"))
     pprint(tmp, indent = 4)
     result_sections = []
-    prev_section = MCObject()
+    prev_section = McObject()
 
     while tmp:
         section = tmp.pop(0)
@@ -158,7 +162,7 @@ def make_continuous_blocks(chunks):
         else:
             #print("NEW")
             # Create a new section.
-            result_sections.append(MCObject(address = section.address, length = section.length))
+            result_sections.append(McObject(address = section.address, length = section.length))
         prev_section = section
     print(result_sections)
 
