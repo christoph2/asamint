@@ -94,17 +94,20 @@ def almost_equal(x, y, places = 7):
     return round(abs(x - y), places) == 0
 
 
-def generate_filename(project_config, experiment_config, extension):
+def generate_filename(project_config, experiment_config, extension, extra = None):
     """Automatically generate filename from configuration plus timestamp.
     """
     project = project_config.get("PROJECT")
     subject = experiment_config.get("SUBJECT")
-    return "{}_{}_{}.{}".format(project, subject, time.strftime("%Y%m%d%H%M%S"), extension)
+    if extra:
+        return "{}_{}_{}_{}.{}".format(project, subject, time.strftime("%Y%m%d%H%M%S"), extra, extension)
+    else:
+        return "{}_{}_{}.{}".format(project, subject, time.strftime("%Y%m%d%H%M%S"), extension)
 
 def cond_create_directories():
     """
     """
-    SUB_DIRS = ["measurements", "parameters", "hexfiles"]
+    SUB_DIRS = ["measurements", "parameters", "hexfiles"]   # Directory names could be configurable.
     for d in SUB_DIRS:
         if not os.access(d, os.F_OK):
             os.mkdir(d)
