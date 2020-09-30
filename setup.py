@@ -41,7 +41,7 @@ setup(
     #packages=find_packages(include=['asamint']),
     packages=find_packages(),
     package_data = {
-        "dtds": glob('data/dtds/*.*'),
+        "dtds": glob('asamint/data/dtds/*.*'),
     },
    setup_requires=setup_requirements,
     test_suite='tests',
