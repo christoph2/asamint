@@ -19,6 +19,11 @@ ASAM Integration Package
      :alt: Updates
 
 
+`asamint` integrates several automotive related (ASAM standards)
+
+The projects in alphabetical order.
+
+higher level functions
 
 Adds high-level, convenience, integration related functions for several opensource projects.
 
