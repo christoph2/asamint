@@ -31,6 +31,7 @@ __author__ = 'Christoph Schueler'
 
 
 from collections import namedtuple
+from itertools import groupby
 from io import StringIO
 from enum import IntEnum
 import logging
@@ -141,28 +142,30 @@ def get_dtd(name: str) -> StringIO:
 def make_continuous_blocks(chunks):
     """Try to make continous blocks from a list of small, unordered `chunks`.
 
-    `chunks` are expected to have `address` and `length` attributes.
+    Parameters
+    ----------
+    chunks: list of `McObject`
+
+    Returns
+    -------
+    sorted list of `McObject`
     """
 
-    tmp = sorted(chunks, key = attrgetter("address"))
-    pprint(tmp, indent = 4)
+    # Objects can share addresses, for instance MEASUREMENTs with different COMPU_METHODs.
+    values = []
+    # 1. Groupy by address.
+    for key, value in groupby(sorted(chunks, key = attrgetter("address")), key = attrgetter("address")):
+        # 2. Pick largest one.
+        values.append(max(value, key = attrgetter("length")))
     result_sections = []
     prev_section = McObject()
-
-    while tmp:
-        section = tmp.pop(0)
-        #print("SEC:", section)
-
+    while values:
+        section = values.pop(0)
         if section.address == prev_section.address + prev_section.length and result_sections:
-            #print("APP")
             last_segment = result_sections[-1]
-            #last_segment.address = section.address
             last_segment.length += section.length
-            #last_segment.data.extend(section.data)
         else:
-            #print("NEW")
             # Create a new section.
             result_sections.append(McObject(address = section.address, length = section.length))
         prev_section = section
-    print(result_sections)
-
+    return result_sections
