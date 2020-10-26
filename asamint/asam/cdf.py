@@ -38,10 +38,10 @@ from lxml import etree
 
 from pya2l import DB
 import pya2l.model as model
-from pya2l.api.inspect import ModCommon, _dissect_conversion, Characteristic
+from pya2l.api.inspect import ModCommon, CompuMethod, Characteristic, AxisPts
 from pya2l.functions import CompuMethod, fix_axis_par, fix_axis_par_dist, axis_rescale
 
-from asamint.asam import get_dtd, MCObject, TYPE_SIZES, make_continuous_blocks, ByteOrder, get_section_reader
+from asamint.asam import get_dtd, McObject, TYPE_SIZES, make_continuous_blocks, ByteOrder, get_section_reader
 from asamint.utils import create_elem, make_2darray, SINGLE_BITS, cond_create_directories
 import asamint.msrsw as msrsw
 
@@ -61,7 +61,7 @@ class CDFCreator(msrsw.Creator):
     """
 
     def on_init(self):
-        self.mod_common = ModCommon(self.session_obj)
+        self.mod_common = ModCommon.get(self.session_obj)
         self.byte_order = self.mod_common.byteOrder
         cond_create_directories()
         self.cs_collections()
@@ -99,10 +99,25 @@ class CDFCreator(msrsw.Creator):
             self.cs_collection(g.groupName, "COLLECTION", collections)
 
     def instances(self):
-        characteristics = self.query(model.Characteristic).order_by(model.Characteristic.type, model.Characteristic.address).all()
         result = []
+        print("=" * 79)
+        print("AXIS_PTSs")
+        print("=" * 79)
+        axis_pts = session.query(model.AxisPts).order_by(model.AxisPts.address).all()
+        for a in axis_pts:
+            ax = AxisPts.get(self.session_obj, a.name)
+            mem_size = ax.total_allocated_memory
+            result.append(McObject(
+                ax.name, ax.address, mem_size)
+            )
+            print(ax.name, hex(ax.address), ax.record_layout_components.sizeof, mem_size)
+
+        print("=" * 79)
+        print("CHARACTERISTICs")
+        print("=" * 79)
+        characteristics = self.query(model.Characteristic).order_by(model.Characteristic.type, model.Characteristic.address).all()
         for c in characteristics:
-            chx = Characteristic(self.session_obj, c.name)
+            chx = Characteristic.get(self.session_obj, c.name)
             datatype = chx.deposit.fncValues['datatype']
             fnc_asam_dtype = chx.fnc_asam_dtype
             fnc_np_dtype = chx.fnc_np_dtype
@@ -118,12 +133,18 @@ class CDFCreator(msrsw.Creator):
             unit = chx.physUnit
             dim = chx.dim
 
-            print("MS_FNC", chx.type, chx.fnc_allocated_memory, chx.axes_allocated_memory, dim)
+            mem_size = chx.total_allocated_memory
+            print("MS_FNC", chx.type, chx.axes_allocated_memory,
+                chx.fnc_allocated_memory, mem_size
+            )
+
+            result.append(McObject(
+                chx.name, chx.address, mem_size)
+            )
 
             if chx.type == "VALUE":
                 value = HEX.read_numeric(chx.address, reader, bit_mask = chx.bitMask)
                 conv_value = cm.int_to_physical(value)
-                result.append(MCObject(chx.name, chx.address, fnc_element_size))
                 if chx.dependentCharacteristic is not None:
                     category = "DEPENDENT_VALUE"
                 else:
@@ -135,20 +156,18 @@ class CDFCreator(msrsw.Creator):
             elif chx.type == "ASCII":
                 length = chx.matrixDim["x"]
                 value = HEX.read_string(chx.address, length = length)
-                result.append(MCObject(chx.name, chx.address, length))
                 self.instance_scalar(chx.name, chx.longIdentifier, value, category = "ASCII", unit = unit)
             elif chx.type == "VAL_BLK":
                 x, y, z = chx.matrixDim['x'], chx.matrixDim['y'], chx.matrixDim['z']
                 length = chx.fnc_allocated_memory
                 np_arr = HEX.read_ndarray(addr = chx.address, length = length, dtype = reader, shape = chx.fnc_np_shape, order = chx.fnc_np_order, bit_mask = chx.bitMask)
-                result.append(MCObject(chx.name, chx.address, length))
                 self.value_array(
                     name = chx.name, descr = chx.longIdentifier, value = cm.int_to_physical(np_arr), unit = unit
                 )
             elif chx.type == "CURVE":
                 axis_descr = chx.axisDescriptions[0]
                 maxAxisPoints = axis_descr.maxAxisPoints
-                print("\tCOMPO:", chx.record_layout_components, hex(axis_descr.axisPtsRef.address) if axis_descr.axisPtsRef else "NO_REF")
+                #print("\tCOMPO:", chx.record_layout_components, hex(axis_descr.axisPtsRef.address) if axis_descr.axisPtsRef else "NO_REF")
                 if axis_descr.attribute == "FIX_AXIS":
                     if axis_descr.fixAxisParDist:
                         par_dist = axis_descr.fixAxisParDist
@@ -164,7 +183,6 @@ class CDFCreator(msrsw.Creator):
                     axis_cm = CompuMethod(self.session_obj, axis_cm_obj)
                     axis_values = axis_cm.int_to_physical(raw_axis_values)
 
-                    mem_size = (axis_descr.maxAxisPoints * fnc_element_size) + chx.record_layout_components.sizeof
                     """
                     RecordLayoutComponents(
                         1 ==> {'position': 1, 'datatype': 'UWORD', 'type': ('noAxisPts', 'X')}
@@ -174,18 +192,13 @@ class CDFCreator(msrsw.Creator):
                     )
                     """
                     self.fix_axis_curve(
-                        chx.name, chx.longIdentifier, axis_values, [], axis_unit = axis_descr.compuMethod["unit"]
+                        chx.name, chx.longIdentifier, axis_values, [], axis_unit = axis_descr.compuMethod.unit
                     )
-                    print("*** FIX-AXIS", hex(chx.address), chx.record_layout_components, chx.record_layout_components.axes, mem_size)
-
-                    result.append(MCObject(
-                        chx.name, chx.address, mem_size)
-                    )
+                    print("*** FIX-AXIS", hex(chx.address), chx.record_layout_components, chx.record_layout_components.axes_names, mem_size)
                 elif axis_descr.attribute == "STD_AXIS":
                 ##
                 ##
                 ##
-                    mem_size = (axis_descr.maxAxisPoints * fnc_element_size) + chx.record_layout_components.sizeof
                     print("*** STD-AXIS", chx.name, axis_descr, chx.record_layout_components, mem_size)
                 elif axis_descr.attribute == "RES_AXIS":
                     print("*** RES-AXIS {}".format(axis_descr.axisPtsRef.depositAttr))
