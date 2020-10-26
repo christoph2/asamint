@@ -64,6 +64,7 @@ class MDFCreator:
         "AUTHOR":                   (str,    False,  ""),
         "DEPARTMENT":               (str,    False,  ""),
         "PROJECT":                  (str,    True,   ""), # Contributes to filename generation.
+        #"SEED_N_KEY_DLL"            (str,    False,  ""),
     }
 
     EXPERIMENT_PARAMETER_MAP = {

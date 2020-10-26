@@ -38,7 +38,7 @@ from lxml.etree import (Element, ElementTree, DTD, SubElement, XMLSchema, parse,
 from lxml import etree
 from pya2l import DB
 import pya2l.model as model
-from pya2l.api.inspect import ModCommon, _dissect_conversion, Characteristic, Measurement
+from pya2l.api.inspect import ModCommon, CompuMethod, Characteristic, Measurement
 
 from asamint.utils import sha1_digest, create_elem, replace_non_c_char
 import asamint.msrsw as msrsw
@@ -158,13 +158,13 @@ class Creator(msrsw.Creator):
                 size = arraySize[0] if arraySize else matrixDim[0] if matrixDim else 0
                 create_elem(text_props, "SW-MAX-TEXT-SIZE", text = str(size))
             else:
-                create_elem(data_def_props, "COMPU-METHOD-REF", text = compu_method["name"])
+                create_elem(data_def_props, "COMPU-METHOD-REF", text = compu_method.name)
             #<SW-CODE-SYNTAX-REF>Var</SW-CODE-SYNTAX-REF>
             create_elem(data_def_props, "DATA-CONSTR-REF", text = constr_name)
             create_elem(data_def_props, "SW-IMPL-POLICY", text = "MEASUREMENT-POINT")
             # <UNIT-REF>rotates_per_minute</UNIT-REF>
-            if compu_method["type"] != "NO_COMPU_METHOD":
-                internal_values = compu_method["type"] in ("COMPU_VTAB", "COMPU_VTAB_RANGE")
+            if compu_method.conversionType != "NO_COMPU_METHOD":
+                internal_values = compu_method.conversionType in ("COMPU_VTAB", "COMPU_VTAB_RANGE")
             else:
                 internal_values = False
             data_constr = Element("DATA-CONSTR")
@@ -197,7 +197,8 @@ class Creator(msrsw.Creator):
             is_block = chx.type == "VAL_BLK"
             if is_block:
                 if matrixDim:
-                    dim = (m for m in matrixDim if m > 1)
+                    print("***MATRIX_DIM", matrixDim)
+                    dim = (m for m in matrixDim if m and m > 1)
             category = "VALUE_ARRAY" if is_block else "DEPENDENT_VALUE" if is_dependent else "ASCII" if is_ascii else "VALUE"
             cal_parm = create_elem(cal_parms, "SW-CALPRM", attrib = {"ID": ch_name})
             self.common_elements(cal_parm, short_name = ch_name, long_name = chx.longIdentifier, category = category)
@@ -212,10 +213,20 @@ class Creator(msrsw.Creator):
                 size = chx.number if chx.number is not None else matrixDim[0] if matrixDim else 0
                 create_elem(text_props, "SW-MAX-TEXT-SIZE", text = str(size))
             else:
-                create_elem(data_def_props, "COMPU-METHOD-REF", text = compu_method["name"])
+                create_elem(data_def_props, "COMPU-METHOD-REF", text = compu_method.name)
             if is_dependent:
                 data_dependency = create_elem(data_def_props, "SW-DATA-DEPENDENCY")
                 create_elem(data_dependency, "SW-DATA-DEPENDENCY-FORMULA", text = chx.dependentCharacteristic)
+
+            """
+            popovicidaniela Master-Thesis
+            abhisheknaik96 MultiAgentTORCS
+
+            http://xed.ch/p/snakeoil/2015/SCR2015-Snakeoil_entry.tar.gz
+            http://xed.ch/p/snakeoil/snakeoil.py
+
+            """
+
             """
             <SW-CALPRM>
                 <SHORT-NAME>MyCalprmVALUE</SHORT-NAME>
@@ -277,13 +288,13 @@ class Creator(msrsw.Creator):
     def _compu_methods(self, tree):
         cm_tree = create_elem(tree, "COMPU-METHODS")
         for conversion in [x[0] for x in self.session_obj.query(model.CompuMethod.name).all()]:
-            cm = _dissect_conversion(self.session_obj, conversion)
+            cm = CompuMethod.get(self.session_obj, conversion)
             self._compu_method(cm_tree, conversion, cm)
 
     def _compu_method(self, tree, name, compu_method):
-        cm_type = compu_method["type"]
-        cm_longIdentifier = compu_method["longIdentifier"]
-        cm_unit = compu_method["unit"]
+        cm_type = compu_method.conversionType
+        cm_longIdentifier = compu_method.longIdentifier
+        cm_unit = compu_method.unit
         cm = create_elem(tree, "COMPU-METHOD", attrib = {"ID": name})
         self.common_elements(cm, short_name = name, long_name = cm_longIdentifier, category = cm_type.replace("_", "-"))
         if cm_unit:
@@ -305,8 +316,8 @@ class Creator(msrsw.Creator):
             scale = create_elem(scales, "COMPU-SCALE")
             crc = create_elem(scale, "COMPU-RATIONAL-COEFFS")
             cnum = create_elem(crc, "COMPU-NUMERATOR")
-            create_elem(cnum, "V", str(compu_method['b']))
-            create_elem(cnum, "V", str(compu_method['a']))
+            create_elem(cnum, "V", str(compu_method.coeffs_linear['b']))
+            create_elem(cnum, "V", str(compu_method.coeffs_linear['a']))
             cden = create_elem(crc, "COMPU-DENOMINATOR")
             create_elem(cden, "V", "1")
             create_elem(cden, "V", "0")
@@ -315,29 +326,29 @@ class Creator(msrsw.Creator):
             crc = create_elem(scale, "COMPU-RATIONAL-COEFFS")
             cnum = create_elem(crc, "COMPU-NUMERATOR")
             for key in ['c', 'b', 'a']:
-                val = str(compu_method[key])
+                val = str(compu_method.coeffs[key])
                 create_elem(cnum, "V", val)
             cden = create_elem(crc, "COMPU-DENOMINATOR")
             for key in ['f', 'e', 'd']:
-                val = str(compu_method[key])
+                val = str(compu_method.coeffs[key])
                 create_elem(cden, "V", val)
         elif cm_type in ("TAB_INTP", "TAB_NOINTP"):
-            in_values = compu_method["in_values"]
-            out_values = compu_method["out_values"]
+            in_values = compu_method.tab["in_values"]
+            out_values = compu_method.tab["out_values"]
             for in_value, out_value in zip(in_values, out_values):
                 scale = create_elem(scales, "COMPU-SCALE")
                 create_elem(scale, "LOWER-LIMIT", text = str(in_value), attrib = {"INTERVAL-TYPE": "CLOSED"})
                 create_elem(scale, "UPPER-LIMIT", text = str(in_value), attrib = {"INTERVAL-TYPE": "CLOSED"})
                 compu_const = create_elem(scale, "COMPU-CONST")
                 create_elem(compu_const, "V", text = str(out_value))
-            if compu_method["default_value"]:
+            if compu_method.tab["default_value"]:
                 default = create_elem(cpti, "COMPU-DEFAULT-VALUE")
-                create_elem(default , "V", text = str(compu_method["default_value"]))
+                create_elem(default , "V", text = str(compu_method.tab["default_value"]))
         elif cm_type == "TAB_VERB":
-            if compu_method["ranges"]:
-                lower_values = compu_method["lower_values"]
-                upper_values = compu_method["upper_values"]
-                text_values = compu_method["text_values"]
+            if compu_method.tab_verb["ranges"]:
+                lower_values = compu_method.tab_verb["lower_values"]
+                upper_values = compu_method.tab_verb["upper_values"]
+                text_values = compu_method.tab_verb["text_values"]
                 for lower_value, upper_value, text_value in zip(lower_values, upper_values, text_values):
                     scale = create_elem(scales, "COMPU-SCALE")
                     create_elem(scale, "LOWER-LIMIT", text = str(lower_value), attrib = {"INTERVAL-TYPE": "CLOSED"})
@@ -345,20 +356,20 @@ class Creator(msrsw.Creator):
                     compu_const = create_elem(scale, "COMPU-CONST")
                     create_elem(compu_const, "VT", text = text_value)
             else:
-                in_values = compu_method["in_values"]
-                text_values = compu_method["text_values"]
+                in_values = compu_method.tab_verb["in_values"]
+                text_values = compu_method.tab_verb["text_values"]
                 for in_value, text_value in zip(in_values, text_values):
                     scale = create_elem(scales, "COMPU-SCALE")
                     create_elem(scale, "LOWER-LIMIT", text = str(in_value), attrib = {"INTERVAL-TYPE": "CLOSED"})
                     create_elem(scale, "UPPER-LIMIT", text = str(in_value), attrib = {"INTERVAL-TYPE": "CLOSED"})
                     compu_const = create_elem(scale, "COMPU-CONST")
                     create_elem(compu_const, "VT", text = text_value)
-            if compu_method["default_value"]:
+            if compu_method.tab_verb["default_value"]:
                 default = create_elem(cpti, "COMPU-DEFAULT-VALUE")
-                create_elem(default , "VT", text = compu_method["default_value"])
+                create_elem(default , "VT", text = compu_method.tab_verb["default_value"])
 
 FNAME = "../ASAP2_Demo_V161.a2ldb"
-#FNAME = "../XCPSim.a2ldb"
+FNAME = "../XCPSim.a2ldb"
 #FNAME = "CDF20demo"
 
 db = DB()
