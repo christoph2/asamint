@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
+"""Bin-packing algorithms.
 
+Used for instance to optimally assign measurements to ODTs.
 """
 
 __copyright__ = """
@@ -83,8 +84,3 @@ def first_fit_decreasing(items, bin_size):
             new_bin.append(key)
             new_bin.residual_capacity -= size
     return bins
-
-
-#result = first_fit_decreasing(TO_ALLOCATE, MAX_ODT_ENTRY_SIZE)
-#print(result, len(result))
-
