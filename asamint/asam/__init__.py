@@ -155,7 +155,7 @@ def make_continuous_blocks(chunks):
     values = []
     # 1. Groupy by address.
     for key, value in groupby(sorted(chunks, key = attrgetter("address")), key = attrgetter("address")):
-        # 2. Pick largest one.
+        # 2. Pick the largest one.
         values.append(max(value, key = attrgetter("length")))
     result_sections = []
     prev_section = McObject()
