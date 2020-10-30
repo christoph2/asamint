@@ -85,22 +85,12 @@ void print_usage(char *prg)
 {
         fprintf(stderr, "\nUsage: %s [options] <CAN interface>\n", prg);
         fprintf(stderr, "Options:\n");
-        fprintf(stderr, "         -s <can_id>  (source can_id. Use 8 digits for extended IDs)\n");
-        fprintf(stderr, "         -d <can_id>  (destination can_id. Use 8 digits for extended IDs)\n");
-        fprintf(stderr, "         -x <addr>    (extended addressing mode. Use 'any' for all addresses)\n");
-        fprintf(stderr, "         -X <addr>    (extended addressing mode (rx addr). Use 'any' for all)\n");
+        fprintf(stderr, "         -m <can_id>  (XCP master can_id. Use 8 digits for extended IDs)\n");
+        fprintf(stderr, "         -s <can_id>  (XCP slave can_id. Use 8 digits for extended IDs)\n");
         fprintf(stderr, "         -c           (color mode)\n");
-        fprintf(stderr, "         -a           (print data also in ASCII-chars)\n");
+//        fprintf(stderr, "         -a           (print data also in ASCII-chars)\n");
         fprintf(stderr, "         -t <type>    (timestamp: (a)bsolute/(d)elta/(z)ero/(A)bsolute w date)\n");
         fprintf(stderr, "\nCAN IDs and addresses are given and expected in hexadecimal values.\n");
-        fprintf(stderr, "\nUDS output contains a flag which provides information about the type of the \n");
-        fprintf(stderr, "message.\n\n");
-        fprintf(stderr, "Flags:\n");
-        fprintf(stderr, "       [SRQ]  = Service Request\n");
-        fprintf(stderr, "       [PSR]  = Positive Service Response\n");
-        fprintf(stderr, "       [NRC]  = Negative Response Code\n");
-        fprintf(stderr, "       [???]  = Unknown (not specified)\n");
-        fprintf(stderr, "\n");
 }
 
 
@@ -130,15 +120,15 @@ int main(int argc, char **argv)
         last_tv.tv_sec  = 0;
         last_tv.tv_usec = 0;
 
-        while ((opt = getopt(argc, argv, "s:d:ax:X:ct:u?")) != -1) {
+        while ((opt = getopt(argc, argv, "m:s:act:?")) != -1) {
                 switch (opt) {
-                case 's':
+                case 'm':
                         src = strtoul(optarg, (char **)NULL, 16);
                         if (strlen(optarg) > 7)
                                 src |= CAN_EFF_FLAG;
                         break;
 
-                case 'd':
+                case 's':
                         dst = strtoul(optarg, (char **)NULL, 16);
                         if (strlen(optarg) > 7)
                                 dst |= CAN_EFF_FLAG;
@@ -151,23 +141,6 @@ int main(int argc, char **argv)
                 case 'a':
                         asc = 1;
                         break;
-
-                case 'x':
-                        ext = 1;
-                        if (!strncmp(optarg, "any", 3))
-                                extany = 1;
-                        else
-                                extaddr = strtoul(optarg, (char **)NULL, 16) & 0xFF;
-                        break;
-
-                case 'X':
-                        rx_ext = 1;
-                        if (!strncmp(optarg, "any", 3))
-                                rx_extany = 1;
-                        else
-                                rx_extaddr = strtoul(optarg, (char **)NULL, 16) & 0xFF;
-                        break;
-
                 case 't':
                         timestamp = optarg[0];
                         if ((timestamp != 'a') && (timestamp != 'A') &&

@@ -38,5 +38,5 @@ Further Readings
 Miscellaneous
 -------------
 
-**asamint** includes some more or less useful `tools <tools\README.rst>`_.
+**asamint** includes some more or less useful `tools <tools/README.rst>`_.
 
