@@ -30,8 +30,13 @@ Features
 * TODO
 
 Further Readings
-~~~~~~~~~~~~~~~~
+----------------
 
 `Here's <further_readings.rst>`_ a collection of some public accessible documents, if you want to dig deeper into the wonderworld of automotive measurement and calibration.
 
+
+Miscellaneous
+-------------
+
+**asamint** includes some more or less useful `tools <tools\README.rst>`_.
 
