@@ -16,7 +16,7 @@ add higher layers, which could more or less directly be used to implement common
 
  Note: At this stage, the project is highly experimental and hacky, so don't expect stable APIs and tons of features!  Well, it's up to you -- And no, you don't have to contibute code: `criticism, comments, and ideas <https://github.com/christoph2/asamint/issues>`_ are also very welcome.
 
-And yes, all listed projects are `Raspberry PI <raspberrypi.org>`_ tested :smile:
+And yes, all listed projects are `Raspberry PI <https://raspberrypi.org>`_ tested :smile:
 
 
 License
@@ -38,5 +38,5 @@ Further Readings
 Miscellaneous
 -------------
 
-**asamint** includes some more or less useful `tools <tools/README.rst>`_.
+**asamint** includes some more or less useful `tools <../tools/README.rst>`_.
 

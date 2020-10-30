@@ -2,9 +2,7 @@
 xcpdump
 =======
 
-.. note::
-
-    **xcpdump** is Linux/SocketCAN only.
+ note:  **xcpdump** is Linux/SocketCAN only.
 
 **xcpdump** is a busmonitor similar to **candump**, but with a big difference:
 The messages on the bus are represented in a human-readable form.
@@ -14,7 +12,7 @@ How-to build
 
 Run
 
-.. code-block: shell
+.. code-block:: shell
 
    make
 
@@ -24,6 +22,7 @@ How-to install
 --------------
 
 The `Makefile` has no `install` target, so you have to copy the executable file manually, like:
+
 .. code-block:: shell
 
    $ cp xcpdump ~/.local/bin
