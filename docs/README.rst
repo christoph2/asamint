@@ -22,7 +22,22 @@ These (The projects in question) projects are mainly following an mechanism-not-
 add higher layers, which could more or less directly be used to implement common measurement and calibration tasks.
 
 
-* Free software: GPLv2 license
+
+.. Note::
+
+    At this stage, the project is highly experimental and hacky, so don't expect stable APIs and tons of features!
+
+
+    Well, it's up to you -- And no, you don't have to contibute code: `criticism, comments, and ideas <https://github.com/christoph2/asamint/issues>`_
+    are also very welcome.
+
+
+And yes, all listed projects are Raspberry PI tested :smile:
+
+
+License
+-------
+**asamint** is released under `GPLv2 license terms <../LICENSE>`_.
 
 
 Features
@@ -33,6 +48,6 @@ Features
 Further Readings
 ~~~~~~~~~~~~~~~~
 
-`Here's <further_readings.rst>`_ a list of some public accessible documents, if you want dig deeper into the wonderworld of automotive measurement an calibration.
+`Here's <further_readings.rst>`_ a list of some public accessible documents, if you want dig deeper into the wonderworld of automotive measurement and calibration.
 
 
