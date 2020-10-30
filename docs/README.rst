@@ -30,3 +30,9 @@ Features
 
 * TODO
 
+Further Readings
+~~~~~~~~~~~~~~~~
+
+`Here's <further_readings.rst>`_ a list of some public accessible documents, if you want dig deeper into the wonderworld of automotive measurement an calibration.
+
+
