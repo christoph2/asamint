@@ -1,6 +1,20 @@
+/*
+ *  Copyright (c) 2020 Christoph Schueler.
+ *
+ *  xcpdump.c - dump and explain ASAM MC-1 XCP protocol CAN frames.
+ *
+ *  This work is derived from
+ *
+ *       https://github.com/linux-can/can-utils/blob/master/isotpdump.c
+ *
+ *  And released under the same terms of license, see the following copyright notice.
+ *
+ *  Send feedback to <cpu12.gems.googlemail.com>
+ */
+
 /* SPDX-License-Identifier: (GPL-2.0-only OR BSD-3-Clause) */
 /*
- * xcpdump.c - dump and explain ASAM MC-1 XCP protocol CAN frames
+ * isotpdump.c - dump and explain ISO15765-2 protocol CAN frames
  *
  * Copyright (c) 2008 Volkswagen Group Electronic Research
  * All rights reserved.
