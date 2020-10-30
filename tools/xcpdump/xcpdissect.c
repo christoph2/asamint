@@ -698,7 +698,7 @@ static uint16_t print_requested_service(XcpMessage const * const msg)
         case WRITE_DAQ_MULTIPLE:
             printf("WRITE_DAQ_MULTIPLE(");
             printf("elements = [");
-            for (uint8_t idx = 0; idx < MSG_BYTE(1)) {
+            for (uint8_t idx = 0; idx < MSG_BYTE(1); ++idx) {
                 printf("{");
                 printf("bitOffset = %u", MSG_BYTE((idx * 8) + 2));
                 printf(", sizeofElement = %u", MSG_BYTE((idx * 8) + 3));
