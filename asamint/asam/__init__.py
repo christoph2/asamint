@@ -31,11 +31,9 @@ __author__ = 'Christoph Schueler'
 
 
 from collections import namedtuple
-from itertools import groupby
 from io import StringIO
 from enum import IntEnum
 import logging
-from operator import attrgetter
 
 from pprint import pprint
 
@@ -84,22 +82,6 @@ class AsamBaseType:
     def on_init(self, *args, **kws):
         raise NotImplementedError()
 
-
-class McObject:
-    """Measurement and Calibration objects have an address and a length.
-
-    Used as input for optimization algorithms.
-    """
-
-    def __init__(self, name = "", address = 0, length = 0):
-        self.name = name
-        self.address = address
-        self.length = length
-
-    def __repr__(self):
-        return 'McObject(name = "{}", address = 0x{:08x}, length = {})'.format(self.name, self.address, self.length)
-
-
 TYPE_SIZES = {
     "UBYTE":        1,
     "SBYTE":        1,
@@ -139,33 +121,3 @@ def get_section_reader(datatype: str, byte_order: ByteOrder) -> str:
 def get_dtd(name: str) -> StringIO:
     return StringIO(str(pkgutil.get_data("asamint", "data/dtds/{}.dtd".format(name)), encoding = "ascii"))
 
-def make_continuous_blocks(chunks):
-    """Try to make continous blocks from a list of small, unordered `chunks`.
-
-    Parameters
-    ----------
-    chunks: list of `McObject`
-
-    Returns
-    -------
-    sorted list of `McObject`
-    """
-
-    # Objects can share addresses, for instance MEASUREMENTs with different COMPU_METHODs.
-    values = []
-    # 1. Groupy by address.
-    for key, value in groupby(sorted(chunks, key = attrgetter("address")), key = attrgetter("address")):
-        # 2. Pick the largest one.
-        values.append(max(value, key = attrgetter("length")))
-    result_sections = []
-    prev_section = McObject()
-    while values:
-        section = values.pop(0)
-        if section.address == prev_section.address + prev_section.length and result_sections:
-            last_segment = result_sections[-1]
-            last_segment.length += section.length
-        else:
-            # Create a new section.
-            result_sections.append(McObject(address = section.address, length = section.length))
-        prev_section = section
-    return result_sections
