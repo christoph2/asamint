@@ -41,13 +41,16 @@ if not exists(HEX_FILE_NAME):
 hex_file = load("srec", HEX_FILE_NAME)
 
 def upload_file(xcp_master):
-    for sec in hex_file:
+    print(end = "\n")
+    for idx, sec in enumerate(hex_file, start = 1):
         address = 0x8000    # Paging window.
         address_ext = (sec.start_address >> 16) - 0x10    # Calculate page number.
         data = sec.data
-        print(hex(address), address_ext, len(sec))
+        #print(hex(address), address_ext, len(sec))
+        print("Writing page {:02d} of 32".format(idx), end = "\r")
         xcp_master.setMta(address, address_ext)
         xcp_master.push(data)
+    print("OK, successfully written 32 pages.")
 
 def callout(master, args):
     if args.sk_dll:
