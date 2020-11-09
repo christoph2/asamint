@@ -111,3 +111,8 @@ def cond_create_directories():
     for d in SUB_DIRS:
         if not os.access(d, os.F_OK):
             os.mkdir(d)
+
+def get_dtd(name: str) -> StringIO:
+    """
+    """
+    return StringIO(str(pkgutil.get_data("asamint", "data/dtds/{}.dtd".format(name)), encoding = "ascii"))

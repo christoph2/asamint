@@ -70,8 +70,9 @@ class AsamBaseType:
     }
 
     def __init__(self, project_config = None, experiment_config = None, *args, **kws):
-        self.project_config = Configuration(self.__class__.PROJECT_PARAMETER_MAP or {}, project_config or {})
-        self.experiment_config = Configuration(self.__class__.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
+        self.project_config = {}
+        self.experiment_config = {}
+        self.loadConfig()
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.setLevel(self.project_config.get("LOGLEVEL"))
         db = DB()
@@ -81,6 +82,17 @@ class AsamBaseType:
 
     def on_init(self, *args, **kws):
         raise NotImplementedError()
+
+    def loadConfig(self, config):
+        """Load configuration data.
+        """
+        print("CFG before update", self.project_config, self.experiment_config)
+        project_config = Configuration(self.__class__.PROJECT_PARAMETER_MAP or {}, project_config or {})
+        experiment_config = Configuration(self.__class__.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
+        self.project_config.update(project_config)
+        self.experiment_config.update(experiment_config)
+        print("CFG after update", self.project_config, self.experiment_config)
+
 
 TYPE_SIZES = {
     "UBYTE":        1,
@@ -117,7 +129,4 @@ def get_section_reader(datatype: str, byte_order: ByteOrder) -> str:
     """
     """
     return OJ_READERS[datatype][byte_order]
-
-def get_dtd(name: str) -> StringIO:
-    return StringIO(str(pkgutil.get_data("asamint", "data/dtds/{}.dtd".format(name)), encoding = "ascii"))
 

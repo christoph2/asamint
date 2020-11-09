@@ -28,6 +28,7 @@ __author__ = 'Christoph Schueler'
 
 import logging
 
+from asamint.asam import AsamBaseType
 from asamint.utils import (create_elem, cond_create_directories)
 from asamint.config import Configuration
 
@@ -41,7 +42,7 @@ from pya2l.api.inspect import (Measurement, ModPar)
 
 
 
-class MDFCreator:
+class MDFCreator(AsamBaseType):
     """
     Parameters
     ----------
@@ -58,30 +59,32 @@ class MDFCreator:
 
     PROJECT_PARAMETER_MAP = {
         #                           Type     Req'd   Default
-        "LOGLEVEL":                 (str,    False,  "WARN"),
+        #"LOGLEVEL":                 (str,    False,  "WARN"),
         "MDF_VERSION":              (str,    False,   "4.10"),
-        "A2L_FILE":                 (str,    True,   ""),
+        #"A2L_FILE":                 (str,    True,   ""),
         "AUTHOR":                   (str,    False,  ""),
         "DEPARTMENT":               (str,    False,  ""),
         "PROJECT":                  (str,    True,   ""), # Contributes to filename generation.
-        #"SEED_N_KEY_DLL"            (str,    False,  ""),
+        "SEED_N_KEY_DLL"            (str,    False,  ""),
     }
 
     EXPERIMENT_PARAMETER_MAP = {
         #                           Type     Req'd   Default
         "SUBJECT":                  (str,    True,   ""), # Contributes to filename generation.
         "DESCRIPTION":              (str,    False,  ""), # Long description, used as header comment.
+
         "TIME_SOURCE":              (str,    False,  "local PC reference timer"),
+        "MEASUREMENTS":             (list,   False,  []),
         "FUNCTIONS":                (list,   False,  []),
         "GROUPS":                   (list,   False,  []),
-        "MEASUREMENTS":             (list,   False,  []),
     }
 
     def __init__(self, mdf_filename = None, project_config = None, experiment_config = None):
+        self.loadConfig()
         self._mdf_filename = mdf_filename
+        #self.project_config = Configuration(MDFCreator.PROJECT_PARAMETER_MAP or {}, project_config or {})
+        #self.experiment_config = Configuration(MDFCreator.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
 
-        self.project_config = Configuration(MDFCreator.PROJECT_PARAMETER_MAP or {}, project_config or {})
-        self.experiment_config = Configuration(MDFCreator.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
         self.logger = logging.getLogger("MDFCreator")
         self.logger.setLevel(self.project_config.get("LOGLEVEL"))
         self._mdf_obj = MDF(version = self.project_config.get("MDF_VERSION" ))
