@@ -30,6 +30,8 @@ __copyright__ = """
 """
 __author__  = 'Christoph Schueler'
 
+
+from io import StringIO
 import hashlib
 import os
 import re

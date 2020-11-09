@@ -83,12 +83,12 @@ class AsamBaseType:
     def on_init(self, *args, **kws):
         raise NotImplementedError()
 
-    def loadConfig(self, config):
+    def loadConfig(self):
         """Load configuration data.
         """
         print("CFG before update", self.project_config, self.experiment_config)
-        project_config = Configuration(self.__class__.PROJECT_PARAMETER_MAP or {}, project_config or {})
-        experiment_config = Configuration(self.__class__.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
+        project_config = Configuration(self.__class__.PROJECT_PARAMETER_MAP or {}, self.project_config or {})
+        experiment_config = Configuration(self.__class__.EXPERIMENT_PARAMETER_MAP or {}, self.experiment_config or {})
         self.project_config.update(project_config)
         self.experiment_config.update(experiment_config)
         print("CFG after update", self.project_config, self.experiment_config)
