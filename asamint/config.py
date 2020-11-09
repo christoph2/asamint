@@ -76,6 +76,9 @@ class Configuration:
     def get(self, key):
         return self.config.get(key)
 
+    def update(self, other):
+        self.config.update(other.config)
+
     def __repr__(self):
         return "{}".format(self.config)
 

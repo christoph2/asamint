@@ -33,7 +33,7 @@ __author__ = 'Christoph Schueler'
 from collections import namedtuple
 from io import StringIO
 from enum import IntEnum
-import logging
+from logging import getLogger
 
 from pprint import pprint
 
@@ -70,28 +70,31 @@ class AsamBaseType:
     }
 
     def __init__(self, project_config = None, experiment_config = None, *args, **kws):
-        self.project_config = {}
-        self.experiment_config = {}
-        self.loadConfig()
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.setLevel(self.project_config.get("LOGLEVEL"))
+        self.project_config = Configuration(AsamBaseType.PROJECT_PARAMETER_MAP or {}, project_config or {})
+        self.experiment_config = Configuration(AsamBaseType.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
         db = DB()
         self._session_obj = db.open_create(self.project_config.get("A2L_FILE"))
         cond_create_directories()
-        self.on_init(*args, **kws)
+        self.logger = getLogger(self.__class__.__name__)
+        self.logger.setLevel(self.project_config.get("LOGLEVEL"))
+        self.on_init(project_config, experiment_config, *args, **kws)
 
     def on_init(self, *args, **kws):
         raise NotImplementedError()
 
-    def loadConfig(self):
+    def loadConfig(self, project_config, experiment_config):
         """Load configuration data.
         """
-        print("CFG before update", self.project_config, self.experiment_config)
-        project_config = Configuration(self.__class__.PROJECT_PARAMETER_MAP or {}, self.project_config or {})
-        experiment_config = Configuration(self.__class__.EXPERIMENT_PARAMETER_MAP or {}, self.experiment_config or {})
+        project_config = Configuration(self.__class__.PROJECT_PARAMETER_MAP or {}, project_config or {})
+        print("PM:", self.__class__.PROJECT_PARAMETER_MAP, end = "\n\n")
+        print("PC", project_config, end = "\n\n")
+        experiment_config = Configuration(self.__class__.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
         self.project_config.update(project_config)
         self.experiment_config.update(experiment_config)
-        print("CFG after update", self.project_config, self.experiment_config)
+
+    @property
+    def session(self):
+        return self._session_obj
 
 
 TYPE_SIZES = {
@@ -129,4 +132,3 @@ def get_section_reader(datatype: str, byte_order: ByteOrder) -> str:
     """
     """
     return OJ_READERS[datatype][byte_order]
-

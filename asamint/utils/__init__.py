@@ -118,3 +118,7 @@ def get_dtd(name: str) -> StringIO:
     """
     """
     return StringIO(str(pkgutil.get_data("asamint", "data/dtds/{}.dtd".format(name)), encoding = "ascii"))
+
+
+def recursive_dict(element):
+    return element.tag, dict(map(recursive_dict, element)) or element.text

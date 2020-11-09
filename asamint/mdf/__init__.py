@@ -79,22 +79,14 @@ class MDFCreator(AsamBaseType):
         "GROUPS":                   (list,   False,  []),
     }
 
-    def __init__(self, mdf_filename = None, project_config = None, experiment_config = None):
-        self.loadConfig()
-        self._mdf_filename = mdf_filename
-        #self.project_config = Configuration(MDFCreator.PROJECT_PARAMETER_MAP or {}, project_config or {})
-        #self.experiment_config = Configuration(MDFCreator.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
-
-        self.logger = logging.getLogger("MDFCreator")
-        self.logger.setLevel(self.project_config.get("LOGLEVEL"))
+    def on_init(self, project_config, experiment_config, *args, **kws):
+        #mdf_filename
+        print("on_init()", args, kws)
+        self.loadConfig(project_config, experiment_config)
         self._mdf_obj = MDF(version = self.project_config.get("MDF_VERSION" ))
-        db = DB()
-        self._session_obj = db.open_create(self.project_config.get("A2L_FILE"))
-
         self._mod_par = ModPar(self._session_obj)
         hd_comment = self.hd_comment()
         print(hd_comment)
-        cond_create_directories()
 
     def hd_comment(self):
         """
