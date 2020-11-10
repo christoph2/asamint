@@ -59,20 +59,11 @@ class MDFCreator(AsamBaseType):
 
     PROJECT_PARAMETER_MAP = {
         #                           Type     Req'd   Default
-        #"LOGLEVEL":                 (str,    False,  "WARN"),
         "MDF_VERSION":              (str,    False,   "4.10"),
-        #"A2L_FILE":                 (str,    True,   ""),
-        "AUTHOR":                   (str,    False,  ""),
-        "DEPARTMENT":               (str,    False,  ""),
-        "PROJECT":                  (str,    True,   ""), # Contributes to filename generation.
-        "SEED_N_KEY_DLL":           (str,    False,  ""),
     }
 
     EXPERIMENT_PARAMETER_MAP = {
         #                           Type     Req'd   Default
-        "SUBJECT":                  (str,    True,   ""), # Contributes to filename generation.
-        "DESCRIPTION":              (str,    False,  ""), # Long description, used as header comment.
-
         "TIME_SOURCE":              (str,    False,  "local PC reference timer"),
         "MEASUREMENTS":             (list,   False,  []),
         "FUNCTIONS":                (list,   False,  []),

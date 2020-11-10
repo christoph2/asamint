@@ -63,10 +63,22 @@ class AsamBaseType:
         #                           Type     Req'd   Default
         "LOGLEVEL":                 (str,    False,  "WARN"),
         "A2L_FILE":                 (str,    True,   ""),
+        "AUTHOR":                   (str,    False,  ""),
+        "DEPARTMENT":               (str,    False,  ""),
+        "PROJECT":                  (str,    True,   ""), # Contributes to filename generation.
+        "SEED_N_KEY_DLL":           (str,    False,  ""),
     }
 
     EXPERIMENT_PARAMETER_MAP = {
         #                           Type     Req'd   Default
+        "SUBJECT":                  (str,    True,   ""), # Contributes to filename generation.
+        "DESCRIPTION":              (str,    False,  ""), # Long description, used as header comment.
+    }
+
+    SUB_DIRS = {    # Could be made cofigurable.
+        "measurements": "measurements",
+        "parameters":   "parameters",
+        "hexfiles":     "hexfiles",
     }
 
     def __init__(self, project_config = None, experiment_config = None, *args, **kws):
@@ -86,15 +98,20 @@ class AsamBaseType:
         """Load configuration data.
         """
         project_config = Configuration(self.__class__.PROJECT_PARAMETER_MAP or {}, project_config or {})
-        print("PM:", self.__class__.PROJECT_PARAMETER_MAP, end = "\n\n")
-        print("PC", project_config, end = "\n\n")
         experiment_config = Configuration(self.__class__.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
         self.project_config.update(project_config)
         self.experiment_config.update(experiment_config)
 
+    def sub_dir(self, name):
+        return self.SUB_DIRS.get(name)
+
     @property
     def session(self):
         return self._session_obj
+
+    @property
+    def query(self):
+        return self.session.query
 
 
 TYPE_SIZES = {

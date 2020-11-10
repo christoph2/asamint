@@ -43,6 +43,7 @@ SINGLE_BITS = frozenset([2 ** b for b in range(64)])
 
 sha1_digest = lambda x: hashlib.sha1(x.encode("utf8")).hexdigest()
 replace_non_c_char = lambda s: re.sub(r"[^.a-zA-Z0-9_]", "_", s)
+current_timestamp = lambda :  time.strftime("_%d%m%Y_%H%M%S")
 
 def convert_name(name):
     """
@@ -102,9 +103,9 @@ def generate_filename(project_config, experiment_config, extension, extra = None
     project = project_config.get("PROJECT")
     subject = experiment_config.get("SUBJECT")
     if extra:
-        return "{}_{}_{}_{}.{}".format(project, subject, time.strftime("%Y%m%d%H%M%S"), extra, extension)
+        return "{}_{}{}_{}.{}".format(project, subject, current_timestamp(), extra, extension)
     else:
-        return "{}_{}_{}.{}".format(project, subject, time.strftime("%Y%m%d%H%M%S"), extension)
+        return "{}_{}{}.{}".format(project, subject, current_timestamp(), extension)
 
 def cond_create_directories():
     """
