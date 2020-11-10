@@ -7,12 +7,11 @@
 import toml
 
 from asamint.mdf import MDFCreator
-from asamint.config import readConfiguration
 
 from asamint.utils import generate_filename
 
 project_config = toml.load("example.apr")
-experiment_config = toml.load("first_experiment.epj")
+experiment_config = toml.load("first_experiment.exp")
 print(project_config, end = "\n\n")
 print(experiment_config, end = "\n\n")
 
