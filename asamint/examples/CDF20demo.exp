@@ -1,0 +1,4 @@
+DESCRIPTION = "Demonstrates the usage of asamint CDFCreator"
+TIME_SOURCE = "local PC reference timer"
+SUBJECT = "Create ASAM CDF file."
+MEASUREMENTS = ["foo", "bar"]

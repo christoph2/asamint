@@ -1,0 +1,14 @@
+A2L_FILE = "CDF20demo"
+AUTHOR = "John Doe"
+DEPARTMENT = "Engineering"
+PROJECT = "Example23"
+
+##
+## XCPonEth parameters.
+##
+TRANSPORT = "ETH"
+HOST = "localhost"
+PORT = 5555
+PROTOCOL = "TCP"
+IPV6 = false
+CREATE_DAQ_TIMESTAMPS = false
