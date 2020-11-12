@@ -34,6 +34,7 @@ __author__  = 'Christoph Schueler'
 from io import StringIO
 import hashlib
 import os
+import pkgutil
 import re
 import time
 
@@ -120,6 +121,16 @@ def get_dtd(name: str) -> StringIO:
     """
     return StringIO(str(pkgutil.get_data("asamint", "data/dtds/{}.dtd".format(name)), encoding = "ascii"))
 
-
 def recursive_dict(element):
     return element.tag, dict(map(recursive_dict, element)) or element.text
+
+def ffs(v: int) -> int:
+    """Find first set bit."""
+    if v == 0:
+        return 0
+    res = 0
+    while (not (v & 1)):
+        v >>= 1
+        res += 1
+    return res
+
