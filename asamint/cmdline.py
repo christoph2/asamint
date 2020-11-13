@@ -63,8 +63,11 @@ class ArgumentParser:
 
         self._parser.add_argument('-l', '--loglevel', choices = ["ERROR", "WARN", "INFO", "DEBUG"], default = "INFO")
         self._parser.add_argument("-u", '--unlock', help = "Unlock protected resources", dest = "unlock", action = "store_true")
-        #self._parser.epilog = "".format(self._parser.prog)
-        self._args = []
+        self._args = self.parser.parse_args()
+        args = self.args
+        self.project = read_configuration(args.project)
+        self.experiment = read_configuration(args.experiment)
+        self.project["LOGLEVEL"] = args.loglevel
 
     @property
     def args(self):
@@ -74,18 +77,14 @@ class ArgumentParser:
         """
 
         """
-        self._args = self.parser.parse_args()
-        args = self.args
-        self.project = read_configuration(args.project)
-        self.experiment = read_configuration(args.experiment)
-        self.project["LOGLEVEL"] = args.loglevel
-        if not "TRANSPORT" in self.project:
-            raise AttributeError("TRANSPORT must be specified in config!")
-        transport = self.project['TRANSPORT'].lower()
-        master = Master(transport, config = self.project) if self.use_xcp else None
-        if self.callout:
-            self.callout(master, args)
-        return master
+        if self.use_xcp == True:
+            if not "TRANSPORT" in self.project:
+                raise AttributeError("TRANSPORT must be specified in config!")
+            transport = self.project['TRANSPORT'].lower()
+            master = Master(transport, config = self.project) if self.use_xcp else None
+            if self.callout:
+                self.callout(master, args)
+            return master
 
     @property
     def parser(self):
