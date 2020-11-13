@@ -37,8 +37,6 @@ from logging import getLogger
 
 from pprint import pprint
 
-import pkgutil
-
 from asamint.utils import cond_create_directories
 from asamint.config import Configuration
 from pya2l import DB
@@ -67,6 +65,8 @@ class AsamBaseType:
         "DEPARTMENT":               (str,    False,  ""),
         "PROJECT":                  (str,    True,   ""), # Contributes to filename generation.
         "SEED_N_KEY_DLL":           (str,    False,  ""),
+        "MASTER_HEXFILE":           (str,    False,  ""),
+        "MASTER_HEXFILE_TYPE":      (str,    False,  "ihex"),
     }
 
     EXPERIMENT_PARAMETER_MAP = {
