@@ -298,7 +298,9 @@ static void print_xcp_response(XcpMessage const * const msg)
             hexdump_xcp_message(msg, 1);
             break;
         default:
-            printf("RESP: WHAT??? [%u]\n", service_request);
+            printf("DAQ(pid = %u, ", code);
+            hexdump_xcp_message(msg, 1);
+            printf(")");
             break;
     }
     service_request = 0;
@@ -310,10 +312,10 @@ static uint16_t print_requested_service(XcpMessage const * const msg)
     uint16_t idx = 1;
     uint8_t service = MSG_BYTE(0);
 
-    static uint32_t counter = 0;
+    //static uint32_t counter = 0;
 
     //printf("\t\tRequ: %u [%u]\n", service_request,counter );
-    counter++;
+    //counter++;
 
     switch (service) {
         case CONNECT:
