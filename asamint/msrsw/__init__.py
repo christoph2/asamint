@@ -37,14 +37,15 @@ from lxml import etree
 
 from asamint.utils import create_elem
 
+
 class Creator:
 
-    def __init__(self, session_obj):
-        self.session_obj = session_obj
+    def __init__(self, session_obj, *args, **kws):
+        self._session_obj = session_obj
         self.sub_trees = {}
         self.root = self._toplevel_boilerplate()
 
-        self.on_init()
+        self.on_init(*args, **kws)
 
         self.tree = ElementTree(self.root)
 
@@ -52,8 +53,12 @@ class Creator:
         raise NotImplementedError()
 
     @property
+    def session(self):
+        return self._session_obj
+
+    @property
     def query(self):
-        return self.session_obj.query
+        return self.session.query
 
     def output_1darray(self, elem, name = None, values = [], numeric = True):
         if name:

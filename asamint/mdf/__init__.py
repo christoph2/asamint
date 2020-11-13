@@ -75,7 +75,7 @@ class MDFCreator(AsamBaseType):
         print("on_init()", args, kws)
         self.loadConfig(project_config, experiment_config)
         self._mdf_obj = MDF(version = self.project_config.get("MDF_VERSION" ))
-        self._mod_par = ModPar(self._session_obj)
+        self._mod_par = ModPar(self.session)
         hd_comment = self.hd_comment()
         print(hd_comment)
 
