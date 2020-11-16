@@ -155,6 +155,7 @@ static void print_event_channel_time_unit(uint8_t unit);
 static void print_daq_list_properties(uint8_t properties);
 static void print_pgm_comm_mode(uint8_t mode);
 static void print_pgm_properties(uint8_t properties);
+static void print_event(XcpMessage const * const msg);
 
 /*
  * Main entry point of this module.
@@ -288,9 +289,7 @@ static void print_xcp_response(XcpMessage const * const msg)
             printf(")");
             break;
         case 0xfd:  /* Event                */
-            printf("EVENT");
-            /* TODO: event-code @pos #1 */
-            hexdump_xcp_message(msg, 1);
+            print_event(msg);
             break;
         case 0xfc:  /* Service Request      */
             printf("SERVICE REQ");
@@ -306,6 +305,73 @@ static void print_xcp_response(XcpMessage const * const msg)
     service_request = 0;
 }
 
+
+static void print_event(XcpMessage const * const msg)
+{
+    uint8_t event_id = MSG_BYTE(1);
+    uint16_t idx = 2;
+
+    printf("EVENT(id = ");
+    switch (event_id) {
+        case XCP_EV_RESUME_MODE:
+            uint16_t session_id = MSG_WORD(2);
+            uint32_t timestamp = MSG_DWORD(4);
+
+            printf("EV_RESUME_MODE, sessionConfigurationId = %u, timestamp = %u", session_id, timestamp);
+            idx = 8;
+            break;
+        case XCP_EV_CLEAR_DAQ:
+            printf("EV_CLEAR_DAQ");
+            break;
+        case XCP_EV_STORE_DAQ:
+            printf("EV_STORE_DAQ");
+            break;
+        case XCP_EV_STORE_CAL:
+            printf("EV_STORE_CAL");
+            break;
+        case XCP_EV_CMD_PENDING:
+            printf("EV_CMD_PENDING");
+            break;
+        case XCP_EV_DAQ_OVERLOAD:
+            printf("EV_DAQ_OVERLOAD");
+            break;
+        case XCP_EV_SESSION_TERMINATED:
+            printf("EV_SESSION_TERMINATED");
+            break;
+        case XCP_EV_TIME_SYNC:
+            uint32_t timestamp = MSG_DWORD(4);
+
+            printf("EV_TIME_SYNC, timestamp = %u", timestamp);
+            break;
+        case XCP_EV_STIM_TIMEOUT:
+            uint8_t event_type = MSG_BYTE(2);
+            uint16_t event_channel = MSG_WORD(4);
+
+            printf("EV_STIM_TIMEOUT, eventType = %s, eventChannel =%u",
+                   "EVENT_CHANNEL_NUMBER" ? event_type == 0 : ("DAQ LIST NUMBER" ? event_type == 1 : "INVALID"),
+                   event_channel
+            );
+            idx = 6;
+            break;
+        case XCP_EV_SLEEP:
+            printf("EV_SLEEP");
+            break;
+        case XCP_EV_WAKE_UP:
+            printf("EV_WAKE_UP");
+            break;
+        case XCP_EV_USER:
+            printf("EV_USER");
+            break;
+        case XCP_EV_TRANSPORT:
+            printf("EV_TRANSPORT");
+            break;
+        default:
+            printf("0x%0x ", event_id);
+            break;
+    }
+    hexdump_xcp_message(msg, idx);
+    print(")");
+}
 
 static uint16_t print_requested_service(XcpMessage const * const msg)
 {
