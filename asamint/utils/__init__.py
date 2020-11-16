@@ -124,13 +124,16 @@ def get_dtd(name: str) -> StringIO:
 def recursive_dict(element):
     return element.tag, dict(map(recursive_dict, element)) or element.text
 
-def ffs(v: int) -> int:
-    """Find first set bit."""
-    if v == 0:
-        return 0
-    res = 0
-    while (not (v & 1)):
-        v >>= 1
-        res += 1
-    return res
 
+def ffs(v: int) -> int:
+    """Find first set bit (pure Python)."""
+    return (v & (-v)).bit_length() - 1
+
+def ffs_np(v):
+    """Find first set bit (numpy)."""
+    return np.uint64(np.log2((v & (-v)))) if v != 0 else 0
+
+
+def ffs_gm(v):
+    """Find first set bit (gmpy)."""
+    return gmpy.scan1(v)
