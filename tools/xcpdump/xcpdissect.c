@@ -344,7 +344,7 @@ static void print_event(XcpMessage const * const msg)
             break;
         case XCP_EV_STIM_TIMEOUT:
             printf("EV_STIM_TIMEOUT, eventType = %s, eventChannel =%u",
-                   "EVENT_CHANNEL_NUMBER" ? event_type == 0 : ("DAQ LIST NUMBER" ? event_type == 1 : "INVALID"),
+                   event_type == 0 ? "EVENT_CHANNEL_NUMBER" : (event_type == 1 ? "DAQ LIST NUMBER" : "INVALID"),
                    event_channel
             );
             idx = 6;
