@@ -310,13 +310,14 @@ static void print_event(XcpMessage const * const msg)
 {
     uint8_t event_id = MSG_BYTE(1);
     uint16_t idx = 2;
+    uint8_t event_type = MSG_BYTE(2);
+    uint16_t event_channel = MSG_WORD(4);
+    uint16_t session_id = MSG_WORD(2);
+    uint32_t timestamp = MSG_DWORD(4);
 
     printf("EVENT(id = ");
     switch (event_id) {
         case XCP_EV_RESUME_MODE:
-            uint16_t session_id = MSG_WORD(2);
-            uint32_t timestamp = MSG_DWORD(4);
-
             printf("EV_RESUME_MODE, sessionConfigurationId = %u, timestamp = %u", session_id, timestamp);
             idx = 8;
             break;
@@ -339,14 +340,9 @@ static void print_event(XcpMessage const * const msg)
             printf("EV_SESSION_TERMINATED");
             break;
         case XCP_EV_TIME_SYNC:
-            uint32_t timestamp = MSG_DWORD(4);
-
             printf("EV_TIME_SYNC, timestamp = %u", timestamp);
             break;
         case XCP_EV_STIM_TIMEOUT:
-            uint8_t event_type = MSG_BYTE(2);
-            uint16_t event_channel = MSG_WORD(4);
-
             printf("EV_STIM_TIMEOUT, eventType = %s, eventChannel =%u",
                    "EVENT_CHANNEL_NUMBER" ? event_type == 0 : ("DAQ LIST NUMBER" ? event_type == 1 : "INVALID"),
                    event_channel
@@ -370,7 +366,7 @@ static void print_event(XcpMessage const * const msg)
             break;
     }
     hexdump_xcp_message(msg, idx);
-    print(")");
+    printf(")");
 }
 
 static uint16_t print_requested_service(XcpMessage const * const msg)
