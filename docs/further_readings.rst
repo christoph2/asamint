@@ -15,4 +15,4 @@ Further Readings
 `MSR Engineering Documentation (MEDOC) MSRSW.DTD Elements and attributes <http://www.msr-wg.de/medoc/download/msrsw/v110/msrsw_v10/msrsw_v110-eadoc-en/msrsw-eadoc-en.pdf>`_
 
 * Ever wondered how to implement interpolation and table lookup functions?
-
+    `Specification of Fixed Point Interpolation Routines <https://www.autosar.org/fileadmin/user_upload/standards/classic/4-2/AUTOSAR_SWS_IFXLibrary.pdf>`_
