@@ -30,11 +30,7 @@ __copyright__ = """
 """
 """
 
-#from asamint.mdf import MDFCreator
 
-##mxx = MDFCreator(project_config = project_config, experiment_config = experiment_config)
-
-import re
 from sqlalchemy import func, or_
 
 import pya2l.model as model
@@ -43,7 +39,9 @@ from pya2l.api.inspect import (Measurement, ModPar, CompuMethod)
 
 from asamint.cmdline import ArgumentParser
 from asamint.xcp import CalibrationData
-from asamint.cdf import CDFCreator
+
+from asamint.mdf import MDFCreator
+
 
 
 def select_measurements(session, selections):
@@ -58,14 +56,12 @@ def select_measurements(session, selections):
 
 def main():
     ap = ArgumentParser(use_xcp = False)
-    cd = CalibrationData(ap.project, ap.experiment)
+    #cd = CalibrationData(ap.project, ap.experiment)
 
     measurements = ap.experiment.get("MEASUREMENTS")
 
-    select_measurements(cd.session, measurements)
-
-    #print("MEAS", measurements)
-    #mdf = MDFCreator(cd.session, img)
+    mdf = MDFCreator(project_config = ap.project, experiment_config = ap.experiment)
+    select_measurements(mdf.session, measurements)
 
 if __name__ == '__main__':
     main()
