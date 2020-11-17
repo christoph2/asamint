@@ -38,8 +38,10 @@ from lxml.etree import (Comment, Element, tostring)
 
 from pya2l import DB
 import pya2l.model as model
-from pya2l.api.inspect import (Measurement, ModPar)
+from pya2l.api.inspect import (Measurement, ModPar, CompuMethod)
 
+#from sqlalchemy import func
+#query = query.filter(func.regexp(model.Elf_Symbol.symbol_name, name_pattern))
 
 
 class MDFCreator(AsamBaseType):
@@ -81,8 +83,6 @@ class MDFCreator(AsamBaseType):
 
     def hd_comment(self):
         """
-        Parameters
-        ----------
         """
         mdf_ver_major = int(self._mdf_obj.version.split(".")[0])
         if mdf_ver_major < 4:
@@ -109,7 +109,7 @@ class MDFCreator(AsamBaseType):
         pass
 
 
-    def create_mdf(self, mdf_obj, mdf_filename = None):
+    def create_mdf(self, mdf_filename = None):
         """
         Parameters
         ----------
@@ -126,6 +126,8 @@ class MDFCreator(AsamBaseType):
             if cm_name == "NO_COMPU_METHOD":
                 conversion = None
             else:
+                print("COMPU_METHOD:", CompuMethod(self.session, cm_name))
+
                 cm = self.query(model.CompuMethod).filter(model.CompuMethod.name ==  cm_name).first()
                 cm_type = cm.conversionType
                 unit = cm.unit
@@ -192,5 +194,5 @@ class MDFCreator(AsamBaseType):
             #print(measurement.name, conversion)
             signal = Signal(samples = [0, 0, 0, 0], timestamps = [0, 0, 0, 0], name = measurement.name, unit = unit, conversion = conversion, comment = comment)
             signals.append(signal)
-        mdf_obj.append(signals)
-        mdf_obj.save(dst = mdf_filename, overwrite = True)
+        self._mdf_obj.append(signals)
+        self._mdf_obj.save(dst = mdf_filename, overwrite = True)
