@@ -45,6 +45,7 @@ from asamint.cmdline import ArgumentParser
 from asamint.xcp import CalibrationData
 from asamint.cdf import CDFCreator
 
+
 def select_measurements(session, selections):
     """
     """
