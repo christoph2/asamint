@@ -85,7 +85,7 @@ class AsamBaseType:
         self.project_config = Configuration(AsamBaseType.PROJECT_PARAMETER_MAP or {}, project_config or {})
         self.experiment_config = Configuration(AsamBaseType.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
         db = DB()
-        self._session_obj = db.open_create(self.project_config.get("A2L_FILE"))
+        AsamBaseType._session_obj = db.open_create(self.project_config.get("A2L_FILE"))
         cond_create_directories()
         self.logger = getLogger(self.__class__.__name__)
         self.logger.setLevel(self.project_config.get("LOGLEVEL"))
@@ -107,11 +107,11 @@ class AsamBaseType:
 
     @property
     def session(self):
-        return self._session_obj
+        return AsamBaseType._session_obj
 
     @property
     def query(self):
-        return self.session.query
+        return AsamBaseType.session.query
 
 
 TYPE_SIZES = {
