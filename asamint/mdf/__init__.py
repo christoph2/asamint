@@ -26,37 +26,24 @@ __copyright__ = """
 """
 __author__ = 'Christoph Schueler'
 
-import logging
 
 from asamint.asam import AsamBaseType
 from asamint.utils import (create_elem, cond_create_directories)
-from asamint.config import Configuration
 
 from asammdf import (MDF, Signal)
 
 from lxml.etree import (Comment, Element, tostring)
+from sqlalchemy import func, or_
 
-from pya2l import DB
 import pya2l.model as model
 from pya2l.api.inspect import (Measurement, ModPar, CompuMethod)
 
-#from sqlalchemy import func
-#query = query.filter(func.regexp(model.Elf_Symbol.symbol_name, name_pattern))
-#logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 class MDFCreator(AsamBaseType):
     """
     Parameters
     ----------
 
-    Note: if `mdf_filename` is None, automatic filename generation kicks in and the file gets written
-    to `measurements/` sub-directory.
-
-    The other consequence is ...
-
-    Also note the consequences:
-        - Filename generation means always create a new file.
-        - If `mdf_filename` is not None, **always overwrite** file.
     """
 
     PROJECT_PARAMETER_MAP = {
@@ -73,13 +60,24 @@ class MDFCreator(AsamBaseType):
     }
 
     def on_init(self, project_config, experiment_config, *args, **kws):
-        #mdf_filename
-        print("on_init()", args, kws)
         self.loadConfig(project_config, experiment_config)
         self._mdf_obj = MDF(version = self.project_config.get("MDF_VERSION" ))
         self._mod_par = ModPar(self.session)
         hd_comment = self.hd_comment()
-        print(hd_comment)
+        print(dir(self._mdf_obj))
+
+
+    @property
+    def measurements(self):
+        """
+        """
+        #query = self.query(model.Measurement.name, model.Measurement.conversion, model.Measurement.datatype)
+        query = self.query(model.Measurement)
+        query = query.filter(or_(func.regexp(model.Measurement.name, m) for m in ap.experiment.get("MEASUREMENTS")))
+        for measurement in query.all():
+            cm = CompuMethod(session, measurement.conversion)
+            print(measurement.name, measurement.datatype)
+            yield measurement
 
     def hd_comment(self):
         """
@@ -109,6 +107,12 @@ class MDFCreator(AsamBaseType):
         """
         Parameters
         ----------
+
+        Note
+        ----
+        COMPU_METHODs are saved on an "as-is" basis, but there is one irregularity in the A2L spec:
+        Normally
+
         """
 
         signals = []
