@@ -42,7 +42,7 @@ from pya2l.api.inspect import (Measurement, ModPar, CompuMethod)
 
 #from sqlalchemy import func
 #query = query.filter(func.regexp(model.Elf_Symbol.symbol_name, name_pattern))
-
+#logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 class MDFCreator(AsamBaseType):
     """
@@ -104,10 +104,6 @@ class MDFCreator(AsamBaseType):
             create_elem(cps, "e", attrib = {"name": "project"}, text = self.project_config.get("PROJECT"))
             create_elem(cps, "e", attrib = {"name": "subject"}, text = self.experiment_config.get("SUBJECT"))
             return tostring(elem_root, encoding = "UTF-8", pretty_print = True)
-
-    def save(self, data):
-        pass
-
 
     def create_mdf(self, mdf_filename = None):
         """
