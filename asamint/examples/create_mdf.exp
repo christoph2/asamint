@@ -1,0 +1,8 @@
+DESCRIPTION = "Demonstrates the usage of asamint MDFCreator"
+TIME_SOURCE = "local PC reference timer"
+SUBJECT = "asammdf stuff"
+MEASUREMENTS = [
+    "BitMask_0x0200", "CDF20.measure.N", "CDF20.measure.T", "ControlOut",
+    "ECUCode_QADC_Single.*", "ECUCode_air_mass", "ThrottlePlantCodeInGain",
+    "air_mass_per_cylinder__kg_s_"
+]

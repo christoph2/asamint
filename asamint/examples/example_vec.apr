@@ -1,0 +1,31 @@
+LOGLEVEL = "WARN"
+MDF_VERSION = "4.10"
+A2L_FILE = "XCPsim"
+AUTHOR = "John Doe"
+DEPARTMENT = "Engineering"
+PROJECT = "Example23"
+
+SEED_N_KEY_DLL = "SeedNKeyXcp.dll"
+
+##
+## XCPonEth parameters.
+##
+TRANSPORT = "ETH"
+HOST = "localhost"
+PORT = 5555
+PROTOCOL = "TCP"
+IPV6 = false
+CREATE_DAQ_TIMESTAMPS = false
+##
+## XCPonCAN (Vector) parameters.
+##
+#TRANSPORT = "CAN"
+#CAN_DRIVER = "Vector"
+#CAN_USE_DEFAULT_LISTENER = true
+#CHANNEL = "1"
+#CAN_ID_MASTER = 2
+#CAN_ID_SLAVE = 1
+#CAN_ID_BROADCAST = 256
+#MAX_DLC_REQUIRED = false
+#CREATE_DAQ_TIMESTAMPS = false
+
