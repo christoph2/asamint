@@ -27,14 +27,12 @@ __copyright__ = """
 __author__ = 'Christoph Schueler'
 
 
-from asamint.asam import AsamBaseType
-from asamint.utils import (create_elem, cond_create_directories)
-
-from asammdf import (MDF, Signal)
-
 from lxml.etree import (Comment, Element, tostring)
 from sqlalchemy import func, or_
 
+from asamint.asam import AsamBaseType
+from asamint.utils import (create_elem, cond_create_directories)
+from asammdf import (MDF, Signal)
 import pya2l.model as model
 from pya2l.api.inspect import (Measurement, ModPar, CompuMethod)
 
@@ -71,13 +69,10 @@ class MDFCreator(AsamBaseType):
     def measurements(self):
         """
         """
-        #query = self.query(model.Measurement.name, model.Measurement.conversion, model.Measurement.datatype)
         query = self.query(model.Measurement)
         query = query.filter(or_(func.regexp(model.Measurement.name, m) for m in ap.experiment.get("MEASUREMENTS")))
-        for measurement in query.all():
-            cm = CompuMethod(session, measurement.conversion)
-            print(measurement.name, measurement.datatype)
-            yield measurement
+        for meas in query.all():
+            yield meas
 
     def hd_comment(self):
         """
@@ -116,8 +111,11 @@ class MDFCreator(AsamBaseType):
         """
 
         signals = []
-        measurements = self.query(model.Measurement).order_by(model.Measurement.name).all()
-        for measurement in measurements:
+
+        #cm = CompuMethod(session, measurement.conversion)
+
+        #measurements = self.query(model.Measurement).order_by(model.Measurement.name).all()
+        for measurement in self.measurements:
             cm_name = measurement.conversion
             comment = measurement.longIdentifier
             unit = None

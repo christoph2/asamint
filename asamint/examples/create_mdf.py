@@ -38,8 +38,6 @@ import pya2l.model as model
 from pya2l.api.inspect import (Measurement, ModPar, CompuMethod)
 
 from asamint.cmdline import ArgumentParser
-from asamint.xcp import CalibrationData
-
 from asamint.mdf import MDFCreator
 
 
@@ -56,12 +54,9 @@ def select_measurements(session, selections):
 
 def main():
     ap = ArgumentParser(use_xcp = False)
-    #cd = CalibrationData(ap.project, ap.experiment)
-
-    measurements = ap.experiment.get("MEASUREMENTS")
 
     mdf = MDFCreator(project_config = ap.project, experiment_config = ap.experiment)
-    select_measurements(mdf.session, measurements)
+    mdf.create_mdf("CDF20demo.mf4")
 
 if __name__ == '__main__':
     main()
