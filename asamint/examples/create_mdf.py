@@ -55,7 +55,7 @@ def random_data(mdf_obj, num_values = 100):
             samples = np.random.randint(-100, 100 + 1, num_values)
         else:
             samples = np.random.randint(0, 100 + 1, num_values)
-        data.update(meas.name = samples)
+        data[meas.name] = samples
     return data
 
 def main():
