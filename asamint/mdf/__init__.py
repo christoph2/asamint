@@ -123,11 +123,12 @@ class MDFCreator(AsamBaseType):
                 self.logger.warn("NO data for measurement '{}'.".format(measurement.name))
                 continue
             self.logger.info("Adding SIGNAL: '{}'.".format(measurement.name))
-            cm_name = measurement.conversion
+
             comment = measurement.longIdentifier
             data_type = measurement.datatype
-            conversion_map, cm = self.ccblock(cm_name)
-            unit = cm.unit if cm else None
+            compuMethod = measurement.compuMethod
+            conversion_map = self.ccblock(compuMethod)
+            unit = compuMethod.unit if compuMethod != "NO_COMPU_METHOD" else None
             samples = data.get(measurement.name)
             samples = np.array(samples, copy = False) # Make sure array-like data is of type `ndarray`.
 
@@ -155,72 +156,68 @@ class MDFCreator(AsamBaseType):
         self._mdf_obj.append(signals)
         self._mdf_obj.save(dst = mdf_filename, overwrite = True)
 
-    def ccblock(self, cm_name: str) -> str:
+    def ccblock(self, compuMethod) -> str:
         """Construct CCBLOCK
 
         Parameters
         ----------
-        cm_name: str
+        compuMethod
 
         Returns
         -------
-        tuple:
-            - dict: Suitable as MDF CCBLOCK or None (in case of `NO_COMPU_METHOD`).
-            - `CompuMethod` object or None:
+        dict: Suitable as MDF CCBLOCK or None (in case of `NO_COMPU_METHOD`).
         """
         conversion = None
-        if cm_name == "NO_COMPU_METHOD":
+        if compuMethod == "NO_COMPU_METHOD":
             conversion = None
-            cm = None
         else:
-            cm =  CompuMethod.get(self.session, cm_name)
-            cm_type = cm.conversionType
+            cm_type = compuMethod.conversionType
             if cm_type == "IDENTICAL":
                 conversion = None
             elif cm_type == "FORM":
-                formula_inv = cm.formula["formula_inv"]
+                formula_inv = compuMethod.formula["formula_inv"]
                 conversion = {
-                    "formula": cm.formula["formula"]
+                    "formula": compuMethod.formula["formula"]
                 }
             elif cm_type == "LINEAR":
                 conversion = {
-                    "a": cm.coeffs_linear["a"],
-                    "b": cm.coeffs_linear["b"],
+                    "a": compuMethod.coeffs_linear["a"],
+                    "b": compuMethod.coeffs_linear["b"],
                 }
             elif cm_type == "RAT_FUNC":
                 conversion = {
-                    "P1": cm.coeffs["a"],
-                    "P2": cm.coeffs["b"],
-                    "P3": cm.coeffs["c"],
-                    "P4": cm.coeffs["d"],
-                    "P5": cm.coeffs["e"],
-                    "P6": cm.coeffs["f"],
+                    "P1": compuMethod.coeffs["a"],
+                    "P2": compuMethod.coeffs["b"],
+                    "P3": compuMethod.coeffs["c"],
+                    "P4": compuMethod.coeffs["d"],
+                    "P5": compuMethod.coeffs["e"],
+                    "P6": compuMethod.coeffs["f"],
                 }
             elif cm_type in ("TAB_INTP", "TAB_NOINTP"):
-                interpolation = cm.tab["interpolation"]
-                default_value = cm.tab["default_value"]
-                in_values = cm.tab["in_values"]
-                out_values = cm.tab["out_values"]
+                interpolation = compuMethod.tab["interpolation"]
+                default_value = compuMethod.tab["default_value"]
+                in_values = compuMethod.tab["in_values"]
+                out_values = compuMethod.tab["out_values"]
                 conversion = {"raw_{}".format(i): in_values[i] for i in range(len(in_values))}
                 conversion.update({"phys_{}".format(i): out_values[i] for i in range(len(out_values))})
                 conversion.update(default = default_value)
                 conversion.update(interpolation = interpolation)
             elif cm_type == "TAB_VERB":
-                default_value = cm.tab_verb["default_value"]
-                text_values = cm.tab_verb["text_values"]
-                if cm.tab_verb["ranges"]:
-                    lower_values = cm.tab_verb["lower_values"]
-                    upper_values = cm.tab_verb["upper_values"]
+                default_value = compuMethod.tab_verb["default_value"]
+                text_values = compuMethod.tab_verb["text_values"]
+                if compuMethod.tab_verb["ranges"]:
+                    lower_values = compuMethod.tab_verb["lower_values"]
+                    upper_values = compuMethod.tab_verb["upper_values"]
                     conversion = {"lower_{}".format(i): lower_values[i] for i in range(len(lower_values))}
                     conversion.update({"upper_{}".format(i): upper_values[i] for i in range(len(upper_values))})
                     conversion.update({"text_{}".format(i): text_values[i] for i in range(len(text_values))})
                     conversion.update(default = bytes(default_value, encoding = "utf-8") if default_value else b'')
                 else:
-                    in_values = cm.tab_verb["in_values"]
+                    in_values = compuMethod.tab_verb["in_values"]
                     conversion = {"val_{}".format(i): in_values[i] for i in range(len(in_values))}
                     conversion.update({"text_{}".format(i): text_values[i] for i in range(len(text_values))})
                     conversion.update(default = default_value)
-        return conversion, cm
+        return conversion
 
     def calculate_physical_values(self, internal_values, cm_object):
         """Calculate pyhsical value representation from raw, ECU-internal values.
