@@ -27,6 +27,7 @@ __copyright__ = """
 __author__ = 'Christoph Schueler'
 
 
+import numpy as np
 from lxml.etree import (Comment, Element, tostring)
 from sqlalchemy import func, or_
 
