@@ -30,11 +30,12 @@ __author__ = 'Christoph Schueler'
 from lxml.etree import (Comment, Element, tostring)
 from sqlalchemy import func, or_
 
-from asamint.asam import AsamBaseType
-from asamint.utils import (create_elem, cond_create_directories)
 from asammdf import (MDF, Signal)
 import pya2l.model as model
 from pya2l.api.inspect import (Measurement, ModPar, CompuMethod)
+
+from asamint.asam import AsamBaseType
+from asamint.utils import (create_elem)
 
 
 class MDFCreator(AsamBaseType):
@@ -98,90 +99,95 @@ class MDFCreator(AsamBaseType):
             create_elem(cps, "e", attrib = {"name": "subject"}, text = self.experiment_config.get("SUBJECT"))
             return tostring(elem_root, encoding = "UTF-8", pretty_print = True)
 
-    def create_mdf(self, mdf_filename = None):
+    def save_measurements(self, mdf_filename: str = None, data: dict = None):
         """
         Parameters
         ----------
 
+
         """
-
+        if not data:
+            return
+        timestamps = data.get("TIMESTAMPS")
         signals = []
-
         for measurement in self.measurements:
+            if not measurement.name in data:
+                continue    # Could be logged.
             print(measurement.name)
             cm_name = measurement.conversion
             comment = measurement.longIdentifier
-            unit = None
-            data_type = measurement.datatype # Don't know how to set data types on Signals...
-            conversion = None
-            if cm_name == "NO_COMPU_METHOD":
-                conversion = None
-            else:
-                cm =  CompuMethod(self.session, cm_name)
-                cm_type = cm.conversionType
-                unit = cm.unit
-                if cm_type == "IDENTICAL":
-                    conversion = None
-                elif cm_type == "FORM":
-                    formula_inv = cm.formula["formula_inv"]
-                    conversion = {
-                        "formula": cm.formula["formula"]
-                    }
-                elif cm_type == "LINEAR":
-                    conversion = {
-                        "a": cm.coeffs_linear["a"],
-                        "b": cm.coeffs_linear["b"],
-                    }
-                elif cm_type == "RAT_FUNC":
-                    conversion = {
-                        "P1": cm.coeffs["a"],
-                        "P2": cm.coeffs["b"],
-                        "P3": cm.coeffs["c"],
-                        "P4": cm.coeffs["d"],
-                        "P5": cm.coeffs["e"],
-                        "P6": cm.coeffs["f"],
-                    }
-                elif cm_type in ("TAB_INTP", "TAB_NOINTP"):
-                    interpolation = cm.tab["interpolation"]
-                    default_value = cm.tab["default_value"]
-                    #print("\tTAB_INTP", measurement.name, cvt.pairs, default_value)
-
-                    in_values = [x.inVal for x in pairs]
-                    cm.tab[""]
-                    out_values = [x.outVal for x in pairs]
-                    cm.tab[""]
-                    conversion = {"raw_{}".format(i): in_values[i] for i in range(num_values)}
-                    conversion.update({"phys_{}".format(i): out_values[i] for i in range(num_values)})
-                    conversion.update(default = default_value)
-                    conversion.update(interpolation = interpolation)
-                elif cm_type == "TAB_VERB":
-                    cvt = self.session.query(model.CompuVtab).filter(model.CompuVtab.name == cm.compu_tab_ref.conversionTable).first()
-                    if cvt:
-                        pairs = cvt.pairs
-                        num_values = len(pairs)
-                        in_values = [x.inVal for x in pairs]
-                        out_values = [x.outVal for x in pairs]
-                        conversion = {"val_{}".format(i): in_values[i] for i in range(num_values)}
-                        conversion.update({"text_{}".format(i): out_values[i] for i in range(num_values)})
-                        conversion.update(default = cvt.default_value.display_string if cvt.default_value else None)
-                    else:
-                        cvt = self.session.query(model.CompuVtabRange).filter(model.CompuVtabRange.name == \
-                                cm.compu_tab_ref.conversionTable).first()
-                        if cvt:
-                            triples = cvt.triples
-                            num_values = len(triples)
-                            lower_values = [x.inValMin for x in triples]
-                            upper_values = [x.inValMax for x in triples]
-                            text_values = [x.outVal for x in triples]
-                            conversion = {"lower_{}".format(i): lower_values[i] for i in range(num_values)}
-                            conversion.update({"upper_{}".format(i): upper_values[i] for i in range(num_values)})
-                            conversion.update({"text_{}".format(i): text_values[i] for i in range(num_values)})
-                            conversion.update(default = bytes(cvt.default_value.display_string, encoding = "utf-8") \
-                                    if cvt.default_value else b'')
-                        else:
-                            conversion = None
-            #print(measurement.name, conversion)
-            signal = Signal(samples = [0, 0, 0, 0], timestamps = [0, 0, 0, 0], name = measurement.name, unit = unit, conversion = conversion, comment = comment)
+            data_type = measurement.datatype
+            conversion_map, cm = self.conversion(cm_name)
+            unit = cm.unit if cm else None
+            signal = Signal(
+                samples = data.get(measurement.name), timestamps = timestamps, name = measurement.name,
+                unit = unit, conversion = conversion_map, comment = comment
+            )
             signals.append(signal)
         self._mdf_obj.append(signals)
         self._mdf_obj.save(dst = mdf_filename, overwrite = True)
+
+    def conversion(self, cm_name: str) -> str:
+        """
+        Parameters
+        ----------
+        cm_name: str
+
+        Returns
+        -------
+        dict: Suitable as MDF CCBLOCK.
+        CompuMethod object or None:
+        """
+        conversion = None
+        if cm_name == "NO_COMPU_METHOD":
+            conversion = None
+            cm = None
+        else:
+            cm =  CompuMethod(self.session, cm_name)
+            cm_type = cm.conversionType
+            if cm_type == "IDENTICAL":
+                conversion = None
+            elif cm_type == "FORM":
+                formula_inv = cm.formula["formula_inv"]
+                conversion = {
+                    "formula": cm.formula["formula"]
+                }
+            elif cm_type == "LINEAR":
+                conversion = {
+                    "a": cm.coeffs_linear["a"],
+                    "b": cm.coeffs_linear["b"],
+                }
+            elif cm_type == "RAT_FUNC":
+                conversion = {
+                    "P1": cm.coeffs["a"],
+                    "P2": cm.coeffs["b"],
+                    "P3": cm.coeffs["c"],
+                    "P4": cm.coeffs["d"],
+                    "P5": cm.coeffs["e"],
+                    "P6": cm.coeffs["f"],
+                }
+            elif cm_type in ("TAB_INTP", "TAB_NOINTP"):
+                interpolation = cm.tab["interpolation"]
+                default_value = cm.tab["default_value"]
+                in_values = cm.tab["in_values"]
+                out_values = cm.tab["out_values"]
+                conversion = {"raw_{}".format(i): in_values[i] for i in range(len(in_values))}
+                conversion.update({"phys_{}".format(i): out_values[i] for i in range(len(out_values))})
+                conversion.update(default = default_value)
+                conversion.update(interpolation = interpolation)
+            elif cm_type == "TAB_VERB":
+                default_value = cm.tab_verb["default_value"]
+                text_values = cm.tab_verb["text_values"]
+                if cm.tab_verb["ranges"]:
+                    lower_values = cm.tab_verb["lower_values"]
+                    upper_values = cm.tab_verb["upper_values"]
+                    conversion = {"lower_{}".format(i): lower_values[i] for i in range(len(lower_values))}
+                    conversion.update({"upper_{}".format(i): upper_values[i] for i in range(len(upper_values))})
+                    conversion.update({"text_{}".format(i): text_values[i] for i in range(len(text_values))})
+                    conversion.update(default = bytes(default_value, encoding = "utf-8") if default_value else b'')
+                else:
+                    in_values = cm.tab_verb["in_values"]
+                    conversion = {"val_{}".format(i): in_values[i] for i in range(len(in_values))}
+                    conversion.update({"text_{}".format(i): text_values[i] for i in range(len(text_values))})
+                    conversion.update(default = default_value)
+        return conversion, cm

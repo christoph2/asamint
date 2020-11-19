@@ -31,32 +31,41 @@ __copyright__ = """
 """
 
 
+import numpy as np
+
 from sqlalchemy import func, or_
 
 import pya2l.model as model
-
-from pya2l.api.inspect import (Measurement, ModPar, CompuMethod)
+from pya2l.api.inspect import (Measurement, CompuMethod)
 
 from asamint.cmdline import ArgumentParser
 from asamint.mdf import MDFCreator
 
 
+def random_data(mdf_obj, num_values = 100):
 
-def select_measurements(session, selections):
-    """
-    """
-    query = session.query(model.Measurement.name, model.Measurement.conversion, model.Measurement.datatype)
-    query = query.filter(or_(func.regexp(model.Measurement.name, sel) for sel in selections))
-    for measurement in query.all():
-        cm = CompuMethod(session, measurement.conversion)
-        print(measurement.name, measurement.datatype)
-
+    STEPPER = 0.1
+    data = {
+        "TIMESTAMPS": np.arange(start = STEPPER, stop = (num_values // 10) + STEPPER, step = STEPPER, dtype = np.float32)
+    }
+    for meas in mdf_obj.measurements:
+        if meas.datatype in ('FLOAT32_IEEE', 'FLOAT64_IEEE'):
+            samples = 200 * np.random.random_sample(num_values) - 100
+        elif meas.datatype in ('SBYTE', 'SWORD', 'SLONG', 'A_INT64'):
+            samples = np.random.randint(-100, 100 + 1, num_values)
+        else:
+            samples = np.random.randint(0, 100 + 1, num_values)
+        data.update(meas.name = samples)
+    return data
 
 def main():
     ap = ArgumentParser(use_xcp = False)
 
     mdf = MDFCreator(project_config = ap.project, experiment_config = ap.experiment)
-    mdf.create_mdf("CDF20demo.mf4")
+
+    data = random_data(mdf, 1000)
+    print(data)
+    mdf.save_measurements("CDF20demo.mf4", data)
 
 if __name__ == '__main__':
     main()
