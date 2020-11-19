@@ -40,6 +40,12 @@ from asamint.asam import AsamBaseType
 from asamint.utils import (create_elem)
 
 
+class Datasource:
+    """Measurement values could be located... well we don't know, so some
+    sort of policy mechanism is required.
+    """
+
+
 class MDFCreator(AsamBaseType):
     """
     Parameters
@@ -63,7 +69,7 @@ class MDFCreator(AsamBaseType):
     def on_init(self, project_config, experiment_config, *args, **kws):
         self.loadConfig(project_config, experiment_config)
         self._mdf_obj = MDF(version = self.project_config.get("MDF_VERSION" ))
-        self._mod_par = ModPar(self.session)
+        self._mod_par = ModPar.get(self.session)
         hd_comment = self.hd_comment()
         self._mdf_obj.md_data = hd_comment
 
@@ -74,7 +80,7 @@ class MDFCreator(AsamBaseType):
         query = self.query(model.Measurement.name)
         query = query.filter(or_(func.regexp(model.Measurement.name, m) for m in self.experiment_config.get("MEASUREMENTS")))
         for meas in query.all():
-            yield Measurementi.get(self.session, meas.name)
+            yield Measurement.get(self.session, meas.name)
 
     def hd_comment(self):
         """
@@ -112,6 +118,7 @@ class MDFCreator(AsamBaseType):
         timestamps = data.get("TIMESTAMPS")
         signals = []
         for measurement in self.measurements:
+            matrixDim = measurement.matrixDim   # TODO: Measurements are not necessarily scalars!
             if not measurement.name in data:
                 self.logger.warn("NO data for measurement '{}'.".format(measurement.name))
                 continue
@@ -122,18 +129,24 @@ class MDFCreator(AsamBaseType):
             conversion_map, cm = self.ccblock(cm_name)
             unit = cm.unit if cm else None
             samples = data.get(measurement.name)
-            samples = np.array(samples, copy = False)
+            samples = np.array(samples, copy = False) # Make sure array-like data is of type `ndarray`.
+
+            # Step #1: bit fiddling.
             bitMask = measurement.bitMask
             if bitMask is not None:
                 samples &= bitMask
             bitOperation = measurement.bitOperation
             if bitOperation and bitOperation["amount"] != 0:
+                amount = bitOperation["amount"]
                 if bitOperation["direction"] == "L":
-                    samples <<= bitOperation["amount"]
+                    samples <<= amount
                 else:
-                    samples >>= bitOperation["amount"]
+                    samples >>= amount
             # TODO: consider sign-extension!
-            samples = self.calculate_pyhsical_values(samples, cm)
+
+            # Step #2: apply COMPU_METHODs.
+            samples = self.calculate_physical_values(samples, cm)
+
             signal = Signal(
                 samples = samples, timestamps = timestamps, name = measurement.name,
                 unit = unit, conversion = conversion_map, comment = comment
@@ -151,15 +164,16 @@ class MDFCreator(AsamBaseType):
 
         Returns
         -------
-        dict: Suitable as MDF CCBLOCK or None (in case of `NO_COMPU_METHOD`).
-        CompuMethod object or None:
+        tuple:
+            - dict: Suitable as MDF CCBLOCK or None (in case of `NO_COMPU_METHOD`).
+            - `CompuMethod` object or None:
         """
         conversion = None
         if cm_name == "NO_COMPU_METHOD":
             conversion = None
             cm = None
         else:
-            cm =  CompuMethod(self.session, cm_name)
+            cm =  CompuMethod.get(self.session, cm_name)
             cm_type = cm.conversionType
             if cm_type == "IDENTICAL":
                 conversion = None
@@ -208,7 +222,7 @@ class MDFCreator(AsamBaseType):
                     conversion.update(default = default_value)
         return conversion, cm
 
-    def calculate_pyhsical_values(self, internal_values, cm_object):
+    def calculate_physical_values(self, internal_values, cm_object):
         """Calculate pyhsical value representation from raw, ECU-internal values.
 
         Parameters
