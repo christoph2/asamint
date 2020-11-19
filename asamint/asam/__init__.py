@@ -107,11 +107,11 @@ class AsamBaseType:
 
     @property
     def session(self):
-        return AsamBaseType._session_obj
+        return self._session_obj
 
     @property
     def query(self):
-        return AsamBaseType.session.query
+        return self.session.query
 
 
 TYPE_SIZES = {

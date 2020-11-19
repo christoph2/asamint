@@ -70,7 +70,7 @@ class MDFCreator(AsamBaseType):
         """
         """
         query = self.query(model.Measurement)
-        query = query.filter(or_(func.regexp(model.Measurement.name, m) for m in ap.experiment.get("MEASUREMENTS")))
+        query = query.filter(or_(func.regexp(model.Measurement.name, m) for m in self.experiment_config.get("MEASUREMENTS")))
         for meas in query.all():
             yield meas
 
@@ -103,19 +103,12 @@ class MDFCreator(AsamBaseType):
         Parameters
         ----------
 
-        Note
-        ----
-        COMPU_METHODs are saved on an "as-is" basis, but there is one irregularity in the A2L spec:
-        Normally
-
         """
 
         signals = []
 
-        #cm = CompuMethod(session, measurement.conversion)
-
-        #measurements = self.query(model.Measurement).order_by(model.Measurement.name).all()
         for measurement in self.measurements:
+            print(measurement.name)
             cm_name = measurement.conversion
             comment = measurement.longIdentifier
             unit = None
@@ -124,47 +117,45 @@ class MDFCreator(AsamBaseType):
             if cm_name == "NO_COMPU_METHOD":
                 conversion = None
             else:
-                print("COMPU_METHOD:", CompuMethod(self.session, cm_name))
-
-                cm = self.query(model.CompuMethod).filter(model.CompuMethod.name ==  cm_name).first()
+                cm =  CompuMethod(self.session, cm_name)
                 cm_type = cm.conversionType
                 unit = cm.unit
                 if cm_type == "IDENTICAL":
                     conversion = None
                 elif cm_type == "FORM":
-                    formula_inv = cm.formula.formula_inv.g_x if cm.formula.formula_inv else None
+                    formula_inv = cm.formula["formula_inv"]
                     conversion = {
-                        "formula": cm.formula.f_x
+                        "formula": cm.formula["formula"]
                     }
                 elif cm_type == "LINEAR":
                     conversion = {
-                        "a": cm.coeffs_linear.a,
-                        "b": cm.coeffs_linear.b,
+                        "a": cm.coeffs_linear["a"],
+                        "b": cm.coeffs_linear["b"],
                     }
                 elif cm_type == "RAT_FUNC":
                     conversion = {
-                        "P1": cm.coeffs.a,
-                        "P2": cm.coeffs.b,
-                        "P3": cm.coeffs.c,
-                        "P4": cm.coeffs.d,
-                        "P5": cm.coeffs.e,
-                        "P6": cm.coeffs.f,
+                        "P1": cm.coeffs["a"],
+                        "P2": cm.coeffs["b"],
+                        "P3": cm.coeffs["c"],
+                        "P4": cm.coeffs["d"],
+                        "P5": cm.coeffs["e"],
+                        "P6": cm.coeffs["f"],
                     }
                 elif cm_type in ("TAB_INTP", "TAB_NOINTP"):
-                    interpolation = True if cm_type == "TAB_INTP" else False
-                    cvt = session_obj.query(model.CompuTab).filter(model.CompuTab.name == cm.compu_tab_ref.conversionTable).first()
-                    pairs = cvt.pairs
-                    num_values = len(pairs)
-                    default_value = cvt.default_value_numeric.display_value if cvt.default_value_numeric else None
+                    interpolation = cm.tab["interpolation"]
+                    default_value = cm.tab["default_value"]
                     #print("\tTAB_INTP", measurement.name, cvt.pairs, default_value)
+
                     in_values = [x.inVal for x in pairs]
+                    cm.tab[""]
                     out_values = [x.outVal for x in pairs]
+                    cm.tab[""]
                     conversion = {"raw_{}".format(i): in_values[i] for i in range(num_values)}
                     conversion.update({"phys_{}".format(i): out_values[i] for i in range(num_values)})
                     conversion.update(default = default_value)
                     conversion.update(interpolation = interpolation)
                 elif cm_type == "TAB_VERB":
-                    cvt = session_obj.query(model.CompuVtab).filter(model.CompuVtab.name == cm.compu_tab_ref.conversionTable).first()
+                    cvt = self.session.query(model.CompuVtab).filter(model.CompuVtab.name == cm.compu_tab_ref.conversionTable).first()
                     if cvt:
                         pairs = cvt.pairs
                         num_values = len(pairs)
@@ -174,7 +165,7 @@ class MDFCreator(AsamBaseType):
                         conversion.update({"text_{}".format(i): out_values[i] for i in range(num_values)})
                         conversion.update(default = cvt.default_value.display_string if cvt.default_value else None)
                     else:
-                        cvt = session_obj.query(model.CompuVtabRange).filter(model.CompuVtabRange.name == \
+                        cvt = self.session.query(model.CompuVtabRange).filter(model.CompuVtabRange.name == \
                                 cm.compu_tab_ref.conversionTable).first()
                         if cvt:
                             triples = cvt.triples
