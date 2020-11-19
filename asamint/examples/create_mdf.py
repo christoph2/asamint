@@ -64,7 +64,6 @@ def main():
     mdf = MDFCreator(project_config = ap.project, experiment_config = ap.experiment)
 
     data = random_data(mdf, 1000)
-    print(data)
     mdf.save_measurements("CDF20demo.mf4", data)
 
 if __name__ == '__main__':

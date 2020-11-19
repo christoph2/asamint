@@ -31,6 +31,7 @@ from lxml.etree import (Comment, Element, tostring)
 from sqlalchemy import func, or_
 
 from asammdf import (MDF, Signal)
+import pya2l.functions as functions
 import pya2l.model as model
 from pya2l.api.inspect import (Measurement, ModPar, CompuMethod)
 
@@ -63,8 +64,8 @@ class MDFCreator(AsamBaseType):
         self._mdf_obj = MDF(version = self.project_config.get("MDF_VERSION" ))
         self._mod_par = ModPar(self.session)
         hd_comment = self.hd_comment()
-        print(dir(self._mdf_obj))
-
+        print(self._mdf_obj.header)
+        self._mdf_obj.md_data = hd_comment
 
     @property
     def measurements(self):
@@ -112,15 +113,29 @@ class MDFCreator(AsamBaseType):
         signals = []
         for measurement in self.measurements:
             if not measurement.name in data:
-                continue    # Could be logged.
-            print(measurement.name)
+                self.logger.warn("NO data for measurement '{}'.".format(measurement.name))
+                continue
+            self.logger.info("Adding SIGNAL: '{}'.".format(measurement.name))
             cm_name = measurement.conversion
             comment = measurement.longIdentifier
             data_type = measurement.datatype
             conversion_map, cm = self.conversion(cm_name)
             unit = cm.unit if cm else None
+            samples = data.get(measurement.name)
+            samples = np.array(samples, copy = False)
+            bitMask = measurement.bitMask
+            if bitMask is not None:
+                samples &= bitMask
+            bitOperation = measurement.bitOperation
+            if bitOperation and bitOperation["amount"] != 0:
+                if bitOperation["direction"] == "L":
+                    samples <<= bitOperation["amount"]
+                else:
+                    samples >>= bitOperation["amount"]
+            # TODO: consider sign-extension!
+            samples = self.calculate_pyhsical_values(samples, cm)
             signal = Signal(
-                samples = data.get(measurement.name), timestamps = timestamps, name = measurement.name,
+                samples = samples, timestamps = timestamps, name = measurement.name,
                 unit = unit, conversion = conversion_map, comment = comment
             )
             signals.append(signal)
@@ -191,3 +206,22 @@ class MDFCreator(AsamBaseType):
                     conversion.update({"text_{}".format(i): text_values[i] for i in range(len(text_values))})
                     conversion.update(default = default_value)
         return conversion, cm
+
+    def calculate_pyhsical_values(self, internal_values, cm_object):
+        """Calculate pyhsical value representation from raw, ECU-internal values.
+
+        Parameters
+        ----------
+        internal_values: array-like
+
+        cm_object: `CompuMethod` instance
+
+        Returns
+        -------
+        array-like:
+        """
+        if cm_object is None:
+            return internal_values
+        else:
+            calculator = functions.CompuMethod(self.session, cm_object)
+            return calculator.int_to_physical(internal_values)

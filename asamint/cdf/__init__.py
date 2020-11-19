@@ -152,7 +152,7 @@ class CDFCreator(msrsw.Creator):
             if chx.type == "VALUE":
                 if chx.bitMask:
                     value = self.image.read_numeric(chx.address, reader, bit_mask = chx.bitMask)
-                    value >>= ffs(value) # "Built-in" right-shift to get rid of trailing zeros (s. ASAM 2-MC spec).
+                    value >>= ffs(chx.bitMask) # "Built-in" right-shift to get rid of trailing zeros (s. ASAM 2-MC spec).
                     is_bool = True if chx.bitMask in SINGLE_BITS else False
                 else:
                     value = self.image.read_numeric(chx.address, reader)
