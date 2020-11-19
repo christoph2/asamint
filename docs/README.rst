@@ -13,6 +13,16 @@ To put it into another words, **asamint** aims to be a command-line MCS (measure
 
 The projects in alphabetical order:
 
+========     ======================================================   =============
+Project      :github:                                                  pip/PyPI name
+========     ======================================================   =============
+asammdf      `asammdf <https://github.com/danielhrisca/asammdf>`_     asammdf
+objutils     `objutils <https://github.com/christoph2/objutils>`_     objutils
+pya2ldb      `pya2ldb <https://github.com/christoph2/pya2l>`_         pya2ldb
+pyxcp        `pyxcp <https://github.com/christoph2/pyxcp>`_           pydbc
+========     ======================================================   =============
+
+
 These (The projects in question) projects are mainly following an mechanism-not-policy approach, but **asamint** aims to
 add higher layers, which could more or less directly be used to implement common measurement and calibration tasks.
 
