@@ -65,7 +65,6 @@ class MDFCreator(AsamBaseType):
         self._mdf_obj = MDF(version = self.project_config.get("MDF_VERSION" ))
         self._mod_par = ModPar(self.session)
         hd_comment = self.hd_comment()
-        print(self._mdf_obj.header)
         self._mdf_obj.md_data = hd_comment
 
     @property
@@ -120,7 +119,7 @@ class MDFCreator(AsamBaseType):
             cm_name = measurement.conversion
             comment = measurement.longIdentifier
             data_type = measurement.datatype
-            conversion_map, cm = self.conversion(cm_name)
+            conversion_map, cm = self.ccblock(cm_name)
             unit = cm.unit if cm else None
             samples = data.get(measurement.name)
             samples = np.array(samples, copy = False)
@@ -143,15 +142,16 @@ class MDFCreator(AsamBaseType):
         self._mdf_obj.append(signals)
         self._mdf_obj.save(dst = mdf_filename, overwrite = True)
 
-    def conversion(self, cm_name: str) -> str:
-        """
+    def ccblock(self, cm_name: str) -> str:
+        """Construct CCBLOCK
+
         Parameters
         ----------
         cm_name: str
 
         Returns
         -------
-        dict: Suitable as MDF CCBLOCK.
+        dict: Suitable as MDF CCBLOCK or None (in case of `NO_COMPU_METHOD`).
         CompuMethod object or None:
         """
         conversion = None
