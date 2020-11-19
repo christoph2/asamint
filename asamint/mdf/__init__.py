@@ -71,10 +71,10 @@ class MDFCreator(AsamBaseType):
     def measurements(self):
         """
         """
-        query = self.query(model.Measurement)
+        query = self.query(model.Measurement.name)
         query = query.filter(or_(func.regexp(model.Measurement.name, m) for m in self.experiment_config.get("MEASUREMENTS")))
         for meas in query.all():
-            yield meas
+            yield Measurementi.get(self.session, meas.name)
 
     def hd_comment(self):
         """
