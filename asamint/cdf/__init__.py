@@ -132,7 +132,7 @@ class CDFCreator(msrsw.Creator):
 
             print("\t", chx.type)
             print(chx.name, hex(chx.address), chx.record_layout_components.sizeof)
-
+            compuMethod = chx.compuMethod
             datatype = chx.deposit.fncValues['datatype']
             fnc_asam_dtype = chx.fnc_asam_dtype
             fnc_np_dtype = chx.fnc_np_dtype
@@ -144,8 +144,8 @@ class CDFCreator(msrsw.Creator):
             byte_order = ByteOrder.LITTE_ENDIAN if chx.byteOrder in ("MSB_LAST", "LITTLE_ENDIAN") else ByteOrder.BIG_ENDIAN
             reader = get_section_reader(datatype, byte_order)
             if chx._conversionRef != "NO_COMPU_METHOD":
-                cm_obj = self.query(model.CompuMethod).filter(model.CompuMethod.name == chx._conversionRef).first()
-                cm = CompuMethod(self.session, cm_obj)
+                #cm_obj = self.query(model.CompuMethod).filter(model.CompuMethod.name == chx._conversionRef).first()
+                cm = CompuMethod(self.session, compuMethod)
             unit = chx.physUnit
             dim = chx.dim
             mem_size = chx.total_allocated_memory
@@ -188,7 +188,7 @@ class CDFCreator(msrsw.Creator):
             elif chx.type == "CURVE":
                 axis_descr = chx.axisDescriptions[0]
                 maxAxisPoints = axis_descr.maxAxisPoints
-                #print("\tCOMPO:", chx.record_layout_components, hex(axis_descr.axisPtsRef.address) if axis_descr.axisPtsRef else "NO_REF")
+                axis_pts_cm = axis_descr.compuMethod
                 if axis_descr.attribute == "FIX_AXIS":
                     if axis_descr.fixAxisParDist:
                         par_dist = axis_descr.fixAxisParDist
@@ -198,8 +198,7 @@ class CDFCreator(msrsw.Creator):
                     elif axis_descr.fixAxisPar:
                         par = axis_descr.fixAxisPar
                         raw_axis_values = fix_axis_par(par['offset'], par['shift'], par['numberapo'])
-                    axis_cm_obj = self.query(model.CompuMethod).filter(model.CompuMethod.name == axis_descr._conversionRef).first()
-                    axis_cm = CompuMethod(self.session, axis_cm_obj)
+                    axis_cm = CompuMethod(self.session, axis_pts_cm)
                     axis_values = axis_cm.int_to_physical(raw_axis_values)
                     self.fix_axis_curve(
                         chx.name, chx.longIdentifier, axis_values, [], axis_unit = axis_descr.compuMethod.unit
