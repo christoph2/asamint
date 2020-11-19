@@ -146,7 +146,7 @@ class MDFCreator(AsamBaseType):
             # TODO: consider sign-extension!
 
             # Step #2: apply COMPU_METHODs.
-            samples = self.calculate_physical_values(samples, cm)
+            samples = self.calculate_physical_values(samples, compuMethod)
 
             signal = Signal(
                 samples = samples, timestamps = timestamps, name = measurement.name,
