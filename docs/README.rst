@@ -11,6 +11,9 @@ ASAM Integration Package
 
 To put it into another words, **asamint** aims to be a command-line MCS (measurement and calibration system).
 
+These (The projects in question) projects are mainly following an mechanism-not-policy approach, but **asamint** aims to
+add higher layers, which could more or less directly be used to implement common measurement and calibration tasks.
+
 The projects in alphabetical order:
 
 ======================================================   =============
@@ -23,11 +26,6 @@ Project / repository                                     pip/PyPI name
 ======================================================   =============
 
 
-These (The projects in question) projects are mainly following an mechanism-not-policy approach, but **asamint** aims to
-add higher layers, which could more or less directly be used to implement common measurement and calibration tasks.
-
- Note: At this stage, the project is highly experimental and hacky, so don't expect stable APIs and tons of features!
-
 
 And yes, all listed projects are `Raspberry PI <https://raspberrypi.org>`_ tested :smile:
 
@@ -37,6 +35,7 @@ Installation
 `clone / fork / download from here. <https://github.com/christoph2/asamint>`_
 
 Then run
+
 .. code-block:: python
 
    python setup.py develop
@@ -53,7 +52,7 @@ License
 Features
 --------
 
-* TODO
+ Note: At this stage, the project is highly experimental and hacky, so don't expect stable APIs and tons of features!
 
 Further Readings
 ----------------
