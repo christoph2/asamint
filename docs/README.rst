@@ -3,18 +3,14 @@ ASAM Integration Package
 ========================
 
 
-.. image:: https://img.shields.io/pypi/v/asamint.svg
-        :target: https://pypi.python.org/pypi/asamint
+**asamint** (ASAM integration package) integrates several automotive related opensource projects.
 
+The projects in question projects are mainly following an mechanism-not-policy approach, but **asamint** aims to
+add higher level APIs, that could be used to implement common measurement and calibration tasks.
 
-**asamint** (ASAM integration package), as the name implies, integrates several automotive related (ASAM standards)
+To put it into another words, **asamint** will be a command-line MCS (measurement and calibration system).
 
-To put it into another words, **asamint** aims to be a command-line MCS (measurement and calibration system).
-
-These (The projects in question) projects are mainly following an mechanism-not-policy approach, but **asamint** aims to
-add higher layers, which could more or less directly be used to implement common measurement and calibration tasks.
-
-The projects in alphabetical order:
+The aggregated Python projects in alphabetical order:
 
 ======================================================   =============
 Project / repository                                     pip/PyPI name
@@ -32,7 +28,7 @@ And yes, all listed projects are `Raspberry PI <https://raspberrypi.org>`_ teste
 Installation
 ------------
 
-`clone / fork / download from here. <https://github.com/christoph2/asamint>`_
+clone / fork / download from `here. <https://github.com/christoph2/asamint>`_
 
 Then run
 
@@ -53,6 +49,20 @@ Features
 --------
 
  Note: At this stage, the project is highly experimental and hacky, so don't expect stable APIs and tons of features!
+
+Functions are basically orchestrated using ASAM MCD-2MC (A2L) files.
+
+Some examples include (not necessarily in a working condition yet):
+
+* Create calibration data files (ASAM CDF) from XCP slaves or HEX files.
+
+* Setup dynamic DAQs.
+
+* High-level API to create MDF files.
+
+
+Please refer to `examples <../asamint/examples>`_ directory.
+
 
 Further Readings
 ----------------
