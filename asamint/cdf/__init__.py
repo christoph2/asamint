@@ -175,15 +175,20 @@ class CDFCreator(msrsw.Creator):
                 value = self.image.read_string(chx.address, length = length)
                 self.instance_scalar(chx.name, chx.longIdentifier, value, category = "ASCII", unit = unit)
             elif chx.type == "VAL_BLK":
-                x, y, z = chx.matrixDim['x'], chx.matrixDim['y'], chx.matrixDim['z']
                 length = chx.fnc_allocated_memory
-                np_arr = self.image.read_ndarray(addr = chx.address, length = length, dtype = reader, shape = chx.fnc_np_shape, order = chx.fnc_np_order, bit_mask = chx.bitMask)
+                np_arr = self.image.read_ndarray(
+                    addr = chx.address,
+                    length = length,
+                    dtype = reader,
+                    shape = chx.fnc_np_shape,
+                    order = chx.fnc_np_order,
+                    bit_mask = chx.bitMask
+                )
                 self.value_blk(
                     name = chx.name,
                     descr = chx.longIdentifier,
-                    value = cm.int_to_physical(np_arr),
+                    values = cm.int_to_physical(np_arr),
                     unit = unit,
-                    shape = chx.fnc_np_shape
                 )
             elif chx.type == "CURVE":
                 axis_descr = chx.axisDescriptions[0]
@@ -276,19 +281,22 @@ class CDFCreator(msrsw.Creator):
         #    vg = create_elem(values_phys, "VG")
         #    self.output_1darray(vg, None, row)
 
-    def value_blk(self, name, descr, value, unit = "", feature_ref = None, shape = None):
-        cont = self.no_axis_container(name, descr, "VAL_BLK", unit, feature_ref)
-        self.output_1darray(cont, "SW-ARRAYSIZE", reversed(value.shape))
-        values_cont = create_elem(cont, "SW-VALUES-PHYS")
-        values = make_2darray(value)
-        vg = create_elem(values_cont, "VG")
-        if len(shape) > 1:
-            for idx in range(shape[0]):
-                row = values[idx: idx + 1].reshape(values.shape[1])
-                self.output_1darray(vg, None, row)
+    def output_value_array(self, values, value_group):
+        """
+        """
+        if values.ndim == 1:
+            self.output_1darray(value_group, None, values)
         else:
-            # One-dimensional value block.
-            self.output_1darray(vg, None, values)
+            for elem in values:
+                self.output_value_array(elem, create_elem(value_group, "VG"))
+
+    def value_blk(self, name, descr, values, unit = "", feature_ref = None):
+        """
+        """
+        cont = self.no_axis_container(name, descr, "VAL_BLK", unit, feature_ref)
+        self.output_1darray(cont, "SW-ARRAYSIZE", reversed(values.shape))
+        values_cont = create_elem(cont, "SW-VALUES-PHYS")
+        self.output_value_array(values, values_cont)
 
     def sw_instance(self, name, descr, category = "VALUE", feature_ref = None):
         instance_tree = self.sub_trees["SW-INSTANCE-TREE"]
