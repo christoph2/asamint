@@ -18,7 +18,7 @@ Project / repository                                     pip/PyPI name
 `asammdf <https://github.com/danielhrisca/asammdf>`_     asammdf
 `objutils <https://github.com/christoph2/objutils>`_     objutils
 `pya2ldb <https://github.com/christoph2/pya2l>`_         pya2ldb
-`pyxcp <https://github.com/christoph2/pyxcp>`_           pydbc
+`pyxcp <https://github.com/christoph2/pyxcp>`_           pyxcp
 ======================================================   =============
 
 
