@@ -219,15 +219,6 @@ class Creator(msrsw.Creator):
                 create_elem(data_dependency, "SW-DATA-DEPENDENCY-FORMULA", text = chx.dependentCharacteristic)
 
             """
-            popovicidaniela Master-Thesis
-            abhisheknaik96 MultiAgentTORCS
-
-            http://xed.ch/p/snakeoil/2015/SCR2015-Snakeoil_entry.tar.gz
-            http://xed.ch/p/snakeoil/snakeoil.py
-
-            """
-
-            """
             <SW-CALPRM>
                 <SHORT-NAME>MyCalprmVALUE</SHORT-NAME>
                 <CATEGORY>VALUE</CATEGORY>
