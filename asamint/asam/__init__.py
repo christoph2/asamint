@@ -84,8 +84,9 @@ class AsamBaseType:
     def __init__(self, project_config = None, experiment_config = None, *args, **kws):
         self.project_config = Configuration(AsamBaseType.PROJECT_PARAMETER_MAP or {}, project_config or {})
         self.experiment_config = Configuration(AsamBaseType.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
-        db = DB()
-        AsamBaseType._session_obj = db.open_create(self.project_config.get("A2L_FILE"))
+        if not hasattr(AsamBaseType, "_session_obj"):
+            db = DB()
+            AsamBaseType._session_obj = db.open_create(self.project_config.get("A2L_FILE"))
         cond_create_directories()
         self.logger = getLogger(self.__class__.__name__)
         self.logger.setLevel(self.project_config.get("LOGLEVEL"))
