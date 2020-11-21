@@ -29,7 +29,6 @@ __copyright__ = """
 
 from asamint.cmdline import ArgumentParser
 from asamint.xcp import CalibrationData
-from asamint.cdf import CDFCreator
 
 def main():
     ap = ArgumentParser(use_xcp = False)
@@ -37,9 +36,7 @@ def main():
 
     master_hexfile = ap.project.get("MASTER_HEXFILE")
     master_hexfile_type = ap.project.get("MASTER_HEXFILE_TYPE")
-    #cd.save_parameters(hexfile = master_hexfile, hexfile_type = master_hexfile_type)
     cd.save_parameters()
-    #cdf = CDFCreator(cd.session, img)
 
 if __name__ == '__main__':
     main()
