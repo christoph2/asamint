@@ -23,6 +23,7 @@ __copyright__ = """
   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """
 
+from collections.abc import MutableMapping
 import io
 import pathlib
 import toml
@@ -53,7 +54,7 @@ def read_configuration(conf):
         return {}
 
 
-class Configuration:
+class Configuration(MutableMapping):
     """
 
     """
@@ -73,11 +74,20 @@ class Configuration:
                 else:
                     self.config[key] = default
 
-    def get(self, key):
-        return self.config.get(key)
+    def __getitem__(self, key):
+        return self.config[key]
 
-    def update(self, other):
-        self.config.update(other.config)
+    def __setitem__(self, key, value):
+        self.config[key] = value
+
+    def __delitem__(self, key):
+        del self.config[key]
+
+    def __iter__(self):
+        return iter(self.config)
+
+    def __len__(self):
+        return len(self.config)
 
     def __repr__(self):
         return "{}".format(self.config)
