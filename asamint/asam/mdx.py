@@ -40,17 +40,10 @@ from pya2l import DB
 import pya2l.model as model
 from pya2l.api.inspect import ModCommon, CompuMethod, Characteristic, Measurement
 
+from asamint.asam import AsamBaseType
 from asamint.utils import sha1_digest, create_elem, replace_non_c_char
 import asamint.msrsw as msrsw
 
-#DOCTYPE = '<!DOCTYPE MSRSW PUBLIC "-//ASAM//DTD CALIBRATION DATA FORMAT:V2.0.0:LAI:IAI:XML:CDF200.XSD//EN" "cdf_v2.0.0.sl.dtd">'
-DOCTYPE = '<!DOCTYPE MSRSW PUBLIC "-//MSR//DTD MSR SOFTWARE DTD:V2.2.0:MSRSW.DTD//EN">'
-# <!DOCTYPE MSRSW PUBLIC "-//ASAM//DTD CALIBRATION DATA FORMAT:V2.0.0:LAI:IAI:XML:CDF200.XSD//EN" "cdf_v2.0.0.sl.dtd">
-
-
-MDX_DTD = "mdx_v1_0_0.sl.dtd"
-
-MDX_EXTENSION = "_mdx.xml"
 
 def matching_dcis(tree):
     dcis = create_elem(tree, "MATCHING-DCIS")
@@ -59,7 +52,7 @@ def matching_dcis(tree):
     create_elem(dci, "SHORT-LABEL", "MDX")
     create_elem(dci, "URL", "http://www.mdx-dci-checkrules.com")
 
-class Creator(msrsw.Creator):
+class MDXCreator(msrsw.MSRMixIn, AsamBaseType):
 
     """
     <!ELEMENT SW-DATA-DICTIONARY-SPEC
@@ -81,13 +74,22 @@ class Creator(msrsw.Creator):
     )
     """
 
-    def on_init(self):
+    DOCTYPE = '<!DOCTYPE MSRSW PUBLIC "-//MSR//DTD MSR SOFTWARE DTD:V2.2.0:MSRSW.DTD//EN">'
+    DTD = "mdx_v1_0_0.sl.dtd"
+    EXTENSION = "_mdx.xml"
+
+    def on_init(self, _pc, _ec, *args, **kws):
+        self.root = self._toplevel_boilerplate()
+        self.tree = ElementTree(self.root)
         self._units(self.sub_trees["SW-DATA-DICTIONARY-SPEC"])
         self._sw_variables(self.sub_trees["SW-DATA-DICTIONARY-SPEC"])
         self._sw_calparms(self.sub_trees["SW-DATA-DICTIONARY-SPEC"])
         self._compu_methods(self.sub_trees["SW-DATA-DICTIONARY-SPEC"])
         self._datatypes(self.sub_trees["SW-DATA-DICTIONARY-SPEC"])
         self._data_constrs(self.sub_trees["SW-DATA-DICTIONARY-SPEC"])
+
+        with open("CDF20demo{}".format(self.EXTENSION), "wb") as of:
+            of.write(etree.tostring(self.root, encoding = "UTF-8", pretty_print = True, xml_declaration = True, doctype = DOCTYPE))
 
 
     def _toplevel_boilerplate(self):
@@ -129,8 +131,8 @@ class Creator(msrsw.Creator):
         measurements = self.query(model.Measurement.name).all()
         for meas_name in measurements:
             meas_name = meas_name[0]
-            meas = Measurement(self.session_obj, meas_name)
-            print(meas)
+            meas = Measurement.get(self.session, meas_name)
+            #print(meas)
             compu_method = meas.compuMethod
             constr_name = "CONSTR_{}".format(meas.name)
             arraySize = (meas.arraySize, ) if meas.arraySize else None
@@ -186,8 +188,8 @@ class Creator(msrsw.Creator):
         characteristics = self.query(model.Characteristic.name).all()
         for ch_name in characteristics:
             ch_name = ch_name[0]
-            chx = Characteristic(self.session_obj, ch_name)
-            print(chx)
+            chx = Characteristic.get(self.session, ch_name)
+            #print(chx)
             compu_method = chx.compuMethod
             constr_name = "CONSTR_{}".format(chx.name)
             matrixDim = (chx.matrixDim["x"], chx.matrixDim["y"], chx.matrixDim["z"]) if chx.matrixDim else None
@@ -249,7 +251,7 @@ class Creator(msrsw.Creator):
             ('FLOAT32_IEEE', 4, True, True, "IEEE754", "FLOAT32"),
             ('FLOAT64_IEEE', 8, True, True, "IEEE754", "FLOAT64"),
         )
-        mc = ModCommon(self.session_obj)
+        mc = ModCommon.get(self.session)
         byteOrder = mc.byteOrder
         alignments = mc.alignment
         if byteOrder in ("MSB_FIRST", "LITTLE_ENDIAN"):
@@ -278,8 +280,8 @@ class Creator(msrsw.Creator):
 
     def _compu_methods(self, tree):
         cm_tree = create_elem(tree, "COMPU-METHODS")
-        for conversion in [x[0] for x in self.session_obj.query(model.CompuMethod.name).all()]:
-            cm = CompuMethod.get(self.session_obj, conversion)
+        for conversion in [x[0] for x in self.session.query(model.CompuMethod.name).all()]:
+            cm = CompuMethod.get(self.session, conversion)
             self._compu_method(cm_tree, conversion, cm)
 
     def _compu_method(self, tree, name, compu_method):
@@ -358,38 +360,3 @@ class Creator(msrsw.Creator):
             if compu_method.tab_verb["default_value"]:
                 default = create_elem(cpti, "COMPU-DEFAULT-VALUE")
                 create_elem(default , "VT", text = compu_method.tab_verb["default_value"])
-
-FNAME = "../ASAP2_Demo_V161.a2ldb"
-FNAME = "../XCPSim.a2ldb"
-#FNAME = "CDF20demo"
-
-db = DB()
-session = db.open_existing(FNAME)
-
-cr = Creator(session)
-
-units0 = cr.query(model.CompuMethod.unit.distinct()).all()
-units1 = cr.query(model.PhysUnit.unit.distinct()).all()
-units2 = cr.query(model.RefUnit.unit.distinct()).all()
-#units3 = cr.query(model.AxisPts.physUnit.unit.distinct()).all()
-units3 = cr.query(model.AxisPts.phys_unit).all()  # .distinct()
-
-
-# Module.Unit?
-# REF_UNIT.unit
-# PHYS_UNIT
-
-print("*** UNITS0", units0)
-print("*** UNITS1", units1)
-print("*** UNITS2", units2)
-print("*** UNITS3", units3)
-
-with open("ASAP2_Demo_V161_mdx.xml", "wb") as of:
-    of.write(etree.tostring(cr.tree, pretty_print = True, xml_declaration = True, doctype = DOCTYPE))
-
-##print(etree.tostring(cr.tree, pretty_print = True, xml_declaration = True, doctype = DOCTYPE))
-
-dtd = DTD(MDX_DTD)
-
-if not dtd.validate(cr.root):
-    pprint(dtd.error_log)
