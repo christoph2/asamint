@@ -144,18 +144,16 @@ class CalibrationData(AsamBaseType):
             img = self.upload_parameters(xcp_master)
         else:
             if hexfile:
-                print("FILE")
+                pass
             else:
-                print("M-HEX")
+
                 hexfile = self.project_config.get("MASTER_HEXFILE")
                 hexfile_type = self.project_config.get("MASTER_HEXFILE_TYPE")
             with open("{}".format(hexfile), "rb") as inf:
                 img = load(hexfile_type, inf)
-            print(img)
-        print("S-P", xcp_master, hexfile, hexfile_type)
         if not img:
             raise ValueError("")
-        cdf = CDFCreator(self.session, img)
+        cdf = CDFCreator(self.project_config, self.experiment_config, img)
 
     def upload_parameters(self, xcp_master, save_to_file: bool = True, hexfile_type: str = "ihex"):
         """

@@ -42,7 +42,7 @@ import pya2l.model as model
 from pya2l.api.inspect import ModCommon, CompuMethod, Characteristic, AxisPts
 from pya2l.functions import CompuMethod, fix_axis_par, fix_axis_par_dist, axis_rescale
 
-from asamint.asam import TYPE_SIZES, ByteOrder, get_section_reader
+from asamint.asam import AsamBaseType, TYPE_SIZES, ByteOrder, get_section_reader
 from asamint.utils import (
     get_dtd, create_elem, make_2darray, SINGLE_BITS, cond_create_directories, ffs
 )
@@ -57,12 +57,12 @@ CDF_EXTENSION = "cdfx"
 CDF_DTD = get_dtd("cdf_v2.0.0.sl")
 
 
-class CDFCreator(msrsw.Creator):
+class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
     """
     """
 
-    def on_init(self, *args, **kws):
-        self._image = args[0]
+    def on_init(self, _pc, _ec, image, *args, **kws):
+        self._image = image
         self.mod_common = ModCommon.get(self.session)
         self.byte_order = self.mod_common.byteOrder
         cond_create_directories()
@@ -85,6 +85,11 @@ class CDFCreator(msrsw.Creator):
 
         instance_spec = create_elem(sw_system, "SW-INSTANCE-SPEC")
         instance_tree = create_elem(instance_spec, "SW-INSTANCE-TREE")
+
+        instance_tree_origin = create_elem(instance_tree, "SW-INSTANCE-TREE-ORIGIN")
+        create_elem(instance_tree_origin, "SYMBOLIC-FILE", "ECU14.a2l")
+        create_elem(instance_tree_origin, "DATA-FILE", "ECU14.hex")
+
         self.sub_trees["SW-INSTANCE-TREE"] = instance_tree
         create_elem(instance_tree, "SHORT-NAME", text = "ETAS\CalDemo_V2a\CalDemo_V2\CalDemo_V2_1") # i.e. A2L name.
         create_elem(instance_tree, "CATEGORY", text = "NO_VCD") # or VCD, variant-coding f.parameters.
@@ -165,7 +170,7 @@ class CDFCreator(msrsw.Creator):
                 if is_bool and isinstance(conv_value, (int, float)):
                     conv_value = "true" if bool(conv_value) else "false"
                 else:
-                    category = "VALUE"  # Enums are regualar VALUEs
+                    category = "VALUE"  # Enums are regular VALUEs
                 self.instance_scalar(chx.name, chx.longIdentifier, conv_value, unit = unit, category = category)
             elif chx.type == "ASCII":
                 if chx.matrixDim:
@@ -194,6 +199,7 @@ class CDFCreator(msrsw.Creator):
                 axis_descr = chx.axisDescriptions[0]
                 maxAxisPoints = axis_descr.maxAxisPoints
                 axis_pts_cm = axis_descr.compuMethod
+                axis_unit = axis_descr.compuMethod.unit
                 if axis_descr.attribute == "FIX_AXIS":
                     if axis_descr.fixAxisParDist:
                         par_dist = axis_descr.fixAxisParDist
@@ -211,7 +217,9 @@ class CDFCreator(msrsw.Creator):
                     #print("*** FIX-AXIS", hex(chx.address), chx.record_layout_components, chx.record_layout_components.axes_names, mem_size)
                 elif axis_descr.attribute == "STD_AXIS":
                     #print("*** STD-AXIS", chx.name, axis_descr, chx.record_layout_components, mem_size)
-                    pass
+                    value_cont, axis_conts = self.axis_container(chx.name, chx.longIdentifier, "CURVE", axis_unit, feature_ref = None)
+                    for num, cc in chx.record_layout_components:
+                        print("\tCOMPO:", cc)
                 elif axis_descr.attribute == "RES_AXIS":
                     #print("*** RES-AXIS {}".format(axis_descr.axisPtsRef.depositAttr))
                     pass
@@ -325,3 +333,7 @@ class CDFCreator(msrsw.Creator):
             create_elem(value_cont, "UNIT-DISPLAY-NAME", text = unit)
         axis_conts = create_elem(variant, "SW-AXIS-CONTS")
         return value_cont, axis_conts
+
+    def instantiate_record_layout():
+        """
+        """
