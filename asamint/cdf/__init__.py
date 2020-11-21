@@ -66,6 +66,8 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
         self.mod_common = ModCommon.get(self.session)
         self.byte_order = self.mod_common.byteOrder
         cond_create_directories()
+        self.root = self._toplevel_boilerplate()
+        self.tree = ElementTree(self.root)
         self.cs_collections()
         self.instances()
         with open("CDF20demo.{}".format(CDF_EXTENSION), "wb") as of:
@@ -86,13 +88,17 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
         instance_spec = create_elem(sw_system, "SW-INSTANCE-SPEC")
         instance_tree = create_elem(instance_spec, "SW-INSTANCE-TREE")
 
-        instance_tree_origin = create_elem(instance_tree, "SW-INSTANCE-TREE-ORIGIN")
-        create_elem(instance_tree_origin, "SYMBOLIC-FILE", "ECU14.a2l")
-        create_elem(instance_tree_origin, "DATA-FILE", "ECU14.hex")
-
         self.sub_trees["SW-INSTANCE-TREE"] = instance_tree
         create_elem(instance_tree, "SHORT-NAME", text = "ETAS\CalDemo_V2a\CalDemo_V2\CalDemo_V2_1") # i.e. A2L name.
         create_elem(instance_tree, "CATEGORY", text = "NO_VCD") # or VCD, variant-coding f.parameters.
+
+        instance_tree_origin = create_elem(instance_tree, "SW-INSTANCE-TREE-ORIGIN")
+        a2l_file = self.project_config.get("A2L_FILE")
+        if not a2l_file.endswith((".a2l", ".A2L", )):
+            a2l_file = "{}.a2l".format(a2l_file)
+        create_elem(instance_tree_origin, "SYMBOLIC-FILE", a2l_file)
+        create_elem(instance_tree_origin, "DATA-FILE", "ECU14.hex")
+
         return root
 
     def cs_collection(self, name, category, tree):

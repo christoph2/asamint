@@ -42,8 +42,6 @@ class MSRMixIn:
     """
     def __init__(self, *args, **kws):
         self.sub_trees = {}
-        self.root = self._toplevel_boilerplate()
-        self.tree = ElementTree(self.root)
         super().__init__(*args, **kws)
 
     def output_1darray(self, elem, name = None, values = [], numeric = True):
