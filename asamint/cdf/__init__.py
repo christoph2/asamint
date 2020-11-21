@@ -49,17 +49,13 @@ import asamint.msrsw as msrsw
 
 from objutils import load
 
-DOCTYPE = '''<!DOCTYPE MSRSW PUBLIC "-//ASAM//DTD CALIBRATION DATA FORMAT:V2.0.0:LAI:IAI:XML:CDF200.XSD//EN" "cdf_v2.0.0.sl.dtd">'''
-
-CDF_EXTENSION = "cdfx"
-
-CDF_DTD = get_dtd("cdf_v2.0.0.sl")
-
 
 class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
     """
     """
 
+    DOCTYPE = '''<!DOCTYPE MSRSW PUBLIC "-//ASAM//DTD CALIBRATION DATA FORMAT:V2.0.0:LAI:IAI:XML:CDF200.XSD//EN" "cdf_v2.0.0.sl.dtd">'''
+    DTD = get_dtd("cdf_v2.0.0.sl")
     EXTENSION = ".cdfx"
 
     def on_init(self, _pc, _ec, image, *args, **kws):
@@ -71,8 +67,8 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
         self.tree = ElementTree(self.root)
         self.cs_collections()
         self.instances()
-        with open("CDF20demo{}".format(self.EXTENSION), "wb") as of:
-            of.write(etree.tostring(self.root, encoding = "UTF-8", pretty_print = True, xml_declaration = True, doctype = DOCTYPE))
+
+        self.write_tree("CDF20demo")
 
     @property
     def image(self):

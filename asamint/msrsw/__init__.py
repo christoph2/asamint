@@ -40,9 +40,19 @@ from asamint.utils import create_elem
 class MSRMixIn:
     """
     """
+
+    DOCTYPE = None
+    DTD = None
+    EXTENSION = None
+
     def __init__(self, *args, **kws):
         self.sub_trees = {}
         super().__init__(*args, **kws)
+
+
+    def write_tree(self, file_name):
+        with open("CDF20demo{}".format(self.EXTENSION), "wb") as of:
+            of.write(etree.tostring(self.root, encoding = "UTF-8", pretty_print = True, xml_declaration = True, doctype = self.DOCTYPE))
 
     def output_1darray(self, elem, name = None, values = [], numeric = True):
         if name:
