@@ -34,6 +34,7 @@ __author__  = 'Christoph Schueler'
 from io import StringIO
 import hashlib
 import os
+import pathlib
 import pkgutil
 import re
 import time
@@ -137,3 +138,8 @@ def ffs_np(v):
 def ffs_gm(v):
     """Find first set bit (gmpy)."""
     return gmpy.scan1(v)
+
+def add_suffix_to_path(path: str, suffix: str) -> str:
+    """(Conditionally) add / replace suffix/extension to a path."""
+
+    return str(pathlib.Path(path).with_suffix(suffix))

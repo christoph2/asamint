@@ -31,7 +31,6 @@ __copyright__ = """
 
 from itertools import groupby
 from operator import attrgetter
-from pprint import pprint
 
 import lxml
 from lxml.etree import (Comment, Element, ElementTree, DTD, SubElement, XMLSchema, parse, tounicode)
@@ -44,7 +43,7 @@ from pya2l.functions import CompuMethod, fix_axis_par, fix_axis_par_dist, axis_r
 
 from asamint.asam import AsamBaseType, TYPE_SIZES, ByteOrder, get_section_reader
 from asamint.utils import (
-    get_dtd, create_elem, make_2darray, SINGLE_BITS, cond_create_directories, ffs
+    get_dtd, create_elem, make_2darray, SINGLE_BITS, cond_create_directories, ffs, add_suffix_to_path
 )
 import asamint.msrsw as msrsw
 
@@ -61,6 +60,8 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
     """
     """
 
+    EXTENSION = ".cdfx"
+
     def on_init(self, _pc, _ec, image, *args, **kws):
         self._image = image
         self.mod_common = ModCommon.get(self.session)
@@ -70,7 +71,7 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
         self.tree = ElementTree(self.root)
         self.cs_collections()
         self.instances()
-        with open("CDF20demo.{}".format(CDF_EXTENSION), "wb") as of:
+        with open("CDF20demo{}".format(self.EXTENSION), "wb") as of:
             of.write(etree.tostring(self.root, encoding = "UTF-8", pretty_print = True, xml_declaration = True, doctype = DOCTYPE))
 
     @property
@@ -93,10 +94,7 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
         create_elem(instance_tree, "CATEGORY", text = "NO_VCD") # or VCD, variant-coding f.parameters.
 
         instance_tree_origin = create_elem(instance_tree, "SW-INSTANCE-TREE-ORIGIN")
-        a2l_file = self.project_config.get("A2L_FILE")
-        if not a2l_file.endswith((".a2l", ".A2L", )):
-            a2l_file = "{}.a2l".format(a2l_file)
-        create_elem(instance_tree_origin, "SYMBOLIC-FILE", a2l_file)
+        create_elem(instance_tree_origin, "SYMBOLIC-FILE", add_suffix_to_path(self.project_config.get("A2L_FILE"), ".a2l"))
         create_elem(instance_tree_origin, "DATA-FILE", "ECU14.hex")
 
         return root
