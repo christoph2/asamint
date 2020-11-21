@@ -91,7 +91,9 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
 
         instance_tree_origin = create_elem(instance_tree, "SW-INSTANCE-TREE-ORIGIN")
         create_elem(instance_tree_origin, "SYMBOLIC-FILE", add_suffix_to_path(self.project_config.get("A2L_FILE"), ".a2l"))
-        create_elem(instance_tree_origin, "DATA-FILE", "ECU14.hex")
+        data_file_name = self.image.file_name
+        if data_file_name:
+            create_elem(instance_tree_origin, "DATA-FILE", data_file_name)
 
         return root
 

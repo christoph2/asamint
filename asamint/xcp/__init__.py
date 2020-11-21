@@ -142,6 +142,7 @@ class CalibrationData(AsamBaseType):
         if xcp_master:
             print("XCP")
             img = self.upload_parameters(xcp_master)
+            img.file_name = None
         else:
             if hexfile:
                 pass
@@ -151,6 +152,7 @@ class CalibrationData(AsamBaseType):
                 hexfile_type = self.project_config.get("MASTER_HEXFILE_TYPE")
             with open("{}".format(hexfile), "rb") as inf:
                 img = load(hexfile_type, inf)
+            img.file_name = hexfile
         if not img:
             raise ValueError("")
         cdf = CDFCreator(self.project_config, self.experiment_config, img)
