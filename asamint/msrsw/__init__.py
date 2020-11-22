@@ -35,6 +35,7 @@ __email__ = 'cpu12.gems@googlemail.com'
 from lxml.etree import (Comment, Element, ElementTree, DTD, SubElement, XMLSchema, parse, tounicode)
 from lxml import etree
 
+import pya2l.model as model
 from asamint.utils import create_elem
 
 class MSRMixIn:
@@ -73,3 +74,17 @@ class MSRMixIn:
             create_elem(elem, "LONG-NAME", long_name)
         if category:
             create_elem(elem, "CATEGORY", category)
+
+    def msrsw_header(self, category, suffix):
+        proj = self.query(model.Project).first()
+        project_name = proj.name
+        project_comment = proj.longIdentifier
+
+        root = Element("MSRSW")
+        create_elem(root, "SHORT-NAME", text = "{}_{}".format(project_name, suffix))
+        create_elem(root, "CATEGORY", category)
+        sw_systems = create_elem(root, "SW-SYSTEMS")
+        sw_system = create_elem(sw_systems, "SW-SYSTEM")
+        self.common_elements(sw_system, project_name, project_comment)
+        self.sub_trees["SW-SYSTEM"] = sw_system
+        return root

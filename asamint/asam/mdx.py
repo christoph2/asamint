@@ -75,6 +75,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamBaseType):
     """
 
     DOCTYPE = '<!DOCTYPE MSRSW PUBLIC "-//MSR//DTD MSR SOFTWARE DTD:V2.2.0:MSRSW.DTD//EN">'
+    ##<!DOCTYPE MSRSW PUBLIC"-//ASAM//DTD MSR SOFTWARE DTD:V3.0.0:LAI:IAI:XML:MSRSW300.XSD//EN" "MSRSW_v3.0.0.DTD">
     DTD = "mdx_v1_0_0.sl.dtd"
     EXTENSION = "_mdx.xml"
 
@@ -89,16 +90,12 @@ class MDXCreator(msrsw.MSRMixIn, AsamBaseType):
         self._data_constrs(self.sub_trees["SW-DATA-DICTIONARY-SPEC"])
 
         with open("CDF20demo{}".format(self.EXTENSION), "wb") as of:
-            of.write(etree.tostring(self.root, encoding = "UTF-8", pretty_print = True, xml_declaration = True, doctype = DOCTYPE))
+            of.write(etree.tostring(self.root, encoding = "UTF-8", pretty_print = True, xml_declaration = True, doctype = self.DOCTYPE))
 
 
     def _toplevel_boilerplate(self):
-        root = Element("MSRSW")
-        create_elem(root, "CATEGORY", "MDX")
-        sw_systems = create_elem(root, "SW-SYSTEMS")
-        sw_system = create_elem(sw_systems, "SW-SYSTEM")
-        self.common_elements(sw_system, "FOO", "FOO do_er")
-        self.sub_trees["SW-SYSTEM"] = sw_system
+        root = self.msrsw_header("MDX", "MDX")
+        sw_system = self.sub_trees["SW-SYSTEM"]
         data_dict = create_elem(sw_system, "SW-DATA-DICTIONARY-SPEC")
         self.sub_trees["SW-DATA-DICTIONARY-SPEC"] = data_dict
         matching_dcis(root)

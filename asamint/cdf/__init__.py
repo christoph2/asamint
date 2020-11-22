@@ -75,23 +75,20 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
         return self._image
 
     def _toplevel_boilerplate(self):
-        root = Element("MSRSW")
-        create_elem(root, "CATEGORY", "CDF20")
-        sw_systems = create_elem(root, "SW-SYSTEMS")
-        sw_system = create_elem(sw_systems, "SW-SYSTEM")
-        self.common_elements(sw_system, "FOO", "FOO do_er")
-        self.sub_trees["SW-SYSTEM"] = sw_system
+        root = self.msrsw_header("CDF20", "CDF")
 
+        sw_system = self.sub_trees["SW-SYSTEM"]
         instance_spec = create_elem(sw_system, "SW-INSTANCE-SPEC")
         instance_tree = create_elem(instance_spec, "SW-INSTANCE-TREE")
-
         self.sub_trees["SW-INSTANCE-TREE"] = instance_tree
-        create_elem(instance_tree, "SHORT-NAME", text = "ETAS\CalDemo_V2a\CalDemo_V2\CalDemo_V2_1") # i.e. A2L name.
+        create_elem(instance_tree, "SHORT-NAME", text = "STD")
         create_elem(instance_tree, "CATEGORY", text = "NO_VCD") # or VCD, variant-coding f.parameters.
 
         instance_tree_origin = create_elem(instance_tree, "SW-INSTANCE-TREE-ORIGIN")
         create_elem(instance_tree_origin, "SYMBOLIC-FILE", add_suffix_to_path(self.project_config.get("A2L_FILE"), ".a2l"))
-        create_elem(instance_tree_origin, "DATA-FILE", "ECU14.hex")
+        data_file_name = self.image.file_name
+        if data_file_name:
+            create_elem(instance_tree_origin, "DATA-FILE", data_file_name)
 
         return root
 
@@ -134,9 +131,7 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
 
         for c in characteristics:
             chx = Characteristic.get(self.session, c.name)
-
-            print("\t", chx.type)
-            print(chx.name, hex(chx.address), chx.record_layout_components.sizeof)
+            print(chx.name, chx.type, hex(chx.address), chx.record_layout_components.sizeof)
             compuMethod = chx.compuMethod
             datatype = chx.deposit.fncValues['datatype']
             fnc_asam_dtype = chx.fnc_asam_dtype
@@ -171,14 +166,20 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
                     conv_value = "true" if bool(conv_value) else "false"
                 else:
                     category = "VALUE"  # Enums are regular VALUEs
-                self.instance_scalar(chx.name, chx.longIdentifier, conv_value, unit = unit, category = category)
+                self.instance_scalar(
+                    name = chx.name, descr = chx.longIdentifier, value = conv_value, unit = unit,
+                    displayIdentifier = chx.displayIdentifier, category = category
+                )
             elif chx.type == "ASCII":
                 if chx.matrixDim:
                     length = chx.matrixDim["x"]
                 else:
                     length = chx.number
                 value = self.image.read_string(chx.address, length = length)
-                self.instance_scalar(chx.name, chx.longIdentifier, value, category = "ASCII", unit = unit)
+                self.instance_scalar(
+                    name = chx.name, descr = chx.longIdentifier, value = value, category = "ASCII", unit = unit,
+                    displayIdentifier = chx.displayIdentifier
+                )
             elif chx.type == "VAL_BLK":
                 length = chx.fnc_allocated_memory
                 np_arr = self.image.read_ndarray(
@@ -193,7 +194,8 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
                     name = chx.name,
                     descr = chx.longIdentifier,
                     values = cm.int_to_physical(np_arr),
-                    unit = unit,
+                    displayIdentifier = chx.displayIdentifier,
+                    unit = unit
                 )
             elif chx.type == "CURVE":
                 axis_descr = chx.axisDescriptions[0]
@@ -214,7 +216,7 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
                     self.fix_axis_curve(
                         chx.name, chx.longIdentifier, axis_values, [], axis_unit = axis_descr.compuMethod.unit
                     )
-                    #print("*** FIX-AXIS", hex(chx.address), chx.record_layout_components, chx.record_layout_components.axes_names, mem_size)
+                    print("*** FIX-AXIS", hex(chx.address), chx.record_layout_components, chx.record_layout_components.axes_names, mem_size)
                 elif axis_descr.attribute == "STD_AXIS":
                     #print("*** STD-AXIS", chx.name, axis_descr, chx.record_layout_components, mem_size)
                     value_cont, axis_conts = self.axis_container(chx.name, chx.longIdentifier, "CURVE", axis_unit, feature_ref = None)
@@ -240,7 +242,7 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
         values = axis_cm.int_to_physical(raw_values)
         return values
 
-    def instance_scalar(self, name, descr, value, category = "VALUE", unit = "", feature_ref = None):
+    def instance_scalar(self, name, descr, value, category = "VALUE", unit = "", displayIdentifier = None, feature_ref = None):
         """
         VALUE
         DEPENDENT_VALUE
@@ -261,7 +263,10 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
         STRUCTURE
         UNION
         """
-        cont = self.no_axis_container(name, descr, category, unit, feature_ref)
+        cont = self.no_axis_container(
+            name = name, descr = descr, category = category, unit = unit,
+            displayIdentifier = displayIdentifier, feature_ref = feature_ref
+        )
         values = create_elem(cont, "SW-VALUES-PHYS")
 
         if isinstance(value, str) and value:
@@ -298,20 +303,25 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
             for elem in values:
                 self.output_value_array(elem, create_elem(value_group, "VG"))
 
-    def value_blk(self, name, descr, values, unit = "", feature_ref = None):
+    def value_blk(self, name, descr, values, unit = "", displayIdentifier = None, feature_ref = None):
         """
         """
-        cont = self.no_axis_container(name, descr, "VAL_BLK", unit, feature_ref)
+        cont = self.no_axis_container(
+            name = name, descr = descr, category = "VAL_BLK", unit = unit,
+            displayIdentifier = displayIdentifier, feature_ref = feature_ref
+        )
         self.output_1darray(cont, "SW-ARRAYSIZE", reversed(values.shape))
         values_cont = create_elem(cont, "SW-VALUES-PHYS")
         self.output_value_array(values, values_cont)
 
-    def sw_instance(self, name, descr, category = "VALUE", feature_ref = None):
+    def sw_instance(self, name, descr, category = "VALUE", displayIdentifier = None, feature_ref = None):
         instance_tree = self.sub_trees["SW-INSTANCE-TREE"]
         instance = create_elem(instance_tree, "SW-INSTANCE")
         create_elem(instance, "SHORT-NAME", text = name)
         if descr:
             create_elem(instance, "LONG-NAME", text = descr)
+        if displayIdentifier:
+            create_elem(instance, "DISPLAY-NAME", text = displayIdentifier)
         create_elem(instance, "CATEGORY", text = category)
         if feature_ref:
             create_elem(instance, "SW-FEATURE-REF", text = feature_ref)
@@ -319,15 +329,19 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
         variant = create_elem(variants, "SW-INSTANCE-PROPS-VARIANT")
         return variant
 
-    def no_axis_container(self, name, descr, category = "VALUE", unit = "", feature_ref = None):
-        variant = self.sw_instance(name, descr, category = category, feature_ref = None)
+    def no_axis_container(self, name, descr, category = "VALUE", unit = "", displayIdentifier = None, feature_ref = None):
+        variant = self.sw_instance(
+            name, descr, category = category, displayIdentifier = displayIdentifier, feature_ref = feature_ref
+        )
         value_cont = create_elem(variant, "SW-VALUE-CONT")
         if unit:
             create_elem(value_cont, "UNIT-DISPLAY-NAME", text = unit)
         return value_cont
 
-    def axis_container(self, name, descr, category = "VALUE", unit = "", feature_ref = None):
-        variant = self.sw_instance(name, descr, category = category, feature_ref = None)
+    def axis_container(self, name, descr, category = "VALUE", unit = "", displayIdentifier = None, feature_ref = None):
+        variant = self.sw_instance(
+            name, descr, category = category, displayIdentifier = displayIdentifier, feature_ref = feature_ref
+        )
         value_cont = create_elem(variant, "SW-VALUE-CONT")
         if unit:
             create_elem(value_cont, "UNIT-DISPLAY-NAME", text = unit)
