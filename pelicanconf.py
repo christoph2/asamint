@@ -12,6 +12,8 @@ SITEDESCRIPTION = "Foo Bar's Thoughts and Writings"
 BROWSER_COLOR = "#333"
 ROBOTS = "index, follow"
 
+OUTPUT_PATH = 'docs/'
+
 PATH = 'content'
 TIMEZONE = 'Europe/Berlin'
 DEFAULT_LANG = 'en'

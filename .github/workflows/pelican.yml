@@ -2,7 +2,7 @@ name: Pelican site CI
     on:
     push:
     branches:
-        - master
+        - gh_pages
     jobs:
     build:
     runs-on: ubuntu-latest
