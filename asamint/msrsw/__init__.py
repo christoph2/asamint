@@ -52,10 +52,22 @@ class MSRMixIn:
 
 
     def write_tree(self, file_name):
+        """
+        """
+        self.validate()
         with open("CDF20demo{}".format(self.EXTENSION), "wb") as of:
             of.write(etree.tostring(self.root, encoding = "UTF-8", pretty_print = True, xml_declaration = True, doctype = self.DOCTYPE))
 
+    def validate(self):
+        """
+        """
+        dtd = DTD(self.DTD)
+        if not dtd.validate(self.root):
+            pprint(dtd.error_log)
+
     def output_1darray(self, elem, name = None, values = [], numeric = True):
+        """
+        """
         if name:
             cont = create_elem(elem, name)
         else:
@@ -69,6 +81,8 @@ class MSRMixIn:
 
     @staticmethod
     def common_elements(elem, short_name, long_name = None, category = None):
+        """
+        """
         create_elem(elem, "SHORT-NAME", short_name)
         if long_name:
             create_elem(elem, "LONG-NAME", long_name)
@@ -76,6 +90,8 @@ class MSRMixIn:
             create_elem(elem, "CATEGORY", category)
 
     def msrsw_header(self, category, suffix):
+        """
+        """
         proj = self.query(model.Project).first()
         project_name = proj.name
         project_comment = proj.longIdentifier
