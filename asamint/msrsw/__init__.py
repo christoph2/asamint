@@ -32,7 +32,6 @@ __copyright__ = """
 __author__ = """Christoph Schueler"""
 __email__ = 'cpu12.gems@googlemail.com'
 
-from lxml.etree import (Comment, Element, ElementTree, DTD, SubElement, XMLSchema, parse, tounicode)
 from lxml import etree
 
 import pya2l.model as model
@@ -50,7 +49,6 @@ class MSRMixIn:
         self.sub_trees = {}
         super().__init__(*args, **kws)
 
-
     def write_tree(self, file_name):
         """
         """
@@ -61,7 +59,7 @@ class MSRMixIn:
     def validate(self):
         """
         """
-        dtd = DTD(self.DTD)
+        dtd = etree.DTD(self.DTD)
         if not dtd.validate(self.root):
             pprint(dtd.error_log)
 
@@ -96,7 +94,7 @@ class MSRMixIn:
         project_name = proj.name
         project_comment = proj.longIdentifier
 
-        root = Element("MSRSW")
+        root = etree.Element("MSRSW")
         create_elem(root, "SHORT-NAME", text = "{}_{}".format(project_name, suffix))
         create_elem(root, "CATEGORY", category)
         sw_systems = create_elem(root, "SW-SYSTEMS")
