@@ -29,7 +29,6 @@ __author__ = 'Christoph Schueler'
 
 import numpy as np
 from lxml.etree import (Comment, Element, tostring)
-from sqlalchemy import func, or_
 
 from asammdf import (MDF, Signal)
 import pya2l.functions as functions
@@ -72,15 +71,6 @@ class MDFCreator(AsamBaseType):
         self._mod_par = ModPar.get(self.session)
         hd_comment = self.hd_comment()
         self._mdf_obj.md_data = hd_comment
-
-    @property
-    def measurements(self):
-        """
-        """
-        query = self.query(model.Measurement.name)
-        query = query.filter(or_(func.regexp(model.Measurement.name, m) for m in self.experiment_config.get("MEASUREMENTS")))
-        for meas in query.all():
-            yield Measurement.get(self.session, meas.name)
 
     def hd_comment(self):
         """

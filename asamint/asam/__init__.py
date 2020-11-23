@@ -37,9 +37,13 @@ from logging import getLogger
 
 from pprint import pprint
 
+from sqlalchemy import func, or_
+
+from pya2l.api.inspect import (Measurement, ModPar, CompuMethod)
+import pya2l.model as model
+from pya2l import DB
 from asamint.utils import cond_create_directories
 from asamint.config import Configuration
-from pya2l import DB
 
 
 class AsamBaseType:
@@ -113,6 +117,15 @@ class AsamBaseType:
     @property
     def query(self):
         return self.session.query
+
+    @property
+    def measurements(self):
+        """
+        """
+        query = self.query(model.Measurement.name)
+        query = query.filter(or_(func.regexp(model.Measurement.name, m) for m in self.experiment_config.get("MEASUREMENTS")))
+        for meas in query.all():
+            yield Measurement.get(self.session, meas.name)
 
     def byte_order(self, obj):
         """Get byte-order for A2L element.
