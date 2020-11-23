@@ -139,9 +139,8 @@ class AsamBaseType:
         `ByteOrder`:
             If element has no BYTE_ORDER, lookup MOD_COMMON else ByteOrder.BIG_ENDIAN
         """
-
-        return ByteOrder.LITTE_ENDIAN if (getattr(obj, "byteOrder") or self.mod_common.byteOrder) \
-            in ("MSB_FIRST", "LITTLE_ENDIAN") else ByteOrder.BIG_ENDIAN
+        return ByteOrder.BIG_ENDIAN if (getattr(obj, "byteOrder") or self.mod_common.byteOrder) \
+            in ("MSB_FIRST", "LITTLE_ENDIAN") else ByteOrder.LITTLE_ENDIAN
 
 
 TYPE_SIZES = {
@@ -171,7 +170,7 @@ OJ_READERS = {
 }
 
 class ByteOrder(IntEnum):
-    LITTE_ENDIAN    = 0
+    LITTLE_ENDIAN   = 0
     BIG_ENDIAN      = 1
 
 
