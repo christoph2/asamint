@@ -143,3 +143,12 @@ def add_suffix_to_path(path: str, suffix: str) -> str:
     """(Conditionally) add / replace suffix/extension to a path."""
 
     return str(pathlib.Path(path).with_suffix(suffix))
+
+def slicer(iterable, sliceLength, converter=None):
+    if converter is None:
+        converter = type(iterable)
+    length = len(iterable)
+    return [
+        converter((iterable[item:item + sliceLength]))
+        for item in range(0, length, sliceLength)]
+
