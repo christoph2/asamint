@@ -33,9 +33,10 @@ __author__ = """Christoph Schueler"""
 __email__ = 'cpu12.gems@googlemail.com'
 
 from lxml import etree
+import numpy as np
 
 import pya2l.model as model
-from asamint.utils import create_elem
+from asamint.utils import create_elem, slicer
 
 class MSRMixIn:
     """
@@ -63,7 +64,7 @@ class MSRMixIn:
         if not dtd.validate(self.root):
             pprint(dtd.error_log)
 
-    def output_1darray(self, elem, name = None, values = [], numeric = True):
+    def output_1darray(self, elem, name = None, values = [], numeric = True, paired = False):
         """
         """
         if name:
@@ -74,8 +75,18 @@ class MSRMixIn:
             tag = "V"
         else:
             tag = "VT"
-        for value in values:
-            create_elem(cont, tag, text = str(value))
+        if paired:
+            if isinstance(values, np.ndarray):
+                parts = np.split(values, values.size // 2)
+            else:
+                parts = slicer(values, 2)
+            for part in parts:
+                vg = create_elem(cont, "VG")
+                create_elem(vg, tag, text = str(part[0]))
+                create_elem(vg, tag, text = str(part[1]))
+        else:
+            for value in values:
+                create_elem(cont, tag, text = str(value))
 
     @staticmethod
     def common_elements(elem, short_name, long_name = None, category = None):
