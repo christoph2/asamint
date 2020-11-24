@@ -144,10 +144,13 @@ class AsamBaseType:
 
 
 TYPE_SIZES = {
+    "BYTE":         1,
     "UBYTE":        1,
     "SBYTE":        1,
+    "WORD":         2,
     "UWORD":        2,
     "SWORD":        2,
+    "LONG":         4,
     "ULONG":        4,
     "SLONG":        4,
     "A_UINT64":     8,
