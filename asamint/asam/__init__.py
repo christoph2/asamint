@@ -39,7 +39,7 @@ from pprint import pprint
 
 from sqlalchemy import func, or_
 
-from pya2l.api.inspect import (Measurement, ModPar, CompuMethod)
+from pya2l.api.inspect import (Measurement, ModCommon, ModPar, CompuMethod)
 import pya2l.model as model
 from pya2l import DB
 from asamint.utils import cond_create_directories
@@ -94,6 +94,8 @@ class AsamBaseType:
         cond_create_directories()
         self.logger = getLogger(self.__class__.__name__)
         self.logger.setLevel(self.project_config.get("LOGLEVEL"))
+        self.mod_common = ModCommon.get(self.session)
+        self.mod_par = ModPar.get(self.session)
         self.on_init(project_config, experiment_config, *args, **kws)
 
     def on_init(self, *args, **kws):

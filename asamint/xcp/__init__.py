@@ -29,6 +29,8 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
+from collections import namedtuple
+
 import itertools
 from logging import getLogger
 from operator import itemgetter
@@ -39,12 +41,14 @@ import time
 
 from pprint import pprint
 
+from sqlalchemy import func, or_
+
 from asamint.asam import AsamBaseType
 from asamint.cdf import CDFCreator
 from asamint.utils.optimize import McObject, make_continuous_blocks
 from asamint.utils import current_timestamp
 import pya2l.model as model
-from pya2l.api.inspect import Measurement, ModPar, ModCommon, Characteristic, AxisPts
+from pya2l.api.inspect import Measurement, Characteristic, AxisPts
 from objutils import dump, load, Image, Section
 
 
@@ -59,6 +63,24 @@ class CalibrationData(AsamBaseType):
 
     def on_init(self, project_config, experiment_config, *args, **kws):
         self.loadConfig(project_config, experiment_config)
+
+    def check_epk(self, xcp_master):
+        """Compare EPK (EPROM Kennung) from A2L with EPK from ECU.
+
+        Returns
+        -------
+
+        """
+        if self.mod_par.addrEpk is None:
+            return None
+        elif self.mod_par.epk is None:
+            return None
+        else:
+            print("A2L-EPK", self.mod_par.addrEpk)
+            xcp_master.setMta(self.mod_par.addrEpk)
+            epk = xcp_master.pull(len(self.mod_par.epk))
+            print("ECU-EPK", epk)
+            return epk == self.mod_par.epk
 
     def upload_calram(self, xcp_master, file_type: str = "ihex"):
         """Tansfer RAM segments from ECU to MCS.
@@ -140,7 +162,6 @@ class CalibrationData(AsamBaseType):
         source: "XCP" | "FILE"
         """
         if xcp_master:
-            print("XCP")
             img = self.upload_parameters(xcp_master)
             img.file_name = None
         else:
@@ -201,3 +222,77 @@ class CalibrationData(AsamBaseType):
                 dump(hexfile_type, outf, img, row_length = 32)
             self.logger.info("CalParams written to {}".format(file_name))
         return img
+
+
+DaqEntry = namedtuple("DaqEntry", "daq odt entry bitoff size ext addr")
+
+class XCPMeasurement(AsamBaseType):
+    """
+    """
+
+    def on_init(self, project_config, experiment_config, *args, **kws):
+        self.loadConfig(project_config, experiment_config)
+
+    def start_measurement(self, xcp_master):
+        print(xcp_master.getDaqProcessorInfo())
+        xcp_master.freeDaq()
+        xcp_master.allocDaq(2)
+
+        xcp_master.allocOdt(0, 13)
+        xcp_master.allocOdt(1, 2)
+
+        xcp_master.allocOdtEntry(0, 0, 1)
+        xcp_master.allocOdtEntry(0, 1, 1)
+        xcp_master.allocOdtEntry(0, 2, 1)
+        xcp_master.allocOdtEntry(0, 3, 1)
+        xcp_master.allocOdtEntry(0, 4, 1)
+        xcp_master.allocOdtEntry(0, 5, 1)
+        xcp_master.allocOdtEntry(0, 6, 1)
+        xcp_master.allocOdtEntry(0, 7, 1)
+        xcp_master.allocOdtEntry(0, 8, 1)
+        xcp_master.allocOdtEntry(0, 9, 1)
+        xcp_master.allocOdtEntry(0, 10, 1)
+        xcp_master.allocOdtEntry(0, 11, 3)
+        xcp_master.allocOdtEntry(0, 12, 5)
+
+        xcp_master.allocOdtEntry(1, 0, 1)
+        xcp_master.allocOdtEntry(1, 1, 1)
+
+        de0 = (
+            DaqEntry(daq=0, odt=0,  entry=0, bitoff=255, size=2, ext=0, addr=0x001BE068),
+            DaqEntry(daq=0, odt=1,  entry=0, bitoff=255, size=6, ext=0, addr=0x001BE06A),
+            DaqEntry(daq=0, odt=2,  entry=0, bitoff=255, size=6, ext=0, addr=0x001BE070),
+            DaqEntry(daq=0, odt=3,  entry=0, bitoff=255, size=6, ext=0, addr=0x001BE076),
+            DaqEntry(daq=0, odt=4,  entry=0, bitoff=255, size=6, ext=0, addr=0x001BE07C),
+            DaqEntry(daq=0, odt=5,  entry=0, bitoff=255, size=6, ext=0, addr=0x001BE082),
+            DaqEntry(daq=0, odt=6,  entry=0, bitoff=255, size=6, ext=0, addr=0x001BE088),
+            DaqEntry(daq=0, odt=7,  entry=0, bitoff=255, size=6, ext=0, addr=0x001BE08E),
+            DaqEntry(daq=0, odt=8,  entry=0, bitoff=255, size=6, ext=0, addr=0x001BE094),
+            DaqEntry(daq=0, odt=9,  entry=0, bitoff=255, size=6, ext=0, addr=0x001BE09A),
+            DaqEntry(daq=0, odt=10, entry=0, bitoff=255, size=6, ext=0, addr=0x001BE0A0),
+            DaqEntry(daq=0, odt=11, entry=0, bitoff=255, size=2, ext=0, addr=0x001BE0A6),
+            DaqEntry(daq=0, odt=11, entry=1, bitoff=255, size=1, ext=0, addr=0x001BE0CF),
+            DaqEntry(daq=0, odt=11, entry=2, bitoff=255, size=3, ext=0, addr=0x001BE234),
+            DaqEntry(daq=0, odt=12, entry=0, bitoff=255, size=1, ext=0, addr=0x001BE237),
+            DaqEntry(daq=0, odt=12, entry=1, bitoff=255, size=1, ext=0, addr=0x001BE24F),
+            DaqEntry(daq=0, odt=12, entry=2, bitoff=255, size=1, ext=0, addr=0x001BE269),
+            DaqEntry(daq=0, odt=12, entry=3, bitoff=255, size=1, ext=0, addr=0x001BE5A3),
+            DaqEntry(daq=0, odt=12, entry=4, bitoff=255, size=1, ext=0, addr=0x001C0003),
+            DaqEntry(daq=1, odt=0 , entry=0, bitoff=255, size=2, ext=0, addr=0x001C002C),
+            DaqEntry(daq=1, odt=1 , entry=0, bitoff=255, size=2, ext=0, addr=0x001C002E),
+        )
+
+        for daq, odt, entry, bitoff, size, ext, addr in de0:
+            xcp_master.setDaqPtr(daq, odt, entry)
+            xcp_master.writeDaq(bitoff, size, ext, addr)
+
+        xcp_master.setDaqListMode(0x10, 0, 1, 1, 0) # , 1)
+        print("startStopDaqList #0", xcp_master.startStopDaqList(0x02, 0))
+        xcp_master.setDaqListMode(0x10, 1, 2, 1, 0) # , 2)
+        print("startStopDaqList #1", xcp_master.startStopDaqList(0x02, 1))
+        xcp_master.startStopSynch(0x01)
+
+        time.sleep(5.0)
+
+        xcp_master.startStopSynch(0x00)
+

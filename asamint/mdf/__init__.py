@@ -33,7 +33,7 @@ from lxml.etree import (Comment, Element, tostring)
 from asammdf import (MDF, Signal)
 import pya2l.functions as functions
 import pya2l.model as model
-from pya2l.api.inspect import (Measurement, ModPar, CompuMethod)
+from pya2l.api.inspect import (Measurement, CompuMethod)
 
 from asamint.asam import AsamBaseType
 from asamint.utils import (create_elem)
@@ -68,7 +68,6 @@ class MDFCreator(AsamBaseType):
     def on_init(self, project_config, experiment_config, *args, **kws):
         self.loadConfig(project_config, experiment_config)
         self._mdf_obj = MDF(version = self.project_config.get("MDF_VERSION" ))
-        self._mod_par = ModPar.get(self.session)
         hd_comment = self.hd_comment()
         self._mdf_obj.md_data = hd_comment
 
@@ -84,7 +83,7 @@ class MDFCreator(AsamBaseType):
             time_source = self.experiment_config.get("TIME_SOURCE")
             if time_source:
                 create_elem(elem_root, "time_source", time_source)
-            sys_constants = self._mod_par.systemConstants
+            sys_constants = self.mod_par.systemConstants
             if sys_constants:
                 elem_constants = create_elem(elem_root, "constants")
                 for name, value in sys_constants.items():

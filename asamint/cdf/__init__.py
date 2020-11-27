@@ -29,25 +29,18 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
-from itertools import groupby
-from operator import attrgetter
-
-import lxml
-from lxml.etree import (Comment, Element, ElementTree, DTD, SubElement, XMLSchema, parse, tounicode)
 from lxml import etree
 
 from pya2l import DB
 import pya2l.model as model
-from pya2l.api.inspect import ModCommon, CompuMethod, Characteristic, AxisPts
+from pya2l.api.inspect import Characteristic, AxisPts
 from pya2l.functions import CompuMethod, fix_axis_par, fix_axis_par_dist, axis_rescale
 
-from asamint.asam import AsamBaseType, TYPE_SIZES, ByteOrder, get_section_reader
+from asamint.asam import AsamBaseType, TYPE_SIZES, get_section_reader
 from asamint.utils import (
     get_dtd, create_elem, make_2darray, SINGLE_BITS, cond_create_directories, ffs, add_suffix_to_path
 )
 import asamint.msrsw as msrsw
-
-from objutils import load
 
 
 class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
@@ -58,16 +51,14 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
     DTD = get_dtd("cdf_v2.0.0.sl")
     EXTENSION = ".cdfx"
 
-    def on_init(self, _pc, _ec, image, *args, **kws):
+    def on_init(self, project_config, experiment_config, image, *args, **kws):
+        self.loadConfig(project_config, experiment_config)
         self._image = image
-        self.mod_common = ModCommon.get(self.session)
-        self.byte_order = self.mod_common.byteOrder
         cond_create_directories()
         self.root = self._toplevel_boilerplate()
-        self.tree = ElementTree(self.root)
+        self.tree = etree.ElementTree(self.root)
         self.cs_collections()
         self.instances()
-
         self.write_tree("CDF20demo")
 
     @property
@@ -76,20 +67,17 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
 
     def _toplevel_boilerplate(self):
         root = self.msrsw_header("CDF20", "CDF")
-
         sw_system = self.sub_trees["SW-SYSTEM"]
         instance_spec = create_elem(sw_system, "SW-INSTANCE-SPEC")
         instance_tree = create_elem(instance_spec, "SW-INSTANCE-TREE")
         self.sub_trees["SW-INSTANCE-TREE"] = instance_tree
         create_elem(instance_tree, "SHORT-NAME", text = "STD")
         create_elem(instance_tree, "CATEGORY", text = "NO_VCD") # or VCD, variant-coding f.parameters.
-
         instance_tree_origin = create_elem(instance_tree, "SW-INSTANCE-TREE-ORIGIN")
         create_elem(instance_tree_origin, "SYMBOLIC-FILE", add_suffix_to_path(self.project_config.get("A2L_FILE"), ".a2l"))
         data_file_name = self.image.file_name
         if data_file_name:
             create_elem(instance_tree_origin, "DATA-FILE", data_file_name)
-
         return root
 
     def cs_collection(self, name, category, tree):
@@ -116,9 +104,7 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
         axis_pts = self.query(model.AxisPts).order_by(model.AxisPts.address).all()
         for a in axis_pts:
             ax = AxisPts.get(self.session, a.name)
-            mem_size = ax.total_allocated_memory
-            print(ax.name, hex(ax.address), ax.record_layout_components.sizeof, mem_size)
-
+            self.output_axis_pts(ax)
         print("=" * 79)
         print("CHARACTERISTICs")
         print("=" * 79)
@@ -139,10 +125,7 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
             fnc_np_shape = chx.fnc_np_shape
             fnc_np_order = chx.fnc_np_order
             fnc_element_size = chx.fnc_element_size
-            if chx.byteOrder is None:
-                chx.byteOrder = "MSB_LAST"
-            byte_order = ByteOrder.LITTE_ENDIAN if chx.byteOrder in ("MSB_LAST", "LITTLE_ENDIAN") else ByteOrder.BIG_ENDIAN
-            reader = get_section_reader(datatype, byte_order)
+            reader = get_section_reader(datatype, self.byte_order(chx))
             if chx._conversionRef != "NO_COMPU_METHOD":
                 #cm_obj = self.query(model.CompuMethod).filter(model.CompuMethod.name == chx._conversionRef).first()
                 cm = CompuMethod(self.session, compuMethod)
@@ -220,17 +203,17 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
                 elif axis_descr.attribute == "STD_AXIS":
                     #print("*** STD-AXIS", chx.name, axis_descr, chx.record_layout_components, mem_size)
                     value_cont, axis_conts = self.axis_container(chx.name, chx.longIdentifier, "CURVE", axis_unit, feature_ref = None)
-                    for num, cc in chx.record_layout_components:
-                        print("\tCOMPO:", cc)
                 elif axis_descr.attribute == "RES_AXIS":
                     #print("*** RES-AXIS {}".format(axis_descr.axisPtsRef.depositAttr))
-                    pass
+                    self.output_curve_res_axis(chx)
                 elif axis_descr.attribute == "COM_AXIS":
                     #print("*** COM-AXIS {}".format(axis_descr.axisPtsRef.depositAttr))   #
                     pass
                 elif axis_descr.attribute == "CURVE_AXIS":
                     #print("*** CURVE-AXIS {}".format(axis_descr.axisPtsRef))   # .depositAttr.components
                     pass
+            elif chx.type == "MAP":
+                print("***MAP**")
         pass
 
 
@@ -351,3 +334,116 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
     def instantiate_record_layout():
         """
         """
+
+    def output_axis_pts(self, axis_pts):
+        mem_size = axis_pts.total_allocated_memory
+        print(axis_pts.name, hex(axis_pts.address), mem_size)   # , axis_pts.record_layout_components, memory
+        axis = axis_pts.record_layout_components.axes("x")
+        """
+            "axisPts"
+            "axisRescale"
+            "distOp"
+            "fncValues"
+            "identification"
+            "noAxisPts"
+            "noRescale"
+            "offset"
+            "reserved"
+            "ripAddr"
+            "srcAddr"
+            "shiftOp"
+        """
+
+        if 'axisRescale' in axis:
+            category = "RES_AXIS"
+            paired = True
+            no_rescale_pairs = self.read_axis_pts_value(axis_pts, "x", "noRescale")
+            print("\tRESCALE_AXIS:", no_rescale_pairs)
+
+            raw_values = self.read_nd_array(axis_pts, "x", "axisRescale", no_rescale_pairs * 2)
+            #{'maxAxisPoints': 17,
+            # 'axisRescale': {
+            #    'addressing': 'DIRECT', 'position': 3, 'maxNumberOfRescalePairs': 5, 'offset': 2,
+            #    'datatype': 'SBYTE', 'indexIncr': 'INDEX_INCR',
+            #    'type': ('axisRescale', 'x')
+            #}, 'memSize': 34,
+            #'noRescale': {'offset': 0, 'position': 1, 'datatype': 'UBYTE', 'type': ('noRescale', 'x')}
+            #}
+        else:
+            category = "COM_AXIS"
+            paired = False
+            #dict_keys(['maxAxisPoints', 'axisPts', 'noAxisPts', 'memSize'])
+            if 'noAxisPts' in axis:
+                no_axis_points = self.read_axis_pts_value(axis_pts, "x", "noAxisPts")
+            else:
+                no_axis_points = axis['maxAxisPoints']
+            if "axisPts" in axis:
+                print("\t\t\tAXIS_PTS", axis["axisPts"])
+            raw_values = self.read_nd_array(axis_pts, "x", "axisPts", no_axis_points)
+        cm = CompuMethod(self.session, axis_pts.compuMethod)
+        values = cm.int_to_physical(raw_values)
+
+        value_cont, axis_conts = self.axis_container(
+            name = axis_pts.name, descr = axis_pts.longIdentifier, category = category,
+            unit = axis_pts.physUnit, displayIdentifier = axis_pts.displayIdentifier
+        )
+        if axis_pts.compuMethod.unit:
+            create_elem(value_cont, "UNIT-DISPLAY-NAME", axis_pts.compuMethod.unit)
+        self.output_1darray(value_cont, "SW-VALUES-PHYS", values, paired = paired)
+
+    def read_axis_pts_value(self, axis_pts, axis_name, component):
+        """
+        """
+        axis = axis_pts.record_layout_components.axes(axis_name)
+        component_map = axis[component]
+        datatype = component_map["datatype"]
+        offset = component_map["offset"]
+        reader = get_section_reader(datatype, self.byte_order(axis_pts))
+
+        value = self.image.read_numeric(axis_pts.address + offset, reader)
+        return value
+
+###
+    def output_curve_res_axis(self, characteristic):
+
+        cm = CompuMethod(self.session, characteristic.compuMethod)
+        #values = cm.int_to_physical(raw_values)
+
+        #axisDescriptions[0]
+        print("RLC", characteristic.record_layout_components)
+        #fnc_allocated_memory
+        #fnc_np_dtype
+        #fnc_np_order
+        #total_allocated_memory
+
+        value_cont, axis_conts = self.axis_container(
+            name = characteristic.name, descr = characteristic.longIdentifier, category = "CURVE",
+            unit = characteristic.physUnit, displayIdentifier = characteristic.displayIdentifier
+        )
+        if characteristic.compuMethod.unit:
+            create_elem(value_cont, "UNIT-DISPLAY-NAME", characteristic.compuMethod.unit)
+        #self.output_1darray(value_cont, "SW-VALUES-PHYS", values, paired = paired)
+
+###
+
+    def read_nd_array(self, axis_pts, axis_name, component, no_elements, shape = None, order = None):
+        """
+        """
+        axis = axis_pts.record_layout_components.axes(axis_name)
+        component_map = axis[component]
+        datatype = component_map["datatype"]
+        offset = component_map["offset"]
+        reader = get_section_reader(datatype, self.byte_order(axis_pts))
+
+        length = no_elements * TYPE_SIZES[datatype]
+        print("\tARRAY", hex(axis_pts.address + offset), datatype, length)
+        np_arr = self.image.read_ndarray(
+            addr = axis_pts.address + offset,
+            length = length,
+            dtype = reader,
+            shape = shape,
+            order = order,
+            #bit_mask = chx.bitMask
+        )
+        print("\t\t", np_arr)
+        return np_arr
