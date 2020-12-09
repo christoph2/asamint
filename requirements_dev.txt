@@ -7,6 +7,9 @@ tox
 coverage
 Sphinx
 twine
-
+asammdf
+objutils
+pya2ldb
+pyxcp
 pytest
 pytest-runner
