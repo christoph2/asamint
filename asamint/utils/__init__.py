@@ -33,13 +33,14 @@ __author__  = 'Christoph Schueler'
 
 from io import StringIO
 import hashlib
+import math
 import os
 import pathlib
 import pkgutil
 import re
 import time
 
-from lxml.etree import SubElement
+from lxml.etree import SubElement, Comment
 
 SINGLE_BITS = frozenset([2 ** b for b in range(64)])
 
@@ -64,6 +65,11 @@ def create_elem(parent, name, text = None, attrib = {}):
     if text:
         elem.text = text
     return elem
+
+def xml_comment(parent, text):
+    """
+    """
+    parent.append(Comment(text))
 
 class Bunch(dict):
     """
@@ -152,3 +158,4 @@ def slicer(iterable, sliceLength, converter=None):
         converter((iterable[item:item + sliceLength]))
         for item in range(0, length, sliceLength)]
 
+int_log2 = lambda x: math.ceil(math.log2(x))
