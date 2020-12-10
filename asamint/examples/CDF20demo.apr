@@ -2,6 +2,7 @@ A2L_FILE = "CDF20demo"
 AUTHOR = "John Doe"
 DEPARTMENT = "Engineering"
 PROJECT = "CDF20demo"
+SHORTNAME = "CDF20demo"
 
 MASTER_HEXFILE = "CDF20demo.hex"
 MASTER_HEXFILE_TYPE = "ihex"

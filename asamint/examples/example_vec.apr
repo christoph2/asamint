@@ -4,6 +4,7 @@ A2L_FILE = "XCPsim"
 AUTHOR = "John Doe"
 DEPARTMENT = "Engineering"
 PROJECT = "Example23"
+SHORTNAME = "Example23"
 
 SEED_N_KEY_DLL = "SeedNKeyXcp.dll"
 

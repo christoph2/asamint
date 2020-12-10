@@ -67,7 +67,8 @@ class AsamBaseType:
         "A2L_FILE":                 (str,    True,   ""),
         "AUTHOR":                   (str,    False,  ""),
         "DEPARTMENT":               (str,    False,  ""),
-        "PROJECT":                  (str,    True,   ""), # Contributes to filename generation.
+        "PROJECT":                  (str,    True,   ""),
+        "SHORTNAME":                (str,    True,   ""), # Contributes to filename generation.
         "SEED_N_KEY_DLL":           (str,    False,  ""),
         "MASTER_HEXFILE":           (str,    False,  ""),
         "MASTER_HEXFILE_TYPE":      (str,    False,  "ihex"),
@@ -75,8 +76,9 @@ class AsamBaseType:
 
     EXPERIMENT_PARAMETER_MAP = {
         #                           Type     Req'd   Default
-        "SUBJECT":                  (str,    True,   ""), # Contributes to filename generation.
+        "SUBJECT":                  (str,    True,   ""),
         "DESCRIPTION":              (str,    False,  ""), # Long description, used as header comment.
+        "SHORTNAME":                (str,    True,   ""), # Contributes to filename generation.
     }
 
     SUB_DIRS = {    # Could be made cofigurable.
