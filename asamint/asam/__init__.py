@@ -30,19 +30,16 @@ __copyright__ = """
 __author__ = 'Christoph Schueler'
 
 
-from collections import namedtuple
-from io import StringIO
 from enum import IntEnum
 from logging import getLogger
 
-from pprint import pprint
 
 from sqlalchemy import func, or_
 
-from pya2l.api.inspect import (Measurement, ModCommon, ModPar, CompuMethod)
+from pya2l.api.inspect import (Measurement, ModCommon, ModPar)
 import pya2l.model as model
 from pya2l import DB
-from asamint.utils import cond_create_directories
+from asamint.utils import cond_create_directories, current_timestamp
 from asamint.config import Configuration
 
 
@@ -113,6 +110,16 @@ class AsamBaseType:
 
     def sub_dir(self, name):
         return self.SUB_DIRS.get(name)
+
+    def generate_filename(self, extension, extra = None):
+        """Automatically generate filename from configuration plus timestamp.
+        """
+        project = self.project_config.get("SHORTNAME")
+        subject = self.experiment_config.get("SHORTNAME")
+        if extra:
+            return "{}_{}{}_{}{}".format(project, subject, current_timestamp(), extra, extension)
+        else:
+            return "{}_{}{}{}".format(project, subject, current_timestamp(), extension)
 
     @property
     def session(self):
