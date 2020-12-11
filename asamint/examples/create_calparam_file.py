@@ -28,15 +28,15 @@ __copyright__ = """
 """
 
 from asamint.cmdline import ArgumentParser
-from asamint.xcp import CalibrationData
+from asamint.cdf import CDFCreator
 
 def main():
     ap = ArgumentParser(use_xcp = False)
-    cd = CalibrationData(ap.project, ap.experiment)
+    cd = CDFCreator(ap.project, ap.experiment)
 
-    master_hexfile = ap.project.get("MASTER_HEXFILE")
-    master_hexfile_type = ap.project.get("MASTER_HEXFILE_TYPE")
-    cd.save_parameters()
+    #master_hexfile = ap.project.get("MASTER_HEXFILE")
+    #master_hexfile_type = ap.project.get("MASTER_HEXFILE_TYPE")
+    cd.save_parameters(hexfile = "CDF20demo.hex")
 
 if __name__ == '__main__':
     main()

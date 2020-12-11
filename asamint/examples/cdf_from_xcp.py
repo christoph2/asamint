@@ -30,16 +30,13 @@ __copyright__ = """
 """
 
 from asamint.cmdline import ArgumentParser
-from asamint.xcp import CalibrationData
 from asamint.cdf import CDFCreator
-
-#def upload_calram(xcp_master, a2ldb_session, module_name: str = None, file_type: str = "ihex"):
 
 def main():
     ap = ArgumentParser()
 
     with ap.run() as x:
-        cd = CalibrationData(ap.project, ap.experiment)
+        cd = CDFCreator(ap.project, ap.experiment)
         sk_dll = ap.project.get("SEED_N_KEY_DLL")
         if sk_dll:
             x.seedNKeyDLL = sk_dll
@@ -48,6 +45,7 @@ def main():
             x.getCommModeInfo()
         if ap.args.unlock:
             x.cond_unlock()
+        #print(cd.check_epk(x))
         cd.save_parameters(x)
         x.disconnect()
 
