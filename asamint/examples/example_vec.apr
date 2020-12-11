@@ -3,8 +3,8 @@ MDF_VERSION = "4.10"
 A2L_FILE = "XCPsim"
 AUTHOR = "John Doe"
 DEPARTMENT = "Engineering"
-PROJECT = "Example23"
-SHORTNAME = "Example23"
+PROJECT = "VectorXCP"
+SHORTNAME = "VectorXCP"
 
 SEED_N_KEY_DLL = "SeedNKeyXcp.dll"
 

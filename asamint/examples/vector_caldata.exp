@@ -1,5 +1,5 @@
 DESCRIPTION = "Demonstrates the usage of asamint MDFCreator"
 TIME_SOURCE = "local PC reference timer"
-SUBJECT = "RandomData"
-SHORTNAME = "RandomData"
+SUBJECT = "CalData"
+SHORTNAME = "CalData"
 MEASUREMENTS = ["foo", "bar"]
