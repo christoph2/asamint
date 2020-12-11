@@ -54,6 +54,7 @@ class MSRMixIn:
         """
         """
         self.validate()
+        self.logger.info("Saving tree: {}".format(self.generate_filename(self.EXTENSION)))
         with open("CDF20demo{}".format(self.EXTENSION), "wb") as of:
             of.write(etree.tostring(self.root, encoding = "UTF-8", pretty_print = True, xml_declaration = True, doctype = self.DOCTYPE))
 
@@ -87,6 +88,22 @@ class MSRMixIn:
         else:
             for value in values:
                 create_elem(cont, tag, text = str(value))
+
+    def sdg(self, parent, name, *elements):
+        """Create a Special Data Group.
+
+        Parameters
+        ----------
+        parent: `etree.Element`
+
+        name: str
+            Name of SDG
+
+        elements: list of tuples (tag, text)
+        """
+        sdg = create_elem(parent, "SDG", attrib = {"GID": name})
+        for tag, text in elements:
+            create_elem(sdg, "SD", text = text, attrib = {"GID": tag})
 
     @staticmethod
     def common_elements(elem, short_name, long_name = None, category = None):
