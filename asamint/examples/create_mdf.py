@@ -33,10 +33,7 @@ __copyright__ = """
 
 import numpy as np
 
-from sqlalchemy import func, or_
 
-import pya2l.model as model
-from pya2l.api.inspect import (Measurement, CompuMethod)
 
 from asamint.cmdline import ArgumentParser
 from asamint.mdf import MDFCreator

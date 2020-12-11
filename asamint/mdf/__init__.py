@@ -28,12 +28,10 @@ __author__ = 'Christoph Schueler'
 
 
 import numpy as np
-from lxml.etree import (Comment, Element, tostring)
+from lxml.etree import (Element, tostring)
 
 from asammdf import (MDF, Signal)
 import pya2l.functions as functions
-import pya2l.model as model
-from pya2l.api.inspect import (Measurement, CompuMethod)
 
 from asamint.asam import AsamBaseType
 from asamint.utils import (create_elem)

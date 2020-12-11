@@ -31,19 +31,15 @@ __copyright__ = """
 
 from lxml import etree
 
-from pya2l import DB
-import pya2l.model as model
-from pya2l.api.inspect import Characteristic, AxisPts
-from pya2l.functions import CompuMethod, fix_axis_par, fix_axis_par_dist, axis_rescale
-
-from asamint.asam import AsamBaseType, TYPE_SIZES, get_section_reader
 from asamint.utils import (
-    get_dtd, create_elem, make_2darray, SINGLE_BITS, cond_create_directories, ffs, add_suffix_to_path
+    get_dtd, create_elem, add_suffix_to_path, xml_comment
 )
 import asamint.msrsw as msrsw
+from asamint.calibration import CalibrationData
+import pya2l.model as model
 
 
-class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
+class CDFCreator(msrsw.MSRMixIn, CalibrationData):
     """
     """
 
@@ -51,19 +47,16 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
     DTD = get_dtd("cdf_v2.0.0.sl")
     EXTENSION = ".cdfx"
 
-    def on_init(self, project_config, experiment_config, image, *args, **kws):
+    def on_init(self, project_config, experiment_config, *args, **kws):
+        super(CDFCreator, self).on_init(project_config, experiment_config, *args, **kws)
         self.loadConfig(project_config, experiment_config)
-        self._image = image
-        cond_create_directories()
+
+    def save(self):
         self.root = self._toplevel_boilerplate()
         self.tree = etree.ElementTree(self.root)
         self.cs_collections()
         self.instances()
         self.write_tree("CDF20demo")
-
-    @property
-    def image(self):
-        return self._image
 
     def _toplevel_boilerplate(self):
         root = self.msrsw_header("CDF20", "CDF")
@@ -97,155 +90,112 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
             self.cs_collection(g.groupName, "COLLECTION", collections)
 
     def instances(self):
-        result = []
-        print("=" * 79)
-        print("AXIS_PTSs")
-        print("=" * 79)
-        axis_pts = self.query(model.AxisPts).order_by(model.AxisPts.address).all()
-        for a in axis_pts:
-            ax = AxisPts.get(self.session, a.name)
-            self.output_axis_pts(ax)
-        print("=" * 79)
-        print("CHARACTERISTICs")
-        print("=" * 79)
+        instance_tree = self.sub_trees["SW-INSTANCE-TREE"]
 
-        characteristics = self.query(model.Characteristic).order_by(model.Characteristic.type, model.Characteristic.address).all()
+        xml_comment(instance_tree, "    AXIS_PTSs    ")
+        for key, inst in self._parameters["AXIS_PTS"].items():
+            print(key)
+            variant = self.sw_instance(
+                name = inst.name, descr = inst.comment, category = inst.category,
+                displayIdentifier = inst.displayIdentifier, feature_ref = None
+            )
+            value_cont = create_elem(variant, "SW-VALUE-CONT")
+            if inst.unit:
+                create_elem(value_cont, "UNIT-DISPLAY-NAME", text = inst.unit)
+            self.output_1darray(value_cont, "SW-VALUES-PHYS", inst.converted_values)
 
-#        cxx = groupby(characteristics, lambda x: x.type)
-#        for group_name, items in cxx:
-#            print(group_name, items)
-
-        for c in characteristics:
-            chx = Characteristic.get(self.session, c.name)
-            print(chx.name, chx.type, hex(chx.address), chx.record_layout_components.sizeof)
-            compuMethod = chx.compuMethod
-            datatype = chx.deposit.fncValues['datatype']
-            fnc_asam_dtype = chx.fnc_asam_dtype
-            fnc_np_dtype = chx.fnc_np_dtype
-            fnc_np_shape = chx.fnc_np_shape
-            fnc_np_order = chx.fnc_np_order
-            fnc_element_size = chx.fnc_element_size
-            reader = get_section_reader(datatype, self.byte_order(chx))
-            if chx._conversionRef != "NO_COMPU_METHOD":
-                #cm_obj = self.query(model.CompuMethod).filter(model.CompuMethod.name == chx._conversionRef).first()
-                cm = CompuMethod(self.session, compuMethod)
-            unit = chx.physUnit
-            dim = chx.dim
-            mem_size = chx.total_allocated_memory
-            if chx.type == "VALUE":
-                if chx.bitMask:
-                    value = self.image.read_numeric(chx.address, reader, bit_mask = chx.bitMask)
-                    value >>= ffs(chx.bitMask) # "Built-in" right-shift to get rid of trailing zeros (s. ASAM 2-MC spec).
-                    is_bool = True if chx.bitMask in SINGLE_BITS else False
-                else:
-                    value = self.image.read_numeric(chx.address, reader)
-                    is_bool = False
-                conv_value = cm.int_to_physical(value)
-                if chx.dependentCharacteristic is not None:
-                    category = "DEPENDENT_VALUE"
-                else:
-                    category = "BOOLEAN" if is_bool else "VALUE"
-                if is_bool and isinstance(conv_value, (int, float)):
-                    conv_value = "true" if bool(conv_value) else "false"
-                else:
-                    category = "VALUE"  # Enums are regular VALUEs
-                self.instance_scalar(
-                    name = chx.name, descr = chx.longIdentifier, value = conv_value, unit = unit,
-                    displayIdentifier = chx.displayIdentifier, category = category
+        xml_comment(instance_tree, "    VALUEs    ")
+        for key, inst in self._parameters["VALUE"].items():
+            print(key)
+            self.instance_scalar(
+                name = key, descr = inst.comment, value = inst.converted_value, unit = inst.unit,
+                displayIdentifier = inst.displayIdentifier, category = inst.category
+            )
+        xml_comment(instance_tree, "    ASCIIs    ")
+        for key, inst in self._parameters["ASCII"].items():
+            print(key)
+            self.instance_scalar(
+                name = key, descr = inst.comment, value = inst.value, category = "ASCII", unit = None,
+                displayIdentifier = inst.displayIdentifier
+            )
+        xml_comment(instance_tree, "    VAL_BLKs    ")
+        for key, inst in self._parameters["VAL_BLK"].items():
+            print(key)
+            self.value_blk(
+                    name = key,
+                    descr = inst.comment,
+                    values = inst.converted_values,
+                    displayIdentifier = inst.displayIdentifier,
+                    unit = inst.unit
+            )
+        xml_comment(instance_tree, "    CURVEs    ")
+        for key, inst in self._parameters["CURVE"].items():
+            print(key, inst.category)
+            category = inst.category
+            if category == "STD_AXIS":
+                axis_conts = self.curve_and_map_header(
+                    name = inst.name,
+                    descr = inst.comment,
+                    category = "CURVE",
+                    fnc_values = inst.converted_fnc_values,
+                    fnc_unit = inst.fnc_unit,
+                    displayIdentifier = inst.displayIdentifier,
+                    feature_ref = None
                 )
-            elif chx.type == "ASCII":
-                if chx.matrixDim:
-                    length = chx.matrixDim["x"]
-                else:
-                    length = chx.number
-                value = self.image.read_string(chx.address, length = length)
-                self.instance_scalar(
-                    name = chx.name, descr = chx.longIdentifier, value = value, category = "ASCII", unit = unit,
-                    displayIdentifier = chx.displayIdentifier
-                )
-            elif chx.type == "VAL_BLK":
-                length = chx.fnc_allocated_memory
-                np_arr = self.image.read_ndarray(
-                    addr = chx.address,
-                    length = length,
-                    dtype = reader,
-                    shape = chx.fnc_np_shape,
-                    order = chx.fnc_np_order,
-                    bit_mask = chx.bitMask
-                )
-                self.value_blk(
-                    name = chx.name,
-                    descr = chx.longIdentifier,
-                    values = cm.int_to_physical(np_arr),
-                    displayIdentifier = chx.displayIdentifier,
-                    unit = unit
-                )
-            elif chx.type == "CURVE":
-                axis_descr = chx.axisDescriptions[0]
-                maxAxisPoints = axis_descr.maxAxisPoints
-                axis_pts_cm = axis_descr.compuMethod
-                axis_unit = axis_descr.compuMethod.unit
-                if axis_descr.attribute == "FIX_AXIS":
-                    if axis_descr.fixAxisParDist:
-                        par_dist = axis_descr.fixAxisParDist
-                        raw_axis_values = fix_axis_par_dist(par_dist['offset'], par_dist['distance'], par_dist['numberapo'])
-                    elif axis_descr.fixAxisParList:
-                        raw_axis_values = axis.fixAxisParList
-                    elif axis_descr.fixAxisPar:
-                        par = axis_descr.fixAxisPar
-                        raw_axis_values = fix_axis_par(par['offset'], par['shift'], par['numberapo'])
-                    axis_cm = CompuMethod(self.session, axis_pts_cm)
-                    axis_values = axis_cm.int_to_physical(raw_axis_values)
-                    self.fix_axis_curve(
-                        chx.name, chx.longIdentifier, axis_values, [], axis_unit = axis_descr.compuMethod.unit
-                    )
-                    print("*** FIX-AXIS", hex(chx.address), chx.record_layout_components, chx.record_layout_components.axes_names, mem_size)
-                elif axis_descr.attribute == "STD_AXIS":
-                    #print("*** STD-AXIS", chx.name, axis_descr, chx.record_layout_components, mem_size)
-                    value_cont, axis_conts = self.axis_container(chx.name, chx.longIdentifier, "CURVE", axis_unit, feature_ref = None)
-                elif axis_descr.attribute == "RES_AXIS":
-                    #print("*** RES-AXIS {}".format(axis_descr.axisPtsRef.depositAttr))
-                    self.output_curve_res_axis(chx)
-                elif axis_descr.attribute == "COM_AXIS":
-                    #print("*** COM-AXIS {}".format(axis_descr.axisPtsRef.depositAttr))   #
-                    pass
-                elif axis_descr.attribute == "CURVE_AXIS":
-                    #print("*** CURVE-AXIS {}".format(axis_descr.axisPtsRef))   # .depositAttr.components
-                    pass
-            elif chx.type == "MAP":
-                print("***MAP**")
-        pass
+                self.add_axis(axis_conts, inst.converted_axis_values, "STD_AXIS", inst.x_axis_unit)
 
-
-    def int_to_physical(self, cm_name, raw_values):
-        """
-        """
-        cm_obj = self.query(model.CompuMethod).filter(model.CompuMethod.name == cm_name).first()
-        cm = CompuMethod(self.session, cm_obj)
-        values = axis_cm.int_to_physical(raw_values)
-        return values
+            elif category == "FIX_AXIS":
+                axis_conts = self.curve_and_map_header(
+                    name = inst.name,
+                    descr = inst.comment,
+                    category = "CURVE",
+                    fnc_values = inst.converted_fnc_values,
+                    fnc_unit = inst.fnc_unit,
+                    displayIdentifier = inst.displayIdentifier,
+                    feature_ref = None
+                )
+                self.add_axis(axis_conts, inst.converted_axis_values, "FIX_AXIS", inst.x_axis_unit)
+            elif category == "COM_AXIS":
+                axis_conts = self.curve_and_map_header(
+                    name = inst.name,
+                    descr = inst.comment,
+                    category = "CURVE",
+                    fnc_values = inst.converted_fnc_values,
+                    fnc_unit = inst.fnc_unit,
+                    displayIdentifier = inst.displayIdentifier,
+                    feature_ref = None
+                )
+                axis_cont = create_elem(axis_conts, "SW-AXIS-CONT")
+                create_elem(axis_cont, "CATEGORY", "COM_AXIS")
+                create_elem(axis_cont, "SW-INSTANCE-REF", text = inst.axis_pts_ref)
+            elif category == "RES_AXIS":
+                axis_conts = self.curve_and_map_header(
+                    name = inst.name,
+                    descr = inst.comment,
+                    category = "CURVE",
+                    fnc_values = inst.converted_fnc_values,
+                    fnc_unit = inst.fnc_unit,
+                    displayIdentifier = inst.displayIdentifier,
+                    feature_ref = None
+                )
+                axis_cont = create_elem(axis_conts, "SW-AXIS-CONT")
+                create_elem(axis_cont, "CATEGORY", "RES_AXIS")
+                create_elem(axis_cont, "SW-INSTANCE-REF", text = inst.axis_pts_ref)
+            elif category == "CURVE_AXIS":
+                axis_conts = self.curve_and_map_header(
+                    name = inst.name,
+                    descr = inst.comment,
+                    category = "CURVE",
+                    fnc_values = inst.converted_fnc_values,
+                    fnc_unit = inst.fnc_unit,
+                    displayIdentifier = inst.displayIdentifier,
+                    feature_ref = None
+                )
+                axis_cont = create_elem(axis_conts, "SW-AXIS-CONT")
+                create_elem(axis_cont, "CATEGORY", "CURVE_AXIS")
+                create_elem(axis_cont, "SW-INSTANCE-REF", text = inst.curve_axis_ref)
 
     def instance_scalar(self, name, descr, value, category = "VALUE", unit = "", displayIdentifier = None, feature_ref = None):
-        """
-        VALUE
-        DEPENDENT_VALUE
-        BOOLEAN
-        ASCII
-        VAL_BLK
-
-        CURVE
-        MAP
-        COM_AXIS
-        CURVE_AXIS
-        RES_AXIS
-        VALUE_ARRAY
-        CURVE_ARRAY
-        MAP_ARRAY
-        STRUCTURE_ARRAY
-
-        STRUCTURE
-        UNION
-        """
         cont = self.no_axis_container(
             name = name, descr = descr, category = category, unit = unit,
             displayIdentifier = displayIdentifier, feature_ref = feature_ref
@@ -264,18 +214,23 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
             create_elem(axis_cont, "UNIT-DISPLAY-NAME", text = unit)
         self.output_1darray(axis_cont, "SW-VALUES-PHYS", axis_values)
 
-    def fix_axis_curve(self, name, descr, x_axis_values, func_values, axis_unit = "", values_unit = "", feature_ref = None):
-        value_cont, axis_conts = self.axis_container(name, descr, "CURVE", axis_unit, feature_ref)
+    def instance_container(self, name, descr, category = "VALUE", unit = "", displayIdentifier = None, feature_ref = None):
+        variant = self.sw_instance(
+            name, descr, category = category, displayIdentifier = displayIdentifier, feature_ref = feature_ref
+        )
+        value_cont = create_elem(variant, "SW-VALUE-CONT")
+        if unit:
+            create_elem(value_cont, "UNIT-DISPLAY-NAME", text = unit)
+        axis_conts = create_elem(variant, "SW-AXIS-CONTS")
+        return value_cont, axis_conts
 
-        self.add_axis(axis_conts, x_axis_values, "FIX_AXIS", axis_unit)
-
-        #self.output_1darray(value_cont, "SW-ARRAYSIZE", reversed(func_values.shape))
-        #values_phys = create_elem(value_cont, "SW-VALUES-PHYS")
-        #values = make_2darray(func_values)
-        #for idx in range(values.shape[0]):
-        #    row = values[idx: idx + 1].reshape(values.shape[1])
-        #    vg = create_elem(values_phys, "VG")
-        #    self.output_1darray(vg, None, row)
+    def curve_and_map_header(self, name, descr, category, fnc_values, fnc_unit = "", displayIdentifier = None, feature_ref = None):
+        value_cont, axis_conts = self.instance_container(name, descr, category, fnc_unit,
+            displayIdentifier = displayIdentifier, feature_ref = feature_ref
+        )
+        vph = create_elem(value_cont, "SW-VALUES-PHYS")
+        self.output_value_array(fnc_values, vph)
+        return axis_conts
 
     def output_value_array(self, values, value_group):
         """
@@ -320,130 +275,3 @@ class CDFCreator(msrsw.MSRMixIn, AsamBaseType):
         if unit:
             create_elem(value_cont, "UNIT-DISPLAY-NAME", text = unit)
         return value_cont
-
-    def axis_container(self, name, descr, category = "VALUE", unit = "", displayIdentifier = None, feature_ref = None):
-        variant = self.sw_instance(
-            name, descr, category = category, displayIdentifier = displayIdentifier, feature_ref = feature_ref
-        )
-        value_cont = create_elem(variant, "SW-VALUE-CONT")
-        if unit:
-            create_elem(value_cont, "UNIT-DISPLAY-NAME", text = unit)
-        axis_conts = create_elem(variant, "SW-AXIS-CONTS")
-        return value_cont, axis_conts
-
-    def instantiate_record_layout():
-        """
-        """
-
-    def output_axis_pts(self, axis_pts):
-        mem_size = axis_pts.total_allocated_memory
-        print(axis_pts.name, hex(axis_pts.address), mem_size)   # , axis_pts.record_layout_components, memory
-        axis = axis_pts.record_layout_components.axes("x")
-        """
-            "axisPts"
-            "axisRescale"
-            "distOp"
-            "fncValues"
-            "identification"
-            "noAxisPts"
-            "noRescale"
-            "offset"
-            "reserved"
-            "ripAddr"
-            "srcAddr"
-            "shiftOp"
-        """
-
-        if 'axisRescale' in axis:
-            category = "RES_AXIS"
-            paired = True
-            no_rescale_pairs = self.read_axis_pts_value(axis_pts, "x", "noRescale")
-            print("\tRESCALE_AXIS:", no_rescale_pairs)
-
-            raw_values = self.read_nd_array(axis_pts, "x", "axisRescale", no_rescale_pairs * 2)
-            #{'maxAxisPoints': 17,
-            # 'axisRescale': {
-            #    'addressing': 'DIRECT', 'position': 3, 'maxNumberOfRescalePairs': 5, 'offset': 2,
-            #    'datatype': 'SBYTE', 'indexIncr': 'INDEX_INCR',
-            #    'type': ('axisRescale', 'x')
-            #}, 'memSize': 34,
-            #'noRescale': {'offset': 0, 'position': 1, 'datatype': 'UBYTE', 'type': ('noRescale', 'x')}
-            #}
-        else:
-            category = "COM_AXIS"
-            paired = False
-            #dict_keys(['maxAxisPoints', 'axisPts', 'noAxisPts', 'memSize'])
-            if 'noAxisPts' in axis:
-                no_axis_points = self.read_axis_pts_value(axis_pts, "x", "noAxisPts")
-            else:
-                no_axis_points = axis['maxAxisPoints']
-            if "axisPts" in axis:
-                print("\t\t\tAXIS_PTS", axis["axisPts"])
-            raw_values = self.read_nd_array(axis_pts, "x", "axisPts", no_axis_points)
-        cm = CompuMethod(self.session, axis_pts.compuMethod)
-        values = cm.int_to_physical(raw_values)
-
-        value_cont, axis_conts = self.axis_container(
-            name = axis_pts.name, descr = axis_pts.longIdentifier, category = category,
-            unit = axis_pts.physUnit, displayIdentifier = axis_pts.displayIdentifier
-        )
-        if axis_pts.compuMethod.unit:
-            create_elem(value_cont, "UNIT-DISPLAY-NAME", axis_pts.compuMethod.unit)
-        self.output_1darray(value_cont, "SW-VALUES-PHYS", values, paired = paired)
-
-    def read_axis_pts_value(self, axis_pts, axis_name, component):
-        """
-        """
-        axis = axis_pts.record_layout_components.axes(axis_name)
-        component_map = axis[component]
-        datatype = component_map["datatype"]
-        offset = component_map["offset"]
-        reader = get_section_reader(datatype, self.byte_order(axis_pts))
-
-        value = self.image.read_numeric(axis_pts.address + offset, reader)
-        return value
-
-###
-    def output_curve_res_axis(self, characteristic):
-
-        cm = CompuMethod(self.session, characteristic.compuMethod)
-        #values = cm.int_to_physical(raw_values)
-
-        #axisDescriptions[0]
-        print("RLC", characteristic.record_layout_components)
-        #fnc_allocated_memory
-        #fnc_np_dtype
-        #fnc_np_order
-        #total_allocated_memory
-
-        value_cont, axis_conts = self.axis_container(
-            name = characteristic.name, descr = characteristic.longIdentifier, category = "CURVE",
-            unit = characteristic.physUnit, displayIdentifier = characteristic.displayIdentifier
-        )
-        if characteristic.compuMethod.unit:
-            create_elem(value_cont, "UNIT-DISPLAY-NAME", characteristic.compuMethod.unit)
-        #self.output_1darray(value_cont, "SW-VALUES-PHYS", values, paired = paired)
-
-###
-
-    def read_nd_array(self, axis_pts, axis_name, component, no_elements, shape = None, order = None):
-        """
-        """
-        axis = axis_pts.record_layout_components.axes(axis_name)
-        component_map = axis[component]
-        datatype = component_map["datatype"]
-        offset = component_map["offset"]
-        reader = get_section_reader(datatype, self.byte_order(axis_pts))
-
-        length = no_elements * TYPE_SIZES[datatype]
-        print("\tARRAY", hex(axis_pts.address + offset), datatype, length)
-        np_arr = self.image.read_ndarray(
-            addr = axis_pts.address + offset,
-            length = length,
-            dtype = reader,
-            shape = shape,
-            order = order,
-            #bit_mask = chx.bitMask
-        )
-        print("\t\t", np_arr)
-        return np_arr

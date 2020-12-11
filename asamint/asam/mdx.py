@@ -29,14 +29,8 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
-import pkgutil
 
-from pprint import pprint
-
-import lxml
-from lxml.etree import (Element, ElementTree, DTD, SubElement, XMLSchema, parse, tounicode)
 from lxml import etree
-from pya2l import DB
 import pya2l.model as model
 from pya2l.api.inspect import ModCommon, CompuMethod, Characteristic, Measurement
 
@@ -75,13 +69,14 @@ class MDXCreator(msrsw.MSRMixIn, AsamBaseType):
     """
 
     DOCTYPE = '<!DOCTYPE MSRSW PUBLIC "-//MSR//DTD MSR SOFTWARE DTD:V2.2.0:MSRSW.DTD//EN">'
-    ##<!DOCTYPE MSRSW PUBLIC"-//ASAM//DTD MSR SOFTWARE DTD:V3.0.0:LAI:IAI:XML:MSRSW300.XSD//EN" "MSRSW_v3.0.0.DTD">
+    #<!DOCTYPE MSRSW PUBLIC"-//ASAM//DTD MSR SOFTWARE DTD:V3.0.0:LAI:IAI:XML:MSRSW300.XSD//EN" "MSRSW_v3.0.0.DTD">
     DTD = "mdx_v1_0_0.sl.dtd"
     EXTENSION = "_mdx.xml"
 
-    def on_init(self, _pc, _ec, *args, **kws):
+    def on_init(self, project_config, experiment_config, *args, **kws):
+        self.loadConfig(project_config, experiment_config)
         self.root = self._toplevel_boilerplate()
-        self.tree = ElementTree(self.root)
+        self.tree = etree.ElementTree(self.root)
         self._units(self.sub_trees["SW-DATA-DICTIONARY-SPEC"])
         self._sw_variables(self.sub_trees["SW-DATA-DICTIONARY-SPEC"])
         self._sw_calparms(self.sub_trees["SW-DATA-DICTIONARY-SPEC"])
@@ -166,7 +161,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamBaseType):
                 internal_values = compu_method.conversionType in ("COMPU_VTAB", "COMPU_VTAB_RANGE")
             else:
                 internal_values = False
-            data_constr = Element("DATA-CONSTR")
+            data_constr = etree.Element("DATA-CONSTR")
             self.common_elements(data_constr, short_name = constr_name, category = "RANGE")
             rules = create_elem(data_constr, "DATA-CONSTR-RULES")
             rule = create_elem(rules, "DATA-CONSTR-RULE")
@@ -196,7 +191,6 @@ class MDXCreator(msrsw.MSRMixIn, AsamBaseType):
             is_block = chx.type == "VAL_BLK"
             if is_block:
                 if matrixDim:
-                    print("***MATRIX_DIM", matrixDim)
                     dim = (m for m in matrixDim if m and m > 1)
             category = "VALUE_ARRAY" if is_block else "DEPENDENT_VALUE" if is_dependent else "ASCII" if is_ascii else "VALUE"
             cal_parm = create_elem(cal_parms, "SW-CALPRM", attrib = {"ID": ch_name})

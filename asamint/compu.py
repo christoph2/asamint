@@ -29,7 +29,6 @@ __author__  = 'Christoph Schueler'
 
 from collections.abc import Mapping
 
-import lxml
 
 from pya2l import DB
 import pya2l.model as model
