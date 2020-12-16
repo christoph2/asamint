@@ -39,6 +39,7 @@ from asamint.asam import AsamBaseType
 from asamint.asam import TYPE_SIZES, get_section_reader
 from asamint.utils import SINGLE_BITS, ffs, current_timestamp
 from asamint.utils.optimize import McObject, make_continuous_blocks
+from asamint.calibration import model as cmod
 
 from pya2l.api.inspect import Characteristic, AxisPts
 from pya2l.functions import CompuMethod, fix_axis_par, fix_axis_par_dist
@@ -46,126 +47,6 @@ from pya2l.functions import CompuMethod, fix_axis_par, fix_axis_par_dist
 import pya2l.model as model
 
 from objutils import dump, load, Image, Section
-
-
-class BaseCharacteristic:
-    """
-    """
-
-    PROPERTIES = ("name", "comment", "category", "displayIdentifier")
-
-    def __init__(self, **kws):
-        for obj in (BaseCharacteristic, self):
-            for k in obj.PROPERTIES:
-                v = kws.pop(k)
-                setattr(self, k, v)
-
-    def __str__(self):
-        result = []
-        result.append("{}(".format(self.__class__.__name__))
-        result.append(''.join("{} = '{}', ".format(k, v) for k,v in self._props(BaseCharacteristic)))
-        result.append(''.join("{} = '{}', ".format(k, v) for k,v in self._props(self)))
-        result.append(")")
-        return ''.join(result)
-
-    def _props(self, obj):
-        result = []
-        for k in obj.PROPERTIES:
-            value = getattr(self, k)
-            result.append((k, value, ))
-        return result
-
-    __repr__ = __str__
-
-
-class Ascii(BaseCharacteristic):
-    """
-    """
-    PROPERTIES = ("length", "value")
-
-
-class _AxisPts(BaseCharacteristic):
-    """
-    """
-    PROPERTIES = ("raw_values", "converted_values", "paired", "unit")
-
-
-    @property
-    def axis_points_raw(self):
-        if self.paired:
-            self.raw_values[0::2]
-        else:
-            return None
-
-    @property
-    def virtual_axis_points_raw(self):
-        if self.paired:
-            self.raw_values[1::2]
-        else:
-            return None
-
-    @property
-    def axis_points_converted(self):
-        if self.paired:
-            self.converted_values[0::2]
-        else:
-            return None
-
-    @property
-    def virtual_axis_points_converted(self):
-        if self.paired:
-            self.converted_values[1::2]
-        else:
-            return None
-
-
-class Cube4(BaseCharacteristic):
-    """
-    """
-
-
-class Cube5(BaseCharacteristic):
-    """
-    """
-
-
-class Cuboid(BaseCharacteristic):
-    """
-    """
-
-
-class Curve(BaseCharacteristic):
-    """
-    """
-    PROPERTIES = (
-        "raw_fnc_values", "converted_fnc_values", "x_axis_unit", "fnc_unit",
-        "curve_axis_ref", "axis_pts_ref", "raw_axis_values", "converted_axis_values"
-    )
-
-
-class Map(BaseCharacteristic):
-    """
-    """
-
-
-class Value(BaseCharacteristic):
-    """
-    """
-    PROPERTIES = ("raw_value", "converted_value", "unit")
-
-
-class ValueBlock(BaseCharacteristic):
-    """
-    """
-    PROPERTIES = ("raw_values", "converted_values", "shape", "unit")
-
-
-class AxisContainer:
-    """
-    """
-
-    def __init__(self):
-        pass
 
 
 class CalibrationData(AsamBaseType):
@@ -198,6 +79,7 @@ class CalibrationData(AsamBaseType):
         self._load_asciis()
         self._load_value_blocks()
         self._load_curves()
+        self._load_maps()
 
 
     def check_epk_xcp(self, xcp_master):
@@ -330,7 +212,7 @@ class CalibrationData(AsamBaseType):
             else:
                 length = chx.number
             value = self.image.read_string(chx.address, length = length)
-            self._parameters["ASCII"][chx.name] = Ascii(
+            self._parameters["ASCII"][chx.name] = cmod.Ascii(
                 name = chx.name,
                 comment = chx.longIdentifier,
                 category = "ASCII",
@@ -352,7 +234,7 @@ class CalibrationData(AsamBaseType):
                 bit_mask = chx.bitMask
             )
             converted_values = self.int_to_physical(chx, raw_values)
-            self._parameters["VAL_BLK"][chx.name] = ValueBlock(
+            self._parameters["VAL_BLK"][chx.name] = cmod.ValueBlock(
                 name = chx.name,
                 comment = chx.longIdentifier,
                 category = "VAL_BLK",
@@ -390,7 +272,7 @@ class CalibrationData(AsamBaseType):
                 category = "VALUE"  # Enums are regular VALUEs
             if chx.dependentCharacteristic:
                 category = "DEPENDENT_VALUE"
-            self._parameters["VALUE"][chx.name] = Value(
+            self._parameters["VALUE"][chx.name] = cmod.Value(
                 name = chx.name,
                 comment = chx.longIdentifier,
                 category = category,
@@ -449,13 +331,14 @@ class CalibrationData(AsamBaseType):
                 raise TypeError("Malformed AXIS_PTS '{}'.".format(ap))
             if not virtual:
                 raw_values = self.read_nd_array(ap, "x", attr, count)
-                raw_values = self.flipper(raw_values, index_incr)
+                if index_incr == 'INDEX_DECR':
+                    raw_values = raw_values[::-1]
             converted_values = self.int_to_physical(ap, raw_values)
             if ap._conversionRef != "NO_COMPU_METHOD":
                 unit = ap.compuMethod.refUnit
             else:
                 unit = None
-            self._parameters["AXIS_PTS"][ap.name] = _AxisPts(
+            self._parameters["AXIS_PTS"][ap.name] = cmod.AxisPts(
                 name = ap.name,
                 comment = ap.longIdentifier,
                 category = category,
@@ -467,12 +350,18 @@ class CalibrationData(AsamBaseType):
             )
 
     def _load_curves(self):
+        self._load_curves_and_maps("CURVE", 1)
+
+    def _load_maps(self):
+        self._load_curves_and_maps("MAP", 2)
+
+    def _load_curves_and_maps(self, category: str, num_axes:int):
         deferred_com_axes = []
         deferred_curves = []
         deferred_rescale_axes = []
 
-        for chx in self.characteristics("CURVE"):
-            self.logger.info("Processing CURVE '{}' @ 0x{:08x}".format(chx.name, chx.address))
+        for chx in self.characteristics(category):
+            self.logger.debug("Processing {} '{}' @ 0x{:08x}".format(category, chx.name, chx.address))
 
             chx_cm = chx.compuMethod
             fnc_cm = CompuMethod(self.session, chx_cm)
@@ -480,11 +369,18 @@ class CalibrationData(AsamBaseType):
             fnc_datatype = chx.record_layout_components.fncValues["datatype"]
             num_func_values = 1
 
+            for axis_idx in range(num_axes):
+                pass
+
             axis_descr = chx.axisDescriptions[0]
             maxAxisPoints = axis_descr.maxAxisPoints
             axis_pts_cm = axis_descr.compuMethod
-            axis_cm = CompuMethod(self.session, axis_pts_cm)
-            axis_unit = axis_descr.compuMethod.unit
+            if axis_pts_cm != "NO_COMPU_METHOD":
+                axis_cm = CompuMethod(self.session, axis_pts_cm)
+            else:
+                axis_cm = None
+            if axis_cm:
+                axis_unit = axis_descr.compuMethod.unit
             axis_attribute = axis_descr.attribute
             axis = chx.record_layout_components.axes("x")
             rl_values = self.read_record_layout_values(chx, "x")
@@ -504,10 +400,8 @@ class CalibrationData(AsamBaseType):
                 if axis_descr.fixAxisParDist:
                     par_dist = axis_descr.fixAxisParDist
                     raw_axis_values = fix_axis_par_dist(par_dist['offset'], par_dist['distance'], par_dist['numberapo'])
-                    print(par_dist['numberapo'])
                 elif axis_descr.fixAxisParList:
                     raw_axis_values = axis.fixAxisParList
-                    print(len(raw_axis_values))
                 elif axis_descr.fixAxisPar:
                     par = axis_descr.fixAxisPar
                     raw_axis_values = fix_axis_par(par['offset'], par['shift'], par['numberapo'])
@@ -524,23 +418,27 @@ class CalibrationData(AsamBaseType):
                     unit = chx.compuMethod.refUnit
                 else:
                     unit = axis_descr.compuMethod.refUnit
-                print("axis_values", converted_axis_values)
             elif axis_attribute == "RES_AXIS":
                 ref_obj = self._parameters["AXIS_PTS"][axis_descr.axisPtsRef.name]
                 #no_axis_points = min(no_axis_points, len(ref_obj.raw_values) // 2)
-
                 print("*** RES-AXIS", chx.name, hex(chx.address), axis_descr.axisPtsRef.name, ref_obj.raw_values[1::2], end ="\n\n")
-                print("REF-OBJ", ref_obj)
                 axis_pts_ref = axis_descr.axisPtsRef.name
+                raw_axis_values = None
+                converted_axis_values = None
+                axis_unit = None
             elif axis_attribute == "CURVE_AXIS":
                 print("*** CURVE-AXIS", chx.name, hex(chx.address), axis_descr.curveAxisRef, end ="\n\n")
                 curve_axis_ref = axis_descr.curveAxisRef.name
+                raw_axis_values = None
+                converted_axis_values = None
+                axis_unit = None
             elif axis_attribute == "COM_AXIS":
                 ref_obj = self._parameters["AXIS_PTS"][axis_descr.axisPtsRef.name]
                 print("*** COM-AXIS", chx.name, hex(chx.address), axis_descr.axisPtsRef.name, end ="\n\n")
                 axis_pts_ref = axis_descr.axisPtsRef.name
                 raw_axis_values = None
                 converted_axis_values = None
+                axis_unit = None
                 no_axis_points = min(no_axis_points, len(ref_obj.raw_values))
             length = no_axis_points * TYPE_SIZES[fnc_datatype]
 
@@ -554,9 +452,8 @@ class CalibrationData(AsamBaseType):
                 #bit_mask = chx.bitMask
             )
             converted_fnc_values = fnc_cm.int_to_physical(raw_fnc_values)
-            print("RAW_FNC_VALUES", raw_fnc_values)
-            print("PHY_FNC_VALUES", converted_fnc_values)
-
+            #print("RAW_FNC_VALUES", raw_fnc_values)
+            #print("PHY_FNC_VALUES", converted_fnc_values)
             self._parameters["CURVE"][chx.name] = Curve(
                 name = chx.name,
                 comment = chx.longIdentifier,
@@ -581,12 +478,10 @@ class CalibrationData(AsamBaseType):
         axis_pts = {}
         axis_rescale = {}
         fnc_values = None
-        #print("O-NAME", obj.name)
         for pos, component in obj.record_layout_components:
             component_type = component["type"]
             if component_type == "fncValues":
                 fnc_values = component
-                print("\tFNC")
             elif len(component_type) == 2:
                 name, axis_name = component_type
                 if name == "noAxisPts":
@@ -595,14 +490,10 @@ class CalibrationData(AsamBaseType):
                     no_rescale[axis_name] = self.read_record_layout_value(obj, axis_name, name)
                 elif name == "axisPts":
                     axis_pts[axis_name] = component
-                    print("\t\tAXIS_PTS", component)
                 elif name == "axisRescale":
                     axis_rescale[axis_name] = component
-                print("\tCOMPO", name, axis_name)
             else:
-                print("\tELSE", component_type)
-        print("\tNUMBERS", no_axis_pts, no_rescale)
-        print()
+                pass
         biases = {}
         for key, value in no_axis_pts.items():
              axis_pt = axis_pts.get(key)
@@ -610,21 +501,18 @@ class CalibrationData(AsamBaseType):
                  max_axis_points = axis_pt["maxAxisPoints"]
                  bias = value - max_axis_points
                  biases[axis_pt["position"] + 1] = bias
-                 print("\t\tAX_PT", value, bias, axis_pt["position"])
         for key, value in no_rescale.items():
             axis_rescale = axis_rescale.get(key)
             if axis_rescale:
                 max_number_of_rescale_pairs = axis_rescale["maxNumberOfRescalePairs"]
                 bias = value - max_number_of_rescale_pairs
                 biases[axis_rescale["position"] + 1] = bias
-                print("\t\tRS_PT", value, bias, axis_rescale["position"])
         total_bias = 0
         if biases:
             for pos, component in obj.record_layout_components:
                 if pos in biases:
                     bias = biases.get(pos)
                     total_bias += bias
-                    print("\t\tADJUST @", pos, bias)
                 component["offset"] += total_bias
 
     def read_record_layout_values(self, obj, axis_name):
@@ -669,7 +557,7 @@ class CalibrationData(AsamBaseType):
         reader = get_section_reader(datatype, self.byte_order(axis_pts))
 
         length = no_elements * TYPE_SIZES[datatype]
-        print("\tARRAY", hex(axis_pts.address + offset), datatype, length)
+        #print("\tARRAY", hex(axis_pts.address + offset), datatype, length)
         np_arr = self.image.read_ndarray(
             addr = axis_pts.address + offset,
             length = length,
@@ -678,7 +566,7 @@ class CalibrationData(AsamBaseType):
             order = order,
             #bit_mask = chx.bitMask
         )
-        print("\t\t", np_arr)
+        #print("\t\t", np_arr)
         return np_arr
 
     def int_to_physical(self, characteristic, int_values):
@@ -690,12 +578,6 @@ class CalibrationData(AsamBaseType):
         else:
             converted_value = int_values
         return converted_value
-
-    @staticmethod
-    def flipper(np_array, index_order):
-        """
-        """
-        return np.flip(np_array) if index_order == "INDEX_DECR" else np_array
 
     @property
     def image(self):
