@@ -147,3 +147,19 @@ class AxisContainer:
 
     def __init__(self):
         pass
+
+def get_calibration_class(name: str):
+    """
+    """
+    return {
+        "ASCII": Ascii,
+        "AXIS_PTS": AxisPts,
+        "CUBE4": Cube4,
+        "CUBE5": Cube5,
+        "CUBOID": Cuboid,
+        "CURVE": Curve,
+        "MAP": Map,
+        "VALUE": Value,
+        "VAL_BLK": ValueBlock,
+    }.get(name)
+

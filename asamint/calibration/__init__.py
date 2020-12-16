@@ -454,7 +454,8 @@ class CalibrationData(AsamBaseType):
             converted_fnc_values = fnc_cm.int_to_physical(raw_fnc_values)
             #print("RAW_FNC_VALUES", raw_fnc_values)
             #print("PHY_FNC_VALUES", converted_fnc_values)
-            self._parameters["CURVE"][chx.name] = Curve(
+            klass = cmod.get_calibration_class(category)
+            self._parameters["CURVE"][chx.name] = klass(
                 name = chx.name,
                 comment = chx.longIdentifier,
                 category = axis_attribute,
