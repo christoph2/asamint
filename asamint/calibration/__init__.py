@@ -397,90 +397,100 @@ class CalibrationData(AsamBaseType):
             fnc_datatype = chx.record_layout_components.fncValues["datatype"]
             num_func_values = 1
             shape = []
+            axes = []
             for axis_idx in range(num_axes):
-                pass
-            axis_descr = chx.axisDescriptions[0]
-            maxAxisPoints = axis_descr.maxAxisPoints
-            axis_pts_cm = axis_descr.compuMethod
-            if axis_pts_cm != "NO_COMPU_METHOD":
-                axis_cm = CompuMethod(self.session, axis_pts_cm)
-            else:
-                axis_cm = None
-            if axis_cm:
-                axis_unit = axis_descr.compuMethod.unit
-            axis_attribute = axis_descr.attribute
-            axis = chx.record_layout_components.axes("x")
-            rl_values = self.read_record_layout_values(chx, "x")
-            curve_axis_ref = None
-            axis_pts_ref = None
-            self.record_layout_correct_offsets(chx)
+                axis_descr = chx.axisDescriptions[axis_idx]
+                maxAxisPoints = axis_descr.maxAxisPoints
+                axis_pts_cm = axis_descr.compuMethod
+                if axis_pts_cm != "NO_COMPU_METHOD":
+                    axis_cm = CompuMethod(self.session, axis_pts_cm)
+                else:
+                    axis_cm = None
+                if axis_cm:
+                    axis_unit = axis_descr.compuMethod.unit
+                axis_attribute = axis_descr.attribute
+                axis = chx.record_layout_components.axes("x")
+                rl_values = self.read_record_layout_values(chx, "x")
+                curve_axis_ref = None
+                axis_pts_ref = None
+                self.record_layout_correct_offsets(chx)
 
-            if 'noAxisPts' in rl_values:
-                no_axis_points = rl_values['noAxisPts']
-            elif 'noRescale' in rl_values:
-                no_axis_points = rl_values['noRescale']
-            else:
-                no_axis_points = maxAxisPoints
-            if axis_attribute == "FIX_AXIS":
-                print("FIX_AXIS", chx.name, hex(chx.address), chx.record_layout_components.fncValues , end ="\n\n")
-                print("\tNO_AXIS_PTS", no_axis_points, end = " ")
-                if axis_descr.fixAxisParDist:
-                    par_dist = axis_descr.fixAxisParDist
-                    raw_axis_values = fix_axis_par_dist(par_dist['offset'], par_dist['distance'], par_dist['numberapo'])
-                elif axis_descr.fixAxisParList:
-                    raw_axis_values = axis.fixAxisParList
-                elif axis_descr.fixAxisPar:
-                    par = axis_descr.fixAxisPar
-                    raw_axis_values = fix_axis_par(par['offset'], par['shift'], par['numberapo'])
-                    par['numberapo']
-                converted_axis_values = axis_cm.int_to_physical(raw_axis_values)
-            elif axis_attribute == "STD_AXIS":
-                print("*** STD-AXIS", chx.name, hex(chx.address), chx.record_layout_components.fncValues , end ="\n\n")
-                raw_axis_values = self.read_nd_array(chx, "x", "axisPts", no_axis_points)
-                index_incr = axis['axisPts']['indexIncr']
-                if index_incr == 'INDEX_DECR':
-                    raw_axis_values = raw_axis_values[::-1]
-                converted_axis_values = axis_cm.int_to_physical(raw_axis_values)
-            elif axis_attribute == "RES_AXIS":
-                ref_obj = self._parameters["AXIS_PTS"][axis_descr.axisPtsRef.name]
-                #no_axis_points = min(no_axis_points, len(ref_obj.raw_values) // 2)
-                print("*** RES-AXIS", chx.name, hex(chx.address), axis_descr.axisPtsRef.name, ref_obj.raw_values[1::2], end ="\n\n")
-                axis_pts_ref = axis_descr.axisPtsRef.name
-                raw_axis_values = None
-                converted_axis_values = None
-                axis_unit = None
-            elif axis_attribute == "CURVE_AXIS":
-                print("*** CURVE-AXIS", chx.name, hex(chx.address), axis_descr.curveAxisRef, end ="\n\n")
-                curve_axis_ref = axis_descr.curveAxisRef.name
-                raw_axis_values = None
-                converted_axis_values = None
-                axis_unit = None
-            elif axis_attribute == "COM_AXIS":
-                ref_obj = self._parameters["AXIS_PTS"][axis_descr.axisPtsRef.name]
-                print("*** COM-AXIS", chx.name, hex(chx.address), axis_descr.axisPtsRef.name, end ="\n\n")
-                axis_pts_ref = axis_descr.axisPtsRef.name
-                raw_axis_values = None
-                converted_axis_values = None
-                axis_unit = None
-                no_axis_points = min(no_axis_points, len(ref_obj.raw_values))
-            length = no_axis_points * TYPE_SIZES[fnc_datatype]
-            shape.append(length)
+                if 'noAxisPts' in rl_values:
+                    no_axis_points = rl_values['noAxisPts']
+                elif 'noRescale' in rl_values:
+                    no_axis_points = rl_values['noRescale']
+                else:
+                    no_axis_points = maxAxisPoints
+                if axis_attribute == "FIX_AXIS":
+                    print("FIX_AXIS", chx.name, hex(chx.address), chx.record_layout_components.fncValues , end ="\n\n")
+                    print("\tNO_AXIS_PTS", no_axis_points, end = " ")
+                    if axis_descr.fixAxisParDist:
+                        par_dist = axis_descr.fixAxisParDist
+                        raw_axis_values = fix_axis_par_dist(par_dist['offset'], par_dist['distance'], par_dist['numberapo'])
+                    elif axis_descr.fixAxisParList:
+                        raw_axis_values = axis.fixAxisParList
+                    elif axis_descr.fixAxisPar:
+                        par = axis_descr.fixAxisPar
+                        raw_axis_values = fix_axis_par(par['offset'], par['shift'], par['numberapo'])
+                        par['numberapo']
+                    converted_axis_values = axis_cm.int_to_physical(raw_axis_values)
+                elif axis_attribute == "STD_AXIS":
+                    print("*** STD-AXIS", chx.name, hex(chx.address), chx.record_layout_components.fncValues , end ="\n\n")
+                    raw_axis_values = self.read_nd_array(chx, "x", "axisPts", no_axis_points)
+                    index_incr = axis['axisPts']['indexIncr']
+                    if index_incr == 'INDEX_DECR':
+                        raw_axis_values = raw_axis_values[::-1]
+                    converted_axis_values = axis_cm.int_to_physical(raw_axis_values)
+                elif axis_attribute == "RES_AXIS":
+                    ref_obj = self._parameters["AXIS_PTS"][axis_descr.axisPtsRef.name]
+                    #no_axis_points = min(no_axis_points, len(ref_obj.raw_values) // 2)
+                    print("*** RES-AXIS", chx.name, hex(chx.address), axis_descr.axisPtsRef.name, ref_obj.raw_values[1::2], end ="\n\n")
+                    axis_pts_ref = axis_descr.axisPtsRef.name
+                    raw_axis_values = None
+                    converted_axis_values = None
+                    axis_unit = None
+                elif axis_attribute == "CURVE_AXIS":
+                    print("*** CURVE-AXIS", chx.name, hex(chx.address), axis_descr.curveAxisRef.name, end ="\n\n")
+                    curve_axis_ref = axis_descr.curveAxisRef.name
+                    raw_axis_values = None
+                    converted_axis_values = None
+                    axis_unit = None
+                elif axis_attribute == "COM_AXIS":
+                    ref_obj = self._parameters["AXIS_PTS"][axis_descr.axisPtsRef.name]
+                    print("*** COM-AXIS", chx.name, hex(chx.address), axis_descr.axisPtsRef.name, end ="\n\n")
+                    axis_pts_ref = axis_descr.axisPtsRef.name
+                    raw_axis_values = None
+                    converted_axis_values = None
+                    axis_unit = None
+                    no_axis_points = min(no_axis_points, len(ref_obj.raw_values))
+                length = no_axis_points * TYPE_SIZES[fnc_datatype]
+                shape.append(length)
 
-            num_func_values *= length
+                num_func_values *= length
 
-            raw_fnc_values = self.image.read_ndarray(
-                addr = chx.address + chx.record_layout_components.fncValues["offset"],
-                length = length,    # ???
-                dtype = get_section_reader(chx.record_layout_components.fncValues["datatype"], self.byte_order(chx)),
-                #chx.record_layout_components.fncValues["datatype"]
-                #shape = shape,
-                #order = order,
-                #bit_mask = chx.bitMask
-            )
-            converted_fnc_values = fnc_cm.int_to_physical(raw_fnc_values)
-            #print("RAW_FNC_VALUES", raw_fnc_values)
-            #print("PHY_FNC_VALUES", converted_fnc_values)
-            print("\tSHAPE", shape)
+                raw_fnc_values = self.image.read_ndarray(
+                    addr = chx.address + chx.record_layout_components.fncValues["offset"],
+                    length = length,    # ???
+                    dtype = get_section_reader(chx.record_layout_components.fncValues["datatype"], self.byte_order(chx)),
+                    #chx.record_layout_components.fncValues["datatype"]
+                    #shape = shape,
+                    #order = order,
+                    #bit_mask = chx.bitMask
+                )
+                converted_fnc_values = fnc_cm.int_to_physical(raw_fnc_values)
+                #print("RAW_FNC_VALUES", raw_fnc_values)
+                #print("PHY_FNC_VALUES", converted_fnc_values)
+                print("\tSHAPE", shape)
+
+                axes.append(cmod.AxisContainer(
+                    category = axis_attribute,
+                    unit = axis_unit,
+                    raw_values = raw_axis_values,
+                    converted_values = converted_axis_values,
+                    axis_pts_ref = axis_pts_ref,
+                    curve_axis_ref = curve_axis_ref
+                ))
+
             klass = cmod.get_calibration_class(category)
             self._parameters["{}".format(category)][chx.name] = klass(
                 name = chx.name,
@@ -489,12 +499,13 @@ class CalibrationData(AsamBaseType):
                 displayIdentifier = chx.displayIdentifier,
                 raw_fnc_values = raw_fnc_values,
                 converted_fnc_values = converted_fnc_values,
-                raw_axis_values = raw_axis_values,
-                converted_axis_values = converted_axis_values,
-                x_axis_unit = axis_unit,
+                #raw_axis_values = raw_axis_values,
+                #converted_axis_values = converted_axis_values,
+                #x_axis_unit = axis_unit,
                 fnc_unit = fnc_unit,
-                curve_axis_ref = curve_axis_ref,
-                axis_pts_ref = axis_pts_ref
+                #curve_axis_ref = curve_axis_ref,
+                #axis_pts_ref = axis_pts_ref
+                axes = axes
             )
 
 

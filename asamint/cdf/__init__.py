@@ -142,7 +142,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
                     displayIdentifier = inst.displayIdentifier,
                     feature_ref = None
                 )
-                self.add_axis(axis_conts, inst.converted_axis_values, "STD_AXIS", inst.x_axis_unit)
+                self.add_axis(axis_conts, inst.axes[0].converted_values, "STD_AXIS", inst.axes[0].unit)
 
             elif category == "FIX_AXIS":
                 axis_conts = self.curve_and_map_header(
@@ -154,7 +154,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
                     displayIdentifier = inst.displayIdentifier,
                     feature_ref = None
                 )
-                self.add_axis(axis_conts, inst.converted_axis_values, "FIX_AXIS", inst.x_axis_unit)
+                self.add_axis(axis_conts, inst.axes[0].converted_values, "FIX_AXIS", inst.axes[0].unit)
             elif category == "COM_AXIS":
                 axis_conts = self.curve_and_map_header(
                     name = inst.name,
@@ -167,7 +167,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
                 )
                 axis_cont = create_elem(axis_conts, "SW-AXIS-CONT")
                 create_elem(axis_cont, "CATEGORY", "COM_AXIS")
-                create_elem(axis_cont, "SW-INSTANCE-REF", text = inst.axis_pts_ref)
+                create_elem(axis_cont, "SW-INSTANCE-REF", text = inst.axes[0].axis_pts_ref)
             elif category == "RES_AXIS":
                 axis_conts = self.curve_and_map_header(
                     name = inst.name,
@@ -180,7 +180,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
                 )
                 axis_cont = create_elem(axis_conts, "SW-AXIS-CONT")
                 create_elem(axis_cont, "CATEGORY", "RES_AXIS")
-                create_elem(axis_cont, "SW-INSTANCE-REF", text = inst.axis_pts_ref)
+                create_elem(axis_cont, "SW-INSTANCE-REF", text = inst.axes[0].axis_pts_ref)
             elif category == "CURVE_AXIS":
                 axis_conts = self.curve_and_map_header(
                     name = inst.name,
@@ -193,7 +193,19 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
                 )
                 axis_cont = create_elem(axis_conts, "SW-AXIS-CONT")
                 create_elem(axis_cont, "CATEGORY", "CURVE_AXIS")
-                create_elem(axis_cont, "SW-INSTANCE-REF", text = inst.curve_axis_ref)
+                create_elem(axis_cont, "SW-INSTANCE-REF", text = inst.axes[0].curve_axis_ref)
+        xml_comment(instance_tree, "    MAPs    ")
+        for key, inst in self._parameters["MAP"].items():
+            print("\t***MAP",key, inst.category, inst)
+            axis_conts = self.curve_and_map_header(
+                name = inst.name,
+                descr = inst.comment,
+                category = "CURVE",
+                fnc_values = inst.converted_fnc_values,
+                fnc_unit = inst.fnc_unit,
+                displayIdentifier = inst.displayIdentifier,
+                feature_ref = None
+            )
 
     def instance_scalar(self, name, descr, value, category = "VALUE", unit = "", displayIdentifier = None, feature_ref = None):
         cont = self.no_axis_container(
