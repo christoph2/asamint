@@ -206,7 +206,7 @@ class CalibrationData(AsamBaseType):
 
     def _load_asciis(self):
         for chx in self.characteristics("ASCII"):
-            self.logger.info("Processing ASCII '{}' @ 0x{:08x}".format(chx.name, chx.address))
+            self.logger.debug("Processing ASCII '{}' @ 0x{:08x}".format(chx.name, chx.address))
             if chx.matrixDim:
                 length = chx.matrixDim["x"]
             else:
@@ -223,7 +223,7 @@ class CalibrationData(AsamBaseType):
 
     def _load_value_blocks(self):
         for chx in self.characteristics("VAL_BLK"):
-            self.logger.info("Processing VAL_BLK '{}' @ 0x{:08x}".format(chx.name, chx.address))
+            self.logger.debug("Processing VAL_BLK '{}' @ 0x{:08x}".format(chx.name, chx.address))
             reader = get_section_reader(chx.fnc_asam_dtype, self.byte_order(chx))
             raw_values = self.image.read_ndarray(
                 addr = chx.address,
@@ -247,7 +247,7 @@ class CalibrationData(AsamBaseType):
 
     def _load_values(self):
         for chx in self.characteristics("VALUE"):
-            self.logger.info("Processing VALUE '{}' @ 0x{:08x}".format(chx.name, chx.address))
+            self.logger.debug("Processing VALUE '{}' @ 0x{:08x}".format(chx.name, chx.address))
             # CALIBRATION_ACCESS
             # READ_ONLY
             fnc_asam_dtype = chx.fnc_asam_dtype
@@ -282,11 +282,12 @@ class CalibrationData(AsamBaseType):
                 unit = unit,
             )
 
+
     def _load_axis_pts(self):
         for item in self.axis_points():
             ap = AxisPts.get(self.session, item.name)
             mem_size = ap.total_allocated_memory
-            self.logger.info("Processing AXIS_PTS '{}' @ 0x{:08x}".format(ap.name, ap.address))
+            self.logger.debug("Processing AXIS_PTS '{}' @ 0x{:08x}".format(ap.name, ap.address))
             rl_values = self.read_record_layout_values(ap, "x")
             self.record_layout_correct_offsets(ap)
             virtual = False
@@ -355,23 +356,49 @@ class CalibrationData(AsamBaseType):
     def _load_maps(self):
         self._load_curves_and_maps("MAP", 2)
 
+    def _order_curves(self, curves):
+        """Remove forward references from CURVE list."""
+        curves = list(curves)[: : 1]    # Don't destroy the generator, make a copy.
+        curves_by_name = {c.name: (pos, c) for pos, c in enumerate(curves)}
+        print("ORDER")
+        while True:
+            ins_pos = 0
+            for curr_pos in range(len(curves)):
+                curve = curves[curr_pos]
+                axis_descr = curve.axisDescriptions[0]
+                if axis_descr.attribute == "CURVE_AXIS":
+                    if axis_descr.curveAxisRef.name in curves_by_name:
+                        ref_pos, ref_curve = curves_by_name.get(axis_descr.curveAxisRef.name)
+                        if ref_pos > curr_pos:
+                            # Swap
+                            t_curve = curves[ins_pos]
+                            curves[ins_pos] = curves[ref_pos]
+                            curves[ref_pos] = t_curve
+                            curves_by_name[curves[ins_pos].name] = (ins_pos, curves[ins_pos])
+                            curves_by_name[curves[ref_pos].name] = (ref_pos, curves[ref_pos])
+                            ins_pos += 1
+                            print("SWAP!", curve.name, axis_descr.curveAxisRef.name, ref_pos, curr_pos)
+                print("{:25s} {}".format(curve.name, axis_descr.attribute))
+            if ins_pos == 0:
+                break   # No more swaps, we're done.
+        print("END-ORDER")
+        return curves
+
     def _load_curves_and_maps(self, category: str, num_axes:int):
-        deferred_com_axes = []
-        deferred_curves = []
-        deferred_rescale_axes = []
-
-        for chx in self.characteristics(category):
+        characteristics = self.characteristics(category)
+        if num_axes == 1:
+             # CURVEs may reference other CURVEs, so some ordering is required.
+            characteristics = self._order_curves(characteristics)
+        for chx in characteristics:
             self.logger.debug("Processing {} '{}' @ 0x{:08x}".format(category, chx.name, chx.address))
-
             chx_cm = chx.compuMethod
             fnc_cm = CompuMethod(self.session, chx_cm)
             fnc_unit = chx.compuMethod.unit
             fnc_datatype = chx.record_layout_components.fncValues["datatype"]
             num_func_values = 1
-
+            shape = []
             for axis_idx in range(num_axes):
                 pass
-
             axis_descr = chx.axisDescriptions[0]
             maxAxisPoints = axis_descr.maxAxisPoints
             axis_pts_cm = axis_descr.compuMethod
@@ -414,10 +441,6 @@ class CalibrationData(AsamBaseType):
                 if index_incr == 'INDEX_DECR':
                     raw_axis_values = raw_axis_values[::-1]
                 converted_axis_values = axis_cm.int_to_physical(raw_axis_values)
-                if chx._conversionRef != "NO_COMPU_METHOD":
-                    unit = chx.compuMethod.refUnit
-                else:
-                    unit = axis_descr.compuMethod.refUnit
             elif axis_attribute == "RES_AXIS":
                 ref_obj = self._parameters["AXIS_PTS"][axis_descr.axisPtsRef.name]
                 #no_axis_points = min(no_axis_points, len(ref_obj.raw_values) // 2)
@@ -441,6 +464,9 @@ class CalibrationData(AsamBaseType):
                 axis_unit = None
                 no_axis_points = min(no_axis_points, len(ref_obj.raw_values))
             length = no_axis_points * TYPE_SIZES[fnc_datatype]
+            shape.append(length)
+
+            num_func_values *= length
 
             raw_fnc_values = self.image.read_ndarray(
                 addr = chx.address + chx.record_layout_components.fncValues["offset"],
@@ -454,8 +480,9 @@ class CalibrationData(AsamBaseType):
             converted_fnc_values = fnc_cm.int_to_physical(raw_fnc_values)
             #print("RAW_FNC_VALUES", raw_fnc_values)
             #print("PHY_FNC_VALUES", converted_fnc_values)
+            print("\tSHAPE", shape)
             klass = cmod.get_calibration_class(category)
-            self._parameters["CURVE"][chx.name] = klass(
+            self._parameters["{}".format(category)][chx.name] = klass(
                 name = chx.name,
                 comment = chx.longIdentifier,
                 category = axis_attribute,
