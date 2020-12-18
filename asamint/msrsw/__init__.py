@@ -54,7 +54,7 @@ class MSRMixIn:
         """
         """
         self.validate()
-        self.logger.info("Saving tree: {}".format(self.generate_filename(self.EXTENSION)))
+        self.logger.info("Saving tree to {}".format(self.generate_filename(self.EXTENSION)))
         with open("CDF20demo{}".format(self.EXTENSION), "wb") as of:
             of.write(etree.tostring(self.root, encoding = "UTF-8", pretty_print = True, xml_declaration = True, doctype = self.DOCTYPE))
 
