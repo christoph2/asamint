@@ -76,7 +76,7 @@ class Ascii(BaseCharacteristic):
 class AxisPts(BaseCharacteristic):
     """
     """
-    PROPERTIES = ("raw_values", "converted_values", "paired", "unit")
+    PROPERTIES = ("raw_values", "converted_values", "paired", "unit", "reversed_storage")
 
 
     @property
@@ -146,11 +146,13 @@ class AxisContainer:
     """
     """
 
-    def __init__(self, category: str, unit: str, raw_values, converted_values, axis_pts_ref = None, curve_axis_ref = None):
+    def __init__(self, category: str, unit: str, raw_values, converted_values,
+        reversed_storage = False, axis_pts_ref = None, curve_axis_ref = None):
         self.category = category
         self.unit = unit
         self.raw_values = raw_values
         self.converted_values = converted_values
+        self.reversed_storage = reversed_storage
         self.axis_pts_ref = axis_pts_ref
         self.curve_axis_ref = curve_axis_ref
 
@@ -159,11 +161,13 @@ class AxisContainer:
 AxisContainer {{
     category            = "{}";
     unit                = "{}";
+    reversed_storage    = {};
     raw_values          = {};
     converted_values    = {};
     axis_pts_ref        = {};
     curve_axis_ref      = {};
-}}""".format(self.category, self.unit, self.raw_values, self.converted_values, self.axis_pts_ref, self.curve_axis_ref)
+}}""".format(self.category, self.unit, self.reversed_storage, self.raw_values,
+             self.converted_values, self.axis_pts_ref, self.curve_axis_ref)
 
     __repr__ = __str__
 
