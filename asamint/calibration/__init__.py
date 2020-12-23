@@ -48,6 +48,7 @@ import pya2l.model as model
 
 from objutils import dump, load, Image, Section
 
+AXES = ("x", "y", "z", "4", "5")
 
 class CalibrationData(AsamBaseType):
     """Fetch calibration parameters from HEX file or XCP slave and create an in-memory representation.
@@ -80,7 +81,6 @@ class CalibrationData(AsamBaseType):
         self._load_value_blocks()
         self._load_curves()
         self._load_maps()
-
 
     def check_epk_xcp(self, xcp_master):
         """Compare EPK (EPROM Kennung) from A2L with EPK from ECU.
@@ -334,6 +334,9 @@ class CalibrationData(AsamBaseType):
                 raw_values = self.read_nd_array(ap, "x", attr, count)
                 if index_incr == 'INDEX_DECR':
                     raw_values = raw_values[::-1]
+                    reversed_storage = True
+                else:
+                    reversed_storage = False
             converted_values = self.int_to_physical(ap, raw_values)
             if ap._conversionRef != "NO_COMPU_METHOD":
                 unit = ap.compuMethod.refUnit
@@ -348,6 +351,7 @@ class CalibrationData(AsamBaseType):
                 displayIdentifier = ap.displayIdentifier,
                 paired = paired,
                 unit = unit,
+                reversed_storage = reversed_storage
             )
 
     def _load_curves(self):
@@ -400,6 +404,7 @@ class CalibrationData(AsamBaseType):
             axes = []
             for axis_idx in range(num_axes):
                 axis_descr = chx.axisDescriptions[axis_idx]
+                axis_name = AXES[axis_idx]
                 maxAxisPoints = axis_descr.maxAxisPoints
                 axis_pts_cm = axis_descr.compuMethod
                 if axis_pts_cm != "NO_COMPU_METHOD":
@@ -409,21 +414,24 @@ class CalibrationData(AsamBaseType):
                 if axis_cm:
                     axis_unit = axis_descr.compuMethod.unit
                 axis_attribute = axis_descr.attribute
-                axis = chx.record_layout_components.axes("x")
-                rl_values = self.read_record_layout_values(chx, "x")
+                axis = chx.record_layout_components.axes(axis_name)
+                fix_no_axis_pts = chx.deposit.fixNoAxisPts.get(axis_name)
+                rl_values = self.read_record_layout_values(chx, axis_name)
                 curve_axis_ref = None
                 axis_pts_ref = None
+                reversed_storage = False
+                flipper = []
                 self.record_layout_correct_offsets(chx)
-
-                if 'noAxisPts' in rl_values:
-                    no_axis_points = rl_values['noAxisPts']
-                elif 'noRescale' in rl_values:
-                    no_axis_points = rl_values['noRescale']
+                if fix_no_axis_pts:
+                    no_axis_points = fix_no_axis_pts
                 else:
-                    no_axis_points = maxAxisPoints
+                    if 'noAxisPts' in rl_values:
+                        no_axis_points = rl_values['noAxisPts']
+                    elif 'noRescale' in rl_values:
+                        no_axis_points = rl_values['noRescale']
+                    else:
+                        no_axis_points = maxAxisPoints
                 if axis_attribute == "FIX_AXIS":
-                    print("FIX_AXIS", chx.name, hex(chx.address), chx.record_layout_components.fncValues , end ="\n\n")
-                    print("\tNO_AXIS_PTS", no_axis_points, end = " ")
                     if axis_descr.fixAxisParDist:
                         par_dist = axis_descr.fixAxisParDist
                         raw_axis_values = fix_axis_par_dist(par_dist['offset'], par_dist['distance'], par_dist['numberapo'])
@@ -432,14 +440,17 @@ class CalibrationData(AsamBaseType):
                     elif axis_descr.fixAxisPar:
                         par = axis_descr.fixAxisPar
                         raw_axis_values = fix_axis_par(par['offset'], par['shift'], par['numberapo'])
-                        par['numberapo']
+                    no_axis_points = len(raw_axis_values)
                     converted_axis_values = axis_cm.int_to_physical(raw_axis_values)
+                    print("FIX_AXIS", chx.name, hex(chx.address), chx.record_layout_components.fncValues , end ="\n\n")
+                    print("\tNO_AXIS_PTS", no_axis_points, end = " ")
                 elif axis_attribute == "STD_AXIS":
                     print("*** STD-AXIS", chx.name, hex(chx.address), chx.record_layout_components.fncValues , end ="\n\n")
                     raw_axis_values = self.read_nd_array(chx, "x", "axisPts", no_axis_points)
                     index_incr = axis['axisPts']['indexIncr']
                     if index_incr == 'INDEX_DECR':
                         raw_axis_values = raw_axis_values[::-1]
+                        reversed_storage = True
                     converted_axis_values = axis_cm.int_to_physical(raw_axis_values)
                 elif axis_attribute == "RES_AXIS":
                     ref_obj = self._parameters["AXIS_PTS"][axis_descr.axisPtsRef.name]
@@ -449,12 +460,17 @@ class CalibrationData(AsamBaseType):
                     raw_axis_values = None
                     converted_axis_values = None
                     axis_unit = None
+                    no_axis_points = len(ref_obj.raw_values)
+                    reversed_storage = ref_obj.reversed_storage
                 elif axis_attribute == "CURVE_AXIS":
+                    ref_obj = self._parameters["CURVE"][axis_descr.curveAxisRef.name]
                     print("*** CURVE-AXIS", chx.name, hex(chx.address), axis_descr.curveAxisRef.name, end ="\n\n")
                     curve_axis_ref = axis_descr.curveAxisRef.name
                     raw_axis_values = None
                     converted_axis_values = None
                     axis_unit = None
+                    no_axis_points = len(ref_obj.raw_fnc_values)
+                    reversed_storage = ref_obj.axes[0].reversed_storage
                 elif axis_attribute == "COM_AXIS":
                     ref_obj = self._parameters["AXIS_PTS"][axis_descr.axisPtsRef.name]
                     print("*** COM-AXIS", chx.name, hex(chx.address), axis_descr.axisPtsRef.name, end ="\n\n")
@@ -462,35 +478,33 @@ class CalibrationData(AsamBaseType):
                     raw_axis_values = None
                     converted_axis_values = None
                     axis_unit = None
-                    no_axis_points = min(no_axis_points, len(ref_obj.raw_values))
-                length = no_axis_points * TYPE_SIZES[fnc_datatype]
-                shape.append(length)
-
-                num_func_values *= length
-
-                raw_fnc_values = self.image.read_ndarray(
-                    addr = chx.address + chx.record_layout_components.fncValues["offset"],
-                    length = length,    # ???
-                    dtype = get_section_reader(chx.record_layout_components.fncValues["datatype"], self.byte_order(chx)),
-                    #chx.record_layout_components.fncValues["datatype"]
-                    #shape = shape,
-                    #order = order,
-                    #bit_mask = chx.bitMask
-                )
-                converted_fnc_values = fnc_cm.int_to_physical(raw_fnc_values)
-                #print("RAW_FNC_VALUES", raw_fnc_values)
-                #print("PHY_FNC_VALUES", converted_fnc_values)
-                print("\tSHAPE", shape)
-
+                    no_axis_points = len(ref_obj.raw_values)
+                    reversed_storage = ref_obj.reversed_storage
+                num_func_values *= no_axis_points
+                shape.append(no_axis_points)
+                if reversed_storage:
+                    flipper.append(axis_idx)
                 axes.append(cmod.AxisContainer(
                     category = axis_attribute,
                     unit = axis_unit,
+                    reversed_storage = reversed_storage,
                     raw_values = raw_axis_values,
                     converted_values = converted_axis_values,
                     axis_pts_ref = axis_pts_ref,
                     curve_axis_ref = curve_axis_ref
                 ))
-
+            length = num_func_values * TYPE_SIZES[fnc_datatype]
+            raw_fnc_values = self.image.read_ndarray(
+                addr = chx.address + chx.record_layout_components.fncValues["offset"],
+                length = length,
+                dtype = get_section_reader(chx.record_layout_components.fncValues["datatype"], self.byte_order(chx)),
+                shape = shape,
+                #order = order,
+                #bit_mask = chx.bitMask
+            )
+            if flipper:
+                raw_fnc_values = np.flip(raw_fnc_values, axis = flipper)
+            converted_fnc_values = fnc_cm.int_to_physical(raw_fnc_values)
             klass = cmod.get_calibration_class(category)
             self._parameters["{}".format(category)][chx.name] = klass(
                 name = chx.name,
@@ -499,15 +513,9 @@ class CalibrationData(AsamBaseType):
                 displayIdentifier = chx.displayIdentifier,
                 raw_fnc_values = raw_fnc_values,
                 converted_fnc_values = converted_fnc_values,
-                #raw_axis_values = raw_axis_values,
-                #converted_axis_values = converted_axis_values,
-                #x_axis_unit = axis_unit,
                 fnc_unit = fnc_unit,
-                #curve_axis_ref = curve_axis_ref,
-                #axis_pts_ref = axis_pts_ref
                 axes = axes
             )
-
 
     def record_layout_correct_offsets(self, obj):
         """
