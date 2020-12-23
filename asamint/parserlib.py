@@ -36,7 +36,7 @@ import sys
 import antlr4
 from antlr4.error.ErrorListener import ErrorListener
 
-from pya2l import model
+#from pya2l import model
 
 
 class MyErrorListener(ErrorListener):
@@ -51,7 +51,7 @@ class ParserWrapper:
     """"""
 
     def __init__(
-        self, grammarName, startSymbol, listener=None, useDatabase=True, debug=False
+        self, grammarName, startSymbol, listener=None, debug=False
     ):
         self.debug = debug
         self.grammarName = grammarName
@@ -59,11 +59,10 @@ class ParserWrapper:
         self.lexerModule, self.lexerClass = self._load("Lexer")
         self.parserModule, self.parserClass = self._load("Parser")
         self.listener = listener
-        self.useDatabase = useDatabase
 
     def _load(self, name):
         className = "{0}{1}".format(self.grammarName, name)
-        moduleName = "pya2l.{0}".format(className)
+        moduleName = "asamint.damos.py3.{0}".format(className)
         module = importlib.import_module(moduleName)
         klass = getattr(module, className)
         return (
@@ -72,8 +71,6 @@ class ParserWrapper:
         )
 
     def parse(self, input, trace=False):
-        if self.useDatabase:
-            self.db = model.A2LDatabase(self.fnbase, debug=self.debug)
         lexer = self.lexerClass(input)
         lexer.removeErrorListeners()
         lexer.addErrorListener(MyErrorListener())
@@ -87,15 +84,9 @@ class ParserWrapper:
         self._syntaxErrors = parser._syntaxErrors
         tree = meth()
         if self.listener:
-            if self.useDatabase:
-                self.listener.db = self.db
             listener = self.listener()
             walker = antlr4.ParseTreeWalker()
             result = walker.walk(listener, tree)
-        if self.useDatabase:
-            self.db.session.commit()
-            return self.db.session
-        else:
             return listener
 
     def parseFromFile(self, filename, encoding="latin-1", trace=False):
