@@ -81,6 +81,7 @@ class CalibrationData(AsamBaseType):
         self._load_value_blocks()
         self._load_curves()
         self._load_maps()
+        self._load_cubes()
 
     def check_epk_xcp(self, xcp_master):
         """Compare EPK (EPROM Kennung) from A2L with EPK from ECU.
@@ -360,11 +361,15 @@ class CalibrationData(AsamBaseType):
     def _load_maps(self):
         self._load_curves_and_maps("MAP", 2)
 
+    def _load_cubes(self):
+        self._load_curves_and_maps("CUBOID", 3)
+        self._load_curves_and_maps("CUBE_4", 4)
+        self._load_curves_and_maps("CUBE_5", 5)
+
     def _order_curves(self, curves):
         """Remove forward references from CURVE list."""
         curves = list(curves)[: : 1]    # Don't destroy the generator, make a copy.
         curves_by_name = {c.name: (pos, c) for pos, c in enumerate(curves)}
-        print("ORDER")
         while True:
             ins_pos = 0
             for curr_pos in range(len(curves)):
@@ -381,11 +386,8 @@ class CalibrationData(AsamBaseType):
                             curves_by_name[curves[ins_pos].name] = (ins_pos, curves[ins_pos])
                             curves_by_name[curves[ref_pos].name] = (ref_pos, curves[ref_pos])
                             ins_pos += 1
-                            print("SWAP!", curve.name, axis_descr.curveAxisRef.name, ref_pos, curr_pos)
-                print("{:25s} {}".format(curve.name, axis_descr.attribute))
             if ins_pos == 0:
                 break   # No more swaps, we're done.
-        print("END-ORDER")
         return curves
 
     def _load_curves_and_maps(self, category: str, num_axes:int):
@@ -442,10 +444,10 @@ class CalibrationData(AsamBaseType):
                         raw_axis_values = fix_axis_par(par['offset'], par['shift'], par['numberapo'])
                     no_axis_points = len(raw_axis_values)
                     converted_axis_values = axis_cm.int_to_physical(raw_axis_values)
-                    print("FIX_AXIS", chx.name, hex(chx.address), chx.record_layout_components.fncValues , end ="\n\n")
-                    print("\tNO_AXIS_PTS", no_axis_points, end = " ")
+                    #print("FIX_AXIS", chx.name, hex(chx.address), chx.record_layout_components.fncValues , end ="\n\n")
+                    #print("\tNO_AXIS_PTS", no_axis_points, end = " ")
                 elif axis_attribute == "STD_AXIS":
-                    print("*** STD-AXIS", chx.name, hex(chx.address), chx.record_layout_components.fncValues , end ="\n\n")
+                    #print("*** STD-AXIS", chx.name, hex(chx.address), chx.record_layout_components.fncValues , end ="\n\n")
                     raw_axis_values = self.read_nd_array(chx, "x", "axisPts", no_axis_points)
                     index_incr = axis['axisPts']['indexIncr']
                     if index_incr == 'INDEX_DECR':
@@ -455,7 +457,7 @@ class CalibrationData(AsamBaseType):
                 elif axis_attribute == "RES_AXIS":
                     ref_obj = self._parameters["AXIS_PTS"][axis_descr.axisPtsRef.name]
                     #no_axis_points = min(no_axis_points, len(ref_obj.raw_values) // 2)
-                    print("*** RES-AXIS", chx.name, hex(chx.address), axis_descr.axisPtsRef.name, ref_obj.raw_values[1::2], end ="\n\n")
+                    #print("*** RES-AXIS", chx.name, hex(chx.address), axis_descr.axisPtsRef.name, ref_obj.raw_values[1::2], end ="\n\n")
                     axis_pts_ref = axis_descr.axisPtsRef.name
                     raw_axis_values = None
                     converted_axis_values = None
@@ -464,7 +466,7 @@ class CalibrationData(AsamBaseType):
                     reversed_storage = ref_obj.reversed_storage
                 elif axis_attribute == "CURVE_AXIS":
                     ref_obj = self._parameters["CURVE"][axis_descr.curveAxisRef.name]
-                    print("*** CURVE-AXIS", chx.name, hex(chx.address), axis_descr.curveAxisRef.name, end ="\n\n")
+                    #print("*** CURVE-AXIS", chx.name, hex(chx.address), axis_descr.curveAxisRef.name, end ="\n\n")
                     curve_axis_ref = axis_descr.curveAxisRef.name
                     raw_axis_values = None
                     converted_axis_values = None
@@ -473,7 +475,7 @@ class CalibrationData(AsamBaseType):
                     reversed_storage = ref_obj.axes[0].reversed_storage
                 elif axis_attribute == "COM_AXIS":
                     ref_obj = self._parameters["AXIS_PTS"][axis_descr.axisPtsRef.name]
-                    print("*** COM-AXIS", chx.name, hex(chx.address), axis_descr.axisPtsRef.name, end ="\n\n")
+                    #print("*** COM-AXIS", chx.name, hex(chx.address), axis_descr.axisPtsRef.name, end ="\n\n")
                     axis_pts_ref = axis_descr.axisPtsRef.name
                     raw_axis_values = None
                     converted_axis_values = None
@@ -509,7 +511,7 @@ class CalibrationData(AsamBaseType):
             self._parameters["{}".format(category)][chx.name] = klass(
                 name = chx.name,
                 comment = chx.longIdentifier,
-                category = axis_attribute,
+                category = category,
                 displayIdentifier = chx.displayIdentifier,
                 raw_fnc_values = raw_fnc_values,
                 converted_fnc_values = converted_fnc_values,
@@ -604,7 +606,6 @@ class CalibrationData(AsamBaseType):
         reader = get_section_reader(datatype, self.byte_order(axis_pts))
 
         length = no_elements * TYPE_SIZES[datatype]
-        #print("\tARRAY", hex(axis_pts.address + offset), datatype, length)
         np_arr = self.image.read_ndarray(
             addr = axis_pts.address + offset,
             length = length,
@@ -613,7 +614,6 @@ class CalibrationData(AsamBaseType):
             order = order,
             #bit_mask = chx.bitMask
         )
-        #print("\t\t", np_arr)
         return np_arr
 
     def int_to_physical(self, characteristic, int_values):
