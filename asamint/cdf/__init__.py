@@ -163,14 +163,20 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
                     create_elem(axis_cont, "CATEGORY", "CURVE_AXIS")
                     create_elem(axis_cont, "SW-INSTANCE-REF", text = axis.curve_axis_ref)
 
-    def instance_scalar(self, name, descr, value, category = "VALUE", unit = "", displayIdentifier = None, feature_ref = None):
+    def instance_scalar(self, name, descr, value, category, unit = "", displayIdentifier = None, feature_ref = None):
+        if category == "TEXT":
+            is_text = True
+            category = "VALUE"
+        elif category in ("BOOLEAN", "ASCII"):
+            is_text = True
+        else:
+            is_text = False
         cont = self.no_axis_container(
             name = name, descr = descr, category = category, unit = unit,
             displayIdentifier = displayIdentifier, feature_ref = feature_ref
         )
         values = create_elem(cont, "SW-VALUES-PHYS")
-
-        if isinstance(value, str) and value:
+        if is_text and value:
             create_elem(values, "VT", text = str(value))
         else:
             create_elem(values, "V", text = str(value))
@@ -220,7 +226,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         values_cont = create_elem(cont, "SW-VALUES-PHYS")
         self.output_value_array(values, values_cont)
 
-    def sw_instance(self, name, descr, category = "VALUE", displayIdentifier = None, feature_ref = None):
+    def sw_instance(self, name, descr, category, displayIdentifier = None, feature_ref = None):
         instance_tree = self.sub_trees["SW-INSTANCE-TREE"]
         instance = create_elem(instance_tree, "SW-INSTANCE")
         create_elem(instance, "SHORT-NAME", text = name)
@@ -235,7 +241,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         variant = create_elem(variants, "SW-INSTANCE-PROPS-VARIANT")
         return variant
 
-    def no_axis_container(self, name, descr, category = "VALUE", unit = "", displayIdentifier = None, feature_ref = None):
+    def no_axis_container(self, name, descr, category, unit = "", displayIdentifier = None, feature_ref = None):
         variant = self.sw_instance(
             name, descr, category = category, displayIdentifier = displayIdentifier, feature_ref = feature_ref
         )
