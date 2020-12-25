@@ -91,10 +91,8 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
 
     def instances(self):
         instance_tree = self.sub_trees["SW-INSTANCE-TREE"]
-
         xml_comment(instance_tree, "    AXIS_PTSs ")
         for key, inst in self._parameters["AXIS_PTS"].items():
-            #print(key)
             variant = self.sw_instance(
                 name = inst.name, descr = inst.comment, category = inst.category,
                 displayIdentifier = inst.displayIdentifier, feature_ref = None
@@ -105,21 +103,18 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
             self.output_1darray(value_cont, "SW-VALUES-PHYS", inst.converted_values)
         xml_comment(instance_tree, "    VALUEs    ")
         for key, inst in self._parameters["VALUE"].items():
-            #print(key)
             self.instance_scalar(
                 name = key, descr = inst.comment, value = inst.converted_value, unit = inst.unit,
                 displayIdentifier = inst.displayIdentifier, category = inst.category
             )
         xml_comment(instance_tree, "    ASCIIs    ")
         for key, inst in self._parameters["ASCII"].items():
-            #print(key)
             self.instance_scalar(
                 name = key, descr = inst.comment, value = inst.value, category = "ASCII", unit = None,
                 displayIdentifier = inst.displayIdentifier
             )
         xml_comment(instance_tree, "    VAL_BLKs  ")
         for key, inst in self._parameters["VAL_BLK"].items():
-            #print(key)
             self.value_blk(
                     name = key,
                     descr = inst.comment,
@@ -140,7 +135,6 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
 
     def dump_array(self, attribute):
         for key, inst in self._parameters[attribute].items():
-            #print(key, inst.category)
             axis_conts = self.curve_and_map_header(
                 name = inst.name,
                 descr = inst.comment,

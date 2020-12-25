@@ -266,11 +266,15 @@ class CalibrationData(AsamBaseType):
             else:
                 unit = chx.physUnit
             converted_value = self.int_to_physical(chx, raw_value)
-            category = "BOOLEAN" if is_bool else "VALUE"
-            if is_bool and isinstance(converted_value, (int, float)):
-                converted_value = "true" if bool(converted_value) else "false"
+
+            if isinstance(converted_value, (int, float)):
+                if is_bool:
+                    category = "BOOLEAN"
+                    converted_value = "true" if bool(converted_value) else "false"
+                else:
+                    category = "VALUE"
             else:
-                category = "VALUE"  # Enums are regular VALUEs
+                category = "TEXT"
             if chx.dependentCharacteristic:
                 category = "DEPENDENT_VALUE"
             self._parameters["VALUE"][chx.name] = cmod.Value(
