@@ -63,7 +63,7 @@ class NDimContainer(BaseCharacteristic):
     """
     """
     PROPERTIES = (
-        "raw_fnc_values", "converted_fnc_values", "fnc_unit", "axes"
+        "raw_values", "converted_values", "fnc_unit", "axes"
     )
 
 

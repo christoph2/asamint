@@ -139,7 +139,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
                 name = inst.name,
                 descr = inst.comment,
                 category = attribute,
-                fnc_values = inst.converted_fnc_values,
+                fnc_values = inst.converted_values,
                 fnc_unit = inst.fnc_unit,
                 displayIdentifier = inst.displayIdentifier,
                 feature_ref = None

@@ -475,7 +475,7 @@ class CalibrationData(AsamBaseType):
                     raw_axis_values = None
                     converted_axis_values = None
                     axis_unit = None
-                    no_axis_points = len(ref_obj.raw_fnc_values)
+                    no_axis_points = len(ref_obj.raw_values)
                     reversed_storage = ref_obj.axes[0].reversed_storage
                 elif axis_attribute == "COM_AXIS":
                     ref_obj = self._parameters["AXIS_PTS"][axis_descr.axisPtsRef.name]
@@ -500,7 +500,7 @@ class CalibrationData(AsamBaseType):
                     curve_axis_ref = curve_axis_ref
                 ))
             length = num_func_values * TYPE_SIZES[fnc_datatype]
-            raw_fnc_values = self.image.read_ndarray(
+            raw_values = self.image.read_ndarray(
                 addr = chx.address + chx.record_layout_components.fncValues["offset"],
                 length = length,
                 dtype = get_section_reader(chx.record_layout_components.fncValues["datatype"], self.byte_order(chx)),
@@ -509,16 +509,16 @@ class CalibrationData(AsamBaseType):
                 #bit_mask = chx.bitMask
             )
             if flipper:
-                raw_fnc_values = np.flip(raw_fnc_values, axis = flipper)
-            converted_fnc_values = fnc_cm.int_to_physical(raw_fnc_values)
+                raw_values = np.flip(raw_values, axis = flipper)
+            converted_values = fnc_cm.int_to_physical(raw_values)
             klass = cmod.get_calibration_class(category)
             self._parameters["{}".format(category)][chx.name] = klass(
                 name = chx.name,
                 comment = chx.longIdentifier,
                 category = category,
                 displayIdentifier = chx.displayIdentifier,
-                raw_fnc_values = raw_fnc_values,
-                converted_fnc_values = converted_fnc_values,
+                raw_values = raw_values,
+                converted_values = converted_values,
                 fnc_unit = fnc_unit,
                 axes = axes
             )
