@@ -30,7 +30,7 @@ __copyright__ = """
 """
 __author__  = 'Christoph Schueler'
 
-
+from datetime import datetime
 from io import StringIO
 import hashlib
 import math
@@ -40,6 +40,8 @@ import pkgutil
 import re
 import time
 
+from babel import default_locale
+from babel.dates import format_datetime
 from lxml.etree import SubElement, Comment
 
 SINGLE_BITS = frozenset([2 ** b for b in range(64)])
@@ -159,3 +161,6 @@ def slicer(iterable, sliceLength, converter=None):
         for item in range(0, length, sliceLength)]
 
 int_log2 = lambda x: math.ceil(math.log2(x))
+
+def current_datetime(locale = default_locale()):
+    return format_datetime(datetime.utcnow(), locale = locale)
