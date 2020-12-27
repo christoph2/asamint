@@ -405,6 +405,7 @@ class CalibrationData(AsamBaseType):
             fnc_cm = CompuMethod(self.session, chx_cm)
             fnc_unit = chx.compuMethod.unit
             fnc_datatype = chx.record_layout_components.fncValues["datatype"]
+            self.record_layout_correct_offsets(chx)
             num_func_values = 1
             shape = []
             axes = []
@@ -427,7 +428,6 @@ class CalibrationData(AsamBaseType):
                 axis_pts_ref = None
                 reversed_storage = False
                 flipper = []
-                self.record_layout_correct_offsets(chx)
                 if fix_no_axis_pts:
                     no_axis_points = fix_no_axis_pts
                 else:
