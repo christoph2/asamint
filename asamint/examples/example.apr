@@ -3,6 +3,7 @@
 #A2L_FILE = "ASAP2_Demo_V161"
 A2L_FILE = "XCPsim"
 AUTHOR = "John Doe"
+COMPANY = "ACME corp"
 DEPARTMENT = "Engineering"
 PROJECT = "Example23"
 SHORTNAME = "Example23"

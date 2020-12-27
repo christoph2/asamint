@@ -1,5 +1,6 @@
 A2L_FILE = "CDF20demo"
 AUTHOR = "John Doe"
+COMPANY = "ACME corp"
 DEPARTMENT = "Engineering"
 PROJECT = "CDF20demo"
 SHORTNAME = "CDF20demo"

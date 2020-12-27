@@ -63,6 +63,7 @@ class AsamBaseType:
         "LOGLEVEL":                 (str,    False,  "WARN"),
         "A2L_FILE":                 (str,    True,   ""),
         "AUTHOR":                   (str,    False,  ""),
+        "COMPANY":                  (str,    False,  ""),
         "DEPARTMENT":               (str,    False,  ""),
         "PROJECT":                  (str,    True,   ""),
         "SHORTNAME":                (str,    True,   ""), # Contributes to filename generation.
