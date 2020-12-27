@@ -12,7 +12,7 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ["asammdf", "objutils", "pya2ldb", "pyxcp"]
+requirements = ["asammdf", "objutils", "pya2ldb", "pyxcp", "babel"]
 
 setup_requirements = ['pytest-runner', ]
 
@@ -42,8 +42,9 @@ setup(
     packages=find_packages(),
     package_data = {
         "dtds": glob('asamint/data/dtds/*.*'),
+        "templates": glob('asamint/data/templates/*.*'),
     },
-   setup_requires=setup_requirements,
+    setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/christoph2/asam_integration_package',

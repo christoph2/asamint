@@ -12,4 +12,6 @@ objutils
 pya2ldb
 pyxcp
 pytest
+objutils
+babel
 pytest-runner

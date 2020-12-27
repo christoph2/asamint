@@ -4,9 +4,17 @@ include HISTORY.rst
 include LICENSE
 include README.rst
 
+include *.md
+include *.txt
+include *.yml
+include .bumpversion.cfg
+
 recursive-include tests *
 recursive-include asamint/data/dtds/*
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
+
+recursive-include asamint *.g4
+recursive-include asamint *.tmpl
 
 recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
