@@ -1,0 +1,214 @@
+<% 
+from asamint.utils import current_datetime
+%>
+**
+**  DAMOS DCM format 2.0
+**  Created by asamint/DCMCreator
+**  Creation date: ${current_datetime()}
+%if "AUTHOR" in project:
+**  Author: ${project["AUTHOR"]}
+%endif
+%if "COMPANY" in project:
+**  Company: ${project["COMPANY"]}
+%endif
+%if "DEPARTMENT" in project:
+**  Department: ${project["DEPARTMENT"]}
+%endif
+%if "PROJECT" in project:
+**  Project: ${project["PROJECT"]}
+%endif
+%if "SUBJECT" in experiment:
+**  Experiment: ${experiment["SUBJECT"]}
+%endif
+**
+<%
+from itertools import dropwhile
+from textwrap import wrap
+import numpy as np
+
+def axis_pts(axis):
+    if axis.category in ("STD_AXIS", "FIX_AXIS"):
+        return axis.converted_values
+    elif axis.category in ("COM_AXIS", "RES_AXIS"):
+        return params["AXIS_PTS"].get(axis.axis_pts_ref).converted_values
+    elif axis.category == "CURVE_AXIS":
+        return params["CURVE"].get(axis.curve_axis_ref).converted_values
+%>
+<%def name = "header(inst)">
+%if inst.comment:
+    LANGNAME "${inst.comment}"
+%else:
+    LANGNAME ""
+%endif
+%if inst.displayIdentifier:
+    DISPLAYNAME "${inst.displayIdentifier}"
+%else:
+    DISPLAYNAME ""
+%endif
+%if not inst.category in ("ASCII", "CURVE", "MAP"):
+%if inst.unit:
+    EINHEIT_W "${inst.unit}"\
+%else:
+    EINHEIT_W ""\
+%endif
+%endif
+</%def>
+<%def name = "werte(inst)">
+<% values = " ".join(["{:f}".format(x) for x in inst.converted_values.flatten()]) %>\
+<% lines = wrap(values, 130) %>\
+<% final_value = len(lines) - 1 %>\
+%for idx, line in enumerate(lines):
+%if idx == final_value:
+    WERT ${line}\
+%else:
+    WERT ${line}
+%endif
+%endfor
+</%def>
+<%def name = "werte_linie(werte)">
+<% values = " ".join(["{:f}".format(x) for x in werte]) %>\
+<% lines = wrap(values, 130) %>\
+<% final_value = len(lines) - 1 %>\
+%for idx, line in enumerate(lines):
+%if idx == final_value:
+    WERT ${line}\
+%else:
+    WERT ${line}
+%endif
+%endfor
+</%def>
+<%def name = "achse(axis)">
+<% values = " ".join(["{:f}".format(x) for x in axis_pts(axis)]) %>\
+<% lines = wrap(values, 130) %>\
+<% final_value = len(lines) - 1 %>\
+%for idx, line in enumerate(lines):
+%if idx == final_value:
+    ST/X ${line}\
+%else:
+    ST/X ${line}
+%endif
+%endfor
+</%def>
+KONSERVIERUNG_FORMAT 2.0
+
+##
+## AXIS_PTSs
+##
+%for key, inst in params["AXIS_PTS"].items():
+STUETZSTELLENVERTEILUNG  ${inst.name} ${len(inst.converted_values)}\
+${header(inst)}
+##<% values = " ".join(["{:.8f}".format(x) for x in inst.converted_values]) %>
+<% values = " ".join(["{:f}".format(x) for x in inst.converted_values.flatten()]) %>\
+%for line in wrap(values, 130):
+    ST/X ${line}
+%endfor
+END
+
+%endfor
+##
+## VALUEs
+##
+%for key, inst in params["VALUE"].items():
+FESTWERT ${inst.name}\
+${header(inst)}
+%if inst.category in ("BOOLEAN", "TEXT"):
+    TEXT "${inst.converted_value}"
+%else:
+    WERT ${inst.converted_value}
+%endif
+END
+
+%endfor
+##
+## ASCIIs
+##
+%for key, inst in params["ASCII"].items():
+TEXTSTRING ${inst.name}\
+${header(inst)}\
+    TEXT "${inst.value}"
+END
+
+%endfor
+##
+## VAL_BLKs
+##
+%for key, inst in params["VAL_BLK"].items():
+FESTWERTEBLOCK ${inst.name} ${len(inst.converted_values.flatten())}\
+${header(inst)}\
+${werte(inst)}
+END
+
+%endfor
+##
+## CURVEs
+##
+%for key, inst in params["CURVE"].items():
+<% axis = inst.axes[0] %>\
+%if axis.category == "STD_AXIS":
+KENNLINIE\
+%elif axis.category == "FIX_AXIS":
+FESTKENNLINIE\
+%elif axis.category == "COM_AXIS":
+GRUPPENKENNLINIE\
+%else:
+OTHER_KL\
+%endif
+ ${inst.name} ${len(inst.converted_values)}\
+${header(inst)}\
+%if axis.unit:
+    EINHEIT_X "${axis.unit}"
+%else:
+    EINHEIT_X ""
+%endif
+%if inst.fnc_unit:
+    EINHEIT_W "${inst.fnc_unit}"\
+%else:
+    EINHEIT_W ""\
+%endif
+${achse(axis)}\
+${werte(inst)}
+END
+
+%endfor
+##
+## MAPs
+##
+%for key, inst in params["MAP"].items():
+<% x_axis = inst.axes[0] %>\
+<% y_axis = inst.axes[1] %>\
+<% size_x, size_y = inst.converted_values.shape %>\
+<% y_axis_pts = axis_pts(y_axis) %>\
+%if x_axis.category == "FIX_AXIS" and y_axis.category == "FIX_AXIS":
+FESTKENNFELD\
+%elif x_axis.category == "STD_AXIS" and y_axis.category == "STD_AXIS":
+KENNFELD\
+%elif (x_axis.category == "COM_AXIS" and y_axis.category == "COM_AXIS") or (x_axis.category == "COM_AXIS" or y_axis.category == "COM_AXIS"):
+GRUPPENKENNFELD\
+%else:
+KENNFELD    ** ${x_axis.category} ${y_axis.category}\
+%endif
+ ${inst.name}    ${size_x}    ${size_y}\
+${header(inst)}\
+%if x_axis.unit:
+    EINHEIT_X "${x_axis.unit}"
+%else:
+    EINHEIT_X ""
+%endif
+%if y_axis.unit:
+    EINHEIT_Y "${y_axis.unit}"
+%else:
+    EINHEIT_Y ""
+%endif
+%if inst.fnc_unit:
+    EINHEIT_W "${inst.fnc_unit}"\
+%else:
+    EINHEIT_W ""\
+%endif
+${achse(x_axis)}
+%for idx, line in enumerate(inst.converted_values.reshape(size_y, size_x)):
+    ST/Y ${y_axis_pts[idx]}\
+${werte_linie(line)}
+%endfor
+END
+
+%endfor

@@ -62,7 +62,7 @@ class ParserWrapper:
 
     def _load(self, name):
         className = "{0}{1}".format(self.grammarName, name)
-        moduleName = "asamint.damos.py3.{0}".format(className)
+        moduleName = "asamint.parsers.{0}".format(className)
         module = importlib.import_module(moduleName)
         klass = getattr(module, className)
         return (
