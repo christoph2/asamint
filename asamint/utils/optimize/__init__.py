@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-
-"""
+"""Optimize data-structures like memory sections."""
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2020-2021 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -46,6 +44,9 @@ class McObject:
     def __repr__(self):
         return 'McObject(name = "{}", address = 0x{:08x}, length = {})'.format(self.name, self.address, self.length)
 
+    def __eq__(self, other):
+        return self.address == other.address and self.length == other.length
+
 def make_continuous_blocks(chunks):
     """Try to make continous blocks from a list of small, unordered `chunks`.
 
@@ -65,14 +66,18 @@ def make_continuous_blocks(chunks):
         # 2. Pick the largest one.
         values.append(max(value, key = attrgetter("length")))
     result_sections = []
-    prev_section = McObject()
+    last_section = None
     while values:
         section = values.pop(0)
-        if section.address == prev_section.address + prev_section.length and result_sections:
-            last_segment = result_sections[-1]
-            last_segment.length += section.length
+        if last_section and section.address <= last_section.address + last_section.length:
+            last_end = last_section.address + last_section.length - 1
+            current_end = section.address + section.length - 1
+            if last_end > section.address:
+                pass
+            else:
+                last_section.length += current_end - last_end
         else:
             # Create a new section.
             result_sections.append(McObject(address = section.address, length = section.length))
-        prev_section = section
+        last_section = result_sections[-1]
     return result_sections

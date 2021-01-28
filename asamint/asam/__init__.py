@@ -33,7 +33,6 @@ __author__ = 'Christoph Schueler'
 from enum import IntEnum
 from logging import getLogger
 
-
 from sqlalchemy import func, or_
 
 from pya2l.api.inspect import (Measurement, ModCommon, ModPar)
