@@ -9,7 +9,7 @@ Used for instance to optimally assign measurements to ODTs.
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2020-2021 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -36,19 +36,16 @@ class Bin:
 
     """
 
-    def __init__(self, size = MAX_ODT_ENTRY_SIZE):
-        self.size = size
-        self.residual_capacity = size   # initial Bin is empty
+    def __init__(self, length):
+        self.length = length
+        self.residual_capacity = length   # initial Bin is empty
         self.entries = []
 
     def append(self, entry):
         self.entries.append(entry)
 
     def __eq__(self, other):
-        self.residual_capacity == other.residual_capacity
-
-    def __lt__(self, other):
-        self.residual_capacity < other.residual_capacity
+        return self.residual_capacity == other.residual_capacity and self.entries == other.entries
 
     def __str__(self):
         return "Bin(residual_capacity: {}  entries: {})".format(self.residual_capacity, self.entries)
@@ -61,26 +58,26 @@ def first_fit_decreasing(items, bin_size):
 
     Parameters
     ----------
-    items: dict
+    items: list
         items that need to be stored/allocated.
 
     bin_size: int
 
     Returns
     -------
+    list
+        Resulting bins
     """
-    bins = [Bin(size = bin_size)]   # Initial bin
-    missing = []
-    for key, size in sorted(items.items(), key = lambda x: x[1], reverse = True):
-        #print(key, size)
+    bins = [Bin(length = bin_size)]   # Initial bin
+    for item in sorted(items, key = lambda x: x.length, reverse = True):
         for bin in bins:
-            if bin.residual_capacity >= size:
-                bin.append(key)
-                bin.residual_capacity -= size
+            if bin.residual_capacity >= item.length:
+                bin.append(item)
+                bin.residual_capacity -= item.length
                 break
         else:
-            new_bin = Bin(size = bin_size)
+            new_bin = Bin(length = bin_size)
             bins.append(new_bin)
-            new_bin.append(key)
-            new_bin.residual_capacity -= size
+            new_bin.append(item)
+            new_bin.residual_capacity -= item.length
     return bins
