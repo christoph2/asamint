@@ -17,7 +17,7 @@ HOST = "localhost"
 PORT = 5555
 PROTOCOL = "TCP"
 IPV6 = false
-CREATE_DAQ_TIMESTAMPS = false
+CREATE_DAQ_TIMESTAMPS = true
 ##
 ## XCPonCAN (Vector) parameters.
 ##
@@ -29,5 +29,5 @@ CREATE_DAQ_TIMESTAMPS = false
 #CAN_ID_SLAVE = 1
 #CAN_ID_BROADCAST = 256
 #MAX_DLC_REQUIRED = false
-#CREATE_DAQ_TIMESTAMPS = false
+#CREATE_DAQ_TIMESTAMPS = true
 

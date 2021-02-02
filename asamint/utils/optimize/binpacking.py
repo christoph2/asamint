@@ -44,6 +44,10 @@ class Bin:
     def append(self, entry):
         self.entries.append(entry)
 
+    @property
+    def num_entries(self):
+        return len(self.entries)
+
     def __eq__(self, other):
         return self.residual_capacity == other.residual_capacity and self.entries == other.entries
 
