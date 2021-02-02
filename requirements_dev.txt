@@ -11,6 +11,7 @@ asammdf
 objutils
 pya2ldb
 pyxcp
+lz4
 pytest
 objutils
 babel

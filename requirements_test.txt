@@ -3,3 +3,4 @@ pyxcp
 pya2ldb
 objutils
 babel
+lz4
