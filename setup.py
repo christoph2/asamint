@@ -44,6 +44,11 @@ setup(
         "dtds": glob('asamint/data/dtds/*.*'),
         "templates": glob('asamint/data/templates/*.*'),
     },
+    entry_points = {
+        'console_scripts': [
+                'xcp_log = asamint.scripts.xcp_log:main'
+        ],
+    },
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
