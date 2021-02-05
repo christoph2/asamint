@@ -34,8 +34,7 @@ import csv
 
 from asamint.xcp.reco import XcpLogFileReader
 
-
-if __name__ == '__main__':
+def main():
     ep = argparse.ArgumentParser()
     ep.add_argument('input_file', help='Input file (extension .xmraw)')
     ep.add_argument("-c", "--export-to-csv", dest = "csv_file", help = "Write XCP frames to .CSV file")
@@ -57,3 +56,7 @@ if __name__ == '__main__':
                 data = str(binascii.hexlify(data.tobytes()), encoding = "ascii")
                 csv_writer.writerow((cat, counter, timestamp, data))
             print("OK, done.")
+
+if __name__ == '__main__':
+    main()
+
