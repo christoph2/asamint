@@ -6,7 +6,7 @@
 from glob import glob
 from setuptools import setup, find_packages
 
-with open('README.rst') as readme_file:
+with open('docs/README.rst') as readme_file:
     readme = readme_file.read()
 
 with open('HISTORY.rst') as history_file:
@@ -46,7 +46,7 @@ setup(
     },
     entry_points = {
         'console_scripts': [
-                'xcp_log = asamint.scripts.xcp_log:main'
+                'xcp-log = asamint.scripts.xcp_log:main'
         ],
     },
     setup_requires=setup_requirements,
