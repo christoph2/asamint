@@ -8,7 +8,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2021 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -164,3 +164,7 @@ int_log2 = lambda x: math.ceil(math.log2(x))
 
 def current_datetime(locale = default_locale()):
     return format_datetime(datetime.utcnow(), locale = locale)
+
+def chunks(arr, size):
+    """Split an array-like in `size` sub-arrays."""
+    return [arr[i : i + size] for i in range(0, len(arr), size)]
