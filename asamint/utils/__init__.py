@@ -44,7 +44,7 @@ from babel import default_locale
 from babel.dates import format_datetime
 from lxml.etree import SubElement, Comment
 
-SINGLE_BITS = frozenset([2 ** b for b in range(64)])
+SINGLE_BITS = frozenset([2 ** b for b in range(64 + 1)])
 
 sha1_digest = lambda x: hashlib.sha1(x.encode("utf8")).hexdigest()
 replace_non_c_char = lambda s: re.sub(r"[^.a-zA-Z0-9_]", "_", s)
