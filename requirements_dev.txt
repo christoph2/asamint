@@ -12,6 +12,7 @@ objutils
 pya2ldb
 pyxcp
 lz4
+sortedcontainers
 pytest
 objutils
 babel
