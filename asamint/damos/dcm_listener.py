@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-
+"""Damos DCM 20.0 Parser.
 """
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2020-2021 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -34,6 +33,8 @@ from decimal import Decimal as D
 import antlr4
 
 from asamint.logger import Logger
+
+from pprint import pprint
 
 class BaseListener(antlr4.ParseTreeListener):
     """"""
@@ -94,175 +95,27 @@ class BaseListener(antlr4.ParseTreeListener):
         self._log(self.logger.debug, msg, location)
 
 
-class Konservierung:
-
-    def __init__(self, kopf, rumpf):
-        self.kopf = kopf
-        self.rumpf = rumpf
-
-class KonsKopf:
-
-    def __init__(self, info, func_def, var_def):
-        self.info = info
-        self.func_def = func_def
-        self.var_def = var_def
-
-class Kenngroesse:
-
-    def __init__(self, kw, kwb, kl, kf, gst, kt):
-        self.kw = kw
-        self.kwb = kwb
-        self.kl = kl
-        self.kf = kf
-        self.gst = gst
-        self.kt = kt
-
-class Gruppenstuetzstelle:
-
-    def __init__(self, name, anzahl_x, info, einheit_x, sst_liste_x):
-        self.name = name
-        self.anzahl_x = anzahl_x
-        self.info = info
-        self.einheit_x = einheit_x
-        self.sst_liste_x = sst_liste_x
-
-class KgrInfo:
-
-    def __init__(self, langname, displayname, var_abhangigkeiten, funktionszugehorigkeit):
-        self.langname = langname
-        self.displayname = displayname
-        self.var_abhangigkeiten = var_abhangigkeiten
-        self.funktionszugehorigkeit = funktionszugehorigkeit
-
-class SstListe:
-
-    def __init__(self, category, rs, ts):
-        self.category = category
-        self.rs = rs
-        self.ts = ts
-
-class WertelisteKwb:
-
-    def __init__(self, category, rs, ts):
-        self.category = category
-        self.rs = rs
-        self.ts = ts
-
-class KfZeileListe:
-
-    def __init__(self, category, rs, ts):
-        self.category = category
-        self.rs = rs
-        self.ts = ts
-
-
-class KfZeileListeR:
-
-    def __init__(self, realzahl, werteliste):
-        self.realzahl = realzahl
-        self.werteliste = werteliste
-
-class KfZeileListeTx:
-
-    def __init__(self, text, werteliste):
-        self.text = text
-        self.werteliste = werteliste
-
-
-class Kennfeld:
-
-    def __init__(self, category, name, anzahl_x, anzahl_y, info, einheit_x, einheit_y, einheit_w, sst_liste_x, kf_zeile_liste):
-        self.category = category
-        self.name = name
-        self.anzahl_x = anzahl_x
-        self.anzahl_y = anzahl_y
-        self.info = info
-        self.einheit_x = einheit_x
-        self.einheit_y = einheit_y
-        self.einheit_w = einheit_w
-        self.sst_liste_x = sst_liste_x
-        self.kf_zeile_liste = kf_zeile_liste
-
-
-class Kennlinie:
-
-    def __init__(self, category, name, anzahl_x, info, einheit_x, einheit_w, sst_liste_x, werteliste):
-        self.category = category
-        self.name = name
-        self.anzahl_x = anzahl_x
-        self.info = info
-        self.einheit_x = einheit_x
-        self.einheit_w = einheit_w
-        self.sst_liste_x = sst_liste_x
-        self.werteliste = werteliste
-
-class Kennwert:
-
-    def __init__(self, category, name, info, einheit_w, realzahl, text):
-        self.category = category
-        self.name = name
-        self.info = info
-        self.einheit_w = einheit_w
-        self.realzahl = realzahl
-        self.text = text
-
-class Kenntext:
-
-    def __init__(self, name, info, text):
-        self.name = name
-        self.info = info
-        self.text = text
-
-class KennwerteBlock:
-    def __init__(self, name, anzahl_x, info, einheit_w, werteliste_kwb):
-        self.name = name
-        self.anzahl_x = anzahl_x
-        self.info = info
-        self.einheit_w = einheit_w
-        self.werteliste_kwb = werteliste_kwb
-
-class ModZeile:
-
-    def __init__(self, anf, fort):
-        self.anf = anf
-        self.fort = fort
-
-class ModAnfZeile:
-
-    def __init__(self, name, wert):
-        self.name = name
-        self.wert = wert
-
-class FunktionsZeile:
-
-    def __init__(self, name, version, langname):
-        self.name = name
-        self.version = version
-        self.langname = langname
-
-class VariantenKrit:
-
-    def __init__(self, name, werte):
-        self.name = name
-        self.werte = werte
 
 class Dcm20Listener(BaseListener):
 
 
     def exitKonservierung(self, ctx):
-        ctx.value = Konservierung(self.getNT(ctx.kopf), self.getNT(ctx.rumpf))
+        ctx.value = {"kopf": self.getNT(ctx.kopf), "rumpf": self.getNT(ctx.rumpf)}
+        pprint(ctx.value)
 
     def exitKons_kopf(self, ctx):
-        ctx.value = KonsKopf(self.getNT(ctx.info), self.getNT(ctx.func_def), self.getNT(ctx.var_def))
+        ctx.value = {
+            "info": self.getNT(ctx.info), "func_def": self.getNT(ctx.func_def), "var_def": self.getNT(ctx.var_def)
+        }
 
     def exitModulkopf_info(self, ctx):
         ctx.value = self.getList(ctx.m)
 
     def exitMod_zeile(self, ctx):
-        ctx.value = ModZeile(self.getNT(ctx.anf), self.getList(ctx.fort))
+        ctx.value = {"anf": self.getNT(ctx.anf), "fort": self.getList(ctx.fort)}
 
     def exitMod_anf_zeile(self, ctx):
-        ctx.value = ModAnfZeile(self.getNT(ctx.n), self.getNT(ctx.w))
+        ctx.value = {"name": self.getNT(ctx.n), "wert": self.getNT(ctx.w)}
 
     def exitMod_fort_zeile(self, ctx):
         ctx.value = self.getNT(ctx.w)
@@ -277,7 +130,7 @@ class Dcm20Listener(BaseListener):
         ctx.value = self.getList(ctx.f)
 
     def exitFunktionszeile(self, ctx):
-        ctx.value = FunktionsZeile(self.getNT(ctx.n), self.getNT(ctx.v), self.getNT(ctx.l))
+        ctx.value = {"name": self.getNT(ctx.n), "version": self.getNT(ctx.v), "langname": self.getNT(ctx.l)}
 
     def exitFkt_version(self, ctx):
         ctx.value = self.getNT(ctx.t)
@@ -289,7 +142,7 @@ class Dcm20Listener(BaseListener):
         ctx.value = self.getList(ctx.v)
 
     def exitVariantenkrit(self, ctx):
-        ctx.value = VariantenKrit(self.getNT(ctx.n), self.getList(ctx.w))
+        ctx.value = {"name": self.getNT(ctx.n), "werte": self.getList(ctx.w)}
 
     def exitKrit_name(self, ctx):
         ctx.value = self.getNT(ctx.n)
@@ -301,14 +154,10 @@ class Dcm20Listener(BaseListener):
         ctx.value = self.getList(ctx.k)
 
     def exitKenngroesse(self, ctx):
-        ctx.value = Kenngroesse(
-            self.getNT(ctx.kw),
-            self.getNT(ctx.kwb),
-            self.getNT(ctx.kl),
-            self.getNT(ctx.kf),
-            self.getNT(ctx.gst),
-            self.getNT(ctx.kt)
-        )
+        ctx.value = {
+            "kw": self.getNT(ctx.kw), "kwb": self.getNT(ctx.kwb), "kl": self.getNT(ctx.kl),
+            "kf": self.getNT(ctx.kf), "gst": self.getNT(ctx.gst), "kt": self.getNT(ctx.kt)
+        }
 
     def exitKennwert(self, ctx):
         r = self.getNT(ctx.r)
@@ -317,35 +166,55 @@ class Dcm20Listener(BaseListener):
             category = "TEXT"
         else:
             category = "REAL"
-        ctx.value = Kennwert(category, ctx.n.value, self.getNT(ctx.info), self.getNT(ctx.ew), r, t)
+        ctx.value = {
+            "category": category, "name": ctx.n.value, "info": self.getNT(ctx.info),
+            "einheit_w": self.getNT(ctx.ew), "realzahl": r , "text": t
+        }
 
     def exitKennwerteblock(self, ctx):
-        ctx.value = KennwerteBlock(
-            ctx.n.value, ctx.ax.value, self.getNT(ctx.info), self.getNT(ctx.ew), self.getList(ctx.w)
-        )
+        ctx.value = {
+            "name": self.getNT(ctx.n), "anzahl_x": self.getNT(ctx.ax), "info": self.getNT(ctx.info),
+            "einheit_w": self.getNT(ctx.ew), "werteliste_kwb": self.getList(ctx.w)
+        }
 
     def exitKennlinie(self, ctx):
-        ctx.value = Kennlinie(
-            ctx.cat.text, ctx.n.value, ctx.ax.value, self.getNT(ctx.info), self.getNT(ctx.ex),
-            self.getNT(ctx.ew), self.getList(ctx.sst), self.getList(ctx.wl)
-        )
+        ctx.value = {
+            "category": ctx.cat.text, "name": self.getNT(ctx.n), "anzahl_x": self.getNT(ctx.ax),
+            "info": self.getNT(ctx.info), "einheit_x": self.getNT(ctx.ex), "einheit_w": self.getNT(ctx.ew),
+            "sst_liste_x": self.getList(ctx.sst), "werteliste": self.getList(ctx.wl)
+        }
 
     def exitKennfeld(self, ctx):
-        ctx.value = Kennfeld(
-            ctx.cat.text, ctx.n.value, ctx.ax.value, ctx.ay.value, self.getNT(ctx.info), self.getNT(ctx.ex),
-            self.getNT(ctx.ey), self.getNT(ctx.ew), self.getList(ctx.sst), ctx.kf.value
-        )
+        ctx.value = {
+            "category": ctx.cat.text,
+            "name": self.getNT(ctx.n),
+            "anzahl_x": self.getNT(ctx.ax),
+            "anzahl_y": self.getNT(ctx.ay),
+            "info": self.getNT(ctx.info),
+            "einheit_x": self.getNT(ctx.ex),
+            "einheit_y": self.getNT(ctx.ey),
+            "einheit_w": self.getNT(ctx.ew),
+            "sst_liste_x": self.getList(ctx.sst),
+            "kf_zeile_liste": self.getList(ctx.kf)
+        }
 
     def exitGruppenstuetzstellen(self, ctx):
-        ctx.value = Gruppenstuetzstelle(
-            ctx.n.value, self.getNT(ctx.nx), self.getNT(ctx.info), self.getNT(ctx.ex), self.getList(ctx.sl)
-        )
+        ctx.value = {
+            "name": self.getNT(ctx.n), "anzahl_x": self.getNT(ctx.nx), "info": self.getNT(ctx.info),
+            "einheit_x": self.getNT(ctx.ex), "sst_liste_x": self.getList(ctx.sl)
+        }
 
     def exitKenntext(self, ctx):
-        ctx.value = Kenntext(ctx.n.value, self.getNT(ctx.info), self.getNT(ctx.t))
+        ctx.value = {
+            "name": self.getNT(ctx.n), "info": self.getNT(ctx.info), "text": self.getNT(ctx.t)
+        }
 
     def exitKgr_info(self, ctx):
-        ctx.value = KgrInfo(self.getNT(ctx.lname), self.getNT(ctx.dname), self.getNT(ctx.var), self.getNT(ctx.fkt))
+        ctx.value = {
+            "langname": self.getNT(ctx.lname), "displayname":
+            self.getNT(ctx.dname), "var_abhangigkeiten": self.getNT(ctx.var),
+            "funktionszugehorigkeit": self.getNT(ctx.fkt)
+        }
 
     def exitEinheit_x(self, ctx):
         ctx.value = ctx.t.value
@@ -360,13 +229,9 @@ class Dcm20Listener(BaseListener):
         ctx.value = ctx.t.value
 
     def exitDisplayname(self, ctx):
-        t = ctx.t.value
-        n = ctx.n.value
-        if t is None:
-            value = n
-        else:
-            value = t
-        ctx.value = value
+        t = self.getNT(ctx.t)    #ctx.t.value
+        n = self.getNT(ctx.n)    #ctx.n.value
+        ctx.value = {"name_value": n, "text_value": t}
 
     def exitVar_abhangigkeiten(self, ctx):
         ctx.value = self.getList(ctx.v)
@@ -393,7 +258,7 @@ class Dcm20Listener(BaseListener):
             category = "WERT"
         else:
             category = "TEXT"
-        ctx.value = WertelisteKwb(category, rs, ts)
+        ctx.value = {"category": category, "rs": rs, "ts": ts}
 
     def exitSst_liste_x(self, ctx):
         rs = self.getList(ctx.r)
@@ -402,7 +267,7 @@ class Dcm20Listener(BaseListener):
             category = "REAL"
         else:
             category = "TEXT"
-        ctx.value = SstListe(category, rs, ts)
+        ctx.value = {"category": category, "rs": rs, "ts": ts}
 
     def exitKf_zeile_liste(self, ctx):
         rs = self.getList(ctx.r)
@@ -411,10 +276,11 @@ class Dcm20Listener(BaseListener):
             category = "REAL"
         else:
             category = "TEXT"
-        ctx.value = KfZeileListe(category, rs, ts)
+        ctx.value = {"category": category, "rs": rs, "ts": ts}
 
     def exitKf_zeile_liste_r(self, ctx):
-        ctx.value = KfZeileListeR(ctx.r.value, self.getList(ctx.w))
+        ctx.value = {"realzahl": ctx.r.value, "werteliste": self.getList(ctx.w)}
 
     def exitKf_zeile_liste_tx(self, ctx):
-        ctx.value = KfZeileListeTx(ctx.t.value, self.getList(ctx.w))
+        ctx.value = {"text": ctx.t.value, "werteliste": self.getList(ctx.w)}
+
