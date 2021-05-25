@@ -45,11 +45,17 @@ def axis_pts(axis):
 %else:
     DISPLAYNAME ""
 %endif
-%if not inst.category in ("ASCII", "CURVE", "MAP"):
+%if not inst.category in ("ASCII", "CURVE", "MAP", "STUETZSTELLENVERTEILUNG"):
 %if inst.unit:
     EINHEIT_W "${inst.unit}"\
 %else:
     EINHEIT_W ""\
+%elif inst.category == "STUETZSTELLENVERTEILUNG":
+%if inst.unit:
+    EINHEIT_X "${inst.unit}"\
+%else:
+    EINHEIT_X ""\
+%endif
 %endif
 %endif
 </%def>
