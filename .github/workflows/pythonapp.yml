@@ -39,6 +39,18 @@ jobs:
       run: |
         pip install pytest
         pytest
+    - name: Build dists
+      run: |
+           python setup.py bdist_wheel
+           python setup.py sdist --formats=gztar
+    - name: Build and publish
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USER_NAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      if: env.TWINE_USERNAME != null
+      run: |
+        python setup.py sdist bdist_wheel
+        twine upload dist/*
 #    - name: Build dists
 #      run: |
 #           python setup.py bdist_wheel
