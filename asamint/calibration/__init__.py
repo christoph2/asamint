@@ -99,7 +99,7 @@ class CalibrationData(AsamBaseType):
         epk_xcp = xcp_master.pull(len(epk_a2l)).decode("ascii")
         ok = epk_xcp == epk_a2l
         if not ok:
-            self.logger.warn("EPK is invalid -- A2L: '{}' got '{}'.".format(self.mod_par.epk, epk))
+            self.logger.warn("EPK is invalid -- A2L: '{}' got '{}'.".format(self.mod_par.epk, epk_xcp))
         else:
             self.logger.info("OK, found matching EPK.")
         return ok

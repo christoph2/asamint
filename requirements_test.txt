@@ -3,5 +3,6 @@ pyxcp
 pya2ldb
 objutils
 babel
+gmpy
 lz4
 sortedcontainers

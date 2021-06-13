@@ -12,7 +12,7 @@ with open('docs/README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ["asammdf", "objutils", "pya2ldb", "pyxcp", "babel", "lz4", "sortedcontainers"]
+requirements = ["asammdf", "objutils", "pya2ldb", "pyxcp", "babel", "lz4", "sortedcontainers", "gmpy"]
 
 setup_requirements = ['pytest-runner', ]
 

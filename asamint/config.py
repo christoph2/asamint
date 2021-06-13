@@ -4,7 +4,7 @@
 __copyright__ = """
     pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2009-2020 by Christoph Schueler <cpu12.gems@googlemail.com>
+   (C) 2009-20210 by Christoph Schueler <cpu12.gems@googlemail.com>
 
    All Rights Reserved
 
@@ -25,6 +25,7 @@ __copyright__ = """
 
 from collections.abc import MutableMapping
 import io
+import json
 import pathlib
 import toml
 
@@ -42,7 +43,7 @@ def read_configuration(conf):
         suffix = pth.suffix.lower()
         if suffix == '.json':
             reader = json
-        elif suffix == '.toml' and HAS_TOML:
+        elif suffix == '.toml':
             reader = toml
         else:
             reader = None

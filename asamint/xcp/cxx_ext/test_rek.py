@@ -3,7 +3,7 @@
 
 import rekorder as r
 
-rek = XcpLogFileReader("rekorder.xmraw")
+rek = r.XcpLogFileReader("rekorder.xmraw")
 
 def main():
     pass

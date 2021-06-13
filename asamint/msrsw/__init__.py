@@ -8,7 +8,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2021 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -31,6 +31,8 @@ __copyright__ = """
 
 __author__ = """Christoph Schueler"""
 __email__ = 'cpu12.gems@googlemail.com'
+
+from pprint import pprint
 
 from lxml import etree
 import numpy as np

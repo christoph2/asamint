@@ -8,7 +8,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2021 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -83,7 +83,7 @@ class ArgumentParser:
             transport = self.project['TRANSPORT'].lower()
             master = Master(transport, config = self.project) if self.use_xcp else None
             if self.callout:
-                self.callout(master, args)
+                self.callout(master, self.args)
             return master
 
     @property

@@ -43,6 +43,8 @@ import time
 from babel import default_locale
 from babel.dates import format_datetime
 from lxml.etree import SubElement, Comment
+import numpy as np
+import gmpy
 
 SINGLE_BITS = frozenset([2 ** b for b in range(64 + 1)])
 

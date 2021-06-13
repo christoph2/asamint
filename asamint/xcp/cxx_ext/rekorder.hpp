@@ -3,13 +3,34 @@
 #define __REKORDER_HPP
 
 
+#include <algorithm>
 #include <cassert>
-
-#include <functional>
+#include <cstdio>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <map>
+#include <system_error>
 #include <vector>
+
+
+#include <lz4>
+#include <mio/mmap.hpp>
+
+void allocate_file(const std::string& path, const int size)
+{
+    std::ofstream file(path);
+    std::string s(size, '0');
+    file << s;
+}
+
+int handle_error(const std::error_code& error)
+{
+    const auto& errmsg = error.message();
+
+    std::printf("error mapping file: %s, exiting...\n", errmsg.c_str());
+    return error.value();
+}
 
 
 class XcpLogFileReader {
@@ -18,7 +39,46 @@ public:
     XcpLogFileReader() = delete;
 
     explicit XcpLogFileReader(const std::string& file_name) {
-        m_file = new std::fstream(file_name, std::fstream::out | std::fstream::binary | std::fstream::trunc);
+        allocate_file(file_name, 155);
+
+        std::error_code error;
+        mio::mmap_sink rw_mmap = mio::make_mmap_sink(file_name, 0, mio::map_entire_file, error);
+
+        if (error) {
+            handle_error(error);
+        }
+
+        std::fill(rw_mmap.begin(), rw_mmap.end(), 'a');
+
+        // Or manually iterate through the mapped region just as if it were any other
+        // container, and change each byte's value (since this is a read-write mapping).
+
+        for (auto& b : rw_mmap) {
+             b += 10;
+        }
+
+        const int answer_index = rw_mmap.size() / 2;
+        rw_mmap[answer_index] = 42;
+
+        rw_mmap.sync(error);
+        if (error) { 
+            handle_error(error); 
+        }
+
+        rw_mmap.unmap();
+
+#if 0
+        mio::mmap_source ro_mmap;
+        ro_mmap.map(file_name, error);
+        if (error) { 
+            handle_error(error); 
+        }
+
+        const int the_answer_to_everything = ro_mmap[answer_index];
+        assert(the_answer_to_everything == 42);
+#endif
+
+//        m_file = new std::fstream(file_name, std::fstream::out | std::fstream::binary | std::fstream::trunc);
     }
 
     ~XcpLogFileReader() {

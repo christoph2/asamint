@@ -41,7 +41,7 @@ from asamint.cdf import CDFCreator
 from asamint.utils.optimize import McObject, make_continuous_blocks, binpacking
 from asamint.utils import current_timestamp
 import pya2l.model as model
-from pya2l.api.inspect import AxisPts, Characteristic, Group, Function
+from pya2l.api.inspect import AxisPts, Characteristic, Group, Function, ModPar, ModCommon
 from objutils import dump, load, Image, Section
 
 
@@ -74,7 +74,7 @@ class CalibrationData(AsamBaseType):
         epk_xcp = xcp_master.pull(len(epk_a2l)).decode("ascii")
         ok = epk_xcp == epk_a2l
         if not ok:
-            self.logger.warn("EPK is invalid -- A2L: '{}' got '{}'.".format(self.mod_par.epk, epk))
+            self.logger.warn("EPK is invalid -- A2L: '{}' got '{}'.".format(epk_a2l, epk_xcp))
         else:
             self.logger.info("OK, found matching EPK.")
         return ok
@@ -91,7 +91,7 @@ class CalibrationData(AsamBaseType):
             return None
         else:
             addr = self.mod_par.addrEpk[0]
-            epk = epk.decode("ascii")
+            epk = self.mod_par.epk.decode("ascii")
             return (epk, addr)
 
     def upload_calram(self, xcp_master, file_type: str = "ihex"):
