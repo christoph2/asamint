@@ -13,8 +13,7 @@
 #include <system_error>
 #include <vector>
 
-
-#include <lz4>
+#include <lz4.h>
 #include <mio/mmap.hpp>
 
 void allocate_file(const std::string& path, const int size)
@@ -32,6 +31,29 @@ int handle_error(const std::error_code& error)
     return error.value();
 }
 
+class XcpLogFileWriter {
+public:
+    XcpLogFileWriter() = delete;
+
+    explicit XcpLogFileWriter(const std::string& file_name) {
+        allocate_file(file_name, 155);
+
+        std::error_code error;
+        m_file = mio::make_mmap_sink(file_name, 0, mio::map_entire_file, error);
+
+        if (error) {
+            handle_error(error);
+        }
+
+    }
+
+    ~XcpLogFileWriter() {
+
+    }
+
+private:
+    mio::mmap_sink m_file; 
+};
 
 class XcpLogFileReader {
 public:
