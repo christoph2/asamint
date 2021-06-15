@@ -44,7 +44,6 @@ from babel import default_locale
 from babel.dates import format_datetime
 from lxml.etree import SubElement, Comment
 import numpy as np
-import gmpy
 
 SINGLE_BITS = frozenset([2 ** b for b in range(64 + 1)])
 
@@ -143,11 +142,6 @@ def ffs(v: int) -> int:
 def ffs_np(v):
     """Find first set bit (numpy)."""
     return np.uint64(np.log2((v & (-v)))) if v != 0 else 0
-
-
-def ffs_gm(v):
-    """Find first set bit (gmpy)."""
-    return gmpy.scan1(v)
 
 def add_suffix_to_path(path: str, suffix: str) -> str:
     """(Conditionally) add / replace suffix/extension to a path."""
