@@ -3,6 +3,6 @@
 
 int main(int ac, char const * av[])
 {
-    auto logf = XcpLogWriter("rekorder.xmraw");
+    auto logf = XcpLogFileWriter("rekorder.xmraw");
     return 0;
 }
