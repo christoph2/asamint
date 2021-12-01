@@ -107,3 +107,16 @@ def test_mc_containment():
     assert 0x1004 in mo
     assert 0x1005 not in mo
 
+
+def test_mc_index():
+    mo = McObject("", 0x1000, 5)
+    with pytest.raises(ValueError):
+        assert mo.index(0x0fff)
+    assert mo.index(0x1000) == 0
+    assert mo.index(0x1001) == 1
+    assert mo.index(0x1002) == 2
+    assert mo.index(0x1003) == 3
+    assert mo.index(0x1004) == 4
+    with pytest.raises(ValueError):
+        assert mo.index(0x1005)
+

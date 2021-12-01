@@ -27,8 +27,53 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
+from collections import defaultdict, namedtuple
 from itertools import groupby
 from operator import attrgetter
+
+from sortedcontainers import SortedListWithKey
+
+_SORT_BY_ADDRESS_AND_EXT = lambda e: (e[0].ext, e[0].address, )
+
+OdtEntry = namedtuple("OdtEntry", "odt_idx, odt_entry_idx, offset")
+
+
+class DaqList:
+    """
+    """
+
+    def __init__(self, odts, measurement_summary):
+        self.odts = odts
+        self.measurement_summary = measurement_summary
+        adl = SortedListWithKey(key = _SORT_BY_ADDRESS_AND_EXT)
+        for odt_idx, odt in enumerate(odts):
+            for odt_entry_idx, odt_entry in enumerate(odt):
+                adl.add((odt_entry, odt_idx, odt_entry_idx))
+        #print(adl)
+        self.adl = adl
+        flo = []
+        for name, address, ext, datatype, typesize, cm in measurement_summary:
+            res = self.find(address, ext)
+            print(name, hex(address), datatype, typesize, cm, res)
+            flo.append((name, hex(address), datatype, typesize, cm, res))
+
+
+    def find(self, address, ext = 0):
+        """ """
+        last_idx = len(self.adl) - 1
+        idx = self.adl.bisect_key((ext, address)) - 1
+        if idx < 0 or idx > last_idx:
+            return None
+        else:
+            entry, odt_idx, odt_entry_idx = self.adl[idx]
+            if entry.ext != ext:
+                return None
+            if entry.address <= address < entry.address + entry.length:
+                offset = address - entry.address
+                return (odt_idx, odt_entry_idx, offset)
+            else:
+                return None
+
 
 class McObject:
     """Measurement and Calibration objects have an address and a length.
@@ -47,7 +92,16 @@ class McObject:
     def __eq__(self, other):
         return self.address == other.address and self.length == other.length
 
-def make_continuous_blocks(chunks):
+    def __contains__(self, address):
+        return self.address <= address < self.address + self.length
+
+    def index(self, address):
+        if address not in self:
+            raise ValueError("0x{:08x} is not in address range.".format(address))
+        else:
+            return address - self.address
+
+def make_continuous_blocks(chunks, upper_bound = None, upper_bound_initial = None):
     """Try to make continous blocks from a list of small, unordered `chunks`.
 
     Parameters
@@ -67,6 +121,7 @@ def make_continuous_blocks(chunks):
         values.append(max(value, key = attrgetter("length")))
     result_sections = []
     last_section = None
+    initial = True
     while values:
         section = values.pop(0)
         if last_section and section.address <= last_section.address + last_section.length:
@@ -75,9 +130,17 @@ def make_continuous_blocks(chunks):
             if last_end > section.address:
                 pass
             else:
-                last_section.length += current_end - last_end
+                offset = current_end - last_end
+                if upper_bound:
+                    if last_section.length + offset <= upper_bound:
+                        last_section.length += offset
+                    else:
+                        result_sections.append(McObject(address = section.address, length = section.length))
+                else:
+                    last_section.length += offset
         else:
             # Create a new section.
             result_sections.append(McObject(address = section.address, length = section.length))
         last_section = result_sections[-1]
+        initial = False
     return result_sections

@@ -10,9 +10,9 @@ Examples
 
 See
 
-- ``_ for recording / writing
+- `https://github.com/christoph2/asamint/xcp.__init__.py`_ for recording / writing
 
--  ``_ for reading.
+-  `https://github.com/christoph2/asamint/scripts/xcp_log.py`_ for reading / exporting.
 """
 
 __copyright__ = """
@@ -39,12 +39,14 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
-
+import bisect
 from collections import namedtuple
 import enum
 import mmap
+from multiprocessing import Event, Process, Pool, Queue, cpu_count
 import os
 import pathlib
+from pprint import pprint
 import struct
 
 import lz4.block as lz4block
@@ -62,6 +64,22 @@ ContainerHeader = namedtuple("ContainerHeader", "record_count size_compressed si
 
 DAQ_RECORD_STRUCT = struct.Struct("<BHdL")
 DAQRecord = namedtuple("DAQRecord", "category counter timestamp payload")
+
+
+def struct_byte_order_prefix(byte_order: str) -> str:
+    """Get byte order prefix needed for struct (un)packing.
+
+    Parameters
+    ----------
+    byte_order: str
+        "INTEL" or "MOTOROLA" (s. `pyxcp.types.ByteOrder`).
+
+    Returns
+    -------
+    str
+        "<" or ">"
+    """
+    return "<" if byte_order == "INTEL" else ">"
 
 
 class XcpLogCategory(enum.IntEnum):
@@ -93,6 +111,12 @@ class XcpLogFileWriter:
 
     compression_level: int
         s. LZ4 documentation.
+
+    Notes
+    -----
+
+    `prealloc` is a **HARD limit**, if filesize is exceeded a `XcpLogFileCapacityExceededError`
+    exception is raised, but only the last `chunk_size` kilobytes of data are lost.
     """
 
     def __init__(self, file_name: str, prealloc: int = 10, chunk_size: int = 1024,
@@ -272,3 +296,100 @@ class XcpLogFileReader:
     def compression_ratio(self):
         if self.total_size_compressed:
             return self.total_size_uncompressed / self.total_size_compressed
+
+
+class Worker(Process):
+    """
+    """
+
+    def __init__(self, file_name, prealloc: int = 10, chunk_size: int = 1024, compression_level: int = 9):
+        super(Worker, self).__init__()
+        self.shutdown_event = Event()
+        self.frame_queue = Queue()
+        self.file_name = file_name
+        self.prealloc = prealloc
+        self.chunk_size = chunk_size
+        self.compression_level = compression_level
+
+    def run(self):
+        log_writer = XcpLogFileWriter(
+            self.file_name, self.prealloc, chunk_size = self.chunk_size, compression_level = self.compression_level
+        )
+        while True:
+            self.shutdown_event.wait(0.1)
+            if self.shutdown_event.is_set():
+                break
+            try:
+                 frames = self.frame_queue.get(block = True, timeout = 0.1)
+            except Exception:
+                continue
+            else:
+                log_writer.add_xcp_frames(frames)
+        log_writer.close()
+        self.frame_queue.close()
+        self.frame_queue.join_thread()
+
+
+class LogConverter(Process):
+
+    def __init__(self, slave_properties, daq_info, log_file_name):
+        super(LogConverter, self).__init__()
+        self.daq_info = daq_info
+        self.slave_properties = slave_properties
+        self.byte_order_prefix = struct_byte_order_prefix(slave_properties["byteOrder"])
+
+        self.log_file_name = log_file_name
+
+    def run(self):
+
+        DAQ_TIMESTAMP_FORMAT = {
+            "S1": "B",
+            "S2": "H",
+            "S4": "L",
+        }
+
+        DAQ_PID_FORMAT = {
+            "IDF_ABS_ODT_NUMBER": "B",
+            "IDF_REL_ODT_NUMBER_ABS_DAQ_LIST_NUMBER_BYTE": "BB",
+            "IDF_REL_ODT_NUMBER_ABS_DAQ_LIST_NUMBER_WORD": "BH",
+            "IDF_REL_ODT_NUMBER_ABS_DAQ_LIST_NUMBER_WORD_ALIGNED": "BxH",
+        }
+
+        daq_pro = self.daq_info.get("processor")
+        daq_key_byte = daq_pro.get("keyByte")
+        daq_resolution = self.daq_info.get("resolution")
+        time_stamp_mode = daq_resolution.get("timestampMode")
+        time_stamp_size = time_stamp_mode.get("size")
+        idf = daq_key_byte['identificationField']
+
+        if idf:
+            daq_pid_struct = struct.Struct("{}{}".format(self.byte_order_prefix, DAQ_PID_FORMAT.get(idf)))
+            daq_pid_size = daq_pid_struct.size
+        else:
+            daq_pid_struct = None
+            daq_pid_size = 0
+        ts_format = DAQ_TIMESTAMP_FORMAT.get(time_stamp_size)
+        if ts_format:
+            daq_timestamp_struct = struct.Struct("{}{}".format(self.byte_order_prefix, ts_format))
+            daq_timestamp_size = daq_timestamp_struct.size
+        else:
+            daq_timestamp_struct = None
+            daq_timestamp_size = 0
+
+        reader = XcpLogFileReader(self.log_file_name)
+        print("# of containers:    ", reader.num_containers)
+        print("# of frames:        ", reader.total_record_count)
+        print("Size / uncompressed:", reader.total_size_uncompressed)
+        print("Size / compressed:  ", reader.total_size_compressed)
+        print("Compression ratio:   {:3.3f}".format(reader.compression_ratio or 0.0))
+        print("-" * 32, end = "\n\n")
+        print("Processing frames...")
+        for frame in reader.frames:
+            cat, counter, timestamp, data = frame
+            if daq_pid_struct:
+                daq_pid = daq_pid_struct.unpack(data[ : daq_pid_size])
+                daq_timestamp = daq_timestamp_struct.unpack(data[daq_pid_size : daq_pid_size + daq_timestamp_size])
+                payload = data[daq_pid_size  + daq_timestamp_size :]
+                #print("PID/TS", daq_pid, daq_timestamp, "DATA:", payload.tolist())
+        print("OK, done.")
+

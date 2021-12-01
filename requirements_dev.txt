@@ -1,3 +1,4 @@
+pybind11
 pip
 bumpversion
 wheel

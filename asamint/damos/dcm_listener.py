@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Damos DCM 20.0 Parser.
+"""Damos DCM 2.0 Parser.
 """
 
 __copyright__ = """

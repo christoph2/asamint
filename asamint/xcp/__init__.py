@@ -36,10 +36,10 @@ import time
 
 
 from asamint.asam import AsamBaseType, TYPE_SIZES
-from asamint.xcp.reco import XcpLogFileWriter
+from asamint.xcp.reco import Worker, LogConverter
 from asamint.cdf import CDFCreator
-from asamint.utils.optimize import McObject, make_continuous_blocks, binpacking
-from asamint.utils import current_timestamp
+from asamint.utils.optimize import DaqList, McObject, make_continuous_blocks, binpacking
+from asamint.utils import chunks, current_timestamp
 import pya2l.model as model
 from pya2l.api.inspect import AxisPts, Characteristic, Group, Function, ModPar, ModCommon
 from objutils import dump, load, Image, Section
@@ -233,7 +233,7 @@ class CalibrationData(AsamBaseType):
         return img
 
 
-DaqEntry = namedtuple("DaqEntry", "daq odt entry bitoff length ext address")
+DaqEntry = namedtuple("DaqEntry", "bitoff length address ext")
 
 DAQ_ID_FIELD_SIZE = {
     "IDF_ABS_ODT_NUMBER": 1,
@@ -243,50 +243,44 @@ DAQ_ID_FIELD_SIZE = {
 }
 
 
+def associate_measurement_to_odt_entry():
+    """
+    """
+
+
 class XCPMeasurement(AsamBaseType):
-    """
-    GROUP Measure
-    """
+    """ """
 
     def on_init(self, project_config, experiment_config, *args, **kws):
         self.loadConfig(project_config, experiment_config)
-        self.address_mapping = defaultdict(set)
 
     def setup_groups(self, groups):
-        # 'maxDto'
-        # 'maxWriteDaqMultipleElements'
-        #
-        # 'processor'['optimisationType', 'resolution']
-
         result = []
+        measurement_summary = []
         for name in groups:
-            result.extend(self._collect_group(name))
-        #print("RESULT:", result, end = "\n\n")
+            result.extend(self._collect_group(name, measurement_summary = measurement_summary))
         blocks = make_continuous_blocks(result)
-        #print("BLOXxX:", blocks, end = "\n\n")
+        return blocks, measurement_summary
 
-        for k, items in sorted(self.address_mapping.items(), key = lambda x: x[0]):
-            print("ADDR: 0x{:08x}::{}".format(*k))
-            for item in sorted(items, key = lambda x: x.name):
-                print("\t", item.name)
-        return blocks
-
-
-    def _collect_group(self, name: str, recursive: bool = True, level = 0):
+    def _collect_group(self, name: str, recursive: bool = True, measurement_summary: list = None):
         """
         """
         result = []
         gr = Group(self.session, name)
         for meas in gr.measurements:
-            spaces = "  " * level
-            print(spaces, meas.name, hex(meas.ecuAddress), meas.ecuAddressExtension, meas.datatype, TYPE_SIZES.get(meas.datatype))
+            if meas.is_virtual:
+                continue
+            measurement_summary.append(
+                (meas.name, meas.ecuAddress, meas.ecuAddressExtension, meas.datatype,
+                    TYPE_SIZES.get(meas.datatype), meas.compuMethod.name
+                )
+            )
             result.append(McObject(
                 meas.name, meas.ecuAddress, TYPE_SIZES.get(meas.datatype))
             )
-            self.address_mapping[(meas.ecuAddress, meas.ecuAddressExtension)].add(meas)
         if recursive:
             for sg in gr.subgroups:
-                result.extend(self._collect_group(sg.name, recursive = recursive, level = level + 1))
+                result.extend(self._collect_group(sg.name, recursive = recursive, measurement_summary = measurement_summary))
         return result
 
     def start_measurement(self, xcp_master, groups = None):
@@ -294,120 +288,102 @@ class XCPMeasurement(AsamBaseType):
         self.intermediate_storage = []
 
         xcp_master.cro_callback = self.wockser
-        self.log_writer = XcpLogFileWriter("rekorder", 10, chunk_size = 250, compression_level = 9)
 
-        blocks = self.setup_groups(groups)
+        self.worker = Worker("rekorder")
 
-        xcp_master.freeDaq()
+        blocks, measurement_summary = self.setup_groups(groups)
+
         slp = xcp_master.slaveProperties
         max_dto = slp["maxDto"]
+        byteOrder = slp["byteOrder"]
+
+        maxWriteDaqMultipleElements = slp.maxWriteDaqMultipleElements   # TODO: Optional service.
+        maxWriteDaqMultipleElements = 0     # Don't use for now
+
         daq_info = xcp_master.getDaqInfo()
-        pprint(daq_info, indent = 4)
         daq_proc = daq_info["processor"]
-        daq_proc_props = daq_proc["properties"]
         idf = daq_proc["keyByte"]["identificationField"]
         idf_size = DAQ_ID_FIELD_SIZE[idf]
         bin_size = max_dto - idf_size
-        print("MAX_DTO", max_dto, bin_size)
         bins = binpacking.first_fit_decreasing(items = blocks, bin_size = bin_size)
+        #for bin in bins:
+        #    for entry in sorted(bin.entries, key = lambda e: e.address):
+        #        print(entry)
         bin_count = len(bins)
+
+        # Create / Allocate DAQs
+        xcp_master.freeDaq()
         xcp_master.allocDaq(1)
         xcp_master.allocOdt(0, bin_count)
         entries = []
+
+        daqs = []
+        odts = []
         for odt_num in range(bin_count):
             bin = bins[odt_num]
             xcp_master.allocOdtEntry(0, odt_num, bin.num_entries)
+            odt_entries = []
             for odt_entry_num in range(bin.num_entries):
                 odt_entry = bin.entries[odt_entry_num]
-                entries.append(DaqEntry(daq = 0, odt = odt_num, entry = odt_entry_num, bitoff = 255, length = odt_entry.length, ext = 0, address = odt_entry.address))
-        for daq, odt, entry, bitoff, size, ext, addr in entries:
-            xcp_master.setDaqPtr(daq, odt, entry)
-            xcp_master.writeDaq(bitoff, size, ext, addr)
+                odt_entries.append(DaqEntry(
+                    bitoff = 0xff, length = odt_entry.length, ext = 0, address = odt_entry.address)
+                )
+            odts.append(odt_entries)
+        daqs.append(odts)
+        #pprint(daqs, indent = 4)
+        daq_list = DaqList(odts, measurement_summary)
+
+        """
+        daq_list.find(0xe10be)
+        daq_list.find(0xe10be, ext = 1)
+        daq_list.find(0x125438)
+        daq_list.find(0x125439)
+        daq_list.find(0x12543a)
+        #daq_list.find(0x125438, 3)
+        daq_list.find(0x1000, 0)
+        #daq_list.find(0x1000, 1)
+        daq_list.find(0x12543c)
+        daq_list.find(0x12543d)
+        """
+
+        # Write DAQs.
+        for daq_idx, daq in enumerate(daqs):
+            for odt_idx, odt in enumerate(daq):
+                xcp_master.setDaqPtr(daq_idx, odt_idx, 0)
+                if maxWriteDaqMultipleElements:
+                    for requ in chunks(odt, maxWriteDaqMultipleElements):
+                        xcp_master.writeDaqMultiple([dict(
+                            bitOffset = r.bitoff, size = r.length, address = r.address, addressExt = r.ext) for r in requ]
+                        )
+                else:
+                    for odt_entry_idx, odt_entry in enumerate(odt):
+                        xcp_master.writeDaq(odt_entry.bitoff, odt_entry.length, odt_entry.ext, odt_entry.address)
 
         xcp_master.setDaqListMode(mode = 0x10, daqListNumber = 0, eventChannelNumber = 3, prescaler = 1, priority = 0)
         print("startStopDaqList #0", xcp_master.startStopDaqList(0x02, 0))
         #xcp_master.setDaqListMode(0x10, 1, 2, 1, 0) # , 2)
         #print("startStopDaqList #1", xcp_master.startStopDaqList(0x02, 1))
+
+        self.worker.start()
+
         xcp_master.startStopSynch(0x01)
 
-        time.sleep(5.0 * 4 * 200)
+        time.sleep(5.0 * 2) #  * 200
         xcp_master.startStopSynch(0x00)
         #xcp_master.freeDaq()
+        self.worker.shutdown_event.set()
+        self.worker.join()
 
-        if self.uncompressed_size:
-            print("Bytes remaining", self.uncompressed_size)
-            #print(self.intermediate_storage)
-
-        self.log_writer.close()
-
-        """
-        xcp_master.allocDaq(2)
-
-        xcp_master.allocOdt(0, 13)
-        xcp_master.allocOdt(1, 2)
-
-        xcp_master.allocOdtEntry(0, 0, 1)
-        xcp_master.allocOdtEntry(0, 1, 1)
-        xcp_master.allocOdtEntry(0, 2, 1)
-        xcp_master.allocOdtEntry(0, 3, 1)
-        xcp_master.allocOdtEntry(0, 4, 1)
-        xcp_master.allocOdtEntry(0, 5, 1)
-        xcp_master.allocOdtEntry(0, 6, 1)
-        xcp_master.allocOdtEntry(0, 7, 1)
-        xcp_master.allocOdtEntry(0, 8, 1)
-        xcp_master.allocOdtEntry(0, 9, 1)
-        xcp_master.allocOdtEntry(0, 10, 1)
-        xcp_master.allocOdtEntry(0, 11, 3)
-        xcp_master.allocOdtEntry(0, 12, 5)
-
-        xcp_master.allocOdtEntry(1, 0, 1)
-        xcp_master.allocOdtEntry(1, 1, 1)
-
-        de0 = (
-            DaqEntry(daq=0, odt=0,  entry=0, bitoff=255, size=2, ext=0, addr=0x001BE068),
-            DaqEntry(daq=0, odt=1,  entry=0, bitoff=255, size=6, ext=0, addr=0x001BE06A),
-            DaqEntry(daq=0, odt=2,  entry=0, bitoff=255, size=6, ext=0, addr=0x001BE070),
-            DaqEntry(daq=0, odt=3,  entry=0, bitoff=255, size=6, ext=0, addr=0x001BE076),
-            DaqEntry(daq=0, odt=4,  entry=0, bitoff=255, size=6, ext=0, addr=0x001BE07C),
-            DaqEntry(daq=0, odt=5,  entry=0, bitoff=255, size=6, ext=0, addr=0x001BE082),
-            DaqEntry(daq=0, odt=6,  entry=0, bitoff=255, size=6, ext=0, addr=0x001BE088),
-            DaqEntry(daq=0, odt=7,  entry=0, bitoff=255, size=6, ext=0, addr=0x001BE08E),
-            DaqEntry(daq=0, odt=8,  entry=0, bitoff=255, size=6, ext=0, addr=0x001BE094),
-            DaqEntry(daq=0, odt=9,  entry=0, bitoff=255, size=6, ext=0, addr=0x001BE09A),
-            DaqEntry(daq=0, odt=10, entry=0, bitoff=255, size=6, ext=0, addr=0x001BE0A0),
-            DaqEntry(daq=0, odt=11, entry=0, bitoff=255, size=2, ext=0, addr=0x001BE0A6),
-            DaqEntry(daq=0, odt=11, entry=1, bitoff=255, size=1, ext=0, addr=0x001BE0CF),
-            DaqEntry(daq=0, odt=11, entry=2, bitoff=255, size=3, ext=0, addr=0x001BE234),
-            DaqEntry(daq=0, odt=12, entry=0, bitoff=255, size=1, ext=0, addr=0x001BE237),
-            DaqEntry(daq=0, odt=12, entry=1, bitoff=255, size=1, ext=0, addr=0x001BE24F),
-            DaqEntry(daq=0, odt=12, entry=2, bitoff=255, size=1, ext=0, addr=0x001BE269),
-            DaqEntry(daq=0, odt=12, entry=3, bitoff=255, size=1, ext=0, addr=0x001BE5A3),
-            DaqEntry(daq=0, odt=12, entry=4, bitoff=255, size=1, ext=0, addr=0x001C0003),
-            DaqEntry(daq=1, odt=0 , entry=0, bitoff=255, size=2, ext=0, addr=0x001C002C),
-            DaqEntry(daq=1, odt=1 , entry=0, bitoff=255, size=2, ext=0, addr=0x001C002E),
-        )
-
-        for daq, odt, entry, bitoff, size, ext, addr in de0:
-            xcp_master.setDaqPtr(daq, odt, entry)
-            xcp_master.writeDaq(bitoff, size, ext, addr)
-
-        xcp_master.setDaqListMode(0x10, 0, 1, 1, 0) # , 1)
-        print("startStopDaqList #0", xcp_master.startStopDaqList(0x02, 0))
-        xcp_master.setDaqListMode(0x10, 1, 2, 1, 0) # , 2)
-        print("startStopDaqList #1", xcp_master.startStopDaqList(0x02, 1))
-        xcp_master.startStopSynch(0x01)
-        """
-    # Don't support virtual measurements for now, to keep things simple.
+        lc = LogConverter(slp, daq_info, "rekorder")
+        lc.start()
+        lc.join()
 
     def wockser(self, catagory, *args):
         response, counter, length, timestamp = args
-        #print(catagory, response, counter, length, timestamp)   # .tobytes()
         raw_data = response.tobytes()
         self.intermediate_storage.append((counter, timestamp, raw_data, ))
-        #li = DAQ_RECORD_STRUCT.pack(1, counter, timestamp, length)
         self.uncompressed_size += len(raw_data) + 12
         if self.uncompressed_size > 10 * 1024:
-            #print("PUSH to worker!!")
-            self.log_writer.add_xcp_frames(self.intermediate_storage)
+            self.worker.frame_queue.put(self.intermediate_storage)
             self.intermediate_storage = []
             self.uncompressed_size = 0
