@@ -72,14 +72,14 @@ class ParserWrapper:
 
     def parse(self, input, trace=False):
         lexer = self.lexerClass(input)
-        lexer.removeErrorListeners()
-        lexer.addErrorListener(MyErrorListener())
+        #lexer.removeErrorListeners()
+        #lexer.addErrorListener(MyErrorListener())
         tokenStream = antlr4.CommonTokenStream(lexer)
         #        tokenStream = BufferedTokenStream(lexer)
         parser = self.parserClass(tokenStream)
         parser.setTrace(trace)
-        parser.removeErrorListeners()
-        parser.addErrorListener(MyErrorListener())
+        #parser.removeErrorListeners()
+        #parser.addErrorListener(MyErrorListener())
         meth = getattr(parser, self.startSymbol)
         self._syntaxErrors = parser._syntaxErrors
         tree = meth()
