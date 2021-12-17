@@ -94,7 +94,7 @@ class AsamBaseType:
         self.logger = getLogger(self.__class__.__name__)
         self.logger.setLevel(self.project_config.get("LOGLEVEL"))
         self.mod_common = ModCommon.get(self.session)
-        self.mod_par = ModPar.get(self.session)
+        self.mod_par = ModPar.get(self.session) if ModPar.exists(self.session) else None
         self.on_init(project_config, experiment_config, *args, **kws)
 
     def on_init(self, *args, **kws):

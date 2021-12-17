@@ -172,8 +172,8 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         else:
             is_text = False
         cont = self.no_axis_container(
-            name = name, descr = descr, category = category, unit = unit,
-            displayIdentifier = displayIdentifier, feature_ref = feature_ref
+            name = name, descr = descr, category = category, unit = unit, displayIdentifier = displayIdentifier,
+            feature_ref = feature_ref
         )
         values = create_elem(cont, "SW-VALUES-PHYS")
         if is_text and value:
@@ -247,5 +247,6 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         )
         value_cont = create_elem(variant, "SW-VALUE-CONT")
         if unit:
+            print("NO-AXIS-CONT:", name, descr, category, unit, displayIdentifier, feature_ref)
             create_elem(value_cont, "UNIT-DISPLAY-NAME", text = unit)
         return value_cont
