@@ -8,7 +8,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2021 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -247,6 +247,5 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         )
         value_cont = create_elem(variant, "SW-VALUE-CONT")
         if unit:
-            print("NO-AXIS-CONT:", name, descr, category, unit, displayIdentifier, feature_ref)
             create_elem(value_cont, "UNIT-DISPLAY-NAME", text = unit)
         return value_cont

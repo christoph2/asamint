@@ -30,6 +30,7 @@ __copyright__ = """
 """
 
 from collections import OrderedDict
+import functools
 import os
 
 import numpy as np
@@ -153,6 +154,77 @@ class CalibrationData(AsamBaseType):
         self.load_hex()
         self.save()
 
+    def upload_calram(self, xcp_master, file_type: str = "ihex"):
+        """Tansfer RAM segments from ECU to MCS.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        :class:`~objutils.Image` or `None`, if there are no suitable segments to read out.
+
+        Note
+        ----
+        Depending on your calibration concept, CalRAM may or may not cover all of your parameters.
+        s. `upload_parameters`
+        """
+
+        if file_type:
+            file_type = file_type.lower()
+        if not file_type in ("ihex", "srec"):
+            raise ValueError("'file_type' must be either 'ihex' or 'srec'")
+        ram_segments = []
+        mp = ModPar(self.session, None) #  or None)
+        for segment in mp.memorySegments:
+            if segment['memoryType'] == "RAM":
+                ram_segments.append((segment['address'], segment['size'], ))
+        if not ram_segments:
+            return  # ECU program doesn't define any RAM segments.
+        sections = []
+        xcp_master.setCalPage(0x83, 0, 0)   # TODO: Requires paging information from IF_DATA section.
+        page = 0
+        for addr, size in ram_segments:
+            xcp_master.setMta(addr)
+            mem = xcp_master.pull(size)
+            sections.append(Section(start_address = addr, data = mem))
+        file_name = "CalRAM{}_P{}.{}".format(current_timestamp(), page, "hex" if file_type == "ihex" else "srec")
+        file_name = os.path.join(self.sub_dir("hexfiles"), file_name)
+        img = Image(sections = sections, join = False)
+        with open("{}".format(file_name), "wb") as outf:
+            dump(file_type, outf, img, row_length = 32)
+        self.logger.info("CalRAM written to {}".format(file_name))
+        return img
+
+    def download_calram(self, xcp_master, module_name : str = None, data: bytes = None):
+        """Tansfer RAM segments from MCS to ECU.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        if not data:
+            return
+        ram_segments = []
+        mp = ModPar(self.session, module_name or None)
+        segment = mp.memorySegments[0]
+        if segment['memoryType'] == "RAM":
+            xcp_master.setMta(segment['address'])
+            #xcp_master.setMta(0x4000)
+            xcp_master.push(data)
+        #for segment in mp.memorySegments:
+        #    if segment['memoryType'] == "RAM":
+        #        ram_segments.append((segment['address'], segment['size'], ))
+        #if not ram_segments:
+        #    return None # ECU program doesn't define RAM segments.
+        #sections = []
+        #for addr, size in ram_segments:
+        #    xcp_master.setMta(addr)
+        #    mem = xcp_master.fetch(size)
+        #    sections.append(Section(start_address = addr, data = mem))
+
     def upload_parameters(self, xcp_master, save_to_file: bool = True, hexfile_type: str = "ihex"):
         """
         Parameters
@@ -194,6 +266,8 @@ class CalibrationData(AsamBaseType):
                 characteristic.name, characteristic.address, mem_size)
             )
         blocks = make_continuous_blocks(result)
+        total_size = functools.reduce(lambda a, s: s.length + a, blocks, 0)
+        self.logger.info("Fetching a total of {:.2f} KBytes from XCP slave".format(total_size / 1024))
         sections = []
         for block in blocks:
             xcp_master.setMta(block.address)
@@ -345,10 +419,7 @@ class CalibrationData(AsamBaseType):
                 else:
                     reversed_storage = False
             converted_values = self.int_to_physical(ap, raw_values)
-            if ap._conversionRef != "NO_COMPU_METHOD":
-                unit = ap.compuMethod.refUnit
-            else:
-                unit = None
+            unit = ap.compuMethod.refUnit
             self._parameters["AXIS_PTS"][ap.name] = cmod.AxisPts(
                 name = ap.name,
                 comment = ap.longIdentifier,
@@ -614,12 +685,8 @@ class CalibrationData(AsamBaseType):
     def int_to_physical(self, characteristic, int_values):
         """
         """
-        if characteristic._conversionRef != "NO_COMPU_METHOD":
-            cm = CompuMethod.get(self.session, characteristic.compuMethod)
-            converted_value = cm.int_to_physical(int_values)
-        else:
-            converted_value = int_values
-        return converted_value
+        cm = CompuMethod.get(self.session, characteristic.compuMethod)
+        return cm.int_to_physical(int_values)
 
     @property
     def image(self):

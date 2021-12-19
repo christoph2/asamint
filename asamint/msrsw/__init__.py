@@ -32,6 +32,7 @@ __copyright__ = """
 __author__ = """Christoph Schueler"""
 __email__ = 'cpu12.gems@googlemail.com'
 
+import os
 from pprint import pprint
 
 from lxml import etree
@@ -56,8 +57,11 @@ class MSRMixIn:
         """
         """
         self.validate()
-        self.logger.info("Saving tree to {}".format(self.generate_filename(self.EXTENSION)))
-        with open("CDF20demo{}".format(self.EXTENSION), "wb") as of:
+        file_name = self.generate_filename(self.EXTENSION)
+        file_name = os.path.join(self.sub_dir("parameters"), file_name)
+        print("FN", file_name)
+        self.logger.info("Saving tree to {}".format(file_name))
+        with open(file_name, "wb") as of:
             of.write(etree.tostring(self.root, encoding = "UTF-8", pretty_print = True, xml_declaration = True, doctype = self.DOCTYPE))
 
     def validate(self):
