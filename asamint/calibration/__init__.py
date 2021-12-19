@@ -268,7 +268,6 @@ class CalibrationData(AsamBaseType):
                 unit = characteristic.compuMethod.unit
             else:
                 unit = characteristic.physUnit
-            print("VAL-UNIT", unit)
             converted_value = self.int_to_physical(characteristic, raw_value)
             if isinstance(converted_value, (int, float)):
                 if is_bool:
@@ -406,8 +405,7 @@ class CalibrationData(AsamBaseType):
             self.logger.debug("Processing {} '{}' @ 0x{:08x}".format(category, characteristic.name, characteristic.address))
             characteristic_cm = characteristic.compuMethod
             chr_cm = CompuMethod.get(self.session, characteristic_cm)
-            print("characteristic_cm", characteristic_cm, chr_cm)
-            fnc_unit = ins_cm.unit
+            fnc_unit = chr_cm.unit
             fnc_datatype = characteristic.record_layout_components.fncValues["datatype"]
             self.record_layout_correct_offsets(characteristic)
             num_func_values = 1
@@ -416,11 +414,9 @@ class CalibrationData(AsamBaseType):
             for axis_idx in range(num_axes):
                 axis_descr = characteristic.axisDescriptions[axis_idx]
                 axis_name = AXES[axis_idx]
-                print("AX name", axis_name)
                 maxAxisPoints = axis_descr.maxAxisPoints
                 axis_cm = CompuMethod.get(self.session, axis_descr.compuMethod)
                 axis_unit = axis_cm.unit
-                print("AX UNIT", axis_unit)
                 axis_attribute = axis_descr.attribute
                 axis = characteristic.record_layout_components.axes(axis_name)
                 fix_no_axis_pts = characteristic.deposit.fixNoAxisPts.get(axis_name)
@@ -449,10 +445,7 @@ class CalibrationData(AsamBaseType):
                         raw_axis_values = fix_axis_par(par['offset'], par['shift'], par['numberapo'])
                     no_axis_points = len(raw_axis_values)
                     converted_axis_values = axis_cm.int_to_physical(raw_axis_values)
-                    #print("FIX_AXIS", characteristic.name, hex(characteristic.address), characteristic.record_layout_components.fncValues , end ="\n\n")
-                    #print("\tNO_AXIS_PTS", no_axis_points, end = " ")
                 elif axis_attribute == "STD_AXIS":
-                    #print("*** STD-AXIS", characteristic.name, hex(characteristic.address), characteristic.record_layout_components.fncValues , end ="\n\n")
                     raw_axis_values = self.read_nd_array(characteristic, "x", "axisPts", no_axis_points)
                     index_incr = axis['axisPts']['indexIncr']
                     if index_incr == 'INDEX_DECR':
@@ -462,7 +455,6 @@ class CalibrationData(AsamBaseType):
                 elif axis_attribute == "RES_AXIS":
                     ref_obj = self._parameters["AXIS_PTS"][axis_descr.axisPtsRef.name]
                     #no_axis_points = min(no_axis_points, len(ref_obj.raw_values) // 2)
-                    #print("*** RES-AXIS", characteristic.name, hex(characteristic.address), axis_descr.axisPtsRef.name, ref_obj.raw_values[1::2], end ="\n\n")
                     axis_pts_ref = axis_descr.axisPtsRef.name
                     raw_axis_values = None
                     converted_axis_values = None
@@ -471,7 +463,6 @@ class CalibrationData(AsamBaseType):
                     reversed_storage = ref_obj.reversed_storage
                 elif axis_attribute == "CURVE_AXIS":
                     ref_obj = self._parameters["CURVE"][axis_descr.curveAxisRef.name]
-                    #print("*** CURVE-AXIS", characteristic.name, hex(characteristic.address), axis_descr.curveAxisRef.name, end ="\n\n")
                     curve_axis_ref = axis_descr.curveAxisRef.name
                     raw_axis_values = None
                     converted_axis_values = None
@@ -480,7 +471,6 @@ class CalibrationData(AsamBaseType):
                     reversed_storage = ref_obj.axes[0].reversed_storage
                 elif axis_attribute == "COM_AXIS":
                     ref_obj = self._parameters["AXIS_PTS"][axis_descr.axisPtsRef.name]
-                    #print("*** COM-AXIS", characteristic.name, hex(characteristic.address), axis_descr.axisPtsRef.name, end ="\n\n")
                     axis_pts_ref = axis_descr.axisPtsRef.name
                     raw_axis_values = None
                     converted_axis_values = None
