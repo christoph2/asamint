@@ -41,7 +41,7 @@ from asamint.utils import SINGLE_BITS, ffs, current_timestamp
 from asamint.utils.optimize import McObject, make_continuous_blocks
 from asamint.calibration import model as cmod
 
-from pya2l.api.inspect import AxisPts, CompuMethod, Characteristic,
+from pya2l.api.inspect import AxisPts, CompuMethod, Characteristic
 from pya2l.api import inspect
 from pya2l.functions import fix_axis_par, fix_axis_par_dist
 
