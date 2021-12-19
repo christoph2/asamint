@@ -41,9 +41,9 @@ from asamint.utils import SINGLE_BITS, ffs, current_timestamp
 from asamint.utils.optimize import McObject, make_continuous_blocks
 from asamint.calibration import model as cmod
 
-from pya2l.api.inspect import Characteristic, AxisPts
+from pya2l.api.inspect import AxisPts, CompuMethod, Characteristic,
 from pya2l.api import inspect
-from pya2l.functions import CompuMethod, fix_axis_par, fix_axis_par_dist
+from pya2l.functions import fix_axis_par, fix_axis_par_dist
 
 import pya2l.model as model
 
@@ -405,10 +405,8 @@ class CalibrationData(AsamBaseType):
         for characteristic in characteristics:
             self.logger.debug("Processing {} '{}' @ 0x{:08x}".format(category, characteristic.name, characteristic.address))
             characteristic_cm = characteristic.compuMethod
-            ins_cm= inspect.CompuMethod.get(self.session, characteristic_cm)
-            fnc_cm = CompuMethod(self.session, ins_cm)
-            print("characteristic_cm", characteristic_cm, ins_cm, fnc_cm)
-            #fnc_unit = characteristic.compuMethod.unit
+            chr_cm = CompuMethod.get(self.session, characteristic_cm)
+            print("characteristic_cm", characteristic_cm, chr_cm)
             fnc_unit = ins_cm.unit
             fnc_datatype = characteristic.record_layout_components.fncValues["datatype"]
             self.record_layout_correct_offsets(characteristic)
@@ -420,17 +418,8 @@ class CalibrationData(AsamBaseType):
                 axis_name = AXES[axis_idx]
                 print("AX name", axis_name)
                 maxAxisPoints = axis_descr.maxAxisPoints
-                axis_pts_cm = axis_descr.compuMethod
-                axis_ins_cm = inspect.CompuMethod.get(self.session, axis_pts_cm)
-                print("AX ins CM", axis_ins_cm)
-                axis_cm = CompuMethod(self.session, axis_ins_cm)
-#                if axis_pts_cm != "NO_COMPU_METHOD":
-#                    axis_cm = CompuMethod(self.session, axis_pts_cm)
-#                else:
-#                    axis_cm = None
-                #if axis_cm:
-                #    axis_unit = axis_descr.compuMethod.unit
-                axis_unit = axis_ins_cm.unit
+                axis_cm = CompuMethod.get(self.session, axis_descr.compuMethod)
+                axis_unit = axis_cm.unit
                 print("AX UNIT", axis_unit)
                 axis_attribute = axis_descr.attribute
                 axis = characteristic.record_layout_components.axes(axis_name)
@@ -522,7 +511,7 @@ class CalibrationData(AsamBaseType):
             )
             if flipper:
                 raw_values = np.flip(raw_values, axis = flipper)
-            converted_values = fnc_cm.int_to_physical(raw_values)
+            converted_values = chr_cm.int_to_physical(raw_values)
             klass = cmod.get_calibration_class(category)
             self._parameters["{}".format(category)][characteristic.name] = klass(
                 name = characteristic.name,
@@ -636,7 +625,7 @@ class CalibrationData(AsamBaseType):
         """
         """
         if characteristic._conversionRef != "NO_COMPU_METHOD":
-            cm = CompuMethod(self.session, characteristic.compuMethod)
+            cm = CompuMethod.get(self.session, characteristic.compuMethod)
             converted_value = cm.int_to_physical(int_values)
         else:
             converted_value = int_values
