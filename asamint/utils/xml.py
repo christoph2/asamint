@@ -59,3 +59,45 @@ def as_numeric(element):
         return D(text)
     except InvalidOperation:
         return text
+
+
+class XMLTraversor:
+    """Visitable XML tree.
+    """
+
+    def __init__(self, file_name):
+        self.doc = etree.parse(file_name)
+        self.doc_root = self.doc.getroot()
+
+    @property
+    def root(self):
+        return self.doc_root
+
+    def generic_visit(self, tree, level = 1):
+        children = tree.getchildren()
+        if not children:
+            if not isinstance(tree.text, str):
+                return None
+            else:
+                return tree.text
+        level += 1
+        result = []
+        for child in children:
+            result.append(self.visit(child))
+        return result
+
+    def visit(self, tree):
+        if not isinstance(tree.tag, str):
+            return
+        method = "visit_{}".format(tree.tag.lower().replace("-", "_"))
+        visitor = getattr(self, method, self.generic_visit)
+        return visitor(tree)
+
+    def visit_children(self, tree):
+        result = []
+        for child in tree.getchildren():
+            result.append(self.visit(child))
+        return result
+
+    def run(self):
+        self.visit(self.root)
