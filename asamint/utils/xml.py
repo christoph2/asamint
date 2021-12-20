@@ -34,7 +34,7 @@ from decimal import (
 )
 
 from lxml import etree
-from lxml.etree import SubElement, Comment
+from lxml.etree import SubElement, Comment, _Comment
 
 
 def create_elem(parent, name, text = None, attrib = {}):
@@ -47,7 +47,7 @@ def create_elem(parent, name, text = None, attrib = {}):
     return elem
 
 def xml_comment(parent, text):
-    """
+    """Add XML comment to an element.
     """
     parent.append(Comment(text))
 
@@ -88,7 +88,11 @@ class XMLTraversor:
 
     def visit(self, tree):
         if not isinstance(tree.tag, str):
-            return
+            if isinstance(tree, _Comment):
+                return {"comment": str(tree)}
+            else:
+                print("NF:", tree)
+                return None
         method = "visit_{}".format(tree.tag.lower().replace("-", "_"))
         visitor = getattr(self, method, self.generic_visit)
         return visitor(tree)
@@ -100,4 +104,4 @@ class XMLTraversor:
         return result
 
     def run(self):
-        self.visit(self.root)
+        return self.visit(self.root)
