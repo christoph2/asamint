@@ -8,7 +8,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2021 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -36,6 +36,7 @@ from pya2l.api.inspect import ModCommon, CompuMethod, Characteristic, Measuremen
 
 from asamint.asam import AsamBaseType
 from asamint.utils import sha1_digest, create_elem, replace_non_c_char
+from asamint.utils.xml import create_elem
 import asamint.msrsw as msrsw
 
 

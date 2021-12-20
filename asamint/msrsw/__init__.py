@@ -39,7 +39,8 @@ from lxml import etree
 import numpy as np
 
 import pya2l.model as model
-from asamint.utils import create_elem, slicer
+from asamint.utils import slicer
+from asamint.utils.xml import create_elem
 
 class MSRMixIn:
     """
@@ -59,7 +60,6 @@ class MSRMixIn:
         self.validate()
         file_name = self.generate_filename(self.EXTENSION)
         file_name = os.path.join(self.sub_dir("parameters"), file_name)
-        print("FN", file_name)
         self.logger.info("Saving tree to {}".format(file_name))
         with open(file_name, "wb") as of:
             of.write(etree.tostring(self.root, encoding = "UTF-8", pretty_print = True, xml_declaration = True, doctype = self.DOCTYPE))

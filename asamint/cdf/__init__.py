@@ -32,8 +32,9 @@ __copyright__ = """
 from lxml import etree
 
 from asamint.utils import (
-    get_dtd, create_elem, add_suffix_to_path, xml_comment
+    get_dtd, add_suffix_to_path
 )
+from asamint.utils.xml import create_elem, xml_comment
 import asamint.msrsw as msrsw
 from asamint.calibration import CalibrationData
 import pya2l.model as model

@@ -42,7 +42,6 @@ import time
 
 from babel import default_locale
 from babel.dates import format_datetime
-from lxml.etree import SubElement, Comment
 import numpy as np
 
 SINGLE_BITS = frozenset([2 ** b for b in range(64 + 1)])
@@ -59,20 +58,6 @@ def convert_name(name):
     This function just replaces dots with underscores.
     """
     return name.replace(".", "_")
-
-def create_elem(parent, name, text = None, attrib = {}):
-    """
-
-    """
-    elem = SubElement(parent, name, attrib)
-    if text:
-        elem.text = text
-    return elem
-
-def xml_comment(parent, text):
-    """
-    """
-    parent.append(Comment(text))
 
 class Bunch(dict):
     """
