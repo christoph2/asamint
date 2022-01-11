@@ -1,6 +1,6 @@
 TRANSPORT = "ETH"
-#HOST = "localhost"
 HOST = "192.168.43.176"
+#HOST = "localhost"
 PORT = 5555
 PROTOCOL = "TCP"
 IPV6 = false
