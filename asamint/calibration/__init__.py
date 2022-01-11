@@ -8,7 +8,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2021 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2022 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -475,7 +475,7 @@ class CalibrationData(AsamBaseType):
         for characteristic in characteristics:
             self.logger.debug("Processing {} '{}' @ 0x{:08x}".format(category, characteristic.name, characteristic.address))
             characteristic_cm = characteristic.compuMethod
-            chr_cm = CompuMethod.get(self.session, characteristic_cm)
+            chr_cm = CompuMethod.get(self.session, characteristic_cm.name)
             fnc_unit = chr_cm.unit
             fnc_datatype = characteristic.record_layout_components.fncValues["datatype"]
             self.record_layout_correct_offsets(characteristic)
@@ -486,7 +486,8 @@ class CalibrationData(AsamBaseType):
                 axis_descr = characteristic.axisDescriptions[axis_idx]
                 axis_name = AXES[axis_idx]
                 maxAxisPoints = axis_descr.maxAxisPoints
-                axis_cm = CompuMethod.get(self.session, axis_descr.compuMethod)
+                axis_cm_name = "NO_COMPU_METHOD" if axis_descr.compuMethod == "NO_COMPU_METHOD" else axis_descr.compuMethod.name
+                axis_cm = CompuMethod.get(self.session, axis_cm_name)
                 axis_unit = axis_cm.unit
                 axis_attribute = axis_descr.attribute
                 axis = characteristic.record_layout_components.axes(axis_name)
@@ -685,7 +686,8 @@ class CalibrationData(AsamBaseType):
     def int_to_physical(self, characteristic, int_values):
         """
         """
-        cm = CompuMethod.get(self.session, characteristic.compuMethod)
+        cm_name = "NO_COMPU_METHOD" if characteristic.compuMethod == "NO_COMPU_METHOD" else characteristic.compuMethod.name
+        cm = CompuMethod.get(self.session, cm_name)
         return cm.int_to_physical(int_values)
 
     @property
