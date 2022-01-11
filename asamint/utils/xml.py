@@ -34,8 +34,13 @@ from decimal import (
 )
 
 from lxml import etree
-from lxml.etree import SubElement, Comment, _Comment
+from lxml.etree import SubElement, Comment, _Comment, _ProcessingInstruction
 
+
+def element_name(tree):
+    """
+    """
+    return tree.tag.lower().replace("-", "_")
 
 def create_elem(parent, name, text = None, attrib = {}):
     """
@@ -73,26 +78,28 @@ class XMLTraversor:
     def root(self):
         return self.doc_root
 
-    def generic_visit(self, tree, level = 1):
+    def generic_visit(self, tree):
         children = tree.getchildren()
         if not children:
             if not isinstance(tree.text, str):
                 return None
             else:
-                return tree.text
-        level += 1
+                return {element_name(tree): tree.text}
         result = []
         for child in children:
             result.append(self.visit(child))
-        return result
+        return {element_name(tree): result}
 
     def visit(self, tree):
         if not isinstance(tree.tag, str):
             if isinstance(tree, _Comment):
-                return {"comment": str(tree)}
+                return {"_com_ment_": str(tree)}
+            elif isinstance(tree, _ProcessingInstruction):
+                print("PI", tree.text, tree.target)
+                return {"ProcessingInstruction": (tree.text, tree.target, )}
             else:
-                print("NF:", tree)
-                return None
+                raise TypeError("Not handled node type '{}'".format(type(tree)))
+                return
         method = "visit_{}".format(tree.tag.lower().replace("-", "_"))
         visitor = getattr(self, method, self.generic_visit)
         return visitor(tree)
