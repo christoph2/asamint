@@ -8,7 +8,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2022 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2021-2022 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -70,6 +70,10 @@ class CalibrationData(AsamBaseType):
     def on_init(self, project_config, experiment_config, *args, **kws):
         self.loadConfig(project_config, experiment_config)
         self.a2l_epk = self.epk_from_a2l()
+        if self.a2l_epk is None:
+            self.logger.info("A2L doesn't contains an EPK.")
+        else:
+            self.logger.info("EPK from A2L: {}".format(self.a2l_epk))
         self._parameters = {
             k: OrderedDict() for k in (
                 "AXIS_PTS", "VALUE", "VAL_BLK", "ASCII", "CURVE", "MAP", "CUBOID", "CUBE_4", "CUBE_5"
@@ -136,6 +140,7 @@ class CalibrationData(AsamBaseType):
         hexfile_type: "ihex" | "srec"
         """
         if xcp_master:
+            self.check_epk_xcp(xcp_master)
             image = self.upload_parameters(xcp_master)
             image.file_name = None
             self.logger.info("Using image from XCP slave")
@@ -170,6 +175,7 @@ class CalibrationData(AsamBaseType):
         s. `upload_parameters`
         """
 
+        self.check_epk_xcp(xcp_master)
         if file_type:
             file_type = file_type.lower()
         if not file_type in ("ihex", "srec"):
@@ -207,6 +213,7 @@ class CalibrationData(AsamBaseType):
         """
         if not data:
             return
+        self.check_epk_xcp(xcp_master)
         ram_segments = []
         mp = ModPar(self.session, module_name or None)
         segment = mp.memorySegments[0]
