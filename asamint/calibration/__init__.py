@@ -98,7 +98,7 @@ class CalibrationData(AsamBaseType):
             - False:    EPKs are not matching.
             - None:     EPK not configured in MOD_COMMON.
         """
-        if not (self.mod_par or self.a2l_epk):
+        if (self.mod_par is None or self.a2l_epk is None):
             return None
         epk_a2l, epk_addr = self.a2l_epk
         xcp_master.setMta(epk_addr)
