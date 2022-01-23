@@ -340,4 +340,3 @@ void print_xcp_message(XcpMessage const * const msg);
 
 
 #endif /* __XCP_H */
-

@@ -24,24 +24,35 @@ __copyright__ = """
 import argparse
 from objutils.elf import ElfParser
 
+
 def main():
-    parser = argparse.ArgumentParser(description = 'Display EPROM Kennung.')
-    parser.add_argument("elf_file", help = "ELF file")
+    parser = argparse.ArgumentParser(description="Display EPROM Kennung.")
+    parser.add_argument("elf_file", help="ELF file")
     args = parser.parse_args()
     try:
         ep = ElfParser(args.elf_file)
     except Exception as e:
-        print("\n'{}' is not valid ELF file. Raised exception: '{}'.".format(args.elf_file, repr(e)))
+        print(
+            "\n'{}' is not valid ELF file. Raised exception: '{}'.".format(
+                args.elf_file, repr(e)
+            )
+        )
         exit(1)
-    for section_name, syms in ep.symbols.fetch(sections = "calflash_signature", name_pattern = "epk", types_str = "object").items():
+    for section_name, syms in ep.symbols.fetch(
+        sections="calflash_signature", name_pattern="epk", types_str="object"
+    ).items():
         if not syms:
             print("Sorry, no EPK found.")
         else:
             epk = syms[0]
-            print("Found EPROM Kennung @0x{:08x} '{}' [{} bytes].".format(epk.st_value, "", epk.st_size))
+            print(
+                "Found EPROM Kennung @0x{:08x} '{}' [{} bytes].".format(
+                    epk.st_value, "", epk.st_size
+                )
+            )
             print(ep.sections.get(section_name))
             break
 
-if __name__ == '__main__':
-    main()
 
+if __name__ == "__main__":
+    main()

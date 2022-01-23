@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """XML helper classes and functions."""
 
 __copyright__ = """
@@ -26,39 +25,35 @@ __copyright__ = """
 
    s. FLOSS-EXCEPTION.txt
 """
-__author__  = 'Christoph Schueler'
+__author__ = "Christoph Schueler"
 
 
-from decimal import (
-        Decimal as D, InvalidOperation
-)
+from decimal import Decimal as D, InvalidOperation
 
 from lxml import etree
 from lxml.etree import SubElement, Comment, _Comment, _ProcessingInstruction
 
 
 def element_name(tree):
-    """
-    """
+    """ """
     return tree.tag.lower().replace("-", "_")
 
-def create_elem(parent, name, text = None, attrib = {}):
-    """
 
-    """
+def create_elem(parent, name, text=None, attrib={}):
+    """ """
     elem = SubElement(parent, name, attrib)
     if text:
         elem.text = text
     return elem
 
+
 def xml_comment(parent, text):
-    """Add XML comment to an element.
-    """
+    """Add XML comment to an element."""
     parent.append(Comment(text))
 
+
 def as_numeric(element):
-    """Try to convert ELEMENT text to decimal floating-point.
-    """
+    """Try to convert ELEMENT text to decimal floating-point."""
     text = element.text
     try:
         return D(text)
@@ -67,8 +62,7 @@ def as_numeric(element):
 
 
 class XMLTraversor:
-    """Visitable XML tree.
-    """
+    """Visitable XML tree."""
 
     def __init__(self, file_name):
         self.doc = etree.parse(file_name)
@@ -96,7 +90,12 @@ class XMLTraversor:
                 return {"_com_ment_": str(tree)}
             elif isinstance(tree, _ProcessingInstruction):
                 print("PI", tree.text, tree.target)
-                return {"ProcessingInstruction": (tree.text, tree.target, )}
+                return {
+                    "ProcessingInstruction": (
+                        tree.text,
+                        tree.target,
+                    )
+                }
             else:
                 raise TypeError("Not handled node type '{}'".format(type(tree)))
                 return

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 
 """
@@ -32,6 +31,7 @@ __copyright__ = """
 from asamint.cmdline import ArgumentParser
 from asamint.cdf import CDFCreator
 
+
 def main():
     ap = ArgumentParser()
 
@@ -45,9 +45,10 @@ def main():
             x.getCommModeInfo()
         if ap.args.unlock:
             x.cond_unlock()
-        #print(cd.check_epk(x))
+        # print(cd.check_epk(x))
         cd.save_parameters(x)
         x.disconnect()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

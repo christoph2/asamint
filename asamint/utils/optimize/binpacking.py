@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """Bin-packing algorithms.
 
 Used for instance to optimally assign measurements to ODTs.
@@ -32,13 +31,11 @@ __copyright__ = """
 
 
 class Bin:
-    """
-
-    """
+    """ """
 
     def __init__(self, length):
         self.length = length
-        self.residual_capacity = length   # initial Bin is empty
+        self.residual_capacity = length  # initial Bin is empty
         self.entries = []
 
     def append(self, entry):
@@ -49,10 +46,15 @@ class Bin:
         return len(self.entries)
 
     def __eq__(self, other):
-        return self.residual_capacity == other.residual_capacity and self.entries == other.entries
+        return (
+            self.residual_capacity == other.residual_capacity
+            and self.entries == other.entries
+        )
 
     def __str__(self):
-        return "Bin(residual_capacity: {}  entries: {})".format(self.residual_capacity, self.entries)
+        return "Bin(residual_capacity: {}  entries: {})".format(
+            self.residual_capacity, self.entries
+        )
 
     __repr__ = __str__
 
@@ -72,15 +74,15 @@ def first_fit_decreasing(items, bin_size):
     list
         Resulting bins
     """
-    bins = [Bin(length = bin_size)]   # Initial bin
-    for item in sorted(items, key = lambda x: x.length, reverse = True):
+    bins = [Bin(length=bin_size)]  # Initial bin
+    for item in sorted(items, key=lambda x: x.length, reverse=True):
         for bin in bins:
             if bin.residual_capacity >= item.length:
                 bin.append(item)
                 bin.residual_capacity -= item.length
                 break
         else:
-            new_bin = Bin(length = bin_size)
+            new_bin = Bin(length=bin_size)
             bins.append(new_bin)
             new_bin.append(item)
             new_bin.residual_capacity -= item.length

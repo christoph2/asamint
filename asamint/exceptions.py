@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 
 """
@@ -29,6 +28,6 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
+
 class FileFormatError(Exception):
-    """Raised when something is wrong with the structure of the file.
-    """
+    """Raised when something is wrong with the structure of the file."""

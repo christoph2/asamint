@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 
 """
@@ -34,7 +33,10 @@ import argparse
 from asamint.config import read_configuration
 
 from pyxcp.master import Master
-from pyxcp.transport.can import (try_to_install_system_supplied_drivers, registered_drivers)
+from pyxcp.transport.can import (
+    try_to_install_system_supplied_drivers,
+    registered_drivers,
+)
 
 try_to_install_system_supplied_drivers()
 
@@ -50,19 +52,40 @@ class ArgumentParser:
         Process user-supplied arguments.
     """
 
-    def __init__(self, use_xcp = True, callout = None, *args, **kws):
+    def __init__(self, use_xcp=True, callout=None, *args, **kws):
         self.callout = callout
         self.use_xcp = use_xcp
-        kws.update(formatter_class = argparse.RawDescriptionHelpFormatter, add_help = True)
+        kws.update(formatter_class=argparse.RawDescriptionHelpFormatter, add_help=True)
         self._parser = argparse.ArgumentParser(*args, **kws)
-        self._parser.add_argument('-p', '--project-file', type = argparse.FileType('r'), dest = "project",
-            help = 'General project configuration.')
+        self._parser.add_argument(
+            "-p",
+            "--project-file",
+            type=argparse.FileType("r"),
+            dest="project",
+            help="General project configuration.",
+        )
 
-        self._parser.add_argument('-e', '--experiment-file', type = argparse.FileType('r'), dest = "experiment",
-            help = 'Experiment specific configuration.')
+        self._parser.add_argument(
+            "-e",
+            "--experiment-file",
+            type=argparse.FileType("r"),
+            dest="experiment",
+            help="Experiment specific configuration.",
+        )
 
-        self._parser.add_argument('-l', '--loglevel', choices = ["ERROR", "WARN", "INFO", "DEBUG"], default = "INFO")
-        self._parser.add_argument("-u", '--unlock', help = "Unlock protected resources", dest = "unlock", action = "store_true")
+        self._parser.add_argument(
+            "-l",
+            "--loglevel",
+            choices=["ERROR", "WARN", "INFO", "DEBUG"],
+            default="INFO",
+        )
+        self._parser.add_argument(
+            "-u",
+            "--unlock",
+            help="Unlock protected resources",
+            dest="unlock",
+            action="store_true",
+        )
         self._args = self.parser.parse_args()
         args = self.args
         self.project = read_configuration(args.project)
@@ -74,14 +97,12 @@ class ArgumentParser:
         return self._args
 
     def run(self):
-        """
-
-        """
+        """ """
         if self.use_xcp == True:
             if not "TRANSPORT" in self.project:
                 raise AttributeError("TRANSPORT must be specified in config!")
-            transport = self.project['TRANSPORT'].lower()
-            master = Master(transport, config = self.project) if self.use_xcp else None
+            transport = self.project["TRANSPORT"].lower()
+            master = Master(transport, config=self.project) if self.use_xcp else None
             if self.callout:
                 self.callout(master, self.args)
             return master

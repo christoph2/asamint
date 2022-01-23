@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 
 """
@@ -42,17 +41,23 @@ from asamint.cdf import CDFCreator
 from asamint.utils.optimize import DaqList, McObject, make_continuous_blocks, binpacking
 from asamint.utils import chunks, current_timestamp
 import pya2l.model as model
-from pya2l.api.inspect import AxisPts, Characteristic, Group, Function, ModPar, ModCommon
+from pya2l.api.inspect import (
+    AxisPts,
+    Characteristic,
+    Group,
+    Function,
+    ModPar,
+    ModCommon,
+)
 from objutils import dump, load, Image, Section
 
 
 class CalibrationData(AsamBaseType):
-    """
-    """
+    """ """
 
     PROJECT_PARAMETER_MAP = {
-#                                   Type     Req'd   Default
-        "MDF_VERSION":              (str,    False,   "4.10"),
+        #                                   Type     Req'd   Default
+        "MDF_VERSION": (str, False, "4.10"),
     }
 
     def on_init(self, project_config, experiment_config, *args, **kws):
@@ -75,7 +80,9 @@ class CalibrationData(AsamBaseType):
         epk_xcp = xcp_master.pull(len(epk_a2l)).decode("ascii")
         ok = epk_xcp == epk_a2l
         if not ok:
-            self.logger.warn("EPK is invalid -- A2L: '{}' got '{}'.".format(epk_a2l, epk_xcp))
+            self.logger.warn(
+                "EPK is invalid -- A2L: '{}' got '{}'.".format(epk_a2l, epk_xcp)
+            )
         else:
             self.logger.info("OK, found matching EPK.")
         return ok
@@ -95,7 +102,9 @@ class CalibrationData(AsamBaseType):
             epk = self.mod_par.epk.decode("ascii")
             return (epk, addr)
 
-    def save_parameters(self, xcp_master = None, hexfile: str = None, hexfile_type: str = "ihex"):
+    def save_parameters(
+        self, xcp_master=None, hexfile: str = None, hexfile_type: str = "ihex"
+    ):
         """
         Parameters
         ----------
@@ -116,7 +125,9 @@ class CalibrationData(AsamBaseType):
             raise ValueError("")
         cdf = CDFCreator(self.project_config, self.experiment_config, img)
 
-    def upload_parameters(self, xcp_master, save_to_file: bool = True, hexfile_type: str = "ihex"):
+    def upload_parameters(
+        self, xcp_master, save_to_file: bool = True, hexfile_type: str = "ihex"
+    ):
         """
         Parameters
         ----------
@@ -136,30 +147,34 @@ class CalibrationData(AsamBaseType):
         for a in axis_pts:
             ax = AxisPts.get(self.session, a.name)
             mem_size = ax.total_allocated_memory
-            result.append(McObject(
-                ax.name, ax.address, mem_size)
-            )
-        characteristics = self.query(model.Characteristic).order_by(model.Characteristic.type, model.Characteristic.address).all()
+            result.append(McObject(ax.name, ax.address, mem_size))
+        characteristics = (
+            self.query(model.Characteristic)
+            .order_by(model.Characteristic.type, model.Characteristic.address)
+            .all()
+        )
         for c in characteristics:
             chx = Characteristic.get(self.session, c.name)
             mem_size = chx.total_allocated_memory
-            result.append(McObject(
-                chx.name, chx.address, mem_size)
-            )
+            result.append(McObject(chx.name, chx.address, mem_size))
         blocks = make_continuous_blocks(result)
         total_size = functools.reduce(lambda a, s: s.length + a, blocks, 0)
-        self.logger.info("Fetching a total of {:.3f} KBytes from XCP slave".format(total_size / 1024))
+        self.logger.info(
+            "Fetching a total of {:.3f} KBytes from XCP slave".format(total_size / 1024)
+        )
         sections = []
         for block in blocks:
             xcp_master.setMta(block.address)
             mem = xcp_master.pull(block.length)
-            sections.append(Section(start_address = block.address, data = mem))
-        img = Image(sections = sections, join = False)
+            sections.append(Section(start_address=block.address, data=mem))
+        img = Image(sections=sections, join=False)
         if save_to_file:
-            file_name = "CalParams{}.{}".format(current_timestamp(), "hex" if hexfile_type == "ihex" else "srec")
+            file_name = "CalParams{}.{}".format(
+                current_timestamp(), "hex" if hexfile_type == "ihex" else "srec"
+            )
             file_name = os.path.join(self.sub_dir("hexfiles"), file_name)
             with open("{}".format(file_name), "wb") as outf:
-                dump(hexfile_type, outf, img, row_length = 32)
+                dump(hexfile_type, outf, img, row_length=32)
             self.logger.info("CalParams written to {}".format(file_name))
         return img
 
@@ -175,8 +190,7 @@ DAQ_ID_FIELD_SIZE = {
 
 
 def associate_measurement_to_odt_entry():
-    """
-    """
+    """ """
 
 
 class XCPMeasurement(AsamBaseType):
@@ -189,32 +203,46 @@ class XCPMeasurement(AsamBaseType):
         result = []
         measurement_summary = []
         for name in groups:
-            result.extend(self._collect_group(name, measurement_summary = measurement_summary))
+            result.extend(
+                self._collect_group(name, measurement_summary=measurement_summary)
+            )
         blocks = make_continuous_blocks(result)
         return blocks, measurement_summary
 
-    def _collect_group(self, name: str, recursive: bool = True, measurement_summary: list = None):
-        """
-        """
+    def _collect_group(
+        self, name: str, recursive: bool = True, measurement_summary: list = None
+    ):
+        """ """
         result = []
         gr = Group(self.session, name)
         for meas in gr.measurements:
             if meas.is_virtual:
                 continue
             measurement_summary.append(
-                (meas.name, meas.ecuAddress, meas.ecuAddressExtension, meas.datatype,
-                    TYPE_SIZES.get(meas.datatype), meas.compuMethod.name
+                (
+                    meas.name,
+                    meas.ecuAddress,
+                    meas.ecuAddressExtension,
+                    meas.datatype,
+                    TYPE_SIZES.get(meas.datatype),
+                    meas.compuMethod.name,
                 )
             )
-            result.append(McObject(
-                meas.name, meas.ecuAddress, TYPE_SIZES.get(meas.datatype))
+            result.append(
+                McObject(meas.name, meas.ecuAddress, TYPE_SIZES.get(meas.datatype))
             )
         if recursive:
             for sg in gr.subgroups:
-                result.extend(self._collect_group(sg.name, recursive = recursive, measurement_summary = measurement_summary))
+                result.extend(
+                    self._collect_group(
+                        sg.name,
+                        recursive=recursive,
+                        measurement_summary=measurement_summary,
+                    )
+                )
         return result
 
-    def start_measurement(self, xcp_master, groups = None):
+    def start_measurement(self, xcp_master, groups=None):
         self.uncompressed_size = 0
         self.intermediate_storage = []
 
@@ -228,16 +256,18 @@ class XCPMeasurement(AsamBaseType):
         max_dto = slp["maxDto"]
         byteOrder = slp["byteOrder"]
 
-        maxWriteDaqMultipleElements = slp.maxWriteDaqMultipleElements   # TODO: Optional service.
-        maxWriteDaqMultipleElements = 0     # Don't use for now
+        maxWriteDaqMultipleElements = (
+            slp.maxWriteDaqMultipleElements
+        )  # TODO: Optional service.
+        maxWriteDaqMultipleElements = 0  # Don't use for now
 
         daq_info = xcp_master.getDaqInfo()
         daq_proc = daq_info["processor"]
         idf = daq_proc["keyByte"]["identificationField"]
         idf_size = DAQ_ID_FIELD_SIZE[idf]
         bin_size = max_dto - idf_size
-        bins = binpacking.first_fit_decreasing(items = blocks, bin_size = bin_size)
-        #for bin in bins:
+        bins = binpacking.first_fit_decreasing(items=blocks, bin_size=bin_size)
+        # for bin in bins:
         #    for entry in sorted(bin.entries, key = lambda e: e.address):
         #        print(entry)
         bin_count = len(bins)
@@ -256,12 +286,17 @@ class XCPMeasurement(AsamBaseType):
             odt_entries = []
             for odt_entry_num in range(bin.num_entries):
                 odt_entry = bin.entries[odt_entry_num]
-                odt_entries.append(DaqEntry(
-                    bitoff = 0xff, length = odt_entry.length, ext = 0, address = odt_entry.address)
+                odt_entries.append(
+                    DaqEntry(
+                        bitoff=0xFF,
+                        length=odt_entry.length,
+                        ext=0,
+                        address=odt_entry.address,
+                    )
                 )
             odts.append(odt_entries)
         daqs.append(odts)
-        #pprint(daqs, indent = 4)
+        # pprint(daqs, indent = 4)
         daq_list = DaqList(odts, measurement_summary)
 
         """
@@ -283,25 +318,40 @@ class XCPMeasurement(AsamBaseType):
                 xcp_master.setDaqPtr(daq_idx, odt_idx, 0)
                 if maxWriteDaqMultipleElements:
                     for requ in chunks(odt, maxWriteDaqMultipleElements):
-                        xcp_master.writeDaqMultiple([dict(
-                            bitOffset = r.bitoff, size = r.length, address = r.address, addressExt = r.ext) for r in requ]
+                        xcp_master.writeDaqMultiple(
+                            [
+                                dict(
+                                    bitOffset=r.bitoff,
+                                    size=r.length,
+                                    address=r.address,
+                                    addressExt=r.ext,
+                                )
+                                for r in requ
+                            ]
                         )
                 else:
                     for odt_entry_idx, odt_entry in enumerate(odt):
-                        xcp_master.writeDaq(odt_entry.bitoff, odt_entry.length, odt_entry.ext, odt_entry.address)
+                        xcp_master.writeDaq(
+                            odt_entry.bitoff,
+                            odt_entry.length,
+                            odt_entry.ext,
+                            odt_entry.address,
+                        )
 
-        xcp_master.setDaqListMode(mode = 0x10, daqListNumber = 0, eventChannelNumber = 3, prescaler = 1, priority = 0)
+        xcp_master.setDaqListMode(
+            mode=0x10, daqListNumber=0, eventChannelNumber=3, prescaler=1, priority=0
+        )
         print("startStopDaqList #0", xcp_master.startStopDaqList(0x02, 0))
-        #xcp_master.setDaqListMode(0x10, 1, 2, 1, 0) # , 2)
-        #print("startStopDaqList #1", xcp_master.startStopDaqList(0x02, 1))
+        # xcp_master.setDaqListMode(0x10, 1, 2, 1, 0) # , 2)
+        # print("startStopDaqList #1", xcp_master.startStopDaqList(0x02, 1))
 
         self.worker.start()
 
         xcp_master.startStopSynch(0x01)
 
-        time.sleep(5.0 * 2) #  * 200
+        time.sleep(5.0 * 2)  #  * 200
         xcp_master.startStopSynch(0x00)
-        #xcp_master.freeDaq()
+        # xcp_master.freeDaq()
         self.worker.shutdown_event.set()
         self.worker.join()
 
@@ -312,7 +362,13 @@ class XCPMeasurement(AsamBaseType):
     def wockser(self, catagory, *args):
         response, counter, length, timestamp = args
         raw_data = response.tobytes()
-        self.intermediate_storage.append((counter, timestamp, raw_data, ))
+        self.intermediate_storage.append(
+            (
+                counter,
+                timestamp,
+                raw_data,
+            )
+        )
         self.uncompressed_size += len(raw_data) + 12
         if self.uncompressed_size > 10 * 1024:
             self.worker.frame_queue.put(self.intermediate_storage)

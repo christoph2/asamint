@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """Model representing calibration data.
 """
 
@@ -30,8 +29,7 @@ __copyright__ = """
 
 
 class BaseCharacteristic:
-    """
-    """
+    """ """
 
     PROPERTIES = ("name", "comment", "category", "displayIdentifier")
 
@@ -44,40 +42,52 @@ class BaseCharacteristic:
     def __str__(self):
         result = []
         result.append("{}(".format(self.__class__.__name__))
-        result.append(''.join("{} = '{}', ".format(k, v) for k,v in self._props(BaseCharacteristic)))
-        result.append(''.join("{} = '{}', ".format(k, v) for k,v in self._props(self)))
+        result.append(
+            "".join(
+                "{} = '{}', ".format(k, v) for k, v in self._props(BaseCharacteristic)
+            )
+        )
+        result.append("".join("{} = '{}', ".format(k, v) for k, v in self._props(self)))
         result.append(")")
-        return ''.join(result)
+        return "".join(result)
 
     def _props(self, obj):
         result = []
         for k in obj.PROPERTIES:
             value = getattr(self, k)
-            result.append((k, value, ))
+            result.append(
+                (
+                    k,
+                    value,
+                )
+            )
         return result
 
     __repr__ = __str__
 
 
 class NDimContainer(BaseCharacteristic):
-    """
-    """
-    PROPERTIES = (
-        "raw_values", "converted_values", "fnc_unit", "axes"
-    )
+    """ """
+
+    PROPERTIES = ("raw_values", "converted_values", "fnc_unit", "axes")
 
 
 class Ascii(BaseCharacteristic):
-    """
-    """
+    """ """
+
     PROPERTIES = ("length", "value")
 
 
 class AxisPts(BaseCharacteristic):
-    """
-    """
-    PROPERTIES = ("raw_values", "converted_values", "paired", "unit", "reversed_storage")
+    """ """
 
+    PROPERTIES = (
+        "raw_values",
+        "converted_values",
+        "paired",
+        "unit",
+        "reversed_storage",
+    )
 
     @property
     def axis_points_raw(self):
@@ -109,45 +119,50 @@ class AxisPts(BaseCharacteristic):
 
 
 class Cube4(NDimContainer):
-    """
-    """
+    """ """
 
 
 class Cube5(NDimContainer):
-    """
-    """
+    """ """
 
 
 class Cuboid(NDimContainer):
-    """
-    """
+    """ """
+
 
 class Curve(NDimContainer):
-    """
-    """
+    """ """
+
 
 class Map(NDimContainer):
-    """
-    """
+    """ """
+
 
 class Value(BaseCharacteristic):
-    """
-    """
+    """ """
+
     PROPERTIES = ("raw_value", "converted_value", "unit")
 
 
 class ValueBlock(BaseCharacteristic):
-    """
-    """
+    """ """
+
     PROPERTIES = ("raw_values", "converted_values", "shape", "unit")
 
 
 class AxisContainer:
-    """
-    """
+    """ """
 
-    def __init__(self, category: str, unit: str, raw_values, converted_values,
-        reversed_storage = False, axis_pts_ref = None, curve_axis_ref = None):
+    def __init__(
+        self,
+        category: str,
+        unit: str,
+        raw_values,
+        converted_values,
+        reversed_storage=False,
+        axis_pts_ref=None,
+        curve_axis_ref=None,
+    ):
         self.category = category
         self.unit = unit
         self.raw_values = raw_values
@@ -166,14 +181,21 @@ AxisContainer {{
     converted_values    = {};
     axis_pts_ref        = {};
     curve_axis_ref      = {};
-}}""".format(self.category, self.unit, self.reversed_storage, self.raw_values,
-             self.converted_values, self.axis_pts_ref, self.curve_axis_ref)
+}}""".format(
+            self.category,
+            self.unit,
+            self.reversed_storage,
+            self.raw_values,
+            self.converted_values,
+            self.axis_pts_ref,
+            self.curve_axis_ref,
+        )
 
     __repr__ = __str__
 
+
 def get_calibration_class(name: str):
-    """
-    """
+    """ """
     return {
         "ASCII": Ascii,
         "AXIS_PTS": AxisPts,
@@ -185,4 +207,3 @@ def get_calibration_class(name: str):
         "VALUE": Value,
         "VAL_BLK": ValueBlock,
     }.get(name)
-

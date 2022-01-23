@@ -31,8 +31,7 @@ import toml
 
 
 def read_configuration(conf):
-    """Read a configuration file either in TOML format.
-    """
+    """Read a configuration file either in TOML format."""
     if conf:
         if isinstance(conf, io.IOBase):
             conf = toml.load(conf)
@@ -41,9 +40,9 @@ def read_configuration(conf):
             return dict(conf)
         pth = pathlib.Path(conf.name)
         suffix = pth.suffix.lower()
-        if suffix == '.json':
+        if suffix == ".json":
             reader = json
-        elif suffix == '.toml':
+        elif suffix == ".toml":
             reader = toml
         else:
             reader = None
@@ -56,9 +55,7 @@ def read_configuration(conf):
 
 
 class Configuration(MutableMapping):
-    """
-
-    """
+    """ """
 
     def __init__(self, parameters, config):
         self.parameters = parameters
@@ -66,12 +63,10 @@ class Configuration(MutableMapping):
         for key, (tp, required, default) in self.parameters.items():
             if key in self.config:
                 if not isinstance(self.config[key], tp):
-                    raise TypeError(
-                        "Parameter {} requires {}".format(key, tp))
+                    raise TypeError("Parameter {} requires {}".format(key, tp))
             else:
                 if required:
-                    raise AttributeError(
-                        "{} must be specified in config!".format(key))
+                    raise AttributeError("{} must be specified in config!".format(key))
                 else:
                     self.config[key] = default
 

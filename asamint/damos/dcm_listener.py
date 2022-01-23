@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """Damos DCM 2.0 Parser.
 """
 
@@ -35,6 +34,7 @@ import antlr4
 from asamint.logger import Logger
 
 from pprint import pprint
+
 
 class BaseListener(antlr4.ParseTreeListener):
     """"""
@@ -95,17 +95,16 @@ class BaseListener(antlr4.ParseTreeListener):
         self._log(self.logger.debug, msg, location)
 
 
-
 class Dcm20Listener(BaseListener):
-
-
     def exitKonservierung(self, ctx):
         ctx.value = {"kopf": self.getNT(ctx.kopf), "rumpf": self.getNT(ctx.rumpf)}
         pprint(ctx.value)
 
     def exitKons_kopf(self, ctx):
         ctx.value = {
-            "info": self.getNT(ctx.info), "func_def": self.getNT(ctx.func_def), "var_def": self.getNT(ctx.var_def)
+            "info": self.getNT(ctx.info),
+            "func_def": self.getNT(ctx.func_def),
+            "var_def": self.getNT(ctx.var_def),
         }
 
     def exitModulkopf_info(self, ctx):
@@ -130,7 +129,11 @@ class Dcm20Listener(BaseListener):
         ctx.value = self.getList(ctx.f)
 
     def exitFunktionszeile(self, ctx):
-        ctx.value = {"name": self.getNT(ctx.n), "version": self.getNT(ctx.v), "langname": self.getNT(ctx.l)}
+        ctx.value = {
+            "name": self.getNT(ctx.n),
+            "version": self.getNT(ctx.v),
+            "langname": self.getNT(ctx.l),
+        }
 
     def exitFkt_version(self, ctx):
         ctx.value = self.getNT(ctx.t)
@@ -155,8 +158,12 @@ class Dcm20Listener(BaseListener):
 
     def exitKenngroesse(self, ctx):
         ctx.value = {
-            "kw": self.getNT(ctx.kw), "kwb": self.getNT(ctx.kwb), "kl": self.getNT(ctx.kl),
-            "kf": self.getNT(ctx.kf), "gst": self.getNT(ctx.gst), "kt": self.getNT(ctx.kt)
+            "kw": self.getNT(ctx.kw),
+            "kwb": self.getNT(ctx.kwb),
+            "kl": self.getNT(ctx.kl),
+            "kf": self.getNT(ctx.kf),
+            "gst": self.getNT(ctx.gst),
+            "kt": self.getNT(ctx.kt),
         }
 
     def exitKennwert(self, ctx):
@@ -167,21 +174,33 @@ class Dcm20Listener(BaseListener):
         else:
             category = "REAL"
         ctx.value = {
-            "category": category, "name": ctx.n.value, "info": self.getNT(ctx.info),
-            "einheit_w": self.getNT(ctx.ew), "realzahl": r , "text": t
+            "category": category,
+            "name": ctx.n.value,
+            "info": self.getNT(ctx.info),
+            "einheit_w": self.getNT(ctx.ew),
+            "realzahl": r,
+            "text": t,
         }
 
     def exitKennwerteblock(self, ctx):
         ctx.value = {
-            "name": self.getNT(ctx.n), "anzahl_x": self.getNT(ctx.ax), "info": self.getNT(ctx.info),
-            "einheit_w": self.getNT(ctx.ew), "werteliste_kwb": self.getList(ctx.w)
+            "name": self.getNT(ctx.n),
+            "anzahl_x": self.getNT(ctx.ax),
+            "info": self.getNT(ctx.info),
+            "einheit_w": self.getNT(ctx.ew),
+            "werteliste_kwb": self.getList(ctx.w),
         }
 
     def exitKennlinie(self, ctx):
         ctx.value = {
-            "category": ctx.cat.text, "name": self.getNT(ctx.n), "anzahl_x": self.getNT(ctx.ax),
-            "info": self.getNT(ctx.info), "einheit_x": self.getNT(ctx.ex), "einheit_w": self.getNT(ctx.ew),
-            "sst_liste_x": self.getList(ctx.sst), "werteliste": self.getList(ctx.wl)
+            "category": ctx.cat.text,
+            "name": self.getNT(ctx.n),
+            "anzahl_x": self.getNT(ctx.ax),
+            "info": self.getNT(ctx.info),
+            "einheit_x": self.getNT(ctx.ex),
+            "einheit_w": self.getNT(ctx.ew),
+            "sst_liste_x": self.getList(ctx.sst),
+            "werteliste": self.getList(ctx.wl),
         }
 
     def exitKennfeld(self, ctx):
@@ -195,25 +214,31 @@ class Dcm20Listener(BaseListener):
             "einheit_y": self.getNT(ctx.ey),
             "einheit_w": self.getNT(ctx.ew),
             "sst_liste_x": self.getList(ctx.sst),
-            "kf_zeile_liste": self.getList(ctx.kf)
+            "kf_zeile_liste": self.getList(ctx.kf),
         }
 
     def exitGruppenstuetzstellen(self, ctx):
         ctx.value = {
-            "name": self.getNT(ctx.n), "anzahl_x": self.getNT(ctx.nx), "info": self.getNT(ctx.info),
-            "einheit_x": self.getNT(ctx.ex), "sst_liste_x": self.getList(ctx.sl)
+            "name": self.getNT(ctx.n),
+            "anzahl_x": self.getNT(ctx.nx),
+            "info": self.getNT(ctx.info),
+            "einheit_x": self.getNT(ctx.ex),
+            "sst_liste_x": self.getList(ctx.sl),
         }
 
     def exitKenntext(self, ctx):
         ctx.value = {
-            "name": self.getNT(ctx.n), "info": self.getNT(ctx.info), "text": self.getNT(ctx.t)
+            "name": self.getNT(ctx.n),
+            "info": self.getNT(ctx.info),
+            "text": self.getNT(ctx.t),
         }
 
     def exitKgr_info(self, ctx):
         ctx.value = {
-            "langname": self.getNT(ctx.lname), "displayname":
-            self.getNT(ctx.dname), "var_abhangigkeiten": self.getNT(ctx.var),
-            "funktionszugehorigkeit": self.getNT(ctx.fkt)
+            "langname": self.getNT(ctx.lname),
+            "displayname": self.getNT(ctx.dname),
+            "var_abhangigkeiten": self.getNT(ctx.var),
+            "funktionszugehorigkeit": self.getNT(ctx.fkt),
         }
 
     def exitEinheit_x(self, ctx):
@@ -229,8 +254,8 @@ class Dcm20Listener(BaseListener):
         ctx.value = ctx.t.value
 
     def exitDisplayname(self, ctx):
-        t = self.getNT(ctx.t)    #ctx.t.value
-        n = self.getNT(ctx.n)    #ctx.n.value
+        t = self.getNT(ctx.t)  # ctx.t.value
+        n = self.getNT(ctx.n)  # ctx.n.value
         ctx.value = {"name_value": n, "text_value": t}
 
     def exitVar_abhangigkeiten(self, ctx):
@@ -283,4 +308,3 @@ class Dcm20Listener(BaseListener):
 
     def exitKf_zeile_liste_tx(self, ctx):
         ctx.value = {"text": ctx.t.value, "werteliste": self.getList(ctx.w)}
-

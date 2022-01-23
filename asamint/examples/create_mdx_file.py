@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """Create ASAM MDX files from CDF20demo.a2l"""
 
 __copyright__ = """
@@ -30,10 +29,11 @@ __copyright__ = """
 from asamint.cmdline import ArgumentParser
 from asamint.asam.mdx import MDXCreator
 
+
 def main():
-    ap = ArgumentParser(use_xcp = False)
+    ap = ArgumentParser(use_xcp=False)
     mdx = MDXCreator(ap.project, ap.experiment)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

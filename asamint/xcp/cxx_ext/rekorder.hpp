@@ -342,4 +342,3 @@ class XcpLogFileReader:
 #endif
 
 #endif // __REKORDER_HPP
-

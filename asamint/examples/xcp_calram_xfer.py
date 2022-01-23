@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 
 """
@@ -33,7 +32,8 @@ from asamint.cmdline import ArgumentParser
 from asamint.xcp import CalibrationData
 from asamint.cdf import CDFCreator
 
-#def upload_calram(xcp_master, a2ldb_session, module_name: str = None, file_type: str = "ihex"):
+# def upload_calram(xcp_master, a2ldb_session, module_name: str = None, file_type: str = "ihex"):
+
 
 def main():
     ap = ArgumentParser()
@@ -48,11 +48,12 @@ def main():
             x.getCommModeInfo()
         if ap.args.unlock:
             x.cond_unlock()
-        #cd.upload_calram(x)
+        # cd.upload_calram(x)
         img = cd.upload_parameters(x)
         print("Now CDF...")
         cdf = CDFCreator(cd.session, img)
         x.disconnect()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

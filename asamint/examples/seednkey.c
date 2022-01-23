@@ -39,4 +39,3 @@ uint32_t XCP_GetAvailablePrivileges(uint8_t * resourcePtr)
 
   return XcpSkExtFncAck;
 }
-

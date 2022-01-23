@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """Very basic hello-world example.
 """
 
@@ -27,17 +26,25 @@ __copyright__ = """
 """
 
 
-
 from pprint import pprint
 
 from pyxcp.cmdline import ArgumentParser
+
 
 def callout(master, args):
     if args.sk_dll:
         master.seedNKeyDLL = args.sk_dll
 
+
 ap = ArgumentParser(callout)
-ap.parser.add_argument("-s", "--sk-dll", dest = "sk_dll", help = "Seed-and-Key .DLL name", type = str, default = None)
+ap.parser.add_argument(
+    "-s",
+    "--sk-dll",
+    dest="sk_dll",
+    help="Seed-and-Key .DLL name",
+    type=str,
+    default=None,
+)
 
 
 with ap.run() as x:
@@ -45,11 +52,11 @@ with ap.run() as x:
     if x.slaveProperties.optionalCommMode:
         x.getCommModeInfo()
     gid = x.getId(0)
-    #gid = x.getId(128)
+    # gid = x.getId(128)
     x.getStatus()
     x.synch()
     result = x.fetch(gid.length)
-    #x.cond_unlock()
+    # x.cond_unlock()
     daqInfo = x.getDaqInfo()
     clk = x.getDaqClock()
     x.disconnect()

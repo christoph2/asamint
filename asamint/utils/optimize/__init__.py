@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """Optimize data-structures like memory sections."""
 
 __copyright__ = """
@@ -33,23 +32,25 @@ from operator import attrgetter
 
 from sortedcontainers import SortedListWithKey
 
-_SORT_BY_ADDRESS_AND_EXT = lambda e: (e[0].ext, e[0].address, )
+_SORT_BY_ADDRESS_AND_EXT = lambda e: (
+    e[0].ext,
+    e[0].address,
+)
 
 OdtEntry = namedtuple("OdtEntry", "odt_idx, odt_entry_idx, offset")
 
 
 class DaqList:
-    """
-    """
+    """ """
 
     def __init__(self, odts, measurement_summary):
         self.odts = odts
         self.measurement_summary = measurement_summary
-        adl = SortedListWithKey(key = _SORT_BY_ADDRESS_AND_EXT)
+        adl = SortedListWithKey(key=_SORT_BY_ADDRESS_AND_EXT)
         for odt_idx, odt in enumerate(odts):
             for odt_entry_idx, odt_entry in enumerate(odt):
                 adl.add((odt_entry, odt_idx, odt_entry_idx))
-        #print(adl)
+        # print(adl)
         self.adl = adl
         flo = []
         for name, address, ext, datatype, typesize, cm in measurement_summary:
@@ -57,8 +58,7 @@ class DaqList:
             print(name, hex(address), datatype, typesize, cm, res)
             flo.append((name, hex(address), datatype, typesize, cm, res))
 
-
-    def find(self, address, ext = 0):
+    def find(self, address, ext=0):
         """ """
         last_idx = len(self.adl) - 1
         idx = self.adl.bisect_key((ext, address)) - 1
@@ -81,13 +81,15 @@ class McObject:
     Used as input for optimization algorithms.
     """
 
-    def __init__(self, name = "", address = 0, length = 0):
+    def __init__(self, name="", address=0, length=0):
         self.name = name
         self.address = address
         self.length = length
 
     def __repr__(self):
-        return 'McObject(name = "{}", address = 0x{:08x}, length = {})'.format(self.name, self.address, self.length)
+        return 'McObject(name = "{}", address = 0x{:08x}, length = {})'.format(
+            self.name, self.address, self.length
+        )
 
     def __eq__(self, other):
         return self.address == other.address and self.length == other.length
@@ -101,7 +103,8 @@ class McObject:
         else:
             return address - self.address
 
-def make_continuous_blocks(chunks, upper_bound = None, upper_bound_initial = None):
+
+def make_continuous_blocks(chunks, upper_bound=None, upper_bound_initial=None):
     """Try to make continous blocks from a list of small, unordered `chunks`.
 
     Parameters
@@ -116,15 +119,20 @@ def make_continuous_blocks(chunks, upper_bound = None, upper_bound_initial = Non
     # Objects can share addresses, for instance MEASUREMENTs with different COMPU_METHODs.
     values = []
     # 1. Groupy by address.
-    for key, value in groupby(sorted(chunks, key = attrgetter("address")), key = attrgetter("address")):
+    for key, value in groupby(
+        sorted(chunks, key=attrgetter("address")), key=attrgetter("address")
+    ):
         # 2. Pick the largest one.
-        values.append(max(value, key = attrgetter("length")))
+        values.append(max(value, key=attrgetter("length")))
     result_sections = []
     last_section = None
     initial = True
     while values:
         section = values.pop(0)
-        if last_section and section.address <= last_section.address + last_section.length:
+        if (
+            last_section
+            and section.address <= last_section.address + last_section.length
+        ):
             last_end = last_section.address + last_section.length - 1
             current_end = section.address + section.length - 1
             if last_end > section.address:
@@ -135,12 +143,16 @@ def make_continuous_blocks(chunks, upper_bound = None, upper_bound_initial = Non
                     if last_section.length + offset <= upper_bound:
                         last_section.length += offset
                     else:
-                        result_sections.append(McObject(address = section.address, length = section.length))
+                        result_sections.append(
+                            McObject(address=section.address, length=section.length)
+                        )
                 else:
                     last_section.length += offset
         else:
             # Create a new section.
-            result_sections.append(McObject(address = section.address, length = section.length))
+            result_sections.append(
+                McObject(address=section.address, length=section.length)
+            )
         last_section = result_sections[-1]
         initial = False
     return result_sections

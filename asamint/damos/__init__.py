@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 
 """
@@ -39,12 +38,11 @@ from asamint.templates import renderTemplateFromText
 from asamint.damos.dcm_listener import Dcm20Listener
 from asamint.parserlib import ParserWrapper
 
-#parser = ParserWrapper("dcm20", "konservierung", Dcm20Listener, debug = True)
+# parser = ParserWrapper("dcm20", "konservierung", Dcm20Listener, debug = True)
 
 
 class DCMCreator(CalibrationData):
-    """
-    """
+    """ """
 
     EXTENSION = ".dcm"
     TEMPLATE = pkgutil.get_data("asamint", "data/templates/dcm.tmpl")
@@ -55,9 +53,15 @@ class DCMCreator(CalibrationData):
 
     def save(self):
 
-        namespace = {"params": self._parameters, "project": self.project_config, "experiment": self.experiment_config}
+        namespace = {
+            "params": self._parameters,
+            "project": self.project_config,
+            "experiment": self.experiment_config,
+        }
 
-        res = renderTemplateFromText(self.TEMPLATE, namespace, formatExceptions = False, encoding = "latin-1")
+        res = renderTemplateFromText(
+            self.TEMPLATE, namespace, formatExceptions=False, encoding="latin-1"
+        )
         file_name = self.generate_filename(self.EXTENSION)
         self.logger.info("Saving tree to {}".format(file_name))
         with open("{}".format(file_name), "wt") as of:

@@ -23,8 +23,8 @@ __copyright__ = """
 
    s. FLOSS-EXCEPTION.txt
 """
-__author__  = 'Christoph Schueler'
-__version__ = '0.9'
+__author__ = "Christoph Schueler"
+__version__ = "0.9"
 
 ##
 ## Convenience functions for Mako Templates.
@@ -38,14 +38,35 @@ from mako.runtime import Context
 from mako import exceptions
 
 
-indentText = lambda text, leftmargin = 0: '\n'.join(["%s%s" % ((" " * leftmargin), line, ) for line in text.splitlines()])
+indentText = lambda text, leftmargin=0: "\n".join(
+    [
+        "%s%s"
+        % (
+            (" " * leftmargin),
+            line,
+        )
+        for line in text.splitlines()
+    ]
+)
 
-def renderTemplate(filename, namespace = {}, leftMargin = 0, rightMargin = 80, formatExceptions = False, encoding = 'utf-8'):
+
+def renderTemplate(
+    filename,
+    namespace={},
+    leftMargin=0,
+    rightMargin=80,
+    formatExceptions=False,
+    encoding="utf-8",
+):
     # TODO: filename und text parameter ==> Nur noch EINE funktion!!!
     buf = StringIO()
     ctx = Context(buf, **namespace)
     try:
-        tobj = Template(filename = filename, output_encoding = encoding,  format_exceptions = formatExceptions)
+        tobj = Template(
+            filename=filename,
+            output_encoding=encoding,
+            format_exceptions=formatExceptions,
+        )
         tobj.render_context(ctx)
     except:
         print(exceptions.text_error_template().render())
@@ -53,18 +74,27 @@ def renderTemplate(filename, namespace = {}, leftMargin = 0, rightMargin = 80, f
     ##return strings.reformat(buf.getvalue(), leftMargin, rightMargin)
     return buf.getvalue()
 
-def renderTemplateFromText(tmpl, namespace = {}, leftMargin = 0, rightMargin = 80, formatExceptions = True, encoding = 'utf-8'):
+
+def renderTemplateFromText(
+    tmpl,
+    namespace={},
+    leftMargin=0,
+    rightMargin=80,
+    formatExceptions=True,
+    encoding="utf-8",
+):
     buf = StringIO()
     ctx = Context(buf, **namespace)
     try:
-        tobj = Template(text = tmpl, output_encoding = encoding, format_exceptions = formatExceptions)
+        tobj = Template(
+            text=tmpl, output_encoding=encoding, format_exceptions=formatExceptions
+        )
         tobj.render_context(ctx)
     except:
         print(exceptions.text_error_template().render())
         return None
-    return indentText(buf.getvalue(), leftMargin) #, rightMargin)
+    return indentText(buf.getvalue(), leftMargin)  # , rightMargin)
 
 
 def callDef(template, definition, *args, **kwargs):
     return template.get_def(definition).render(*args, **kwargs)
-

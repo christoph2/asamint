@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """Read / export XCP raw measurement files.
 """
 
@@ -34,10 +33,13 @@ import csv
 
 from asamint.xcp.reco import XcpLogFileReader
 
+
 def main():
     ep = argparse.ArgumentParser()
-    ep.add_argument('input_file', help='Input file (extension .xmraw)')
-    ep.add_argument("-c", "--export-to-csv", dest = "csv_file", help = "Write XCP frames to .CSV file")
+    ep.add_argument("input_file", help="Input file (extension .xmraw)")
+    ep.add_argument(
+        "-c", "--export-to-csv", dest="csv_file", help="Write XCP frames to .CSV file"
+    )
     args = ep.parse_args()
     print()
     reader = XcpLogFileReader(args.input_file)
@@ -46,17 +48,17 @@ def main():
     print("Size / uncompressed:", reader.total_size_uncompressed)
     print("Size / compressed:  ", reader.total_size_compressed)
     print("Compression ratio:   {:3.3f}".format(reader.compression_ratio))
-    print("-" * 32, end = "\n\n")
+    print("-" * 32, end="\n\n")
     if args.csv_file:
-        with open(args.csv_file, "wt", newline = '') as outf:
+        with open(args.csv_file, "wt", newline="") as outf:
             print("Writing frames to '{}'...".format(outf.name))
             csv_writer = csv.writer(outf)
             for frame in reader.frames:
                 cat, counter, timestamp, data = frame
-                data = str(binascii.hexlify(data.tobytes()), encoding = "ascii")
+                data = str(binascii.hexlify(data.tobytes()), encoding="ascii")
                 csv_writer.writerow((cat, counter, timestamp, data))
             print("OK, done.")
 
-if __name__ == '__main__':
-    main()
 
+if __name__ == "__main__":
+    main()

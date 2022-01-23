@@ -32,4 +32,3 @@ PYBIND11_MODULE(animal, m) {
 //    py::class_<Dog, Animal, PyDog<>> (m, "Dog").def(py::init<>());
 //    py::class_<Husky, Dog, PyDog<Husky>> (m, "Husky").def(py::init<>());
 }
-

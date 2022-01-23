@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__copyright__="""
+__copyright__ = """
     pySART - Simplified AUTOSAR-Toolkit for Python.
 
    (C) 2009-2016 by Christoph Schueler <github.com/Christoph2,
@@ -28,5 +28,7 @@ from asamint import parserlib
 from asamint.damos.dcm_listener import Dcm20Listener
 
 parser = parserlib.ParserWrapper("dcm20", "konservierung", Dcm20Listener)
-res = parser.parseFromFile(r"F:\projekte\csProjects\py-asam-int\asam_integration_package\asamint\damos\ex.dcm")
+res = parser.parseFromFile(
+    r"F:\projekte\csProjects\py-asam-int\asam_integration_package\asamint\damos\ex.dcm"
+)
 print(res)

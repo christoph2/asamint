@@ -24,7 +24,7 @@ __copyright__ = """
 
    s. FLOSS-EXCEPTION.txt
 """
-__author__  = 'Christoph Schueler'
+__author__ = "Christoph Schueler"
 
 
 from collections.abc import Mapping
@@ -38,6 +38,7 @@ import pya2l.model as model
 a2ldb_import [imex]
 
 """
+
 
 class CompuMethods(Mapping):
     """dict-like (non-modifiable) container for `COMPU_METHOD`s.
@@ -74,12 +75,21 @@ class CompuMethods(Mapping):
 
     def __init__(self, session, referenced: bool = True):
         if referenced:
-            conversions = session.query(model.Measurement.conversion).\
-                filter(model.Measurement.conversion != "NO_COMPU_METHOD").distinct()
-            self._compu_methods = {item.name: item for item in session.query(model.CompuMethod).\
-                filter(model.CompuMethod.name.in_(conversions)).all()}
+            conversions = (
+                session.query(model.Measurement.conversion)
+                .filter(model.Measurement.conversion != "NO_COMPU_METHOD")
+                .distinct()
+            )
+            self._compu_methods = {
+                item.name: item
+                for item in session.query(model.CompuMethod)
+                .filter(model.CompuMethod.name.in_(conversions))
+                .all()
+            }
         else:
-            self._compu_methods = {item.name: item for item in session.query(model.CompuMethod).all()}
+            self._compu_methods = {
+                item.name: item for item in session.query(model.CompuMethod).all()
+            }
         for cm in self._compu_methods.values():
             conversionType = cm.conversionType
             if conversionType == "IDENTICAL":
@@ -104,23 +114,29 @@ class CompuMethods(Mapping):
     def __iter__(self):
         return iter(self._compu_methods)
 
-    def  __len__(self):
+    def __len__(self):
         return len(self._compu_methods)
 
 
 class Measurement:
-    """Container for Measurement-related data.
-    """
+    """Container for Measurement-related data."""
 
     def __init__(self, session, name):
         self.session = session
-        self._meas = session.query(model.Measurement).filter(model.Measurement.name == name).first()
-
+        self._meas = (
+            session.query(model.Measurement)
+            .filter(model.Measurement.name == name)
+            .first()
+        )
 
 
 def getCM(session, name):
-    if name != 'NO_COMPU_METHOD':
-        cm = session.query(model.CompuMethod).filter(model.CompuMethod.name == name).first()
+    if name != "NO_COMPU_METHOD":
+        cm = (
+            session.query(model.CompuMethod)
+            .filter(model.CompuMethod.name == name)
+            .first()
+        )
         return cm
     else:
         return None
@@ -134,13 +150,21 @@ cms = CompuMethods(session)
 
 for m in measurements:
     print("{:48} {:12} 0x{:08x}".format(m.name, m.datatype, m.ecu_address.address))
-    #print("{:48} {:12} 0x{:08x} [{}]".format(m.name, m.datatype, m.ecu_address.address, m.conversion))
+    # print("{:48} {:12} 0x{:08x} [{}]".format(m.name, m.datatype, m.ecu_address.address, m.conversion))
 
-conversions = session.query(model.Measurement.conversion).filter(model.Measurement.conversion != "NO_COMPU_METHOD").distinct()
-#print(conversions)
+conversions = (
+    session.query(model.Measurement.conversion)
+    .filter(model.Measurement.conversion != "NO_COMPU_METHOD")
+    .distinct()
+)
+# print(conversions)
 
 
-cm = session.query(model.CompuMethod).filter(model.CompuMethod.name.in_(conversions)).all()
+cm = (
+    session.query(model.CompuMethod)
+    .filter(model.CompuMethod.name.in_(conversions))
+    .all()
+)
 print("\n\n")
 for c in cm:
     print(c)

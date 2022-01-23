@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 
 """
@@ -30,7 +29,7 @@ __copyright__ = """
 """
 
 __author__ = """Christoph Schueler"""
-__email__ = 'cpu12.gems@googlemail.com'
+__email__ = "cpu12.gems@googlemail.com"
 
 import os
 from pprint import pprint
@@ -42,9 +41,9 @@ import pya2l.model as model
 from asamint.utils import slicer
 from asamint.utils.xml import create_elem
 
+
 class MSRMixIn:
-    """
-    """
+    """ """
 
     DOCTYPE = None
     DTD = None
@@ -55,25 +54,30 @@ class MSRMixIn:
         super().__init__(*args, **kws)
 
     def write_tree(self, file_name):
-        """
-        """
+        """ """
         self.validate()
         file_name = self.generate_filename(self.EXTENSION)
         file_name = os.path.join(self.sub_dir("parameters"), file_name)
         self.logger.info("Saving tree to {}".format(file_name))
         with open(file_name, "wb") as of:
-            of.write(etree.tostring(self.root, encoding = "UTF-8", pretty_print = True, xml_declaration = True, doctype = self.DOCTYPE))
+            of.write(
+                etree.tostring(
+                    self.root,
+                    encoding="UTF-8",
+                    pretty_print=True,
+                    xml_declaration=True,
+                    doctype=self.DOCTYPE,
+                )
+            )
 
     def validate(self):
-        """
-        """
+        """ """
         dtd = etree.DTD(self.DTD)
         if not dtd.validate(self.root):
             pprint(dtd.error_log)
 
-    def output_1darray(self, elem, name = None, values = [], numeric = True, paired = False):
-        """
-        """
+    def output_1darray(self, elem, name=None, values=[], numeric=True, paired=False):
+        """ """
         if name:
             cont = create_elem(elem, name)
         else:
@@ -89,11 +93,11 @@ class MSRMixIn:
                 parts = slicer(values, 2)
             for part in parts:
                 vg = create_elem(cont, "VG")
-                create_elem(vg, tag, text = str(part[0]))
-                create_elem(vg, tag, text = str(part[1]))
+                create_elem(vg, tag, text=str(part[0]))
+                create_elem(vg, tag, text=str(part[1]))
         else:
             for value in values:
-                create_elem(cont, tag, text = str(value))
+                create_elem(cont, tag, text=str(value))
 
     def sdg(self, parent, name, *elements):
         """Create a Special Data Group.
@@ -107,14 +111,13 @@ class MSRMixIn:
 
         elements: list of tuples (tag, text)
         """
-        sdg = create_elem(parent, "SDG", attrib = {"GID": name})
+        sdg = create_elem(parent, "SDG", attrib={"GID": name})
         for tag, text in elements:
-            create_elem(sdg, "SD", text = text, attrib = {"GID": tag})
+            create_elem(sdg, "SD", text=text, attrib={"GID": tag})
 
     @staticmethod
-    def common_elements(elem, short_name, long_name = None, category = None):
-        """
-        """
+    def common_elements(elem, short_name, long_name=None, category=None):
+        """ """
         create_elem(elem, "SHORT-NAME", short_name)
         if long_name:
             create_elem(elem, "LONG-NAME", long_name)
@@ -122,14 +125,13 @@ class MSRMixIn:
             create_elem(elem, "CATEGORY", category)
 
     def msrsw_header(self, category, suffix):
-        """
-        """
+        """ """
         proj = self.query(model.Project).first()
         project_name = proj.name
         project_comment = proj.longIdentifier
 
         root = etree.Element("MSRSW")
-        create_elem(root, "SHORT-NAME", text = "{}_{}".format(project_name, suffix))
+        create_elem(root, "SHORT-NAME", text="{}_{}".format(project_name, suffix))
         create_elem(root, "CATEGORY", category)
         sw_systems = create_elem(root, "SW-SYSTEMS")
         sw_system = create_elem(sw_systems, "SW-SYSTEM")

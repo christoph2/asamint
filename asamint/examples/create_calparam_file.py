@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """Create ASAM CDF files from CDF20demo.a2l / CDF20demo.hex"""
 
 __copyright__ = """
@@ -30,10 +29,12 @@ __copyright__ = """
 from asamint.cmdline import ArgumentParser
 from asamint.cdf import CDFCreator
 
-def main():
-    ap = ArgumentParser(use_xcp = False)
-    cd = CDFCreator(ap.project, ap.experiment)
-    cd.save_parameters(hexfile = "CDF20demo.hex")
 
-if __name__ == '__main__':
+def main():
+    ap = ArgumentParser(use_xcp=False)
+    cd = CDFCreator(ap.project, ap.experiment)
+    cd.save_parameters(hexfile="CDF20demo.hex")
+
+
+if __name__ == "__main__":
     main()

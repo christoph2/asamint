@@ -1,9 +1,9 @@
 # Generated from dcm20.g4 by ANTLR 4.8
-from antlr4 import *
+import sys
 from io import StringIO
 from typing.io import TextIO
-import sys
 
+from antlr4 import *
 
 
 def serializedATN():
@@ -14,8 +14,8 @@ def serializedATN():
         buf.write("\4\16\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22\4\23")
         buf.write("\t\23\4\24\t\24\4\25\t\25\4\26\t\26\4\27\t\27\4\30\t\30")
         buf.write("\4\31\t\31\4\32\t\32\4\33\t\33\4\34\t\34\4\35\t\35\4\36")
-        buf.write("\t\36\4\37\t\37\4 \t \4!\t!\4\"\t\"\4#\t#\4$\t$\4%\t%")
-        buf.write("\4&\t&\4\'\t\'\4(\t(\4)\t)\4*\t*\4+\t+\4,\t,\4-\t-\4.")
+        buf.write('\t\36\4\37\t\37\4 \t \4!\t!\4"\t"\4#\t#\4$\t$\4%\t%')
+        buf.write("\4&\t&\4'\t'\4(\t(\4)\t)\4*\t*\4+\t+\4,\t,\4-\t-\4.")
         buf.write("\t.\3\2\3\2\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3")
         buf.write("\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\4\3\4\3\4")
         buf.write("\3\4\3\5\3\5\3\5\3\5\3\5\3\5\3\5\3\5\3\5\3\5\3\6\3\6\3")
@@ -42,10 +42,10 @@ def serializedATN():
         buf.write("\3\32\3\32\3\33\3\33\3\33\3\33\3\33\3\33\3\33\3\33\3\33")
         buf.write("\3\33\3\33\3\33\3\34\3\34\3\34\3\34\3\35\3\35\3\36\3\36")
         buf.write("\3\37\3\37\3\37\3\37\3\37\3\37\3\37\3\37\3\37\3 \3 \3")
-        buf.write(" \3 \3 \3!\3!\3!\3!\3!\3!\3!\3!\3\"\3\"\3\"\3\"\3\"\3")
+        buf.write(' \3 \3 \3!\3!\3!\3!\3!\3!\3!\3!\3"\3"\3"\3"\3"\3')
         buf.write("#\3#\3#\3#\3#\3#\3#\3#\3$\3$\3$\7$\u01a8\n$\f$\16$\u01ab")
         buf.write("\13$\3%\3%\3&\3&\3&\7&\u01b2\n&\f&\16&\u01b5\13&\3&\3")
-        buf.write("&\3\'\3\'\3\'\3\'\5\'\u01bd\n\'\3(\3(\3)\5)\u01c2\n)\3")
+        buf.write("&\3'\3'\3'\3'\5'\u01bd\n'\3(\3(\3)\5)\u01c2\n)\3")
         buf.write(")\3)\3)\7)\u01c7\n)\f)\16)\u01ca\13)\5)\u01cc\n)\3*\5")
         buf.write("*\u01cf\n*\3*\6*\u01d2\n*\r*\16*\u01d3\3*\3*\7*\u01d8")
         buf.write("\n*\f*\16*\u01db\13*\3*\5*\u01de\n*\3*\5*\u01e1\n*\3*")
@@ -56,15 +56,15 @@ def serializedATN():
         buf.write("\n.\3.\3.\3.\3.\3.\7.\u0217\n.\f.\16.\u021a\13.\3.\3.")
         buf.write("\5.\u021e\n.\3.\3.\3\u0218\2/\3\3\5\4\7\5\t\6\13\7\r\b")
         buf.write("\17\t\21\n\23\13\25\f\27\r\31\16\33\17\35\20\37\21!\22")
-        buf.write("#\23%\24\'\25)\26+\27-\30/\31\61\32\63\33\65\34\67\35")
-        buf.write("9\36;\37= ?!A\"C#E$G%I\2K&M\2O\2Q\'S(U)W\2Y*[+\3\2\13")
+        buf.write("#\23%\24'\25)\26+\27-\30/\31\61\32\63\33\65\34\67\35")
+        buf.write("9\36;\37= ?!A\"C#E$G%I\2K&M\2O\2Q'S(U)W\2Y*[+\3\2\13")
         buf.write("\6\2\60\60\62;]]__\5\2C\\aac|\4\2$$^^\7\2ddhhppttvv\4")
-        buf.write("\2))^^\4\2GGgg\4\2--//\5\2\13\13\16\17\"\"\4\2\f\f\17")
+        buf.write('\2))^^\4\2GGgg\4\2--//\5\2\13\13\16\17""\4\2\f\f\17')
         buf.write("\17\2\u0236\2\3\3\2\2\2\2\5\3\2\2\2\2\7\3\2\2\2\2\t\3")
         buf.write("\2\2\2\2\13\3\2\2\2\2\r\3\2\2\2\2\17\3\2\2\2\2\21\3\2")
         buf.write("\2\2\2\23\3\2\2\2\2\25\3\2\2\2\2\27\3\2\2\2\2\31\3\2\2")
         buf.write("\2\2\33\3\2\2\2\2\35\3\2\2\2\2\37\3\2\2\2\2!\3\2\2\2\2")
-        buf.write("#\3\2\2\2\2%\3\2\2\2\2\'\3\2\2\2\2)\3\2\2\2\2+\3\2\2\2")
+        buf.write("#\3\2\2\2\2%\3\2\2\2\2'\3\2\2\2\2)\3\2\2\2\2+\3\2\2\2")
         buf.write("\2-\3\2\2\2\2/\3\2\2\2\2\61\3\2\2\2\2\63\3\2\2\2\2\65")
         buf.write("\3\2\2\2\2\67\3\2\2\2\29\3\2\2\2\2;\3\2\2\2\2=\3\2\2\2")
         buf.write("\2?\3\2\2\2\2A\3\2\2\2\2C\3\2\2\2\2E\3\2\2\2\2G\3\2\2")
@@ -74,7 +74,7 @@ def serializedATN():
         buf.write("\2\21\u0095\3\2\2\2\23\u00a8\3\2\2\2\25\u00b2\3\2\2\2")
         buf.write("\27\u00bb\3\2\2\2\31\u00c0\3\2\2\2\33\u00c5\3\2\2\2\35")
         buf.write("\u00d4\3\2\2\2\37\u00de\3\2\2\2!\u00ec\3\2\2\2#\u00fd")
-        buf.write("\3\2\2\2%\u0106\3\2\2\2\'\u0113\3\2\2\2)\u0123\3\2\2\2")
+        buf.write("\3\2\2\2%\u0106\3\2\2\2'\u0113\3\2\2\2)\u0123\3\2\2\2")
         buf.write("+\u013b\3\2\2\2-\u0146\3\2\2\2/\u0150\3\2\2\2\61\u015a")
         buf.write("\3\2\2\2\63\u0164\3\2\2\2\65\u016d\3\2\2\2\67\u0179\3")
         buf.write("\2\2\29\u017d\3\2\2\2;\u017f\3\2\2\2=\u0181\3\2\2\2?\u018a")
@@ -129,7 +129,7 @@ def serializedATN():
         buf.write("\7R\2\2\u00f1\u00f2\7G\2\2\u00f2\u00f3\7P\2\2\u00f3\u00f4")
         buf.write("\7M\2\2\u00f4\u00f5\7G\2\2\u00f5\u00f6\7P\2\2\u00f6\u00f7")
         buf.write("\7P\2\2\u00f7\u00f8\7N\2\2\u00f8\u00f9\7K\2\2\u00f9\u00fa")
-        buf.write("\7P\2\2\u00fa\u00fb\7K\2\2\u00fb\u00fc\7G\2\2\u00fc\"")
+        buf.write('\7P\2\2\u00fa\u00fb\7K\2\2\u00fb\u00fc\7G\2\2\u00fc"')
         buf.write("\3\2\2\2\u00fd\u00fe\7M\2\2\u00fe\u00ff\7G\2\2\u00ff\u0100")
         buf.write("\7P\2\2\u0100\u0101\7P\2\2\u0101\u0102\7H\2\2\u0102\u0103")
         buf.write("\7G\2\2\u0103\u0104\7N\2\2\u0104\u0105\7F\2\2\u0105$\3")
@@ -190,7 +190,7 @@ def serializedATN():
         buf.write("\t\2\2\2\u01a7\u01a5\3\2\2\2\u01a7\u01a6\3\2\2\2\u01a8")
         buf.write("\u01ab\3\2\2\2\u01a9\u01a7\3\2\2\2\u01a9\u01aa\3\2\2\2")
         buf.write("\u01aaH\3\2\2\2\u01ab\u01a9\3\2\2\2\u01ac\u01ad\t\3\2")
-        buf.write("\2\u01adJ\3\2\2\2\u01ae\u01b3\7$\2\2\u01af\u01b2\5M\'")
+        buf.write("\2\u01adJ\3\2\2\2\u01ae\u01b3\7$\2\2\u01af\u01b2\5M'")
         buf.write("\2\u01b0\u01b2\n\4\2\2\u01b1\u01af\3\2\2\2\u01b1\u01b0")
         buf.write("\3\2\2\2\u01b2\u01b5\3\2\2\2\u01b3\u01b1\3\2\2\2\u01b3")
         buf.write("\u01b4\3\2\2\2\u01b4\u01b6\3\2\2\2\u01b5\u01b3\3\2\2\2")
@@ -251,7 +251,7 @@ class dcm20Lexer(Lexer):
 
     atn = ATNDeserializer().deserialize(serializedATN())
 
-    decisionsToDFA = [ DFA(ds, i) for i, ds in enumerate(atn.decisionToState) ]
+    decisionsToDFA = [DFA(ds, i) for i, ds in enumerate(atn.decisionToState)]
 
     T__0 = 1
     T__1 = 2
@@ -295,38 +295,115 @@ class dcm20Lexer(Lexer):
     WS = 40
     COMMENT = 41
 
-    channelNames = [ u"DEFAULT_TOKEN_CHANNEL", u"HIDDEN" ]
+    channelNames = [u"DEFAULT_TOKEN_CHANNEL", u"HIDDEN"]
 
-    modeNames = [ "DEFAULT_MODE" ]
+    modeNames = ["DEFAULT_MODE"]
 
-    literalNames = [ "<INVALID>",
-            "'\n'", "'KONSERVIERUNG_FORMAT'", "'2.0'", "'MODULKOPF'", "'FUNKTIONEN'", 
-            "'END'", "'FKT'", "'VARIANTENKODIERUNG'", "'KRITERIUM'", "'FESTWERT'", 
-            "'WERT'", "'TEXT'", "'FESTWERTEBLOCK'", "'KENNLINIE'", "'FESTKENNLINIE'", 
-            "'GRUPPENKENNLINIE'", "'KENNFELD'", "'FESTKENNFELD'", "'GRUPPENKENNFELD'", 
-            "'STUETZSTELLENVERTEILUNG'", "'TEXTSTRING'", "'EINHEIT_X'", 
-            "'EINHEIT_Y'", "'EINHEIT_W'", "'LANGNAME'", "'DISPLAYNAME'", 
-            "'VAR'", "','", "'='", "'FUNKTION'", "'ST/X'", "'ST_TX/X'", 
-            "'ST/Y'", "'ST_TX/Y'", "'-'" ]
+    literalNames = [
+        "<INVALID>",
+        "'\n'",
+        "'KONSERVIERUNG_FORMAT'",
+        "'2.0'",
+        "'MODULKOPF'",
+        "'FUNKTIONEN'",
+        "'END'",
+        "'FKT'",
+        "'VARIANTENKODIERUNG'",
+        "'KRITERIUM'",
+        "'FESTWERT'",
+        "'WERT'",
+        "'TEXT'",
+        "'FESTWERTEBLOCK'",
+        "'KENNLINIE'",
+        "'FESTKENNLINIE'",
+        "'GRUPPENKENNLINIE'",
+        "'KENNFELD'",
+        "'FESTKENNFELD'",
+        "'GRUPPENKENNFELD'",
+        "'STUETZSTELLENVERTEILUNG'",
+        "'TEXTSTRING'",
+        "'EINHEIT_X'",
+        "'EINHEIT_Y'",
+        "'EINHEIT_W'",
+        "'LANGNAME'",
+        "'DISPLAYNAME'",
+        "'VAR'",
+        "','",
+        "'='",
+        "'FUNKTION'",
+        "'ST/X'",
+        "'ST_TX/X'",
+        "'ST/Y'",
+        "'ST_TX/Y'",
+        "'-'",
+    ]
 
-    symbolicNames = [ "<INVALID>",
-            "NAME", "TEXT", "INT", "FLOAT", "MINUS", "WS", "COMMENT" ]
+    symbolicNames = [
+        "<INVALID>",
+        "NAME",
+        "TEXT",
+        "INT",
+        "FLOAT",
+        "MINUS",
+        "WS",
+        "COMMENT",
+    ]
 
-    ruleNames = [ "T__0", "T__1", "T__2", "T__3", "T__4", "T__5", "T__6", 
-                  "T__7", "T__8", "T__9", "T__10", "T__11", "T__12", "T__13", 
-                  "T__14", "T__15", "T__16", "T__17", "T__18", "T__19", 
-                  "T__20", "T__21", "T__22", "T__23", "T__24", "T__25", 
-                  "T__26", "T__27", "T__28", "T__29", "T__30", "T__31", 
-                  "T__32", "T__33", "NAME", "LETTER", "TEXT", "EscapeSequence", 
-                  "QUOTE", "INT", "FLOAT", "MINUS", "Exponent", "WS", "COMMENT" ]
+    ruleNames = [
+        "T__0",
+        "T__1",
+        "T__2",
+        "T__3",
+        "T__4",
+        "T__5",
+        "T__6",
+        "T__7",
+        "T__8",
+        "T__9",
+        "T__10",
+        "T__11",
+        "T__12",
+        "T__13",
+        "T__14",
+        "T__15",
+        "T__16",
+        "T__17",
+        "T__18",
+        "T__19",
+        "T__20",
+        "T__21",
+        "T__22",
+        "T__23",
+        "T__24",
+        "T__25",
+        "T__26",
+        "T__27",
+        "T__28",
+        "T__29",
+        "T__30",
+        "T__31",
+        "T__32",
+        "T__33",
+        "NAME",
+        "LETTER",
+        "TEXT",
+        "EscapeSequence",
+        "QUOTE",
+        "INT",
+        "FLOAT",
+        "MINUS",
+        "Exponent",
+        "WS",
+        "COMMENT",
+    ]
 
     grammarFileName = "dcm20.g4"
 
-    def __init__(self, input=None, output:TextIO = sys.stdout):
+    def __init__(self, input=None, output: TextIO = sys.stdout):
         super().__init__(input, output)
         self.checkVersion("4.8")
-        self._interp = LexerATNSimulator(self, self.atn, self.decisionsToDFA, PredictionContextCache())
+        self._interp = LexerATNSimulator(
+            self, self.atn, self.decisionsToDFA, PredictionContextCache()
+        )
         self._actions = None
         self._predicates = None
-
-

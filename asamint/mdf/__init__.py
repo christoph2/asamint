@@ -24,17 +24,17 @@ __copyright__ = """
 
    s. FLOSS-EXCEPTION.txt
 """
-__author__ = 'Christoph Schueler'
+__author__ = "Christoph Schueler"
 
 
 import numpy as np
-from lxml.etree import (Element, tostring)
+from lxml.etree import Element, tostring
 
-from asammdf import (MDF, Signal)
+from asammdf import MDF, Signal
 import pya2l.functions as functions
 
 from asamint.asam import AsamBaseType
-from asamint.utils import (create_elem)
+from asamint.utils import create_elem
 
 
 class Datasource:
@@ -52,26 +52,25 @@ class MDFCreator(AsamBaseType):
 
     PROJECT_PARAMETER_MAP = {
         #                           Type     Req'd   Default
-        "MDF_VERSION":              (str,    False,   "4.10"),
+        "MDF_VERSION": (str, False, "4.10"),
     }
 
     EXPERIMENT_PARAMETER_MAP = {
         #                           Type     Req'd   Default
-        "TIME_SOURCE":              (str,    False,  "local PC reference timer"),
-        "MEASUREMENTS":             (list,   False,  []),
-        "FUNCTIONS":                (list,   False,  []),
-        "GROUPS":                   (list,   False,  []),
+        "TIME_SOURCE": (str, False, "local PC reference timer"),
+        "MEASUREMENTS": (list, False, []),
+        "FUNCTIONS": (list, False, []),
+        "GROUPS": (list, False, []),
     }
 
     def on_init(self, project_config, experiment_config, *args, **kws):
         self.loadConfig(project_config, experiment_config)
-        self._mdf_obj = MDF(version = self.project_config.get("MDF_VERSION" ))
+        self._mdf_obj = MDF(version=self.project_config.get("MDF_VERSION"))
         hd_comment = self.hd_comment()
         self._mdf_obj.md_data = hd_comment
 
     def hd_comment(self):
-        """
-        """
+        """ """
         mdf_ver_major = int(self._mdf_obj.version.split(".")[0])
         if mdf_ver_major < 4:
             pass
@@ -85,13 +84,35 @@ class MDFCreator(AsamBaseType):
             if sys_constants:
                 elem_constants = create_elem(elem_root, "constants")
                 for name, value in sys_constants.items():
-                    create_elem(elem_constants, "const", text = str(value), attrib = {"name": name})
+                    create_elem(
+                        elem_constants, "const", text=str(value), attrib={"name": name}
+                    )
             cps = create_elem(elem_root, "common_properties")
-            create_elem(cps, "e", attrib = {"name": "author"}, text = self.project_config.get("AUTHOR"))
-            create_elem(cps, "e", attrib = {"name": "department"}, text = self.project_config.get("DEPARTMENT"))
-            create_elem(cps, "e", attrib = {"name": "project"}, text = self.project_config.get("PROJECT"))
-            create_elem(cps, "e", attrib = {"name": "subject"}, text = self.experiment_config.get("SUBJECT"))
-            return tostring(elem_root, encoding = "UTF-8", pretty_print = True)
+            create_elem(
+                cps,
+                "e",
+                attrib={"name": "author"},
+                text=self.project_config.get("AUTHOR"),
+            )
+            create_elem(
+                cps,
+                "e",
+                attrib={"name": "department"},
+                text=self.project_config.get("DEPARTMENT"),
+            )
+            create_elem(
+                cps,
+                "e",
+                attrib={"name": "project"},
+                text=self.project_config.get("PROJECT"),
+            )
+            create_elem(
+                cps,
+                "e",
+                attrib={"name": "subject"},
+                text=self.experiment_config.get("SUBJECT"),
+            )
+            return tostring(elem_root, encoding="UTF-8", pretty_print=True)
 
     def save_measurements(self, mdf_filename: str = None, data: dict = None):
         """
@@ -105,9 +126,13 @@ class MDFCreator(AsamBaseType):
         timestamps = data.get("TIMESTAMPS")
         signals = []
         for measurement in self.measurements:
-            matrixDim = measurement.matrixDim   # TODO: Measurements are not necessarily scalars!
+            matrixDim = (
+                measurement.matrixDim
+            )  # TODO: Measurements are not necessarily scalars!
             if not measurement.name in data:
-                self.logger.warn("NO data for measurement '{}'.".format(measurement.name))
+                self.logger.warn(
+                    "NO data for measurement '{}'.".format(measurement.name)
+                )
                 continue
             self.logger.info("Adding SIGNAL: '{}'.".format(measurement.name))
 
@@ -117,7 +142,9 @@ class MDFCreator(AsamBaseType):
             conversion_map = self.ccblock(compuMethod)
             unit = compuMethod.unit if compuMethod != "NO_COMPU_METHOD" else None
             samples = data.get(measurement.name)
-            samples = np.array(samples, copy = False) # Make sure array-like data is of type `ndarray`.
+            samples = np.array(
+                samples, copy=False
+            )  # Make sure array-like data is of type `ndarray`.
 
             # Step #1: bit fiddling.
             bitMask = measurement.bitMask
@@ -136,12 +163,16 @@ class MDFCreator(AsamBaseType):
             samples = self.calculate_physical_values(samples, compuMethod)
 
             signal = Signal(
-                samples = samples, timestamps = timestamps, name = measurement.name,
-                unit = unit, conversion = conversion_map, comment = comment
+                samples=samples,
+                timestamps=timestamps,
+                name=measurement.name,
+                unit=unit,
+                conversion=conversion_map,
+                comment=comment,
             )
             signals.append(signal)
         self._mdf_obj.append(signals)
-        self._mdf_obj.save(dst = mdf_filename, overwrite = True)
+        self._mdf_obj.save(dst=mdf_filename, overwrite=True)
 
     def ccblock(self, compuMethod) -> str:
         """Construct CCBLOCK
@@ -163,9 +194,7 @@ class MDFCreator(AsamBaseType):
                 conversion = None
             elif cm_type == "FORM":
                 formula_inv = compuMethod.formula["formula_inv"]
-                conversion = {
-                    "formula": compuMethod.formula["formula"]
-                }
+                conversion = {"formula": compuMethod.formula["formula"]}
             elif cm_type == "LINEAR":
                 conversion = {
                     "a": compuMethod.coeffs_linear["a"],
@@ -185,25 +214,53 @@ class MDFCreator(AsamBaseType):
                 default_value = compuMethod.tab["default_value"]
                 in_values = compuMethod.tab["in_values"]
                 out_values = compuMethod.tab["out_values"]
-                conversion = {"raw_{}".format(i): in_values[i] for i in range(len(in_values))}
-                conversion.update({"phys_{}".format(i): out_values[i] for i in range(len(out_values))})
-                conversion.update(default = default_value)
-                conversion.update(interpolation = interpolation)
+                conversion = {
+                    "raw_{}".format(i): in_values[i] for i in range(len(in_values))
+                }
+                conversion.update(
+                    {"phys_{}".format(i): out_values[i] for i in range(len(out_values))}
+                )
+                conversion.update(default=default_value)
+                conversion.update(interpolation=interpolation)
             elif cm_type == "TAB_VERB":
                 default_value = compuMethod.tab_verb["default_value"]
                 text_values = compuMethod.tab_verb["text_values"]
                 if compuMethod.tab_verb["ranges"]:
                     lower_values = compuMethod.tab_verb["lower_values"]
                     upper_values = compuMethod.tab_verb["upper_values"]
-                    conversion = {"lower_{}".format(i): lower_values[i] for i in range(len(lower_values))}
-                    conversion.update({"upper_{}".format(i): upper_values[i] for i in range(len(upper_values))})
-                    conversion.update({"text_{}".format(i): text_values[i] for i in range(len(text_values))})
-                    conversion.update(default = bytes(default_value, encoding = "utf-8") if default_value else b'')
+                    conversion = {
+                        "lower_{}".format(i): lower_values[i]
+                        for i in range(len(lower_values))
+                    }
+                    conversion.update(
+                        {
+                            "upper_{}".format(i): upper_values[i]
+                            for i in range(len(upper_values))
+                        }
+                    )
+                    conversion.update(
+                        {
+                            "text_{}".format(i): text_values[i]
+                            for i in range(len(text_values))
+                        }
+                    )
+                    conversion.update(
+                        default=bytes(default_value, encoding="utf-8")
+                        if default_value
+                        else b""
+                    )
                 else:
                     in_values = compuMethod.tab_verb["in_values"]
-                    conversion = {"val_{}".format(i): in_values[i] for i in range(len(in_values))}
-                    conversion.update({"text_{}".format(i): text_values[i] for i in range(len(text_values))})
-                    conversion.update(default = default_value)
+                    conversion = {
+                        "val_{}".format(i): in_values[i] for i in range(len(in_values))
+                    }
+                    conversion.update(
+                        {
+                            "text_{}".format(i): text_values[i]
+                            for i in range(len(text_values))
+                        }
+                    )
+                    conversion.update(default=default_value)
         return conversion
 
     def calculate_physical_values(self, internal_values, cm_object):

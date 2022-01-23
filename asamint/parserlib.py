@@ -36,7 +36,7 @@ import sys
 import antlr4
 from antlr4.error.ErrorListener import ErrorListener
 
-#from pya2l import model
+# from pya2l import model
 
 
 class MyErrorListener(ErrorListener):
@@ -50,9 +50,7 @@ class MyErrorListener(ErrorListener):
 class ParserWrapper:
     """"""
 
-    def __init__(
-        self, grammarName, startSymbol, listener=None, debug=False
-    ):
+    def __init__(self, grammarName, startSymbol, listener=None, debug=False):
         self.debug = debug
         self.grammarName = grammarName
         self.startSymbol = startSymbol
@@ -72,14 +70,14 @@ class ParserWrapper:
 
     def parse(self, input, trace=False):
         lexer = self.lexerClass(input)
-        #lexer.removeErrorListeners()
-        #lexer.addErrorListener(MyErrorListener())
+        # lexer.removeErrorListeners()
+        # lexer.addErrorListener(MyErrorListener())
         tokenStream = antlr4.CommonTokenStream(lexer)
         #        tokenStream = BufferedTokenStream(lexer)
         parser = self.parserClass(tokenStream)
         parser.setTrace(trace)
-        #parser.removeErrorListeners()
-        #parser.addErrorListener(MyErrorListener())
+        # parser.removeErrorListeners()
+        # parser.addErrorListener(MyErrorListener())
         meth = getattr(parser, self.startSymbol)
         self._syntaxErrors = parser._syntaxErrors
         tree = meth()

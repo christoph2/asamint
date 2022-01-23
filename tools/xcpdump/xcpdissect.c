@@ -1660,4 +1660,3 @@ static void print_pgm_properties(uint8_t properties)
     }
     printf("}");
 }
-

@@ -7,7 +7,7 @@
 
 // C++11 and below don't support contexpr as used here.
 #if __cplusplus >= 201300
-# define MND_CONSTEXPR constexpr 
+# define MND_CONSTEXPR constexpr
 #else
 # define MND_CONSTEXPR
 #endif
@@ -554,7 +554,7 @@ MND_CONSTEXPR void write(const T& h, OutputIt it) noexcept
 }
 
 template<order Order, size_t N, class T, class OutputIt>
-MND_CONSTEXPR void write(const T& h, OutputIt it) noexcept 
+MND_CONSTEXPR void write(const T& h, OutputIt it) noexcept
 {
     static_assert(detail::is_endian_reversible<T>::value,
         "T must be an integral or POD type");
