@@ -9,4 +9,5 @@ sortedcontainers
 black
 flake8
 reorder_python_imports
+pre-commit-hooks
 
