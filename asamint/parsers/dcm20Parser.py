@@ -478,15 +478,11 @@ class dcm20Parser(Parser):
     def __init__(self, input: TokenStream, output: TextIO = sys.stdout):
         super().__init__(input, output)
         self.checkVersion("4.8")
-        self._interp = ParserATNSimulator(
-            self, self.atn, self.decisionsToDFA, self.sharedContextCache
-        )
+        self._interp = ParserATNSimulator(self, self.atn, self.decisionsToDFA, self.sharedContextCache)
         self._predicates = None
 
     class KonservierungContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.kopf = None  # Kons_kopfContext
@@ -555,9 +551,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Kons_kopfContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.info = None  # Modulkopf_infoContext
@@ -621,9 +615,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Modulkopf_infoContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self._mod_zeile = None  # Mod_zeileContext
@@ -675,9 +667,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Mod_zeileContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.anf = None  # Mod_anf_zeileContext
@@ -733,9 +723,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Mod_anf_zeileContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.n = None  # Mod_ele_nameContext
@@ -779,9 +767,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Mod_fort_zeileContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.w = None  # Mod_ele_wertContext
@@ -819,9 +805,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Mod_ele_nameContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.n = None  # NameValueContext
@@ -857,9 +841,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Mod_ele_wertContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.t = None  # TextValueContext
@@ -908,9 +890,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class FunktionsdefContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self._funktionszeile = None  # FunktionszeileContext
@@ -980,9 +960,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class FunktionszeileContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.n = None  # NameValueContext
@@ -1032,9 +1010,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Fkt_versionContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.t = None  # TextValueContext
@@ -1070,9 +1046,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Fkt_langnameContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.t = None  # TextValueContext
@@ -1121,9 +1095,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class VariantendefContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self._variantenkrit = None  # VariantenkritContext
@@ -1193,9 +1165,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class VariantenkritContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.n = None  # Krit_nameContext
@@ -1265,9 +1235,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Krit_nameContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.n = None  # NameValueContext
@@ -1303,9 +1271,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Krit_wertContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.n = None  # NameValueContext
@@ -1341,9 +1307,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Kons_rumpfContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self._kenngroesse = None  # KenngroesseContext
@@ -1407,9 +1371,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class KenngroesseContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.kw = None  # KennwertContext
@@ -1493,9 +1455,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class KennwertContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.n = None  # NameValueContext
@@ -1595,9 +1555,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class KennwerteblockContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.n = None  # NameValueContext
@@ -1696,9 +1654,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class KennlinieContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.cat = None  # Token
@@ -1763,15 +1719,7 @@ class dcm20Parser(Parser):
             if not (
                 (
                     ((_la) & ~0x3F) == 0
-                    and (
-                        (1 << _la)
-                        & (
-                            (1 << dcm20Parser.T__13)
-                            | (1 << dcm20Parser.T__14)
-                            | (1 << dcm20Parser.T__15)
-                        )
-                    )
-                    != 0
+                    and ((1 << _la) & ((1 << dcm20Parser.T__13) | (1 << dcm20Parser.T__14) | (1 << dcm20Parser.T__15))) != 0
                 )
             ):
                 localctx.cat = self._errHandler.recoverInline(self)
@@ -1849,9 +1797,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class KennfeldContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.cat = None  # Token
@@ -1920,15 +1866,7 @@ class dcm20Parser(Parser):
             if not (
                 (
                     ((_la) & ~0x3F) == 0
-                    and (
-                        (1 << _la)
-                        & (
-                            (1 << dcm20Parser.T__16)
-                            | (1 << dcm20Parser.T__17)
-                            | (1 << dcm20Parser.T__18)
-                        )
-                    )
-                    != 0
+                    and ((1 << _la) & ((1 << dcm20Parser.T__16) | (1 << dcm20Parser.T__17) | (1 << dcm20Parser.T__18))) != 0
                 )
             ):
                 localctx.cat = self._errHandler.recoverInline(self)
@@ -2004,9 +1942,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class GruppenstuetzstellenContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.n = None  # NameValueContext
@@ -2105,9 +2041,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class KenntextContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.n = None  # NameValueContext
@@ -2178,9 +2112,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Kgr_infoContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.lname = None  # LangnameContext
@@ -2198,9 +2130,7 @@ class dcm20Parser(Parser):
             return self.getTypedRuleContext(dcm20Parser.Var_abhangigkeitenContext, 0)
 
         def funktionszugehorigkeit(self):
-            return self.getTypedRuleContext(
-                dcm20Parser.FunktionszugehorigkeitContext, 0
-            )
+            return self.getTypedRuleContext(dcm20Parser.FunktionszugehorigkeitContext, 0)
 
         def getRuleIndex(self):
             return dcm20Parser.RULE_kgr_info
@@ -2257,9 +2187,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Einheit_xContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.t = None  # TextValueContext
@@ -2299,9 +2227,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Einheit_yContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.t = None  # TextValueContext
@@ -2341,9 +2267,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Einheit_wContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.t = None  # TextValueContext
@@ -2383,9 +2307,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class LangnameContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.t = None  # TextValueContext
@@ -2425,9 +2347,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class DisplaynameContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.n = None  # NameValueContext
@@ -2483,9 +2403,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Var_abhangigkeitenContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self._var_abh = None  # Var_abhContext
@@ -2544,9 +2462,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Var_abhContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.n = None  # NameValueContext
@@ -2589,9 +2505,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class FunktionszugehorigkeitContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self._nameValue = None  # NameValueContext
@@ -2616,9 +2530,7 @@ class dcm20Parser(Parser):
 
     def funktionszugehorigkeit(self):
 
-        localctx = dcm20Parser.FunktionszugehorigkeitContext(
-            self, self._ctx, self.state
-        )
+        localctx = dcm20Parser.FunktionszugehorigkeitContext(self, self._ctx, self.state)
         self.enterRule(localctx, 64, self.RULE_funktionszugehorigkeit)
         self._la = 0  # Token type
         try:
@@ -2649,9 +2561,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Anzahl_xContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.i = None  # IntegerValueContext
@@ -2687,9 +2597,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Anzahl_yContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.i = None  # IntegerValueContext
@@ -2725,9 +2633,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class WertelisteContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self._realzahl = None  # RealzahlContext
@@ -2783,9 +2689,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Werteliste_kwbContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self._realzahl = None  # RealzahlContext
@@ -2876,9 +2780,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Sst_liste_xContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self._realzahl = None  # RealzahlContext
@@ -2969,9 +2871,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Kf_zeile_listeContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self._kf_zeile_liste_r = None  # Kf_zeile_liste_rContext
@@ -3054,9 +2954,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Kf_zeile_liste_rContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.r = None  # RealzahlContext
@@ -3118,9 +3016,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class Kf_zeile_liste_txContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.t = None  # TextValueContext
@@ -3182,9 +3078,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class RealzahlContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.i = None  # Token
@@ -3236,9 +3130,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class NameValueContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.n = None  # Token
@@ -3274,9 +3166,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class TextValueContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.t = None  # Token
@@ -3312,9 +3202,7 @@ class dcm20Parser(Parser):
         return localctx
 
     class IntegerValueContext(ParserRuleContext):
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
             self.i = None  # Token

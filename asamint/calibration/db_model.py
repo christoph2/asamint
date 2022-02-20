@@ -6,7 +6,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2021 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2021-2022 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -92,9 +92,6 @@ class Base(object):
 
     rid = Column("rid", types.Integer, primary_key=True)
     comment = Column(types.Unicode(4096), default=None)
-
-
-#    id = Column(Integer, primary_key=True)
 
 
 class CompareByPositionMixIn:
@@ -196,16 +193,12 @@ class ValueAssociation(Base):
 class Value(Base):
 
     association_rid = Column(types.Integer, ForeignKey("value_association.rid"))
-    association = relationship(
-        "ValueAssociation", backref="raw_values", foreign_keys=[association_rid]
-    )
+    association = relationship("ValueAssociation", backref="raw_values", foreign_keys=[association_rid])
     # association = relationship("ValueAssociation", backref = "raw_values")
     parent = association_proxy("association", "parent")
 
     c_association_rid = Column(types.Integer, ForeignKey("value_association.rid"))
-    c_association = relationship(
-        "ValueAssociation", backref="converted_values", foreign_keys=[c_association_rid]
-    )
+    c_association = relationship("ValueAssociation", backref="converted_values", foreign_keys=[c_association_rid])
     parent = association_proxy("c_association", "parent")
 
     float_value = StdFloat()
@@ -243,9 +236,7 @@ class HasValues(object):
         cls.converted_values = association_proxy(
             "value_association",
             "converted_values",
-            creator=lambda converted_values: assoc_cls(
-                converted_values=converted_values
-            ),
+            creator=lambda converted_values: assoc_cls(converted_values=converted_values),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -412,9 +403,7 @@ def set_sqlite3_pragmas(dbapi_connection, connection_record):
     # cursor.execute("PRAGMA jornal_mode=WAL")
     cursor.execute("PRAGMA FOREIGN_KEYS=ON")
     cursor.execute("PRAGMA PAGE_SIZE={}".format(PAGE_SIZE))
-    cursor.execute(
-        "PRAGMA CACHE_SIZE={}".format(calculateCacheSize(CACHE_SIZE * 1025 * 1024))
-    )
+    cursor.execute("PRAGMA CACHE_SIZE={}".format(calculateCacheSize(CACHE_SIZE * 1025 * 1024)))
     cursor.execute("PRAGMA SYNCHRONOUS=OFF")  # FULL
     cursor.execute("PRAGMA LOCKING_MODE=EXCLUSIVE")  # NORMAL
     cursor.execute("PRAGMA TEMP_STORE=MEMORY")  # FILE
@@ -435,23 +424,19 @@ class CalibrationDB:
         self._engine = create_engine(
             "sqlite:///{}".format(self.dbname),
             echo=debug,
-            connect_args={
-                "detect_types": sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
-            },
+            connect_args={"detect_types": sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES},
             native_datetime=True,
         )
         self._session = orm.Session(self._engine, autoflush=False, autocommit=False)
         self._metadata = Base.metadata
-        if create == True:
+        if create:
             Base.metadata.create_all(self.engine)
             self.session.flush()
             self.session.commit()
         self.logger = Logger(__name__, level=logLevel)
 
     @classmethod
-    def _open_or_create(
-        cls, filename=":memory:", debug=False, logLevel="INFO", create=True
-    ):
+    def _open_or_create(cls, filename=":memory:", debug=False, logLevel="INFO", create=True):
         """ """
         inst = cls(filename, debug, logLevel, create)
         return inst

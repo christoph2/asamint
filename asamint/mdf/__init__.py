@@ -4,7 +4,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2020-2022 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -84,9 +84,7 @@ class MDFCreator(AsamBaseType):
             if sys_constants:
                 elem_constants = create_elem(elem_root, "constants")
                 for name, value in sys_constants.items():
-                    create_elem(
-                        elem_constants, "const", text=str(value), attrib={"name": name}
-                    )
+                    create_elem(elem_constants, "const", text=str(value), attrib={"name": name})
             cps = create_elem(elem_root, "common_properties")
             create_elem(
                 cps,
@@ -126,25 +124,19 @@ class MDFCreator(AsamBaseType):
         timestamps = data.get("TIMESTAMPS")
         signals = []
         for measurement in self.measurements:
-            matrixDim = (
-                measurement.matrixDim
-            )  # TODO: Measurements are not necessarily scalars!
-            if not measurement.name in data:
-                self.logger.warn(
-                    "NO data for measurement '{}'.".format(measurement.name)
-                )
+            # matrixDim = measurement.matrixDim  # TODO: Measurements are not necessarily scalars!
+            if measurement.name not in data:
+                self.logger.warn("NO data for measurement '{}'.".format(measurement.name))
                 continue
             self.logger.info("Adding SIGNAL: '{}'.".format(measurement.name))
 
             comment = measurement.longIdentifier
-            data_type = measurement.datatype
+            # data_type = measurement.datatype
             compuMethod = measurement.compuMethod
             conversion_map = self.ccblock(compuMethod)
             unit = compuMethod.unit if compuMethod != "NO_COMPU_METHOD" else None
             samples = data.get(measurement.name)
-            samples = np.array(
-                samples, copy=False
-            )  # Make sure array-like data is of type `ndarray`.
+            samples = np.array(samples, copy=False)  # Make sure array-like data is of type `ndarray`.
 
             # Step #1: bit fiddling.
             bitMask = measurement.bitMask
@@ -193,7 +185,7 @@ class MDFCreator(AsamBaseType):
             if cm_type == "IDENTICAL":
                 conversion = None
             elif cm_type == "FORM":
-                formula_inv = compuMethod.formula["formula_inv"]
+                # formula_inv = compuMethod.formula["formula_inv"]
                 conversion = {"formula": compuMethod.formula["formula"]}
             elif cm_type == "LINEAR":
                 conversion = {
@@ -214,12 +206,8 @@ class MDFCreator(AsamBaseType):
                 default_value = compuMethod.tab["default_value"]
                 in_values = compuMethod.tab["in_values"]
                 out_values = compuMethod.tab["out_values"]
-                conversion = {
-                    "raw_{}".format(i): in_values[i] for i in range(len(in_values))
-                }
-                conversion.update(
-                    {"phys_{}".format(i): out_values[i] for i in range(len(out_values))}
-                )
+                conversion = {"raw_{}".format(i): in_values[i] for i in range(len(in_values))}
+                conversion.update({"phys_{}".format(i): out_values[i] for i in range(len(out_values))})
                 conversion.update(default=default_value)
                 conversion.update(interpolation=interpolation)
             elif cm_type == "TAB_VERB":
@@ -228,38 +216,14 @@ class MDFCreator(AsamBaseType):
                 if compuMethod.tab_verb["ranges"]:
                     lower_values = compuMethod.tab_verb["lower_values"]
                     upper_values = compuMethod.tab_verb["upper_values"]
-                    conversion = {
-                        "lower_{}".format(i): lower_values[i]
-                        for i in range(len(lower_values))
-                    }
-                    conversion.update(
-                        {
-                            "upper_{}".format(i): upper_values[i]
-                            for i in range(len(upper_values))
-                        }
-                    )
-                    conversion.update(
-                        {
-                            "text_{}".format(i): text_values[i]
-                            for i in range(len(text_values))
-                        }
-                    )
-                    conversion.update(
-                        default=bytes(default_value, encoding="utf-8")
-                        if default_value
-                        else b""
-                    )
+                    conversion = {"lower_{}".format(i): lower_values[i] for i in range(len(lower_values))}
+                    conversion.update({"upper_{}".format(i): upper_values[i] for i in range(len(upper_values))})
+                    conversion.update({"text_{}".format(i): text_values[i] for i in range(len(text_values))})
+                    conversion.update(default=bytes(default_value, encoding="utf-8") if default_value else b"")
                 else:
                     in_values = compuMethod.tab_verb["in_values"]
-                    conversion = {
-                        "val_{}".format(i): in_values[i] for i in range(len(in_values))
-                    }
-                    conversion.update(
-                        {
-                            "text_{}".format(i): text_values[i]
-                            for i in range(len(text_values))
-                        }
-                    )
+                    conversion = {"val_{}".format(i): in_values[i] for i in range(len(in_values))}
+                    conversion.update({"text_{}".format(i): text_values[i] for i in range(len(text_values))})
                     conversion.update(default=default_value)
         return conversion
 

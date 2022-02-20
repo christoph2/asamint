@@ -84,7 +84,7 @@ class ParserWrapper:
         if self.listener:
             listener = self.listener()
             walker = antlr4.ParseTreeWalker()
-            result = walker.walk(listener, tree)
+            walker.walk(listener, tree)
             return listener
 
     def parseFromFile(self, filename, encoding="latin-1", trace=False):

@@ -38,16 +38,17 @@ from mako.runtime import Context
 from mako import exceptions
 
 
-indentText = lambda text, leftmargin=0: "\n".join(
-    [
-        "%s%s"
-        % (
-            (" " * leftmargin),
-            line,
-        )
-        for line in text.splitlines()
-    ]
-)
+def indentText(text: str, leftmargin: int = 0):
+    return "\n".join(
+        [
+            "%s%s"
+            % (
+                (" " * leftmargin),
+                line,
+            )
+            for line in text.splitlines()
+        ]
+    )
 
 
 def renderTemplate(
@@ -68,10 +69,10 @@ def renderTemplate(
             format_exceptions=formatExceptions,
         )
         tobj.render_context(ctx)
-    except:
+    except Exception:
         print(exceptions.text_error_template().render())
         return None
-    ##return strings.reformat(buf.getvalue(), leftMargin, rightMargin)
+    # return strings.reformat(buf.getvalue(), leftMargin, rightMargin)
     return buf.getvalue()
 
 
@@ -86,11 +87,9 @@ def renderTemplateFromText(
     buf = StringIO()
     ctx = Context(buf, **namespace)
     try:
-        tobj = Template(
-            text=tmpl, output_encoding=encoding, format_exceptions=formatExceptions
-        )
+        tobj = Template(text=tmpl, output_encoding=encoding, format_exceptions=formatExceptions)
         tobj.render_context(ctx)
-    except:
+    except Exception:
         print(exceptions.text_error_template().render())
         return None
     return indentText(buf.getvalue(), leftMargin)  # , rightMargin)

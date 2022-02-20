@@ -50,8 +50,8 @@ def main():
             x.cond_unlock()
         # cd.upload_calram(x)
         img = cd.upload_parameters(x)
-        print("Now CDF...")
-        cdf = CDFCreator(cd.session, img)
+        print("Now creating CDF...")
+        CDFCreator(cd.session, img)
         x.disconnect()
 
 

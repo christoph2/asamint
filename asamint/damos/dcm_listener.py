@@ -72,9 +72,7 @@ class BaseListener(antlr4.ParseTreeListener):
         ctx.value = ctx.n.text if ctx.n else None
 
     def _formatMessage(self, msg, location):
-        return "[{0}:{1}] {2}".format(
-            location.start.line, location.start.column + 1, msg
-        )
+        return "[{0}:{1}] {2}".format(location.start.line, location.start.column + 1, msg)
 
     def _log(self, method, msg, location=None):
         if location:

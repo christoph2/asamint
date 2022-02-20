@@ -59,9 +59,7 @@ class DCMCreator(CalibrationData):
             "experiment": self.experiment_config,
         }
 
-        res = renderTemplateFromText(
-            self.TEMPLATE, namespace, formatExceptions=False, encoding="latin-1"
-        )
+        res = renderTemplateFromText(self.TEMPLATE, namespace, formatExceptions=False, encoding="latin-1")
         file_name = self.generate_filename(self.EXTENSION)
         self.logger.info("Saving tree to {}".format(file_name))
         with open("{}".format(file_name), "wt") as of:

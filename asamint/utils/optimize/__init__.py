@@ -5,7 +5,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020-2021 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2020-2022 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -32,10 +32,13 @@ from operator import attrgetter
 
 from sortedcontainers import SortedListWithKey
 
-_SORT_BY_ADDRESS_AND_EXT = lambda e: (
-    e[0].ext,
-    e[0].address,
-)
+
+def sort_by_address_and_ext(e):
+    return (
+        e[0].ext,
+        e[0].address,
+    )
+
 
 OdtEntry = namedtuple("OdtEntry", "odt_idx, odt_entry_idx, offset")
 
@@ -46,7 +49,7 @@ class DaqList:
     def __init__(self, odts, measurement_summary):
         self.odts = odts
         self.measurement_summary = measurement_summary
-        adl = SortedListWithKey(key=_SORT_BY_ADDRESS_AND_EXT)
+        adl = SortedListWithKey(key=sort_by_address_and_ext)
         for odt_idx, odt in enumerate(odts):
             for odt_entry_idx, odt_entry in enumerate(odt):
                 adl.add((odt_entry, odt_idx, odt_entry_idx))
@@ -87,9 +90,7 @@ class McObject:
         self.length = length
 
     def __repr__(self):
-        return 'McObject(name = "{}", address = 0x{:08x}, length = {})'.format(
-            self.name, self.address, self.length
-        )
+        return 'McObject(name = "{}", address = 0x{:08x}, length = {})'.format(self.name, self.address, self.length)
 
     def __eq__(self, other):
         return self.address == other.address and self.length == other.length
@@ -119,20 +120,14 @@ def make_continuous_blocks(chunks, upper_bound=None, upper_bound_initial=None):
     # Objects can share addresses, for instance MEASUREMENTs with different COMPU_METHODs.
     values = []
     # 1. Groupy by address.
-    for key, value in groupby(
-        sorted(chunks, key=attrgetter("address")), key=attrgetter("address")
-    ):
+    for key, value in groupby(sorted(chunks, key=attrgetter("address")), key=attrgetter("address")):
         # 2. Pick the largest one.
         values.append(max(value, key=attrgetter("length")))
     result_sections = []
     last_section = None
-    initial = True
     while values:
         section = values.pop(0)
-        if (
-            last_section
-            and section.address <= last_section.address + last_section.length
-        ):
+        if last_section and section.address <= last_section.address + last_section.length:
             last_end = last_section.address + last_section.length - 1
             current_end = section.address + section.length - 1
             if last_end > section.address:
@@ -143,16 +138,11 @@ def make_continuous_blocks(chunks, upper_bound=None, upper_bound_initial=None):
                     if last_section.length + offset <= upper_bound:
                         last_section.length += offset
                     else:
-                        result_sections.append(
-                            McObject(address=section.address, length=section.length)
-                        )
+                        result_sections.append(McObject(address=section.address, length=section.length))
                 else:
                     last_section.length += offset
         else:
             # Create a new section.
-            result_sections.append(
-                McObject(address=section.address, length=section.length)
-            )
+            result_sections.append(McObject(address=section.address, length=section.length))
         last_section = result_sections[-1]
-        initial = False
     return result_sections

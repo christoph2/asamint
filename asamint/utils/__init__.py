@@ -45,9 +45,17 @@ import numpy as np
 
 SINGLE_BITS = frozenset([2 ** b for b in range(64 + 1)])
 
-sha1_digest = lambda x: hashlib.sha1(x.encode("utf8")).hexdigest()
-replace_non_c_char = lambda s: re.sub(r"[^.a-zA-Z0-9_]", "_", s)
-current_timestamp = lambda: time.strftime("_%d%m%Y_%H%M%S")
+
+def sha1_digest(x: str) -> str:
+    return hashlib.sha1(x.encode("utf8")).hexdigest()
+
+
+def replace_non_c_char(s: str) -> str:
+    return re.sub(r"[^.a-zA-Z0-9_]", "_", s)
+
+
+def current_timestamp():
+    return time.strftime("_%d%m%Y_%H%M%S")
 
 
 def convert_name(name):
@@ -100,9 +108,7 @@ def generate_filename(project_config, experiment_config, extension, extra=None):
     project = project_config.get("PROJECT")
     subject = experiment_config.get("SUBJECT")
     if extra:
-        return "{}_{}{}_{}.{}".format(
-            project, subject, current_timestamp(), extra, extension
-        )
+        return "{}_{}{}_{}.{}".format(project, subject, current_timestamp(), extra, extension)
     else:
         return "{}_{}{}.{}".format(project, subject, current_timestamp(), extension)
 
@@ -153,13 +159,11 @@ def slicer(iterable, sliceLength, converter=None):
     if converter is None:
         converter = type(iterable)
     length = len(iterable)
-    return [
-        converter((iterable[item : item + sliceLength]))
-        for item in range(0, length, sliceLength)
-    ]
+    return [converter((iterable[item : item + sliceLength])) for item in range(0, length, sliceLength)]
 
 
-int_log2 = lambda x: math.ceil(math.log2(x))
+def int_log2(x: float) -> int:
+    return math.ceil(math.log2(x))
 
 
 def current_datetime(locale=default_locale()):

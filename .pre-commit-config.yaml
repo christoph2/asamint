@@ -25,11 +25,19 @@ repos:
     language: python
     types: [python]
     stages: [commit]
+    #- id: autopep8
+    #name: autopep8
+    #entry: autopep8
+    #language: python
+    #types: [python]
+    #args: [-a, -i]
+    #stages: [commit]
   - id: check-builtin-literals
     name: check-builtin-literals
     entry: check-builtin-literals
     language: python
     types: [python]
+    exclude: "asamint/parsers/dcm20*"
     stages: [commit]
   - id: check-case-conflict
     name: check-case-conflict
@@ -92,4 +100,3 @@ repos:
     pass_filenames: false
     always_run: true
     stages: [push]
-

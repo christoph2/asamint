@@ -2,13 +2,13 @@
 ASAM Integration Package
 ========================
 
+.. image:: http://img.shields.io/badge/license-GPL-blue.svg
+   :target: http://opensource.org/licenses/GPL-2.0
+
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
 
 
-.. image:: https://results.pre-commit.ci/badge/github/christoph2/asamint/master.svg
-   :target: https://results.pre-commit.ci/latest/github/christoph2/asamint/master
-   :alt: pre-commit.ci status
 
 **asamint** (ASAM integration package) integrates several automotive related opensource projects.
 

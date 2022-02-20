@@ -41,7 +41,7 @@ from asamint.utils import SINGLE_BITS, ffs, current_timestamp
 from asamint.utils.optimize import McObject, make_continuous_blocks
 from asamint.calibration import model as cmod
 
-from pya2l.api.inspect import AxisPts, CompuMethod, Characteristic
+from pya2l.api.inspect import AxisPts, CompuMethod, Characteristic, ModPar
 from pya2l.api import inspect
 from pya2l.functions import fix_axis_par, fix_axis_par_dist
 
@@ -54,6 +54,32 @@ AXES = ("x", "y", "z", "4", "5")
 
 class Calibration:
     """ """
+
+    def __init__(self, image):
+        self.image = image
+
+    def update(self):
+        """To the actual update of parameters (write to HEX file / XCP)."""
+        pass
+
+    def _load_ascii(self, characteristic):
+        self.logger.debug("Processing ASCII '{}' @ 0x{:08x}".format(characteristic.name, characteristic.address))
+        if characteristic.matrixDim:
+            length = characteristic.matrixDim["x"]
+        else:
+            length = characteristic.number
+        value = self.image.read_string(characteristic.address, length=length)
+        return cmod.Ascii(
+            name=characteristic.name,
+            comment=characteristic.longIdentifier,
+            category="ASCII",
+            value=value,
+            displayIdentifier=characteristic.displayIdentifier,
+            length=length,
+        )
+
+    def _save_characteristic(self, characteristic, value):
+        pass
 
 
 class OnlineCalibration(Calibration):
@@ -133,11 +159,7 @@ class CalibrationData(AsamBaseType):
         epk_xcp = xcp_master.pull(len(epk_a2l)).decode("ascii")
         ok = epk_xcp == epk_a2l
         if not ok:
-            self.logger.warn(
-                "EPK is invalid -- A2L: '{}' got '{}'.".format(
-                    self.mod_par.epk, epk_xcp
-                )
-            )
+            self.logger.warn("EPK is invalid -- A2L: '{}' got '{}'.".format(self.mod_par.epk, epk_xcp))
         else:
             self.logger.info("OK, found matching EPK.")
         return ok
@@ -160,9 +182,7 @@ class CalibrationData(AsamBaseType):
             epk = self.mod_par.epk
             return (epk, addr)
 
-    def save_parameters(
-        self, xcp_master=None, hexfile: str = None, hexfile_type: str = "ihex"
-    ):
+    def save_parameters(self, xcp_master=None, hexfile: str = None, hexfile_type: str = "ihex"):
         """
         Parameters
         ----------
@@ -212,10 +232,10 @@ class CalibrationData(AsamBaseType):
         self.check_epk_xcp(xcp_master)
         if file_type:
             file_type = file_type.lower()
-        if not file_type in ("ihex", "srec"):
+        if file_type not in ("ihex", "srec"):
             raise ValueError("'file_type' must be either 'ihex' or 'srec'")
         ram_segments = []
-        mp = ModPar(self.session, None)  #  or None)
+        mp = ModPar(self.session, None)
         for segment in mp.memorySegments:
             if segment["memoryType"] == "RAM":
                 ram_segments.append(
@@ -227,17 +247,13 @@ class CalibrationData(AsamBaseType):
         if not ram_segments:
             return  # ECU program doesn't define any RAM segments.
         sections = []
-        xcp_master.setCalPage(
-            0x83, 0, 0
-        )  # TODO: Requires paging information from IF_DATA section.
+        xcp_master.setCalPage(0x83, 0, 0)  # TODO: Requires paging information from IF_DATA section.
         page = 0
         for addr, size in ram_segments:
             xcp_master.setMta(addr)
             mem = xcp_master.pull(size)
             sections.append(Section(start_address=addr, data=mem))
-        file_name = "CalRAM{}_P{}.{}".format(
-            current_timestamp(), page, "hex" if file_type == "ihex" else "srec"
-        )
+        file_name = "CalRAM{}_P{}.{}".format(current_timestamp(), page, "hex" if file_type == "ihex" else "srec")
         file_name = os.path.join(self.sub_dir("hexfiles"), file_name)
         img = Image(sections=sections, join=False)
         with open("{}".format(file_name), "wb") as outf:
@@ -257,7 +273,7 @@ class CalibrationData(AsamBaseType):
         if not data:
             return
         self.check_epk_xcp(xcp_master)
-        ram_segments = []
+        # ram_segments = []
         mp = ModPar(self.session, module_name or None)
         segment = mp.memorySegments[0]
         if segment["memoryType"] == "RAM":
@@ -275,9 +291,7 @@ class CalibrationData(AsamBaseType):
         #    mem = xcp_master.fetch(size)
         #    sections.append(Section(start_address = addr, data = mem))
 
-    def upload_parameters(
-        self, xcp_master, save_to_file: bool = True, hexfile_type: str = "ihex"
-    ):
+    def upload_parameters(self, xcp_master, save_to_file: bool = True, hexfile_type: str = "ihex"):
         """
         Parameters
         ----------
@@ -308,22 +322,14 @@ class CalibrationData(AsamBaseType):
             ax = AxisPts.get(self.session, a.name)
             mem_size = ax.total_allocated_memory
             result.append(McObject(ax.name, ax.address, mem_size))
-        characteristics = (
-            self.query(model.Characteristic)
-            .order_by(model.Characteristic.type, model.Characteristic.address)
-            .all()
-        )
+        characteristics = self.query(model.Characteristic).order_by(model.Characteristic.type, model.Characteristic.address).all()
         for c in characteristics:
             characteristic = Characteristic.get(self.session, c.name)
             mem_size = characteristic.total_allocated_memory
-            result.append(
-                McObject(characteristic.name, characteristic.address, mem_size)
-            )
+            result.append(McObject(characteristic.name, characteristic.address, mem_size))
         blocks = make_continuous_blocks(result)
         total_size = functools.reduce(lambda a, s: s.length + a, blocks, 0)
-        self.logger.info(
-            "Fetching a total of {:.2f} KBytes from XCP slave".format(total_size / 1024)
-        )
+        self.logger.info("Fetching a total of {:.2f} KBytes from XCP slave".format(total_size / 1024))
         sections = []
         for block in blocks:
             xcp_master.setMta(block.address)
@@ -331,9 +337,7 @@ class CalibrationData(AsamBaseType):
             sections.append(Section(start_address=block.address, data=mem))
         img = Image(sections=sections, join=False)
         if save_to_file:
-            file_name = "CalParams{}.{}".format(
-                current_timestamp(), "hex" if hexfile_type == "ihex" else "srec"
-            )
+            file_name = "CalParams{}.{}".format(current_timestamp(), "hex" if hexfile_type == "ihex" else "srec")
             file_name = os.path.join(self.sub_dir("hexfiles"), file_name)
             with open("{}".format(file_name), "wb") as outf:
                 dump(hexfile_type, outf, img, row_length=32)
@@ -342,11 +346,7 @@ class CalibrationData(AsamBaseType):
 
     def _load_asciis(self):
         for characteristic in self.characteristics("ASCII"):
-            self.logger.debug(
-                "Processing ASCII '{}' @ 0x{:08x}".format(
-                    characteristic.name, characteristic.address
-                )
-            )
+            self.logger.debug("Processing ASCII '{}' @ 0x{:08x}".format(characteristic.name, characteristic.address))
             if characteristic.matrixDim:
                 length = characteristic.matrixDim["x"]
             else:
@@ -363,14 +363,8 @@ class CalibrationData(AsamBaseType):
 
     def _load_value_blocks(self):
         for characteristic in self.characteristics("VAL_BLK"):
-            self.logger.debug(
-                "Processing VAL_BLK '{}' @ 0x{:08x}".format(
-                    characteristic.name, characteristic.address
-                )
-            )
-            reader = get_section_reader(
-                characteristic.fnc_asam_dtype, self.byte_order(characteristic)
-            )
+            self.logger.debug("Processing VAL_BLK '{}' @ 0x{:08x}".format(characteristic.name, characteristic.address))
+            reader = get_section_reader(characteristic.fnc_asam_dtype, self.byte_order(characteristic))
             raw_values = self.image.read_ndarray(
                 addr=characteristic.address,
                 length=characteristic.fnc_allocated_memory,
@@ -393,31 +387,19 @@ class CalibrationData(AsamBaseType):
 
     def _load_values(self):
         for characteristic in self.characteristics("VALUE"):
-            self.logger.debug(
-                "Processing VALUE '{}' @ 0x{:08x}".format(
-                    characteristic.name, characteristic.address
-                )
-            )
+            self.logger.debug("Processing VALUE '{}' @ 0x{:08x}".format(characteristic.name, characteristic.address))
             # CALIBRATION_ACCESS
             # READ_ONLY
             fnc_asam_dtype = characteristic.fnc_asam_dtype
-            fnc_np_dtype = characteristic.fnc_np_dtype
             reader = get_section_reader(fnc_asam_dtype, self.byte_order(characteristic))
             if characteristic.bitMask:
-                raw_value = self.image.read_numeric(
-                    characteristic.address, reader, bit_mask=characteristic.bitMask
-                )
-                raw_value >>= ffs(
-                    characteristic.bitMask
-                )  # Right-shift to get rid of trailing zeros (s. ASAM 2-MC spec).
+                raw_value = self.image.read_numeric(characteristic.address, reader, bit_mask=characteristic.bitMask)
+                raw_value >>= ffs(characteristic.bitMask)  # Right-shift to get rid of trailing zeros (s. ASAM 2-MC spec).
                 is_bool = True if characteristic.bitMask in SINGLE_BITS else False
             else:
                 raw_value = self.image.read_numeric(characteristic.address, reader)
                 is_bool = False
-            if (
-                characteristic.physUnit is None
-                and characteristic._conversionRef != "NO_COMPU_METHOD"
-            ):
+            if characteristic.physUnit is None and characteristic._conversionRef != "NO_COMPU_METHOD":
                 unit = characteristic.compuMethod.unit
             else:
                 unit = characteristic.physUnit
@@ -445,10 +427,8 @@ class CalibrationData(AsamBaseType):
     def _load_axis_pts(self):
         for item in self.axis_points():
             ap = AxisPts.get(self.session, item.name)
-            mem_size = ap.total_allocated_memory
-            self.logger.debug(
-                "Processing AXIS_PTS '{}' @ 0x{:08x}".format(ap.name, ap.address)
-            )
+            # mem_size = ap.total_allocated_memory
+            self.logger.debug("Processing AXIS_PTS '{}' @ 0x{:08x}".format(ap.name, ap.address))
             rl_values = self.read_record_layout_values(ap, "x")
             self.record_layout_correct_offsets(ap)
             virtual = False
@@ -484,12 +464,8 @@ class CalibrationData(AsamBaseType):
                 else:
                     no_axis_points = axis["maxAxisPoints"]
                 if (dist_op or shift_op) is None:
-                    raise TypeError(
-                        "Malformed AXIS_PTS '{}', neither DIST_OP nor SHIFT_OP specified.".format(
-                            ap
-                        )
-                    )
-                if not dist_op is None:
+                    raise TypeError("Malformed AXIS_PTS '{}', neither DIST_OP nor SHIFT_OP specified.".format(ap))
+                if dist_op is not None:
                     raw_values = fix_axis_par_dist(offset, dist_op, no_axis_points)
                 else:
                     raw_values = fix_axis_par(offset, shift_op, no_axis_points)
@@ -538,9 +514,7 @@ class CalibrationData(AsamBaseType):
                 axis_descr = curve.axisDescriptions[0]
                 if axis_descr.attribute == "CURVE_AXIS":
                     if axis_descr.curveAxisRef.name in curves_by_name:
-                        ref_pos, ref_curve = curves_by_name.get(
-                            axis_descr.curveAxisRef.name
-                        )
+                        ref_pos, ref_curve = curves_by_name.get(axis_descr.curveAxisRef.name)
                         if ref_pos > curr_pos:
                             # Swap
                             t_curve = curves[ins_pos]
@@ -565,11 +539,7 @@ class CalibrationData(AsamBaseType):
             # CURVEs may reference other CURVEs, so some ordering is required.
             characteristics = self._order_curves(characteristics)
         for characteristic in characteristics:
-            self.logger.debug(
-                "Processing {} '{}' @ 0x{:08x}".format(
-                    category, characteristic.name, characteristic.address
-                )
-            )
+            self.logger.debug("Processing {} '{}' @ 0x{:08x}".format(category, characteristic.name, characteristic.address))
             characteristic_cm = characteristic.compuMethod
             chr_cm = CompuMethod.get(self.session, characteristic_cm.name)
             fnc_unit = chr_cm.unit
@@ -582,11 +552,7 @@ class CalibrationData(AsamBaseType):
                 axis_descr = characteristic.axisDescriptions[axis_idx]
                 axis_name = AXES[axis_idx]
                 maxAxisPoints = axis_descr.maxAxisPoints
-                axis_cm_name = (
-                    "NO_COMPU_METHOD"
-                    if axis_descr.compuMethod == "NO_COMPU_METHOD"
-                    else axis_descr.compuMethod.name
-                )
+                axis_cm_name = "NO_COMPU_METHOD" if axis_descr.compuMethod == "NO_COMPU_METHOD" else axis_descr.compuMethod.name
                 axis_cm = CompuMethod.get(self.session, axis_cm_name)
                 axis_unit = axis_cm.unit
                 axis_attribute = axis_descr.attribute
@@ -618,15 +584,11 @@ class CalibrationData(AsamBaseType):
                         raw_axis_values = axis.fixAxisParList
                     elif axis_descr.fixAxisPar:
                         par = axis_descr.fixAxisPar
-                        raw_axis_values = fix_axis_par(
-                            par["offset"], par["shift"], par["numberapo"]
-                        )
+                        raw_axis_values = fix_axis_par(par["offset"], par["shift"], par["numberapo"])
                     no_axis_points = len(raw_axis_values)
                     converted_axis_values = axis_cm.int_to_physical(raw_axis_values)
                 elif axis_attribute == "STD_AXIS":
-                    raw_axis_values = self.read_nd_array(
-                        characteristic, "x", "axisPts", no_axis_points
-                    )
+                    raw_axis_values = self.read_nd_array(characteristic, "x", "axisPts", no_axis_points)
                     index_incr = axis["axisPts"]["indexIncr"]
                     if index_incr == "INDEX_DECR":
                         raw_axis_values = raw_axis_values[::-1]
@@ -674,8 +636,7 @@ class CalibrationData(AsamBaseType):
                 )
             length = num_func_values * TYPE_SIZES[fnc_datatype]
             raw_values = self.image.read_ndarray(
-                addr=characteristic.address
-                + characteristic.record_layout_components.fncValues["offset"],
+                addr=characteristic.address + characteristic.record_layout_components.fncValues["offset"],
                 length=length,
                 dtype=get_section_reader(
                     characteristic.record_layout_components.fncValues["datatype"],
@@ -706,21 +667,18 @@ class CalibrationData(AsamBaseType):
         no_rescale = {}
         axis_pts = {}
         axis_rescale = {}
-        fnc_values = None
+        # fnc_values = None
         for pos, component in obj.record_layout_components:
             component_type = component["type"]
             if component_type == "fncValues":
-                fnc_values = component
+                # fnc_values = component
+                pass
             elif len(component_type) == 2:
                 name, axis_name = component_type
                 if name == "noAxisPts":
-                    no_axis_pts[axis_name] = self.read_record_layout_value(
-                        obj, axis_name, name
-                    )
+                    no_axis_pts[axis_name] = self.read_record_layout_value(obj, axis_name, name)
                 elif name == "noRescale":
-                    no_rescale[axis_name] = self.read_record_layout_value(
-                        obj, axis_name, name
-                    )
+                    no_rescale[axis_name] = self.read_record_layout_value(obj, axis_name, name)
                 elif name == "axisPts":
                     axis_pts[axis_name] = component
                 elif name == "axisRescale":
@@ -779,9 +737,7 @@ class CalibrationData(AsamBaseType):
         value = self.image.read_numeric(obj.address + offset, reader)
         return value
 
-    def read_nd_array(
-        self, axis_pts, axis_name, component, no_elements, shape=None, order=None
-    ):
+    def read_nd_array(self, axis_pts, axis_name, component, no_elements, shape=None, order=None):
         """ """
         axis = axis_pts.record_layout_components.axes(axis_name)
         component_map = axis[component]
@@ -802,11 +758,7 @@ class CalibrationData(AsamBaseType):
 
     def int_to_physical(self, characteristic, int_values):
         """ """
-        cm_name = (
-            "NO_COMPU_METHOD"
-            if characteristic.compuMethod == "NO_COMPU_METHOD"
-            else characteristic.compuMethod.name
-        )
+        cm_name = "NO_COMPU_METHOD" if characteristic.compuMethod == "NO_COMPU_METHOD" else characteristic.compuMethod.name
         cm = CompuMethod.get(self.session, cm_name)
         return cm.int_to_physical(int_values)
 
@@ -826,8 +778,6 @@ class CalibrationData(AsamBaseType):
 
     def characteristics(self, category):
         """ """
-        query = self.query(model.Characteristic.name).filter(
-            model.Characteristic.type == category
-        )
+        query = self.query(model.Characteristic.name).filter(model.Characteristic.type == category)
         for characteristic in query.all():
             yield Characteristic.get(self.session, characteristic.name)

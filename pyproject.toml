@@ -1,0 +1,78 @@
+
+[tool.pdm]
+includes = []
+
+[tool.pdm.dev-dependencies]
+dev = []
+
+[build-system]
+requires = ["pdm-pep517"]
+build-backend = "pdm.pep517.api"
+
+
+[project]
+# PEP 621 project metadata
+# See https://www.python.org/dev/peps/pep-0621/
+name = "pya2ldb"
+authors = [
+    {name = "Christoph Schueler", email = "cpu12.gems@googlemail.com"},
+]
+requires-python = ">=3.5,<4.0"
+dependencies = []
+version = "0.1.0"
+description="Adds high-level, convenience, integration related functions for several opensource projects."
+license="GPLv2"
+homepage="https://github.com/christoph2/asam_integration_package"
+
+[project.urls]
+
+
+[tool.pytest]
+addopts = "--verbose --tb=short --junitxml=result.xml -o junit_family=xunit2"
+testpaths = "pya2l/tests"
+
+[tool.flake8]
+ignore = ["D203", "E203", "E266", "E501", "W503", "F403", "F401", "BLK100"]
+exclude = '''
+/(
+    \.git
+    | __pycache__
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | \.eggs
+    | _build
+    | build
+    | __pypackages__
+    | docs
+    | dist
+    | asamint/parsers/dcm20Parser.py
+    | asamint/parsers/dcm20Lexer.py
+)/
+'''
+max-complexity = 10
+count = true
+statistics = true
+show-source = true
+max-line-length = 132
+select = ["B","C","E","F","W","T4","B9"]
+
+[tool.black]
+line-length=132
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | __pypackages__
+    | build
+    | docs
+    | __pycache__
+    | dist
+    | asamint/parsers/dcm20Parser.py
+    | asamint/parsers/dcm20Lexer.py
+)/
+'''

@@ -32,7 +32,7 @@ from asamint.asam.mdx import MDXCreator
 
 def main():
     ap = ArgumentParser(use_xcp=False)
-    mdx = MDXCreator(ap.project, ap.experiment)
+    MDXCreator(ap.project, ap.experiment)
 
 
 if __name__ == "__main__":

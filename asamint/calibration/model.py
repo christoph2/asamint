@@ -42,11 +42,7 @@ class BaseCharacteristic:
     def __str__(self):
         result = []
         result.append("{}(".format(self.__class__.__name__))
-        result.append(
-            "".join(
-                "{} = '{}', ".format(k, v) for k, v in self._props(BaseCharacteristic)
-            )
-        )
+        result.append("".join("{} = '{}', ".format(k, v) for k, v in self._props(BaseCharacteristic)))
         result.append("".join("{} = '{}', ".format(k, v) for k, v in self._props(self)))
         result.append(")")
         return "".join(result)

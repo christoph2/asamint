@@ -46,15 +46,10 @@ class Bin:
         return len(self.entries)
 
     def __eq__(self, other):
-        return (
-            self.residual_capacity == other.residual_capacity
-            and self.entries == other.entries
-        )
+        return self.residual_capacity == other.residual_capacity and self.entries == other.entries
 
     def __str__(self):
-        return "Bin(residual_capacity: {}  entries: {})".format(
-            self.residual_capacity, self.entries
-        )
+        return "Bin(residual_capacity: {}  entries: {})".format(self.residual_capacity, self.entries)
 
     __repr__ = __str__
 

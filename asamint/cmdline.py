@@ -98,8 +98,8 @@ class ArgumentParser:
 
     def run(self):
         """ """
-        if self.use_xcp == True:
-            if not "TRANSPORT" in self.project:
+        if self.use_xcp:
+            if "TRANSPORT" not in self.project:
                 raise AttributeError("TRANSPORT must be specified in config!")
             transport = self.project["TRANSPORT"].lower()
             master = Master(transport, config=self.project) if self.use_xcp else None
