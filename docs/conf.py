@@ -20,9 +20,10 @@
 import os
 import sys
 
+import asam_integration_package
+
 sys.path.insert(0, os.path.abspath(".."))
 
-import asam_integration_package
 
 # -- General configuration ---------------------------------------------
 
@@ -47,9 +48,9 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"ASAM Integration Package"
-copyright = u"2020, Christoph Schueler"
-author = u"Christoph Schueler"
+project = "ASAM Integration Package"
+copyright = "2020, Christoph Schueler"
+author = "Christoph Schueler"
 
 # The version info for the project you're documenting, acts as replacement
 # for |version| and |release|, also used in various other places throughout
@@ -128,8 +129,8 @@ latex_documents = [
     (
         master_doc,
         "asam_integration_package.tex",
-        u"ASAM Integration Package Documentation",
-        u"Christoph Schueler",
+        "ASAM Integration Package Documentation",
+        "Christoph Schueler",
         "manual",
     ),
 ]
@@ -143,7 +144,7 @@ man_pages = [
     (
         master_doc,
         "asam_integration_package",
-        u"ASAM Integration Package Documentation",
+        "ASAM Integration Package Documentation",
         [author],
         1,
     )
@@ -159,7 +160,7 @@ texinfo_documents = [
     (
         master_doc,
         "asam_integration_package",
-        u"ASAM Integration Package Documentation",
+        "ASAM Integration Package Documentation",
         author,
         "asam_integration_package",
         "One line description of project.",

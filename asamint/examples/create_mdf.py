@@ -26,9 +26,6 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
-"""
-"""
-
 
 import numpy as np
 

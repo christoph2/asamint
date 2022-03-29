@@ -39,15 +39,15 @@ def element_name(tree):
     return tree.tag.lower().replace("-", "_")
 
 
-def create_elem(parent, name, text=None, attrib={}):
+def create_elem(parent, name: str, text: str = None, attrib: dict = None):
     """ """
-    elem = SubElement(parent, name, attrib)
+    elem = SubElement(parent, name, attrib or {})
     if text:
         elem.text = text
     return elem
 
 
-def xml_comment(parent, text):
+def xml_comment(parent, text: str):
     """Add XML comment to an element."""
     parent.append(Comment(text))
 

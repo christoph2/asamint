@@ -306,7 +306,7 @@ class XCPMeasurement(AsamBaseType):
                             ]
                         )
                 else:
-                    for odt_entry_idx, odt_entry in enumerate(odt):
+                    for _, odt_entry in enumerate(odt):
                         xcp_master.writeDaq(
                             odt_entry.bitoff,
                             odt_entry.length,

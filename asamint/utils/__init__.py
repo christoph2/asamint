@@ -43,7 +43,7 @@ from babel import default_locale
 from babel.dates import format_datetime
 import numpy as np
 
-SINGLE_BITS = frozenset([2 ** b for b in range(64 + 1)])
+SINGLE_BITS = frozenset([2**b for b in range(64 + 1)])
 
 
 def sha1_digest(x: str) -> str:
@@ -166,8 +166,8 @@ def int_log2(x: float) -> int:
     return math.ceil(math.log2(x))
 
 
-def current_datetime(locale=default_locale()):
-    return format_datetime(datetime.utcnow(), locale=locale)
+def current_datetime(locale=None):
+    return format_datetime(datetime.utcnow(), locale=locale or default_locale)
 
 
 def chunks(arr, size):
