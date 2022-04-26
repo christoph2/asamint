@@ -63,7 +63,7 @@ class Calibration:
         pass
 
     def _load_ascii(self, characteristic):
-        self.logger.debug("Processing ASCII '{}' @ 0x{:08x}".format(characteristic.name, characteristic.address))
+        self.logger.debug("Processing ASCII '{}' @0x{:08x}".format(characteristic.name, characteristic.address))
         if characteristic.matrixDim:
             length = characteristic.matrixDim["x"]
         else:
@@ -85,12 +85,16 @@ class Calibration:
 class OnlineCalibration(Calibration):
     """ """
 
+    __slots__ = "xcp_master"
+
     def __init__(self, xcp_master):
         self.xcp_master = xcp_master
 
 
 class OfflineCalibration(Calibration):
     """ """
+
+    __slots__ = ("hexfile_name", "hexfile_type")
 
     def __init__(self, hexfile_name, hexfile_type):
         self.hexfile_name = hexfile_name
@@ -346,7 +350,7 @@ class CalibrationData(AsamBaseType):
 
     def _load_asciis(self):
         for characteristic in self.characteristics("ASCII"):
-            self.logger.debug("Processing ASCII '{}' @ 0x{:08x}".format(characteristic.name, characteristic.address))
+            self.logger.debug("Processing ASCII '{}' @0x{:08x}".format(characteristic.name, characteristic.address))
             if characteristic.matrixDim:
                 length = characteristic.matrixDim["x"]
             else:
@@ -363,7 +367,7 @@ class CalibrationData(AsamBaseType):
 
     def _load_value_blocks(self):
         for characteristic in self.characteristics("VAL_BLK"):
-            self.logger.debug("Processing VAL_BLK '{}' @ 0x{:08x}".format(characteristic.name, characteristic.address))
+            self.logger.debug("Processing VAL_BLK '{}' @0x{:08x}".format(characteristic.name, characteristic.address))
             reader = get_section_reader(characteristic.fnc_asam_dtype, self.byte_order(characteristic))
             raw_values = self.image.read_ndarray(
                 addr=characteristic.address,
@@ -387,7 +391,7 @@ class CalibrationData(AsamBaseType):
 
     def _load_values(self):
         for characteristic in self.characteristics("VALUE"):
-            self.logger.debug("Processing VALUE '{}' @ 0x{:08x}".format(characteristic.name, characteristic.address))
+            self.logger.debug("Processing VALUE '{}' @0x{:08x}".format(characteristic.name, characteristic.address))
             # CALIBRATION_ACCESS
             # READ_ONLY
             fnc_asam_dtype = characteristic.fnc_asam_dtype
@@ -428,7 +432,7 @@ class CalibrationData(AsamBaseType):
         for item in self.axis_points():
             ap = AxisPts.get(self.session, item.name)
             # mem_size = ap.total_allocated_memory
-            self.logger.debug("Processing AXIS_PTS '{}' @ 0x{:08x}".format(ap.name, ap.address))
+            self.logger.debug("Processing AXIS_PTS '{}' @0x{:08x}".format(ap.name, ap.address))
             rl_values = self.read_record_layout_values(ap, "x")
             self.record_layout_correct_offsets(ap)
             virtual = False
@@ -539,9 +543,13 @@ class CalibrationData(AsamBaseType):
             # CURVEs may reference other CURVEs, so some ordering is required.
             characteristics = self._order_curves(characteristics)
         for characteristic in characteristics:
-            self.logger.debug("Processing {} '{}' @ 0x{:08x}".format(category, characteristic.name, characteristic.address))
-            characteristic_cm = characteristic.compuMethod
-            chr_cm = CompuMethod.get(self.session, characteristic_cm.name)
+            self.logger.debug("Processing {} '{}' @0x{:08x}".format(category, characteristic.name, characteristic.address))
+
+            if characteristic.compuMethod != "NO_COMPU_METHOD":
+                characteristic_cm = characteristic.compuMethod.name
+            else:
+                characteristic_cm = "NO_COMPU_METHOD"
+            chr_cm = CompuMethod.get(self.session, characteristic_cm)
             fnc_unit = chr_cm.unit
             fnc_datatype = characteristic.record_layout_components.fncValues["datatype"]
             self.record_layout_correct_offsets(characteristic)
@@ -668,7 +676,7 @@ class CalibrationData(AsamBaseType):
         axis_pts = {}
         axis_rescale = {}
         # fnc_values = None
-        for pos, component in obj.record_layout_components:
+        for _, component in obj.record_layout_components:
             component_type = component["type"]
             if component_type == "fncValues":
                 # fnc_values = component
