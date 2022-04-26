@@ -60,6 +60,7 @@ class AsamBaseType:
         #                           Type     Req'd   Default
         "LOGLEVEL": (str, False, "WARN"),
         "A2L_FILE": (str, True, ""),
+        "A2L_ENCODING": (str, False, "latin-1"),
         "AUTHOR": (str, False, ""),
         "COMPANY": (str, False, ""),
         "DEPARTMENT": (str, False, ""),
@@ -88,7 +89,9 @@ class AsamBaseType:
         self.experiment_config = Configuration(AsamBaseType.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
         if not hasattr(AsamBaseType, "_session_obj"):
             db = DB()
-            AsamBaseType._session_obj = db.open_create(self.project_config.get("A2L_FILE"))
+            AsamBaseType._session_obj = db.open_create(
+                self.project_config.get("A2L_FILE"), encoding=self.project_config.get("A2L_ENCODING")
+            )
         cond_create_directories()
         self.logger = getLogger(self.__class__.__name__)
         self.logger.setLevel(self.project_config.get("LOGLEVEL"))
@@ -148,7 +151,7 @@ class AsamBaseType:
         """
         return (
             ByteOrder.BIG_ENDIAN
-            if (getattr(obj, "byteOrder") or self.mod_common.byteOrder) in ("MSB_FIRST", "LITTLE_ENDIAN")
+            if obj.byteOrder or self.mod_common.byteOrder in ("MSB_FIRST", "LITTLE_ENDIAN")
             else ByteOrder.LITTLE_ENDIAN
         )
 

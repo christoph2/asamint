@@ -2,6 +2,7 @@
 #MDF_VERSION = "4.10"
 #A2L_FILE = "ASAP2_Demo_V161"
 A2L_FILE = "XCPsim"
+A2L_ENCODING = "latin-1"
 AUTHOR = "John Doe"
 COMPANY = "ACME corp"
 DEPARTMENT = "Engineering"

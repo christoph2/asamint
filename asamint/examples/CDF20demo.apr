@@ -1,4 +1,5 @@
 A2L_FILE = "CDF20demo"
+A2L_ENCODING = "latin-1"
 AUTHOR = "John Doe"
 COMPANY = "ACME corp"
 DEPARTMENT = "Engineering"
