@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """The setup script."""
+import os
 from glob import glob
 
 from setuptools import find_packages
@@ -11,6 +12,14 @@ with open("docs/README.rst") as readme_file:
 
 with open("HISTORY.rst") as history_file:
     history = history_file.read()
+
+
+with open(os.path.join("asamint", "version.py"), "r") as f:
+    for line in f:
+        if line.startswith("__version__"):
+            version = line.split("=")[-1].strip().strip('"')
+            break
+
 
 requirements = [
     "asammdf",
@@ -62,7 +71,7 @@ setup(
     setup_requires=setup_requirements,
     test_suite="tests",
     tests_require=test_requirements,
-    url="https://github.com/christoph2/asam_integration_package",
-    version="0.1.0",
+    url="https://github.com/christoph2/asamint",
+    version=version,
     zip_safe=False,
 )
