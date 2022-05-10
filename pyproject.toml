@@ -19,7 +19,7 @@ authors = [
 ]
 requires-python = ">=3.5,<4.0"
 dependencies = []
-version = "0.1.1"
+version = "0.1.2"
 description="Adds high-level, convenience, integration related functions for several opensource projects."
 classifiers = [
     "Development Status :: 4 - Beta",
