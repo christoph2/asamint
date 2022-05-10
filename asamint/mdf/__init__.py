@@ -31,10 +31,10 @@ import numpy as np
 from lxml.etree import Element, tostring
 
 from asammdf import MDF, Signal
-import pya2l.functions as functions
+from pya2l.api import inspect
 
 from asamint.asam import AsamBaseType
-from asamint.utils import create_elem
+from asamint.utils.xml import create_elem
 
 
 class Datasource:
@@ -243,5 +243,9 @@ class MDFCreator(AsamBaseType):
         if cm_object is None:
             return internal_values
         else:
-            calculator = functions.CompuMethod(self.session, cm_object)
+            if cm_object != "NO_COMPU_METHOD":
+                name = cm_object.name
+            else:
+                name = "NO_COMPU_METHOD"
+            calculator = inspect.CompuMethod(self.session, name)
             return calculator.int_to_physical(internal_values)
