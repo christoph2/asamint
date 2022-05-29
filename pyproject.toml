@@ -17,8 +17,14 @@ name = "asamint"
 authors = [
     {name = "Christoph Schueler", email = "cpu12.gems@googlemail.com"},
 ]
-requires-python = ">=3.5,<4.0"
-dependencies = []
+requires-python = ">=3.8,<4.0"
+dependencies = [
+    "objutils>=0.4.12",
+    "pya2ldb>=0.12.79",
+    "asammdf>=7.0.7",
+    "pyxcp>=0.18.51",
+    "numpy>=1.22.4",
+]
 version = "0.1.4"
 description="Adds high-level, convenience, integration related functions for several opensource projects."
 classifiers = [

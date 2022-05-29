@@ -37,10 +37,12 @@ import numpy as np
 from asamint.asam import AsamBaseType
 
 from asamint.asam import TYPE_SIZES, get_section_reader
+from asamint.logger import Logger
 from asamint.utils import SINGLE_BITS, ffs, current_timestamp
 from asamint.utils.optimize import McObject, make_continuous_blocks
 from asamint.calibration import model as cmod
 
+from pya2l import DB
 from pya2l.api.inspect import AxisPts, CompuMethod, Characteristic, ModPar
 from pya2l.api import inspect
 from pya2l.functions import fix_axis_par, fix_axis_par_dist
@@ -55,15 +57,24 @@ AXES = ("x", "y", "z", "4", "5")
 class Calibration:
     """ """
 
-    def __init__(self, image):
+    def __init__(self, a2l_db: DB, image, loglevel: str = "WARN") -> None:
         self.image = image
+        self.a2l_db = a2l_db
+        self.logger = Logger(loglevel)
 
     def update(self):
         """To the actual update of parameters (write to HEX file / XCP)."""
         pass
 
-    def _load_ascii(self, characteristic):
-        self.logger.debug("Processing ASCII '{}' @0x{:08x}".format(characteristic.name, characteristic.address))
+    def int_to_physical(self, characteristic, int_values):
+        """ """
+        cm_name = "NO_COMPU_METHOD" if characteristic.compuMethod == "NO_COMPU_METHOD" else characteristic.compuMethod.name
+        cm = CompuMethod.get(self.a2l_db.session, cm_name)
+        return cm.int_to_physical(int_values)
+
+    def load_ascii(self, characteristic_name: str) -> cmod.Ascii:
+        characteristic = self._load_characteristic(characteristic_name, "ASCII")
+        self.logger.debug(f"Loading ASCII '{characteristic.name}' @0x{characteristic.address:08x}")
         if characteristic.matrixDim:
             length = characteristic.matrixDim["x"]
         else:
@@ -77,6 +88,52 @@ class Calibration:
             displayIdentifier=characteristic.displayIdentifier,
             length=length,
         )
+
+    def save_ascii(self, characteristic_name: str, value: str) -> None:
+        characteristic = self._load_characteristic(characteristic_name, "ASCII")
+        self.logger.debug(f"Saving ASCII '{characteristic.name}' @0x{characteristic.address:08x}")
+        if characteristic.matrixDim:
+            length = characteristic.matrixDim["x"]
+        else:
+            length = characteristic.number
+        self.image.write_string(characteristic.address, length=length, value=value)
+
+    def load_value_block(self, characteristic_name: str) -> cmod.ValueBlock:
+        characteristic = self._load_characteristic(characteristic_name, "VAL_BLK")
+        self.logger.debug("Loading VAL_BLK '{}' @0x{:08x}".format(characteristic.name, characteristic.address))
+        reader = get_section_reader("UBYTE", 0)
+        raw_values = self.image.read_ndarray(
+            addr=characteristic.address,
+            length=characteristic.fnc_allocated_memory,
+            dtype=reader,
+            shape=characteristic.fnc_np_shape,
+            order=characteristic.fnc_np_order,
+            bit_mask=characteristic.bitMask,
+        )
+        converted_values = self.int_to_physical(characteristic, raw_values)
+        return cmod.ValueBlock(
+            name=characteristic.name,
+            comment=characteristic.longIdentifier,
+            category="VAL_BLK",
+            raw_values=raw_values,
+            converted_values=converted_values,
+            displayIdentifier=characteristic.displayIdentifier,
+            shape=characteristic.fnc_np_shape,
+            unit=characteristic.physUnit,
+        )
+
+    def save_value_block(self, characteristic_name: str, value: str) -> None:
+        characteristic = self._load_characteristic(characteristic_name, "ASCII")
+        self.logger.debug(f"Saving VAL_BLK '{characteristic.name}' @0x{characteristic.address:08x}")
+
+    def _load_characteristic(self, characteristic_name, category):
+        try:
+            characteristic = Characteristic.get(self.a2l_db.session, characteristic_name)
+        except ValueError:
+            raise
+        if characteristic.type != category:
+            raise TypeError(f"'{characteristic_name}' is not of type '{category}'")
+        return characteristic
 
     def _save_characteristic(self, characteristic, value):
         pass
@@ -96,7 +153,8 @@ class OfflineCalibration(Calibration):
 
     __slots__ = ("hexfile_name", "hexfile_type")
 
-    def __init__(self, hexfile_name, hexfile_type):
+    def __init__(self, a2l_db: DB, image, hexfile_name: str = None, hexfile_type: str = None, loglevel: str = "WARN"):
+        super().__init__(a2l_db, image, loglevel)
         self.hexfile_name = hexfile_name
         self.hexfile_type = hexfile_type
 
