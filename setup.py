@@ -28,6 +28,7 @@ requirements = [
     "pyxcp",
     "babel",
     "lz4",
+    "numpy",
     "sortedcontainers",
 ]
 
