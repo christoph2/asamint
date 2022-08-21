@@ -1,0 +1,4387 @@
+ASAP2_VERSION 1 61
+/begin PROJECT CDF20_Example ""
+
+  /begin HEADER "CDF20 Example File"
+    VERSION "V2.0.0"
+    PROJECT_NO MCD_P06_04
+  /end HEADER
+
+  /begin MODULE CPP ""
+
+    /begin A2ML
+
+      block "IF_DATA" taggedunion if_data {
+
+
+        "XCP" struct {
+          taggedstruct {
+            block "PROTOCOL_LAYER" struct {
+              uint;
+              uint;
+              uint;
+              uint;
+              uint;
+              uint;
+              uint;
+              uint;
+              uchar;
+              uint;
+              enum {
+                "BYTE_ORDER_MSB_LAST" = 0,
+                "BYTE_ORDER_MSB_FIRST" = 1
+              };
+              enum {
+                "ADDRESS_GRANULARITY_BYTE" = 1,
+                "ADDRESS_GRANULARITY_WORD" = 2,
+                "ADDRESS_GRANULARITY_DWORD" = 4
+              };
+              taggedstruct {
+                ("OPTIONAL_CMD" enum {
+                  "GET_COMM_MODE_INFO" = 251,
+                  "GET_ID" = 250,
+                  "SET_REQUEST" = 249,
+                  "GET_SEED" = 248,
+                  "UNLOCK" = 247,
+                  "SET_MTA" = 246,
+                  "UPLOAD" = 245,
+                  "SHORT_UPLOAD" = 244,
+                  "BUILD_CHECKSUM" = 243,
+                  "TRANSPORT_LAYER_CMD" = 242,
+                  "USER_CMD" = 241,
+                  "DOWNLOAD" = 240,
+                  "DOWNLOAD_NEXT" = 239,
+                  "DOWNLOAD_MAX" = 238,
+                  "SHORT_DOWNLOAD" = 237,
+                  "MODIFY_BITS" = 236,
+                  "SET_CAL_PAGE" = 235,
+                  "GET_CAL_PAGE" = 234,
+                  "GET_PAG_PROCESSOR_INFO" = 233,
+                  "GET_SEGMENT_INFO" = 232,
+                  "GET_PAGE_INFO" = 231,
+                  "SET_SEGMENT_MODE" = 230,
+                  "GET_SEGMENT_MODE" = 229,
+                  "COPY_CAL_PAGE" = 228,
+                  "CLEAR_DAQ_LIST" = 227,
+                  "SET_DAQ_PTR" = 226,
+                  "WRITE_DAQ" = 225,
+                  "SET_DAQ_LIST_MODE" = 224,
+                  "GET_DAQ_LIST_MODE" = 223,
+                  "START_STOP_DAQ_LIST" = 222,
+                  "START_STOP_SYNCH" = 221,
+                  "GET_DAQ_CLOCK" = 220,
+                  "READ_DAQ" = 219,
+                  "GET_DAQ_PROCESSOR_INFO" = 218,
+                  "GET_DAQ_RESOLUTION_INFO" = 217,
+                  "GET_DAQ_LIST_INFO" = 216,
+                  "GET_DAQ_EVENT_INFO" = 215,
+                  "FREE_DAQ" = 214,
+                  "ALLOC_DAQ" = 213,
+                  "ALLOC_ODT" = 212,
+                  "ALLOC_ODT_ENTRY" = 211,
+                  "PROGRAM_START" = 210,
+                  "PROGRAM_CLEAR" = 209,
+                  "PROGRAM" = 208,
+                  "PROGRAM_RESET" = 207,
+                  "GET_PGM_PROCESSOR_INFO" = 206,
+                  "GET_SECTOR_INFO" = 205,
+                  "PROGRAM_PREPARE" = 204,
+                  "PROGRAM_FORMAT" = 203,
+                  "PROGRAM_NEXT" = 202,
+                  "PROGRAM_MAX" = 201,
+                  "PROGRAM_VERIFY" = 200
+                })*;
+                "COMMUNICATION_MODE_SUPPORTED" taggedunion {
+                  "BLOCK" taggedstruct {
+                    "SLAVE" ;
+                    "MASTER" struct {
+                      uchar;
+                      uchar;
+                    };
+                  };
+                  "INTERLEAVED" uchar;
+                };
+                "SEED_AND_KEY_EXTERNAL_FUNCTION" char[256];
+              };
+            };
+            block "SEGMENT" struct {
+              uchar;
+              uchar;
+              uchar;
+              uchar;
+              uchar;
+              taggedstruct {
+                block "CHECKSUM" struct {
+                  enum {
+                    "XCP_ADD_11" = 1,
+                    "XCP_ADD_12" = 2,
+                    "XCP_ADD_14" = 3,
+                    "XCP_ADD_22" = 4,
+                    "XCP_ADD_24" = 5,
+                    "XCP_ADD_44" = 6,
+                    "XCP_CRC_16" = 7,
+                    "XCP_CRC_16_CITT" = 8,
+                    "XCP_CRC_32" = 9,
+                    "XCP_USER_DEFINED" = 255
+                  };
+                  taggedstruct {
+                    "MAX_BLOCK_SIZE" ulong;
+                    "EXTERNAL_FUNCTION" char[256];
+                  };
+                };
+                (block "PAGE" struct {
+                  uchar;
+                  enum {
+                    "ECU_ACCESS_NOT_ALLOWED" = 0,
+                    "ECU_ACCESS_WITHOUT_XCP_ONLY" = 1,
+                    "ECU_ACCESS_WITH_XCP_ONLY" = 2,
+                    "ECU_ACCESS_DONT_CARE" = 3
+                  };
+                  enum {
+                    "XCP_READ_ACCESS_NOT_ALLOWED" = 0,
+                    "XCP_READ_ACCESS_WITHOUT_ECU_ONLY" = 1,
+                    "XCP_READ_ACCESS_WITH_ECU_ONLY" = 2,
+                    "XCP_READ_ACCESS_DONT_CARE" = 3
+                  };
+                  enum {
+                    "XCP_WRITE_ACCESS_NOT_ALLOWED" = 0,
+                    "XCP_WRITE_ACCESS_WITHOUT_ECU_ONLY" = 1,
+                    "XCP_WRITE_ACCESS_WITH_ECU_ONLY" = 2,
+                    "XCP_WRITE_ACCESS_DONT_CARE" = 3
+                  };
+                  taggedstruct {
+                    "INIT_SEGMENT" uchar;
+                  };
+                })*;
+                (block "ADDRESS_MAPPING" struct {
+                  ulong;
+                  ulong;
+                  ulong;
+                })*;
+                "PGM_VERIFY" ulong;
+              };
+            };
+            block "DAQ" struct {
+              enum {
+                "STATIC" = 0,
+                "DYNAMIC" = 1
+              };
+              uint;
+              uint;
+              uchar;
+              enum {
+                "OPTIMISATION_TYPE_DEFAULT" = 0,
+                "OPTIMISATION_TYPE_ODT_TYPE_16" = 1,
+                "OPTIMISATION_TYPE_ODT_TYPE_32" = 2,
+                "OPTIMISATION_TYPE_ODT_TYPE_64" = 3,
+                "OPTIMISATION_TYPE_ODT_TYPE_ALIGNMENT" = 4,
+                "OPTIMISATION_TYPE_MAX_ENTRY_SIZE" = 5
+              };
+              enum {
+                "ADDRESS_EXTENSION_FREE" = 0,
+                "ADDRESS_EXTENSION_ODT" = 1,
+                "ADDRESS_EXTENSION_DAQ" = 3
+              };
+              enum {
+                "IDENTIFICATION_FIELD_TYPE_ABSOLUTE" = 0,
+                "IDENTIFICATION_FIELD_TYPE_RELATIVE_BYTE" = 1,
+                "IDENTIFICATION_FIELD_TYPE_RELATIVE_WORD" = 2,
+                "IDENTIFICATION_FIELD_TYPE_RELATIVE_WORD_ALIGNED" = 3
+              };
+              enum {
+                "GRANULARITY_ODT_ENTRY_SIZE_DAQ_BYTE" = 1,
+                "GRANULARITY_ODT_ENTRY_SIZE_DAQ_WORD" = 2,
+                "GRANULARITY_ODT_ENTRY_SIZE_DAQ_DWORD" = 4,
+                "GRANULARITY_ODT_ENTRY_SIZE_DAQ_DLONG" = 8
+              };
+              uchar;
+              enum {
+                "NO_OVERLOAD_INDICATION" = 0,
+                "OVERLOAD_INDICATION_PID" = 1,
+                "OVERLOAD_INDICATION_EVENT" = 2
+              };
+              taggedstruct {
+                "PRESCALER_SUPPORTED" ;
+                "RESUME_SUPPORTED" ;
+                block "STIM" struct {
+                  enum {
+                    "GRANULARITY_ODT_ENTRY_SIZE_STIM_BYTE" = 1,
+                    "GRANULARITY_ODT_ENTRY_SIZE_STIM_WORD" = 2,
+                    "GRANULARITY_ODT_ENTRY_SIZE_STIM_DWORD" = 4,
+                    "GRANULARITY_ODT_ENTRY_SIZE_STIM_DLONG" = 8
+                  };
+                  uchar;
+                  taggedstruct {
+                    "BIT_STIM_SUPPORTED" ;
+                  };
+                };
+                block "TIMESTAMP_SUPPORTED" struct {
+                  uint;
+                  enum {
+                    "NO_TIME_STAMP" = 0,
+                    "SIZE_BYTE" = 1,
+                    "SIZE_WORD" = 2,
+                    "SIZE_DWORD" = 4
+                  };
+                  enum {
+                    "UNIT_1NS" = 0,
+                    "UNIT_10NS" = 1,
+                    "UNIT_100NS" = 2,
+                    "UNIT_1US" = 3,
+                    "UNIT_10US" = 4,
+                    "UNIT_100US" = 5,
+                    "UNIT_1MS" = 6,
+                    "UNIT_10MS" = 7,
+                    "UNIT_100MS" = 8,
+                    "UNIT_1S" = 9
+                  };
+                  taggedstruct {
+                    "TIMESTAMP_FIXED" ;
+                  };
+                };
+                "PID_OFF_SUPPORTED" ;
+                (block "DAQ_LIST" struct {
+                  uint;
+                  taggedstruct {
+                    "DAQ_LIST_TYPE" enum {
+                      "DAQ" = 1,
+                      "STIM" = 2,
+                      "DAQ_STIM" = 3
+                    };
+                    "MAX_ODT" uchar;
+                    "MAX_ODT_ENTRIES" uchar;
+                    "FIRST_PID" uchar;
+                    "EVENT_FIXED" uint;
+                    block "PREDEFINED" taggedstruct {
+                      (block "ODT" struct {
+                        uchar;
+                        taggedstruct {
+                          ("ODT_ENTRY" struct {
+                            uchar;
+                            ulong;
+                            uchar;
+                            uchar;
+                            uchar;
+                          })*;
+                        };
+                      })*;
+                    };
+                  };
+                })*;
+                (block "EVENT" struct {
+                  char[101];
+                  char[9];
+                  uint;
+                  enum {
+                    "DAQ" = 1,
+                    "STIM" = 2,
+                    "DAQ_STIM" = 3
+                  };
+                  uchar;
+                  uchar;
+                  uchar;
+                  uchar;
+                })*;
+              };
+            };
+            block "PAG" struct {
+              uchar;
+              taggedstruct {
+                "FREEZE_SUPPORTED" ;
+              };
+            };
+            block "PGM" struct {
+              enum {
+                "PGM_MODE_ABSOLUTE" = 1,
+                "PGM_MODE_FUNCTIONAL" = 2,
+                "PGM_MODE_ABSOLUTE_AND_FUNCTIONAL" = 3
+              };
+              uchar;
+              uchar;
+              taggedstruct {
+                (block "SECTOR" struct {
+                  char[101];
+                  uchar;
+                  ulong;
+                  ulong;
+                  uchar;
+                  uchar;
+                  uchar;
+                })*;
+                "COMMUNICATION_MODE_SUPPORTED" taggedunion {
+                  "BLOCK" taggedstruct {
+                    "SLAVE" ;
+                    "MASTER" struct {
+                      uchar;
+                      uchar;
+                    };
+                  };
+                  "INTERLEAVED" uchar;
+                };
+              };
+            };
+            block "DAQ_EVENT" taggedunion {
+              "FIXED_EVENT_LIST" taggedstruct {
+                ("EVENT" uint)*;
+              };
+              "VARIABLE" taggedstruct {
+                block "AVAILABLE_EVENT_LIST" taggedstruct {
+                  ("EVENT" uint)*;
+                };
+                block "DEFAULT_EVENT_LIST" taggedstruct {
+                  ("EVENT" uint)*;
+                };
+              };
+            };
+            block "XCP_ON_CAN" struct {
+              uint;
+              taggedstruct {
+                "CAN_ID_BROADCAST" ulong;
+                "CAN_ID_MASTER" ulong;
+                "CAN_ID_SLAVE" ulong;
+                "BAUDRATE" ulong;
+                "SAMPLE_POINT" uchar;
+                "SAMPLE_RATE" enum {
+                  "SINGLE" = 1,
+                  "TRIPLE" = 3
+                };
+                "BTL_CYCLES" uchar;
+                "SJW" uchar;
+                "SYNC_EDGE" enum {
+                  "SINGLE" = 1,
+                  "DUAL" = 2
+                };
+                "MAX_DLC_REQUIRED" ;
+                (block "DAQ_LIST_CAN_ID" struct {
+                  uint;
+                  taggedstruct {
+                    "VARIABLE" ;
+                    "FIXED" ulong;
+                  };
+                })*;
+                block "PROTOCOL_LAYER" struct {
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uchar;
+                  uint;
+                  enum {
+                    "BYTE_ORDER_MSB_LAST" = 0,
+                    "BYTE_ORDER_MSB_FIRST" = 1
+                  };
+                  enum {
+                    "ADDRESS_GRANULARITY_BYTE" = 1,
+                    "ADDRESS_GRANULARITY_WORD" = 2,
+                    "ADDRESS_GRANULARITY_DWORD" = 4
+                  };
+                  taggedstruct {
+                    ("OPTIONAL_CMD" enum {
+                      "GET_COMM_MODE_INFO" = 251,
+                      "GET_ID" = 250,
+                      "SET_REQUEST" = 249,
+                      "GET_SEED" = 248,
+                      "UNLOCK" = 247,
+                      "SET_MTA" = 246,
+                      "UPLOAD" = 245,
+                      "SHORT_UPLOAD" = 244,
+                      "BUILD_CHECKSUM" = 243,
+                      "TRANSPORT_LAYER_CMD" = 242,
+                      "USER_CMD" = 241,
+                      "DOWNLOAD" = 240,
+                      "DOWNLOAD_NEXT" = 239,
+                      "DOWNLOAD_MAX" = 238,
+                      "SHORT_DOWNLOAD" = 237,
+                      "MODIFY_BITS" = 236,
+                      "SET_CAL_PAGE" = 235,
+                      "GET_CAL_PAGE" = 234,
+                      "GET_PAG_PROCESSOR_INFO" = 233,
+                      "GET_SEGMENT_INFO" = 232,
+                      "GET_PAGE_INFO" = 231,
+                      "SET_SEGMENT_MODE" = 230,
+                      "GET_SEGMENT_MODE" = 229,
+                      "COPY_CAL_PAGE" = 228,
+                      "CLEAR_DAQ_LIST" = 227,
+                      "SET_DAQ_PTR" = 226,
+                      "WRITE_DAQ" = 225,
+                      "SET_DAQ_LIST_MODE" = 224,
+                      "GET_DAQ_LIST_MODE" = 223,
+                      "START_STOP_DAQ_LIST" = 222,
+                      "START_STOP_SYNCH" = 221,
+                      "GET_DAQ_CLOCK" = 220,
+                      "READ_DAQ" = 219,
+                      "GET_DAQ_PROCESSOR_INFO" = 218,
+                      "GET_DAQ_RESOLUTION_INFO" = 217,
+                      "GET_DAQ_LIST_INFO" = 216,
+                      "GET_DAQ_EVENT_INFO" = 215,
+                      "FREE_DAQ" = 214,
+                      "ALLOC_DAQ" = 213,
+                      "ALLOC_ODT" = 212,
+                      "ALLOC_ODT_ENTRY" = 211,
+                      "PROGRAM_START" = 210,
+                      "PROGRAM_CLEAR" = 209,
+                      "PROGRAM" = 208,
+                      "PROGRAM_RESET" = 207,
+                      "GET_PGM_PROCESSOR_INFO" = 206,
+                      "GET_SECTOR_INFO" = 205,
+                      "PROGRAM_PREPARE" = 204,
+                      "PROGRAM_FORMAT" = 203,
+                      "PROGRAM_NEXT" = 202,
+                      "PROGRAM_MAX" = 201,
+                      "PROGRAM_VERIFY" = 200
+                    })*;
+                    "COMMUNICATION_MODE_SUPPORTED" taggedunion {
+                      "BLOCK" taggedstruct {
+                        "SLAVE" ;
+                        "MASTER" struct {
+                          uchar;
+                          uchar;
+                        };
+                      };
+                      "INTERLEAVED" uchar;
+                    };
+                    "SEED_AND_KEY_EXTERNAL_FUNCTION" char[256];
+                  };
+                };
+                block "SEGMENT" struct {
+                  uchar;
+                  uchar;
+                  uchar;
+                  uchar;
+                  uchar;
+                  taggedstruct {
+                    block "CHECKSUM" struct {
+                      enum {
+                        "XCP_ADD_11" = 1,
+                        "XCP_ADD_12" = 2,
+                        "XCP_ADD_14" = 3,
+                        "XCP_ADD_22" = 4,
+                        "XCP_ADD_24" = 5,
+                        "XCP_ADD_44" = 6,
+                        "XCP_CRC_16" = 7,
+                        "XCP_CRC_16_CITT" = 8,
+                        "XCP_CRC_32" = 9,
+                        "XCP_USER_DEFINED" = 255
+                      };
+                      taggedstruct {
+                        "MAX_BLOCK_SIZE" ulong;
+                        "EXTERNAL_FUNCTION" char[256];
+                      };
+                    };
+                    (block "PAGE" struct {
+                      uchar;
+                      enum {
+                        "ECU_ACCESS_NOT_ALLOWED" = 0,
+                        "ECU_ACCESS_WITHOUT_XCP_ONLY" = 1,
+                        "ECU_ACCESS_WITH_XCP_ONLY" = 2,
+                        "ECU_ACCESS_DONT_CARE" = 3
+                      };
+                      enum {
+                        "XCP_READ_ACCESS_NOT_ALLOWED" = 0,
+                        "XCP_READ_ACCESS_WITHOUT_ECU_ONLY" = 1,
+                        "XCP_READ_ACCESS_WITH_ECU_ONLY" = 2,
+                        "XCP_READ_ACCESS_DONT_CARE" = 3
+                      };
+                      enum {
+                        "XCP_WRITE_ACCESS_NOT_ALLOWED" = 0,
+                        "XCP_WRITE_ACCESS_WITHOUT_ECU_ONLY" = 1,
+                        "XCP_WRITE_ACCESS_WITH_ECU_ONLY" = 2,
+                        "XCP_WRITE_ACCESS_DONT_CARE" = 3
+                      };
+                      taggedstruct {
+                        "INIT_SEGMENT" uchar;
+                      };
+                    })*;
+                    (block "ADDRESS_MAPPING" struct {
+                      ulong;
+                      ulong;
+                      ulong;
+                    })*;
+                    "PGM_VERIFY" ulong;
+                  };
+                };
+                block "DAQ" struct {
+                  enum {
+                    "STATIC" = 0,
+                    "DYNAMIC" = 1
+                  };
+                  uint;
+                  uint;
+                  uchar;
+                  enum {
+                    "OPTIMISATION_TYPE_DEFAULT" = 0,
+                    "OPTIMISATION_TYPE_ODT_TYPE_16" = 1,
+                    "OPTIMISATION_TYPE_ODT_TYPE_32" = 2,
+                    "OPTIMISATION_TYPE_ODT_TYPE_64" = 3,
+                    "OPTIMISATION_TYPE_ODT_TYPE_ALIGNMENT" = 4,
+                    "OPTIMISATION_TYPE_MAX_ENTRY_SIZE" = 5
+                  };
+                  enum {
+                    "ADDRESS_EXTENSION_FREE" = 0,
+                    "ADDRESS_EXTENSION_ODT" = 1,
+                    "ADDRESS_EXTENSION_DAQ" = 3
+                  };
+                  enum {
+                    "IDENTIFICATION_FIELD_TYPE_ABSOLUTE" = 0,
+                    "IDENTIFICATION_FIELD_TYPE_RELATIVE_BYTE" = 1,
+                    "IDENTIFICATION_FIELD_TYPE_RELATIVE_WORD" = 2,
+                    "IDENTIFICATION_FIELD_TYPE_RELATIVE_WORD_ALIGNED" = 3
+                  };
+                  enum {
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_BYTE" = 1,
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_WORD" = 2,
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_DWORD" = 4,
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_DLONG" = 8
+                  };
+                  uchar;
+                  enum {
+                    "NO_OVERLOAD_INDICATION" = 0,
+                    "OVERLOAD_INDICATION_PID" = 1,
+                    "OVERLOAD_INDICATION_EVENT" = 2
+                  };
+                  taggedstruct {
+                    "PRESCALER_SUPPORTED" ;
+                    "RESUME_SUPPORTED" ;
+                    block "STIM" struct {
+                      enum {
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_BYTE" = 1,
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_WORD" = 2,
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_DWORD" = 4,
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_DLONG" = 8
+                      };
+                      uchar;
+                      taggedstruct {
+                        "BIT_STIM_SUPPORTED" ;
+                      };
+                    };
+                    block "TIMESTAMP_SUPPORTED" struct {
+                      uint;
+                      enum {
+                        "NO_TIME_STAMP" = 0,
+                        "SIZE_BYTE" = 1,
+                        "SIZE_WORD" = 2,
+                        "SIZE_DWORD" = 4
+                      };
+                      enum {
+                        "UNIT_1NS" = 0,
+                        "UNIT_10NS" = 1,
+                        "UNIT_100NS" = 2,
+                        "UNIT_1US" = 3,
+                        "UNIT_10US" = 4,
+                        "UNIT_100US" = 5,
+                        "UNIT_1MS" = 6,
+                        "UNIT_10MS" = 7,
+                        "UNIT_100MS" = 8,
+                        "UNIT_1S" = 9
+                      };
+                      taggedstruct {
+                        "TIMESTAMP_FIXED" ;
+                      };
+                    };
+                    "PID_OFF_SUPPORTED" ;
+                    (block "DAQ_LIST" struct {
+                      uint;
+                      taggedstruct {
+                        "DAQ_LIST_TYPE" enum {
+                          "DAQ" = 1,
+                          "STIM" = 2,
+                          "DAQ_STIM" = 3
+                        };
+                        "MAX_ODT" uchar;
+                        "MAX_ODT_ENTRIES" uchar;
+                        "FIRST_PID" uchar;
+                        "EVENT_FIXED" uint;
+                        block "PREDEFINED" taggedstruct {
+                          (block "ODT" struct {
+                            uchar;
+                            taggedstruct {
+                              ("ODT_ENTRY" struct {
+                                uchar;
+                                ulong;
+                                uchar;
+                                uchar;
+                                uchar;
+                              })*;
+                            };
+                          })*;
+                        };
+                      };
+                    })*;
+                    (block "EVENT" struct {
+                      char[101];
+                      char[9];
+                      uint;
+                      enum {
+                        "DAQ" = 1,
+                        "STIM" = 2,
+                        "DAQ_STIM" = 3
+                      };
+                      uchar;
+                      uchar;
+                      uchar;
+                      uchar;
+                    })*;
+                  };
+                };
+                block "PAG" struct {
+                  uchar;
+                  taggedstruct {
+                    "FREEZE_SUPPORTED" ;
+                  };
+                };
+                block "PGM" struct {
+                  enum {
+                    "PGM_MODE_ABSOLUTE" = 1,
+                    "PGM_MODE_FUNCTIONAL" = 2,
+                    "PGM_MODE_ABSOLUTE_AND_FUNCTIONAL" = 3
+                  };
+                  uchar;
+                  uchar;
+                  taggedstruct {
+                    (block "SECTOR" struct {
+                      char[101];
+                      uchar;
+                      ulong;
+                      ulong;
+                      uchar;
+                      uchar;
+                      uchar;
+                    })*;
+                    "COMMUNICATION_MODE_SUPPORTED" taggedunion {
+                      "BLOCK" taggedstruct {
+                        "SLAVE" ;
+                        "MASTER" struct {
+                          uchar;
+                          uchar;
+                        };
+                      };
+                      "INTERLEAVED" uchar;
+                    };
+                  };
+                };
+                block "DAQ_EVENT" taggedunion {
+                  "FIXED_EVENT_LIST" taggedstruct {
+                    ("EVENT" uint)*;
+                  };
+                  "VARIABLE" taggedstruct {
+                    block "AVAILABLE_EVENT_LIST" taggedstruct {
+                      ("EVENT" uint)*;
+                    };
+                    block "DEFAULT_EVENT_LIST" taggedstruct {
+                      ("EVENT" uint)*;
+                    };
+                  };
+                };
+              };
+            };
+            block "XCP_ON_SxI" struct {
+              uint;
+              ulong;
+              taggedstruct {
+                "ASYNCH_FULL_DUPLEX_MODE" struct {
+                  enum {
+                    "PARITY_NONE" = 0,
+                    "PARITY_ODD" = 1,
+                    "PARITY_EVEN" = 2
+                  };
+                  enum {
+                    "ONE_STOP_BIT" = 1,
+                    "TWO_STOP_BITS" = 2
+                  };
+                };
+                "SYNCH_FULL_DUPLEX_MODE_BYTE" ;
+                "SYNCH_FULL_DUPLEX_MODE_WORD" ;
+                "SYNCH_FULL_DUPLEX_MODE_DWORD" ;
+                "SYNCH_MASTER_SLAVE_MODE_BYTE" ;
+                "SYNCH_MASTER_SLAVE_MODE_WORD" ;
+                "SYNCH_MASTER_SLAVE_MODE_DWORD" ;
+              };
+              enum {
+                "HEADER_LEN_BYTE" = 0,
+                "HEADER_LEN_CTR_BYTE" = 1,
+                "HEADER_LEN_WORD" = 2,
+                "HEADER_LEN_CTR_WORD" = 3
+              };
+              enum {
+                "NO_CHECKSUM" = 0,
+                "CHECKSUM_BYTE" = 1,
+                "CHECKSUM_WORD" = 2
+              };
+              taggedstruct {
+                block "PROTOCOL_LAYER" struct {
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uchar;
+                  uint;
+                  enum {
+                    "BYTE_ORDER_MSB_LAST" = 0,
+                    "BYTE_ORDER_MSB_FIRST" = 1
+                  };
+                  enum {
+                    "ADDRESS_GRANULARITY_BYTE" = 1,
+                    "ADDRESS_GRANULARITY_WORD" = 2,
+                    "ADDRESS_GRANULARITY_DWORD" = 4
+                  };
+                  taggedstruct {
+                    ("OPTIONAL_CMD" enum {
+                      "GET_COMM_MODE_INFO" = 251,
+                      "GET_ID" = 250,
+                      "SET_REQUEST" = 249,
+                      "GET_SEED" = 248,
+                      "UNLOCK" = 247,
+                      "SET_MTA" = 246,
+                      "UPLOAD" = 245,
+                      "SHORT_UPLOAD" = 244,
+                      "BUILD_CHECKSUM" = 243,
+                      "TRANSPORT_LAYER_CMD" = 242,
+                      "USER_CMD" = 241,
+                      "DOWNLOAD" = 240,
+                      "DOWNLOAD_NEXT" = 239,
+                      "DOWNLOAD_MAX" = 238,
+                      "SHORT_DOWNLOAD" = 237,
+                      "MODIFY_BITS" = 236,
+                      "SET_CAL_PAGE" = 235,
+                      "GET_CAL_PAGE" = 234,
+                      "GET_PAG_PROCESSOR_INFO" = 233,
+                      "GET_SEGMENT_INFO" = 232,
+                      "GET_PAGE_INFO" = 231,
+                      "SET_SEGMENT_MODE" = 230,
+                      "GET_SEGMENT_MODE" = 229,
+                      "COPY_CAL_PAGE" = 228,
+                      "CLEAR_DAQ_LIST" = 227,
+                      "SET_DAQ_PTR" = 226,
+                      "WRITE_DAQ" = 225,
+                      "SET_DAQ_LIST_MODE" = 224,
+                      "GET_DAQ_LIST_MODE" = 223,
+                      "START_STOP_DAQ_LIST" = 222,
+                      "START_STOP_SYNCH" = 221,
+                      "GET_DAQ_CLOCK" = 220,
+                      "READ_DAQ" = 219,
+                      "GET_DAQ_PROCESSOR_INFO" = 218,
+                      "GET_DAQ_RESOLUTION_INFO" = 217,
+                      "GET_DAQ_LIST_INFO" = 216,
+                      "GET_DAQ_EVENT_INFO" = 215,
+                      "FREE_DAQ" = 214,
+                      "ALLOC_DAQ" = 213,
+                      "ALLOC_ODT" = 212,
+                      "ALLOC_ODT_ENTRY" = 211,
+                      "PROGRAM_START" = 210,
+                      "PROGRAM_CLEAR" = 209,
+                      "PROGRAM" = 208,
+                      "PROGRAM_RESET" = 207,
+                      "GET_PGM_PROCESSOR_INFO" = 206,
+                      "GET_SECTOR_INFO" = 205,
+                      "PROGRAM_PREPARE" = 204,
+                      "PROGRAM_FORMAT" = 203,
+                      "PROGRAM_NEXT" = 202,
+                      "PROGRAM_MAX" = 201,
+                      "PROGRAM_VERIFY" = 200
+                    })*;
+                    "COMMUNICATION_MODE_SUPPORTED" taggedunion {
+                      "BLOCK" taggedstruct {
+                        "SLAVE" ;
+                        "MASTER" struct {
+                          uchar;
+                          uchar;
+                        };
+                      };
+                      "INTERLEAVED" uchar;
+                    };
+                    "SEED_AND_KEY_EXTERNAL_FUNCTION" char[256];
+                  };
+                };
+                block "SEGMENT" struct {
+                  uchar;
+                  uchar;
+                  uchar;
+                  uchar;
+                  uchar;
+                  taggedstruct {
+                    block "CHECKSUM" struct {
+                      enum {
+                        "XCP_ADD_11" = 1,
+                        "XCP_ADD_12" = 2,
+                        "XCP_ADD_14" = 3,
+                        "XCP_ADD_22" = 4,
+                        "XCP_ADD_24" = 5,
+                        "XCP_ADD_44" = 6,
+                        "XCP_CRC_16" = 7,
+                        "XCP_CRC_16_CITT" = 8,
+                        "XCP_CRC_32" = 9,
+                        "XCP_USER_DEFINED" = 255
+                      };
+                      taggedstruct {
+                        "MAX_BLOCK_SIZE" ulong;
+                        "EXTERNAL_FUNCTION" char[256];
+                      };
+                    };
+                    (block "PAGE" struct {
+                      uchar;
+                      enum {
+                        "ECU_ACCESS_NOT_ALLOWED" = 0,
+                        "ECU_ACCESS_WITHOUT_XCP_ONLY" = 1,
+                        "ECU_ACCESS_WITH_XCP_ONLY" = 2,
+                        "ECU_ACCESS_DONT_CARE" = 3
+                      };
+                      enum {
+                        "XCP_READ_ACCESS_NOT_ALLOWED" = 0,
+                        "XCP_READ_ACCESS_WITHOUT_ECU_ONLY" = 1,
+                        "XCP_READ_ACCESS_WITH_ECU_ONLY" = 2,
+                        "XCP_READ_ACCESS_DONT_CARE" = 3
+                      };
+                      enum {
+                        "XCP_WRITE_ACCESS_NOT_ALLOWED" = 0,
+                        "XCP_WRITE_ACCESS_WITHOUT_ECU_ONLY" = 1,
+                        "XCP_WRITE_ACCESS_WITH_ECU_ONLY" = 2,
+                        "XCP_WRITE_ACCESS_DONT_CARE" = 3
+                      };
+                      taggedstruct {
+                        "INIT_SEGMENT" uchar;
+                      };
+                    })*;
+                    (block "ADDRESS_MAPPING" struct {
+                      ulong;
+                      ulong;
+                      ulong;
+                    })*;
+                    "PGM_VERIFY" ulong;
+                  };
+                };
+                block "DAQ" struct {
+                  enum {
+                    "STATIC" = 0,
+                    "DYNAMIC" = 1
+                  };
+                  uint;
+                  uint;
+                  uchar;
+                  enum {
+                    "OPTIMISATION_TYPE_DEFAULT" = 0,
+                    "OPTIMISATION_TYPE_ODT_TYPE_16" = 1,
+                    "OPTIMISATION_TYPE_ODT_TYPE_32" = 2,
+                    "OPTIMISATION_TYPE_ODT_TYPE_64" = 3,
+                    "OPTIMISATION_TYPE_ODT_TYPE_ALIGNMENT" = 4,
+                    "OPTIMISATION_TYPE_MAX_ENTRY_SIZE" = 5
+                  };
+                  enum {
+                    "ADDRESS_EXTENSION_FREE" = 0,
+                    "ADDRESS_EXTENSION_ODT" = 1,
+                    "ADDRESS_EXTENSION_DAQ" = 3
+                  };
+                  enum {
+                    "IDENTIFICATION_FIELD_TYPE_ABSOLUTE" = 0,
+                    "IDENTIFICATION_FIELD_TYPE_RELATIVE_BYTE" = 1,
+                    "IDENTIFICATION_FIELD_TYPE_RELATIVE_WORD" = 2,
+                    "IDENTIFICATION_FIELD_TYPE_RELATIVE_WORD_ALIGNED" = 3
+                  };
+                  enum {
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_BYTE" = 1,
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_WORD" = 2,
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_DWORD" = 4,
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_DLONG" = 8
+                  };
+                  uchar;
+                  enum {
+                    "NO_OVERLOAD_INDICATION" = 0,
+                    "OVERLOAD_INDICATION_PID" = 1,
+                    "OVERLOAD_INDICATION_EVENT" = 2
+                  };
+                  taggedstruct {
+                    "PRESCALER_SUPPORTED" ;
+                    "RESUME_SUPPORTED" ;
+                    block "STIM" struct {
+                      enum {
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_BYTE" = 1,
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_WORD" = 2,
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_DWORD" = 4,
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_DLONG" = 8
+                      };
+                      uchar;
+                      taggedstruct {
+                        "BIT_STIM_SUPPORTED" ;
+                      };
+                    };
+                    block "TIMESTAMP_SUPPORTED" struct {
+                      uint;
+                      enum {
+                        "NO_TIME_STAMP" = 0,
+                        "SIZE_BYTE" = 1,
+                        "SIZE_WORD" = 2,
+                        "SIZE_DWORD" = 4
+                      };
+                      enum {
+                        "UNIT_1NS" = 0,
+                        "UNIT_10NS" = 1,
+                        "UNIT_100NS" = 2,
+                        "UNIT_1US" = 3,
+                        "UNIT_10US" = 4,
+                        "UNIT_100US" = 5,
+                        "UNIT_1MS" = 6,
+                        "UNIT_10MS" = 7,
+                        "UNIT_100MS" = 8,
+                        "UNIT_1S" = 9
+                      };
+                      taggedstruct {
+                        "TIMESTAMP_FIXED" ;
+                      };
+                    };
+                    "PID_OFF_SUPPORTED" ;
+                    (block "DAQ_LIST" struct {
+                      uint;
+                      taggedstruct {
+                        "DAQ_LIST_TYPE" enum {
+                          "DAQ" = 1,
+                          "STIM" = 2,
+                          "DAQ_STIM" = 3
+                        };
+                        "MAX_ODT" uchar;
+                        "MAX_ODT_ENTRIES" uchar;
+                        "FIRST_PID" uchar;
+                        "EVENT_FIXED" uint;
+                        block "PREDEFINED" taggedstruct {
+                          (block "ODT" struct {
+                            uchar;
+                            taggedstruct {
+                              ("ODT_ENTRY" struct {
+                                uchar;
+                                ulong;
+                                uchar;
+                                uchar;
+                                uchar;
+                              })*;
+                            };
+                          })*;
+                        };
+                      };
+                    })*;
+                    (block "EVENT" struct {
+                      char[101];
+                      char[9];
+                      uint;
+                      enum {
+                        "DAQ" = 1,
+                        "STIM" = 2,
+                        "DAQ_STIM" = 3
+                      };
+                      uchar;
+                      uchar;
+                      uchar;
+                      uchar;
+                    })*;
+                  };
+                };
+                block "PAG" struct {
+                  uchar;
+                  taggedstruct {
+                    "FREEZE_SUPPORTED" ;
+                  };
+                };
+                block "PGM" struct {
+                  enum {
+                    "PGM_MODE_ABSOLUTE" = 1,
+                    "PGM_MODE_FUNCTIONAL" = 2,
+                    "PGM_MODE_ABSOLUTE_AND_FUNCTIONAL" = 3
+                  };
+                  uchar;
+                  uchar;
+                  taggedstruct {
+                    (block "SECTOR" struct {
+                      char[101];
+                      uchar;
+                      ulong;
+                      ulong;
+                      uchar;
+                      uchar;
+                      uchar;
+                    })*;
+                    "COMMUNICATION_MODE_SUPPORTED" taggedunion {
+                      "BLOCK" taggedstruct {
+                        "SLAVE" ;
+                        "MASTER" struct {
+                          uchar;
+                          uchar;
+                        };
+                      };
+                      "INTERLEAVED" uchar;
+                    };
+                  };
+                };
+                block "DAQ_EVENT" taggedunion {
+                  "FIXED_EVENT_LIST" taggedstruct {
+                    ("EVENT" uint)*;
+                  };
+                  "VARIABLE" taggedstruct {
+                    block "AVAILABLE_EVENT_LIST" taggedstruct {
+                      ("EVENT" uint)*;
+                    };
+                    block "DEFAULT_EVENT_LIST" taggedstruct {
+                      ("EVENT" uint)*;
+                    };
+                  };
+                };
+              };
+            };
+            block "XCP_ON_TCP_IP" struct {
+              uint;
+              uint;
+              taggedunion {
+                "HOST_NAME" char[256];
+                "ADDRESS" char[15];
+              };
+              taggedstruct {
+                block "PROTOCOL_LAYER" struct {
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uchar;
+                  uint;
+                  enum {
+                    "BYTE_ORDER_MSB_LAST" = 0,
+                    "BYTE_ORDER_MSB_FIRST" = 1
+                  };
+                  enum {
+                    "ADDRESS_GRANULARITY_BYTE" = 1,
+                    "ADDRESS_GRANULARITY_WORD" = 2,
+                    "ADDRESS_GRANULARITY_DWORD" = 4
+                  };
+                  taggedstruct {
+                    ("OPTIONAL_CMD" enum {
+                      "GET_COMM_MODE_INFO" = 251,
+                      "GET_ID" = 250,
+                      "SET_REQUEST" = 249,
+                      "GET_SEED" = 248,
+                      "UNLOCK" = 247,
+                      "SET_MTA" = 246,
+                      "UPLOAD" = 245,
+                      "SHORT_UPLOAD" = 244,
+                      "BUILD_CHECKSUM" = 243,
+                      "TRANSPORT_LAYER_CMD" = 242,
+                      "USER_CMD" = 241,
+                      "DOWNLOAD" = 240,
+                      "DOWNLOAD_NEXT" = 239,
+                      "DOWNLOAD_MAX" = 238,
+                      "SHORT_DOWNLOAD" = 237,
+                      "MODIFY_BITS" = 236,
+                      "SET_CAL_PAGE" = 235,
+                      "GET_CAL_PAGE" = 234,
+                      "GET_PAG_PROCESSOR_INFO" = 233,
+                      "GET_SEGMENT_INFO" = 232,
+                      "GET_PAGE_INFO" = 231,
+                      "SET_SEGMENT_MODE" = 230,
+                      "GET_SEGMENT_MODE" = 229,
+                      "COPY_CAL_PAGE" = 228,
+                      "CLEAR_DAQ_LIST" = 227,
+                      "SET_DAQ_PTR" = 226,
+                      "WRITE_DAQ" = 225,
+                      "SET_DAQ_LIST_MODE" = 224,
+                      "GET_DAQ_LIST_MODE" = 223,
+                      "START_STOP_DAQ_LIST" = 222,
+                      "START_STOP_SYNCH" = 221,
+                      "GET_DAQ_CLOCK" = 220,
+                      "READ_DAQ" = 219,
+                      "GET_DAQ_PROCESSOR_INFO" = 218,
+                      "GET_DAQ_RESOLUTION_INFO" = 217,
+                      "GET_DAQ_LIST_INFO" = 216,
+                      "GET_DAQ_EVENT_INFO" = 215,
+                      "FREE_DAQ" = 214,
+                      "ALLOC_DAQ" = 213,
+                      "ALLOC_ODT" = 212,
+                      "ALLOC_ODT_ENTRY" = 211,
+                      "PROGRAM_START" = 210,
+                      "PROGRAM_CLEAR" = 209,
+                      "PROGRAM" = 208,
+                      "PROGRAM_RESET" = 207,
+                      "GET_PGM_PROCESSOR_INFO" = 206,
+                      "GET_SECTOR_INFO" = 205,
+                      "PROGRAM_PREPARE" = 204,
+                      "PROGRAM_FORMAT" = 203,
+                      "PROGRAM_NEXT" = 202,
+                      "PROGRAM_MAX" = 201,
+                      "PROGRAM_VERIFY" = 200
+                    })*;
+                    "COMMUNICATION_MODE_SUPPORTED" taggedunion {
+                      "BLOCK" taggedstruct {
+                        "SLAVE" ;
+                        "MASTER" struct {
+                          uchar;
+                          uchar;
+                        };
+                      };
+                      "INTERLEAVED" uchar;
+                    };
+                    "SEED_AND_KEY_EXTERNAL_FUNCTION" char[256];
+                  };
+                };
+                block "SEGMENT" struct {
+                  uchar;
+                  uchar;
+                  uchar;
+                  uchar;
+                  uchar;
+                  taggedstruct {
+                    block "CHECKSUM" struct {
+                      enum {
+                        "XCP_ADD_11" = 1,
+                        "XCP_ADD_12" = 2,
+                        "XCP_ADD_14" = 3,
+                        "XCP_ADD_22" = 4,
+                        "XCP_ADD_24" = 5,
+                        "XCP_ADD_44" = 6,
+                        "XCP_CRC_16" = 7,
+                        "XCP_CRC_16_CITT" = 8,
+                        "XCP_CRC_32" = 9,
+                        "XCP_USER_DEFINED" = 255
+                      };
+                      taggedstruct {
+                        "MAX_BLOCK_SIZE" ulong;
+                        "EXTERNAL_FUNCTION" char[256];
+                      };
+                    };
+                    (block "PAGE" struct {
+                      uchar;
+                      enum {
+                        "ECU_ACCESS_NOT_ALLOWED" = 0,
+                        "ECU_ACCESS_WITHOUT_XCP_ONLY" = 1,
+                        "ECU_ACCESS_WITH_XCP_ONLY" = 2,
+                        "ECU_ACCESS_DONT_CARE" = 3
+                      };
+                      enum {
+                        "XCP_READ_ACCESS_NOT_ALLOWED" = 0,
+                        "XCP_READ_ACCESS_WITHOUT_ECU_ONLY" = 1,
+                        "XCP_READ_ACCESS_WITH_ECU_ONLY" = 2,
+                        "XCP_READ_ACCESS_DONT_CARE" = 3
+                      };
+                      enum {
+                        "XCP_WRITE_ACCESS_NOT_ALLOWED" = 0,
+                        "XCP_WRITE_ACCESS_WITHOUT_ECU_ONLY" = 1,
+                        "XCP_WRITE_ACCESS_WITH_ECU_ONLY" = 2,
+                        "XCP_WRITE_ACCESS_DONT_CARE" = 3
+                      };
+                      taggedstruct {
+                        "INIT_SEGMENT" uchar;
+                      };
+                    })*;
+                    (block "ADDRESS_MAPPING" struct {
+                      ulong;
+                      ulong;
+                      ulong;
+                    })*;
+                    "PGM_VERIFY" ulong;
+                  };
+                };
+                block "DAQ" struct {
+                  enum {
+                    "STATIC" = 0,
+                    "DYNAMIC" = 1
+                  };
+                  uint;
+                  uint;
+                  uchar;
+                  enum {
+                    "OPTIMISATION_TYPE_DEFAULT" = 0,
+                    "OPTIMISATION_TYPE_ODT_TYPE_16" = 1,
+                    "OPTIMISATION_TYPE_ODT_TYPE_32" = 2,
+                    "OPTIMISATION_TYPE_ODT_TYPE_64" = 3,
+                    "OPTIMISATION_TYPE_ODT_TYPE_ALIGNMENT" = 4,
+                    "OPTIMISATION_TYPE_MAX_ENTRY_SIZE" = 5
+                  };
+                  enum {
+                    "ADDRESS_EXTENSION_FREE" = 0,
+                    "ADDRESS_EXTENSION_ODT" = 1,
+                    "ADDRESS_EXTENSION_DAQ" = 3
+                  };
+                  enum {
+                    "IDENTIFICATION_FIELD_TYPE_ABSOLUTE" = 0,
+                    "IDENTIFICATION_FIELD_TYPE_RELATIVE_BYTE" = 1,
+                    "IDENTIFICATION_FIELD_TYPE_RELATIVE_WORD" = 2,
+                    "IDENTIFICATION_FIELD_TYPE_RELATIVE_WORD_ALIGNED" = 3
+                  };
+                  enum {
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_BYTE" = 1,
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_WORD" = 2,
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_DWORD" = 4,
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_DLONG" = 8
+                  };
+                  uchar;
+                  enum {
+                    "NO_OVERLOAD_INDICATION" = 0,
+                    "OVERLOAD_INDICATION_PID" = 1,
+                    "OVERLOAD_INDICATION_EVENT" = 2
+                  };
+                  taggedstruct {
+                    "PRESCALER_SUPPORTED" ;
+                    "RESUME_SUPPORTED" ;
+                    block "STIM" struct {
+                      enum {
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_BYTE" = 1,
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_WORD" = 2,
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_DWORD" = 4,
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_DLONG" = 8
+                      };
+                      uchar;
+                      taggedstruct {
+                        "BIT_STIM_SUPPORTED" ;
+                      };
+                    };
+                    block "TIMESTAMP_SUPPORTED" struct {
+                      uint;
+                      enum {
+                        "NO_TIME_STAMP" = 0,
+                        "SIZE_BYTE" = 1,
+                        "SIZE_WORD" = 2,
+                        "SIZE_DWORD" = 4
+                      };
+                      enum {
+                        "UNIT_1NS" = 0,
+                        "UNIT_10NS" = 1,
+                        "UNIT_100NS" = 2,
+                        "UNIT_1US" = 3,
+                        "UNIT_10US" = 4,
+                        "UNIT_100US" = 5,
+                        "UNIT_1MS" = 6,
+                        "UNIT_10MS" = 7,
+                        "UNIT_100MS" = 8,
+                        "UNIT_1S" = 9
+                      };
+                      taggedstruct {
+                        "TIMESTAMP_FIXED" ;
+                      };
+                    };
+                    "PID_OFF_SUPPORTED" ;
+                    (block "DAQ_LIST" struct {
+                      uint;
+                      taggedstruct {
+                        "DAQ_LIST_TYPE" enum {
+                          "DAQ" = 1,
+                          "STIM" = 2,
+                          "DAQ_STIM" = 3
+                        };
+                        "MAX_ODT" uchar;
+                        "MAX_ODT_ENTRIES" uchar;
+                        "FIRST_PID" uchar;
+                        "EVENT_FIXED" uint;
+                        block "PREDEFINED" taggedstruct {
+                          (block "ODT" struct {
+                            uchar;
+                            taggedstruct {
+                              ("ODT_ENTRY" struct {
+                                uchar;
+                                ulong;
+                                uchar;
+                                uchar;
+                                uchar;
+                              })*;
+                            };
+                          })*;
+                        };
+                      };
+                    })*;
+                    (block "EVENT" struct {
+                      char[101];
+                      char[9];
+                      uint;
+                      enum {
+                        "DAQ" = 1,
+                        "STIM" = 2,
+                        "DAQ_STIM" = 3
+                      };
+                      uchar;
+                      uchar;
+                      uchar;
+                      uchar;
+                    })*;
+                  };
+                };
+                block "PAG" struct {
+                  uchar;
+                  taggedstruct {
+                    "FREEZE_SUPPORTED" ;
+                  };
+                };
+                block "PGM" struct {
+                  enum {
+                    "PGM_MODE_ABSOLUTE" = 1,
+                    "PGM_MODE_FUNCTIONAL" = 2,
+                    "PGM_MODE_ABSOLUTE_AND_FUNCTIONAL" = 3
+                  };
+                  uchar;
+                  uchar;
+                  taggedstruct {
+                    (block "SECTOR" struct {
+                      char[101];
+                      uchar;
+                      ulong;
+                      ulong;
+                      uchar;
+                      uchar;
+                      uchar;
+                    })*;
+                    "COMMUNICATION_MODE_SUPPORTED" taggedunion {
+                      "BLOCK" taggedstruct {
+                        "SLAVE" ;
+                        "MASTER" struct {
+                          uchar;
+                          uchar;
+                        };
+                      };
+                      "INTERLEAVED" uchar;
+                    };
+                  };
+                };
+                block "DAQ_EVENT" taggedunion {
+                  "FIXED_EVENT_LIST" taggedstruct {
+                    ("EVENT" uint)*;
+                  };
+                  "VARIABLE" taggedstruct {
+                    block "AVAILABLE_EVENT_LIST" taggedstruct {
+                      ("EVENT" uint)*;
+                    };
+                    block "DEFAULT_EVENT_LIST" taggedstruct {
+                      ("EVENT" uint)*;
+                    };
+                  };
+                };
+              };
+            };
+            block "XCP_ON_UDP_IP" struct {
+              uint;
+              uint;
+              taggedunion {
+                "HOST_NAME" char[256];
+                "ADDRESS" char[15];
+              };
+              taggedstruct {
+                block "PROTOCOL_LAYER" struct {
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uchar;
+                  uint;
+                  enum {
+                    "BYTE_ORDER_MSB_LAST" = 0,
+                    "BYTE_ORDER_MSB_FIRST" = 1
+                  };
+                  enum {
+                    "ADDRESS_GRANULARITY_BYTE" = 1,
+                    "ADDRESS_GRANULARITY_WORD" = 2,
+                    "ADDRESS_GRANULARITY_DWORD" = 4
+                  };
+                  taggedstruct {
+                    ("OPTIONAL_CMD" enum {
+                      "GET_COMM_MODE_INFO" = 251,
+                      "GET_ID" = 250,
+                      "SET_REQUEST" = 249,
+                      "GET_SEED" = 248,
+                      "UNLOCK" = 247,
+                      "SET_MTA" = 246,
+                      "UPLOAD" = 245,
+                      "SHORT_UPLOAD" = 244,
+                      "BUILD_CHECKSUM" = 243,
+                      "TRANSPORT_LAYER_CMD" = 242,
+                      "USER_CMD" = 241,
+                      "DOWNLOAD" = 240,
+                      "DOWNLOAD_NEXT" = 239,
+                      "DOWNLOAD_MAX" = 238,
+                      "SHORT_DOWNLOAD" = 237,
+                      "MODIFY_BITS" = 236,
+                      "SET_CAL_PAGE" = 235,
+                      "GET_CAL_PAGE" = 234,
+                      "GET_PAG_PROCESSOR_INFO" = 233,
+                      "GET_SEGMENT_INFO" = 232,
+                      "GET_PAGE_INFO" = 231,
+                      "SET_SEGMENT_MODE" = 230,
+                      "GET_SEGMENT_MODE" = 229,
+                      "COPY_CAL_PAGE" = 228,
+                      "CLEAR_DAQ_LIST" = 227,
+                      "SET_DAQ_PTR" = 226,
+                      "WRITE_DAQ" = 225,
+                      "SET_DAQ_LIST_MODE" = 224,
+                      "GET_DAQ_LIST_MODE" = 223,
+                      "START_STOP_DAQ_LIST" = 222,
+                      "START_STOP_SYNCH" = 221,
+                      "GET_DAQ_CLOCK" = 220,
+                      "READ_DAQ" = 219,
+                      "GET_DAQ_PROCESSOR_INFO" = 218,
+                      "GET_DAQ_RESOLUTION_INFO" = 217,
+                      "GET_DAQ_LIST_INFO" = 216,
+                      "GET_DAQ_EVENT_INFO" = 215,
+                      "FREE_DAQ" = 214,
+                      "ALLOC_DAQ" = 213,
+                      "ALLOC_ODT" = 212,
+                      "ALLOC_ODT_ENTRY" = 211,
+                      "PROGRAM_START" = 210,
+                      "PROGRAM_CLEAR" = 209,
+                      "PROGRAM" = 208,
+                      "PROGRAM_RESET" = 207,
+                      "GET_PGM_PROCESSOR_INFO" = 206,
+                      "GET_SECTOR_INFO" = 205,
+                      "PROGRAM_PREPARE" = 204,
+                      "PROGRAM_FORMAT" = 203,
+                      "PROGRAM_NEXT" = 202,
+                      "PROGRAM_MAX" = 201,
+                      "PROGRAM_VERIFY" = 200
+                    })*;
+                    "COMMUNICATION_MODE_SUPPORTED" taggedunion {
+                      "BLOCK" taggedstruct {
+                        "SLAVE" ;
+                        "MASTER" struct {
+                          uchar;
+                          uchar;
+                        };
+                      };
+                      "INTERLEAVED" uchar;
+                    };
+                    "SEED_AND_KEY_EXTERNAL_FUNCTION" char[256];
+                  };
+                };
+                block "SEGMENT" struct {
+                  uchar;
+                  uchar;
+                  uchar;
+                  uchar;
+                  uchar;
+                  taggedstruct {
+                    block "CHECKSUM" struct {
+                      enum {
+                        "XCP_ADD_11" = 1,
+                        "XCP_ADD_12" = 2,
+                        "XCP_ADD_14" = 3,
+                        "XCP_ADD_22" = 4,
+                        "XCP_ADD_24" = 5,
+                        "XCP_ADD_44" = 6,
+                        "XCP_CRC_16" = 7,
+                        "XCP_CRC_16_CITT" = 8,
+                        "XCP_CRC_32" = 9,
+                        "XCP_USER_DEFINED" = 255
+                      };
+                      taggedstruct {
+                        "MAX_BLOCK_SIZE" ulong;
+                        "EXTERNAL_FUNCTION" char[256];
+                      };
+                    };
+                    (block "PAGE" struct {
+                      uchar;
+                      enum {
+                        "ECU_ACCESS_NOT_ALLOWED" = 0,
+                        "ECU_ACCESS_WITHOUT_XCP_ONLY" = 1,
+                        "ECU_ACCESS_WITH_XCP_ONLY" = 2,
+                        "ECU_ACCESS_DONT_CARE" = 3
+                      };
+                      enum {
+                        "XCP_READ_ACCESS_NOT_ALLOWED" = 0,
+                        "XCP_READ_ACCESS_WITHOUT_ECU_ONLY" = 1,
+                        "XCP_READ_ACCESS_WITH_ECU_ONLY" = 2,
+                        "XCP_READ_ACCESS_DONT_CARE" = 3
+                      };
+                      enum {
+                        "XCP_WRITE_ACCESS_NOT_ALLOWED" = 0,
+                        "XCP_WRITE_ACCESS_WITHOUT_ECU_ONLY" = 1,
+                        "XCP_WRITE_ACCESS_WITH_ECU_ONLY" = 2,
+                        "XCP_WRITE_ACCESS_DONT_CARE" = 3
+                      };
+                      taggedstruct {
+                        "INIT_SEGMENT" uchar;
+                      };
+                    })*;
+                    (block "ADDRESS_MAPPING" struct {
+                      ulong;
+                      ulong;
+                      ulong;
+                    })*;
+                    "PGM_VERIFY" ulong;
+                  };
+                };
+                block "DAQ" struct {
+                  enum {
+                    "STATIC" = 0,
+                    "DYNAMIC" = 1
+                  };
+                  uint;
+                  uint;
+                  uchar;
+                  enum {
+                    "OPTIMISATION_TYPE_DEFAULT" = 0,
+                    "OPTIMISATION_TYPE_ODT_TYPE_16" = 1,
+                    "OPTIMISATION_TYPE_ODT_TYPE_32" = 2,
+                    "OPTIMISATION_TYPE_ODT_TYPE_64" = 3,
+                    "OPTIMISATION_TYPE_ODT_TYPE_ALIGNMENT" = 4,
+                    "OPTIMISATION_TYPE_MAX_ENTRY_SIZE" = 5
+                  };
+                  enum {
+                    "ADDRESS_EXTENSION_FREE" = 0,
+                    "ADDRESS_EXTENSION_ODT" = 1,
+                    "ADDRESS_EXTENSION_DAQ" = 3
+                  };
+                  enum {
+                    "IDENTIFICATION_FIELD_TYPE_ABSOLUTE" = 0,
+                    "IDENTIFICATION_FIELD_TYPE_RELATIVE_BYTE" = 1,
+                    "IDENTIFICATION_FIELD_TYPE_RELATIVE_WORD" = 2,
+                    "IDENTIFICATION_FIELD_TYPE_RELATIVE_WORD_ALIGNED" = 3
+                  };
+                  enum {
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_BYTE" = 1,
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_WORD" = 2,
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_DWORD" = 4,
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_DLONG" = 8
+                  };
+                  uchar;
+                  enum {
+                    "NO_OVERLOAD_INDICATION" = 0,
+                    "OVERLOAD_INDICATION_PID" = 1,
+                    "OVERLOAD_INDICATION_EVENT" = 2
+                  };
+                  taggedstruct {
+                    "PRESCALER_SUPPORTED" ;
+                    "RESUME_SUPPORTED" ;
+                    block "STIM" struct {
+                      enum {
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_BYTE" = 1,
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_WORD" = 2,
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_DWORD" = 4,
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_DLONG" = 8
+                      };
+                      uchar;
+                      taggedstruct {
+                        "BIT_STIM_SUPPORTED" ;
+                      };
+                    };
+                    block "TIMESTAMP_SUPPORTED" struct {
+                      uint;
+                      enum {
+                        "NO_TIME_STAMP" = 0,
+                        "SIZE_BYTE" = 1,
+                        "SIZE_WORD" = 2,
+                        "SIZE_DWORD" = 4
+                      };
+                      enum {
+                        "UNIT_1NS" = 0,
+                        "UNIT_10NS" = 1,
+                        "UNIT_100NS" = 2,
+                        "UNIT_1US" = 3,
+                        "UNIT_10US" = 4,
+                        "UNIT_100US" = 5,
+                        "UNIT_1MS" = 6,
+                        "UNIT_10MS" = 7,
+                        "UNIT_100MS" = 8,
+                        "UNIT_1S" = 9
+                      };
+                      taggedstruct {
+                        "TIMESTAMP_FIXED" ;
+                      };
+                    };
+                    "PID_OFF_SUPPORTED" ;
+                    (block "DAQ_LIST" struct {
+                      uint;
+                      taggedstruct {
+                        "DAQ_LIST_TYPE" enum {
+                          "DAQ" = 1,
+                          "STIM" = 2,
+                          "DAQ_STIM" = 3
+                        };
+                        "MAX_ODT" uchar;
+                        "MAX_ODT_ENTRIES" uchar;
+                        "FIRST_PID" uchar;
+                        "EVENT_FIXED" uint;
+                        block "PREDEFINED" taggedstruct {
+                          (block "ODT" struct {
+                            uchar;
+                            taggedstruct {
+                              ("ODT_ENTRY" struct {
+                                uchar;
+                                ulong;
+                                uchar;
+                                uchar;
+                                uchar;
+                              })*;
+                            };
+                          })*;
+                        };
+                      };
+                    })*;
+                    (block "EVENT" struct {
+                      char[101];
+                      char[9];
+                      uint;
+                      enum {
+                        "DAQ" = 1,
+                        "STIM" = 2,
+                        "DAQ_STIM" = 3
+                      };
+                      uchar;
+                      uchar;
+                      uchar;
+                      uchar;
+                    })*;
+                  };
+                };
+                block "PAG" struct {
+                  uchar;
+                  taggedstruct {
+                    "FREEZE_SUPPORTED" ;
+                  };
+                };
+                block "PGM" struct {
+                  enum {
+                    "PGM_MODE_ABSOLUTE" = 1,
+                    "PGM_MODE_FUNCTIONAL" = 2,
+                    "PGM_MODE_ABSOLUTE_AND_FUNCTIONAL" = 3
+                  };
+                  uchar;
+                  uchar;
+                  taggedstruct {
+                    (block "SECTOR" struct {
+                      char[101];
+                      uchar;
+                      ulong;
+                      ulong;
+                      uchar;
+                      uchar;
+                      uchar;
+                    })*;
+                    "COMMUNICATION_MODE_SUPPORTED" taggedunion {
+                      "BLOCK" taggedstruct {
+                        "SLAVE" ;
+                        "MASTER" struct {
+                          uchar;
+                          uchar;
+                        };
+                      };
+                      "INTERLEAVED" uchar;
+                    };
+                  };
+                };
+                block "DAQ_EVENT" taggedunion {
+                  "FIXED_EVENT_LIST" taggedstruct {
+                    ("EVENT" uint)*;
+                  };
+                  "VARIABLE" taggedstruct {
+                    block "AVAILABLE_EVENT_LIST" taggedstruct {
+                      ("EVENT" uint)*;
+                    };
+                    block "DEFAULT_EVENT_LIST" taggedstruct {
+                      ("EVENT" uint)*;
+                    };
+                  };
+                };
+              };
+            };
+            block "XCP_ON_USB" struct {
+              uint;
+              uint;
+              uint;
+              uchar;
+              enum {
+                "HEADER_LEN_BYTE" = 0,
+                "HEADER_LEN_CTR_BYTE" = 1,
+                "HEADER_LEN_FILL_BYTE" = 2,
+                "HEADER_LEN_WORD" = 3,
+                "HEADER_LEN_CTR_WORD" = 4,
+                "HEADER_LEN_FILL_WORD" = 5
+              };
+              taggedunion {
+                block "OUT_EP_CMD_STIM" struct {
+                  uchar;
+                  enum {
+                    "BULK_TRANSFER" = 2,
+                    "INTERRUPT_TRANSFER" = 3
+                  };
+                  uint;
+                  uchar;
+                  enum {
+                    "MESSAGE_PACKING_SINGLE" = 0,
+                    "MESSAGE_PACKING_MULTIPLE" = 1,
+                    "MESSAGE_PACKING_STREAMING" = 2
+                  };
+                  enum {
+                    "ALIGNMENT_8_BIT" = 0,
+                    "ALIGNMENT_16_BIT" = 1,
+                    "ALIGNMENT_32_BIT" = 2,
+                    "ALIGNMENT_64_BIT" = 3
+                  };
+                  taggedstruct {
+                    "RECOMMENDED_HOST_BUFSIZE" uint;
+                  };
+                };
+              };
+              taggedunion {
+                block "IN_EP_RESERR_DAQ_EVSERV" struct {
+                  uchar;
+                  enum {
+                    "BULK_TRANSFER" = 2,
+                    "INTERRUPT_TRANSFER" = 3
+                  };
+                  uint;
+                  uchar;
+                  enum {
+                    "MESSAGE_PACKING_SINGLE" = 0,
+                    "MESSAGE_PACKING_MULTIPLE" = 1,
+                    "MESSAGE_PACKING_STREAMING" = 2
+                  };
+                  enum {
+                    "ALIGNMENT_8_BIT" = 0,
+                    "ALIGNMENT_16_BIT" = 1,
+                    "ALIGNMENT_32_BIT" = 2,
+                    "ALIGNMENT_64_BIT" = 3
+                  };
+                  taggedstruct {
+                    "RECOMMENDED_HOST_BUFSIZE" uint;
+                  };
+                };
+              };
+              taggedstruct {
+                "ALTERNATE_SETTING_NO" uchar;
+                "INTERFACE_STRING_DESCRIPTOR" char[101];
+                (block "OUT_EP_ONLY_STIM" struct {
+                  uchar;
+                  enum {
+                    "BULK_TRANSFER" = 2,
+                    "INTERRUPT_TRANSFER" = 3
+                  };
+                  uint;
+                  uchar;
+                  enum {
+                    "MESSAGE_PACKING_SINGLE" = 0,
+                    "MESSAGE_PACKING_MULTIPLE" = 1,
+                    "MESSAGE_PACKING_STREAMING" = 2
+                  };
+                  enum {
+                    "ALIGNMENT_8_BIT" = 0,
+                    "ALIGNMENT_16_BIT" = 1,
+                    "ALIGNMENT_32_BIT" = 2,
+                    "ALIGNMENT_64_BIT" = 3
+                  };
+                  taggedstruct {
+                    "RECOMMENDED_HOST_BUFSIZE" uint;
+                  };
+                })*;
+                (block "IN_EP_ONLY_DAQ" struct {
+                  uchar;
+                  enum {
+                    "BULK_TRANSFER" = 2,
+                    "INTERRUPT_TRANSFER" = 3
+                  };
+                  uint;
+                  uchar;
+                  enum {
+                    "MESSAGE_PACKING_SINGLE" = 0,
+                    "MESSAGE_PACKING_MULTIPLE" = 1,
+                    "MESSAGE_PACKING_STREAMING" = 2
+                  };
+                  enum {
+                    "ALIGNMENT_8_BIT" = 0,
+                    "ALIGNMENT_16_BIT" = 1,
+                    "ALIGNMENT_32_BIT" = 2,
+                    "ALIGNMENT_64_BIT" = 3
+                  };
+                  taggedstruct {
+                    "RECOMMENDED_HOST_BUFSIZE" uint;
+                  };
+                })*;
+                block "IN_EP_ONLY_EVSERV" struct {
+                  uchar;
+                  enum {
+                    "BULK_TRANSFER" = 2,
+                    "INTERRUPT_TRANSFER" = 3
+                  };
+                  uint;
+                  uchar;
+                  enum {
+                    "MESSAGE_PACKING_SINGLE" = 0,
+                    "MESSAGE_PACKING_MULTIPLE" = 1,
+                    "MESSAGE_PACKING_STREAMING" = 2
+                  };
+                  enum {
+                    "ALIGNMENT_8_BIT" = 0,
+                    "ALIGNMENT_16_BIT" = 1,
+                    "ALIGNMENT_32_BIT" = 2,
+                    "ALIGNMENT_64_BIT" = 3
+                  };
+                  taggedstruct {
+                    "RECOMMENDED_HOST_BUFSIZE" uint;
+                  };
+                };
+                (block "DAQ_LIST_USB_ENDPOINT" struct {
+                  uint;
+                  taggedstruct {
+                    "FIXED_IN" uchar;
+                    "FIXED_OUT" uchar;
+                  };
+                })*;
+                block "PROTOCOL_LAYER" struct {
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uint;
+                  uchar;
+                  uint;
+                  enum {
+                    "BYTE_ORDER_MSB_LAST" = 0,
+                    "BYTE_ORDER_MSB_FIRST" = 1
+                  };
+                  enum {
+                    "ADDRESS_GRANULARITY_BYTE" = 1,
+                    "ADDRESS_GRANULARITY_WORD" = 2,
+                    "ADDRESS_GRANULARITY_DWORD" = 4
+                  };
+                  taggedstruct {
+                    ("OPTIONAL_CMD" enum {
+                      "GET_COMM_MODE_INFO" = 251,
+                      "GET_ID" = 250,
+                      "SET_REQUEST" = 249,
+                      "GET_SEED" = 248,
+                      "UNLOCK" = 247,
+                      "SET_MTA" = 246,
+                      "UPLOAD" = 245,
+                      "SHORT_UPLOAD" = 244,
+                      "BUILD_CHECKSUM" = 243,
+                      "TRANSPORT_LAYER_CMD" = 242,
+                      "USER_CMD" = 241,
+                      "DOWNLOAD" = 240,
+                      "DOWNLOAD_NEXT" = 239,
+                      "DOWNLOAD_MAX" = 238,
+                      "SHORT_DOWNLOAD" = 237,
+                      "MODIFY_BITS" = 236,
+                      "SET_CAL_PAGE" = 235,
+                      "GET_CAL_PAGE" = 234,
+                      "GET_PAG_PROCESSOR_INFO" = 233,
+                      "GET_SEGMENT_INFO" = 232,
+                      "GET_PAGE_INFO" = 231,
+                      "SET_SEGMENT_MODE" = 230,
+                      "GET_SEGMENT_MODE" = 229,
+                      "COPY_CAL_PAGE" = 228,
+                      "CLEAR_DAQ_LIST" = 227,
+                      "SET_DAQ_PTR" = 226,
+                      "WRITE_DAQ" = 225,
+                      "SET_DAQ_LIST_MODE" = 224,
+                      "GET_DAQ_LIST_MODE" = 223,
+                      "START_STOP_DAQ_LIST" = 222,
+                      "START_STOP_SYNCH" = 221,
+                      "GET_DAQ_CLOCK" = 220,
+                      "READ_DAQ" = 219,
+                      "GET_DAQ_PROCESSOR_INFO" = 218,
+                      "GET_DAQ_RESOLUTION_INFO" = 217,
+                      "GET_DAQ_LIST_INFO" = 216,
+                      "GET_DAQ_EVENT_INFO" = 215,
+                      "FREE_DAQ" = 214,
+                      "ALLOC_DAQ" = 213,
+                      "ALLOC_ODT" = 212,
+                      "ALLOC_ODT_ENTRY" = 211,
+                      "PROGRAM_START" = 210,
+                      "PROGRAM_CLEAR" = 209,
+                      "PROGRAM" = 208,
+                      "PROGRAM_RESET" = 207,
+                      "GET_PGM_PROCESSOR_INFO" = 206,
+                      "GET_SECTOR_INFO" = 205,
+                      "PROGRAM_PREPARE" = 204,
+                      "PROGRAM_FORMAT" = 203,
+                      "PROGRAM_NEXT" = 202,
+                      "PROGRAM_MAX" = 201,
+                      "PROGRAM_VERIFY" = 200
+                    })*;
+                    "COMMUNICATION_MODE_SUPPORTED" taggedunion {
+                      "BLOCK" taggedstruct {
+                        "SLAVE" ;
+                        "MASTER" struct {
+                          uchar;
+                          uchar;
+                        };
+                      };
+                      "INTERLEAVED" uchar;
+                    };
+                    "SEED_AND_KEY_EXTERNAL_FUNCTION" char[256];
+                  };
+                };
+                block "SEGMENT" struct {
+                  uchar;
+                  uchar;
+                  uchar;
+                  uchar;
+                  uchar;
+                  taggedstruct {
+                    block "CHECKSUM" struct {
+                      enum {
+                        "XCP_ADD_11" = 1,
+                        "XCP_ADD_12" = 2,
+                        "XCP_ADD_14" = 3,
+                        "XCP_ADD_22" = 4,
+                        "XCP_ADD_24" = 5,
+                        "XCP_ADD_44" = 6,
+                        "XCP_CRC_16" = 7,
+                        "XCP_CRC_16_CITT" = 8,
+                        "XCP_CRC_32" = 9,
+                        "XCP_USER_DEFINED" = 255
+                      };
+                      taggedstruct {
+                        "MAX_BLOCK_SIZE" ulong;
+                        "EXTERNAL_FUNCTION" char[256];
+                      };
+                    };
+                    (block "PAGE" struct {
+                      uchar;
+                      enum {
+                        "ECU_ACCESS_NOT_ALLOWED" = 0,
+                        "ECU_ACCESS_WITHOUT_XCP_ONLY" = 1,
+                        "ECU_ACCESS_WITH_XCP_ONLY" = 2,
+                        "ECU_ACCESS_DONT_CARE" = 3
+                      };
+                      enum {
+                        "XCP_READ_ACCESS_NOT_ALLOWED" = 0,
+                        "XCP_READ_ACCESS_WITHOUT_ECU_ONLY" = 1,
+                        "XCP_READ_ACCESS_WITH_ECU_ONLY" = 2,
+                        "XCP_READ_ACCESS_DONT_CARE" = 3
+                      };
+                      enum {
+                        "XCP_WRITE_ACCESS_NOT_ALLOWED" = 0,
+                        "XCP_WRITE_ACCESS_WITHOUT_ECU_ONLY" = 1,
+                        "XCP_WRITE_ACCESS_WITH_ECU_ONLY" = 2,
+                        "XCP_WRITE_ACCESS_DONT_CARE" = 3
+                      };
+                      taggedstruct {
+                        "INIT_SEGMENT" uchar;
+                      };
+                    })*;
+                    (block "ADDRESS_MAPPING" struct {
+                      ulong;
+                      ulong;
+                      ulong;
+                    })*;
+                    "PGM_VERIFY" ulong;
+                  };
+                };
+                block "DAQ" struct {
+                  enum {
+                    "STATIC" = 0,
+                    "DYNAMIC" = 1
+                  };
+                  uint;
+                  uint;
+                  uchar;
+                  enum {
+                    "OPTIMISATION_TYPE_DEFAULT" = 0,
+                    "OPTIMISATION_TYPE_ODT_TYPE_16" = 1,
+                    "OPTIMISATION_TYPE_ODT_TYPE_32" = 2,
+                    "OPTIMISATION_TYPE_ODT_TYPE_64" = 3,
+                    "OPTIMISATION_TYPE_ODT_TYPE_ALIGNMENT" = 4,
+                    "OPTIMISATION_TYPE_MAX_ENTRY_SIZE" = 5
+                  };
+                  enum {
+                    "ADDRESS_EXTENSION_FREE" = 0,
+                    "ADDRESS_EXTENSION_ODT" = 1,
+                    "ADDRESS_EXTENSION_DAQ" = 3
+                  };
+                  enum {
+                    "IDENTIFICATION_FIELD_TYPE_ABSOLUTE" = 0,
+                    "IDENTIFICATION_FIELD_TYPE_RELATIVE_BYTE" = 1,
+                    "IDENTIFICATION_FIELD_TYPE_RELATIVE_WORD" = 2,
+                    "IDENTIFICATION_FIELD_TYPE_RELATIVE_WORD_ALIGNED" = 3
+                  };
+                  enum {
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_BYTE" = 1,
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_WORD" = 2,
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_DWORD" = 4,
+                    "GRANULARITY_ODT_ENTRY_SIZE_DAQ_DLONG" = 8
+                  };
+                  uchar;
+                  enum {
+                    "NO_OVERLOAD_INDICATION" = 0,
+                    "OVERLOAD_INDICATION_PID" = 1,
+                    "OVERLOAD_INDICATION_EVENT" = 2
+                  };
+                  taggedstruct {
+                    "PRESCALER_SUPPORTED" ;
+                    "RESUME_SUPPORTED" ;
+                    block "STIM" struct {
+                      enum {
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_BYTE" = 1,
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_WORD" = 2,
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_DWORD" = 4,
+                        "GRANULARITY_ODT_ENTRY_SIZE_STIM_DLONG" = 8
+                      };
+                      uchar;
+                      taggedstruct {
+                        "BIT_STIM_SUPPORTED" ;
+                      };
+                    };
+                    block "TIMESTAMP_SUPPORTED" struct {
+                      uint;
+                      enum {
+                        "NO_TIME_STAMP" = 0,
+                        "SIZE_BYTE" = 1,
+                        "SIZE_WORD" = 2,
+                        "SIZE_DWORD" = 4
+                      };
+                      enum {
+                        "UNIT_1NS" = 0,
+                        "UNIT_10NS" = 1,
+                        "UNIT_100NS" = 2,
+                        "UNIT_1US" = 3,
+                        "UNIT_10US" = 4,
+                        "UNIT_100US" = 5,
+                        "UNIT_1MS" = 6,
+                        "UNIT_10MS" = 7,
+                        "UNIT_100MS" = 8,
+                        "UNIT_1S" = 9
+                      };
+                      taggedstruct {
+                        "TIMESTAMP_FIXED" ;
+                      };
+                    };
+                    "PID_OFF_SUPPORTED" ;
+                    (block "DAQ_LIST" struct {
+                      uint;
+                      taggedstruct {
+                        "DAQ_LIST_TYPE" enum {
+                          "DAQ" = 1,
+                          "STIM" = 2,
+                          "DAQ_STIM" = 3
+                        };
+                        "MAX_ODT" uchar;
+                        "MAX_ODT_ENTRIES" uchar;
+                        "FIRST_PID" uchar;
+                        "EVENT_FIXED" uint;
+                        block "PREDEFINED" taggedstruct {
+                          (block "ODT" struct {
+                            uchar;
+                            taggedstruct {
+                              ("ODT_ENTRY" struct {
+                                uchar;
+                                ulong;
+                                uchar;
+                                uchar;
+                                uchar;
+                              })*;
+                            };
+                          })*;
+                        };
+                      };
+                    })*;
+                    (block "EVENT" struct {
+                      char[101];
+                      char[9];
+                      uint;
+                      enum {
+                        "DAQ" = 1,
+                        "STIM" = 2,
+                        "DAQ_STIM" = 3
+                      };
+                      uchar;
+                      uchar;
+                      uchar;
+                      uchar;
+                    })*;
+                  };
+                };
+                block "PAG" struct {
+                  uchar;
+                  taggedstruct {
+                    "FREEZE_SUPPORTED" ;
+                  };
+                };
+                block "PGM" struct {
+                  enum {
+                    "PGM_MODE_ABSOLUTE" = 1,
+                    "PGM_MODE_FUNCTIONAL" = 2,
+                    "PGM_MODE_ABSOLUTE_AND_FUNCTIONAL" = 3
+                  };
+                  uchar;
+                  uchar;
+                  taggedstruct {
+                    (block "SECTOR" struct {
+                      char[101];
+                      uchar;
+                      ulong;
+                      ulong;
+                      uchar;
+                      uchar;
+                      uchar;
+                    })*;
+                    "COMMUNICATION_MODE_SUPPORTED" taggedunion {
+                      "BLOCK" taggedstruct {
+                        "SLAVE" ;
+                        "MASTER" struct {
+                          uchar;
+                          uchar;
+                        };
+                      };
+                      "INTERLEAVED" uchar;
+                    };
+                  };
+                };
+                block "DAQ_EVENT" taggedunion {
+                  "FIXED_EVENT_LIST" taggedstruct {
+                    ("EVENT" uint)*;
+                  };
+                  "VARIABLE" taggedstruct {
+                    block "AVAILABLE_EVENT_LIST" taggedstruct {
+                      ("EVENT" uint)*;
+                    };
+                    block "DEFAULT_EVENT_LIST" taggedstruct {
+                      ("EVENT" uint)*;
+                    };
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+
+    /end A2ML
+
+    /begin MOD_COMMON ""
+      DEPOSIT ABSOLUTE
+      BYTE_ORDER MSB_LAST
+      ALIGNMENT_BYTE 1
+      ALIGNMENT_WORD 2
+      ALIGNMENT_LONG 4
+      ALIGNMENT_FLOAT32_IEEE 4
+      ALIGNMENT_FLOAT64_IEEE 4
+    /end MOD_COMMON
+
+    
+    /begin IF_DATA XCP 
+      /begin PROTOCOL_LAYER 
+        0x100 0x20 0x20 0x20 0x20 0x20 0x20 0x20 0x8 0x8 BYTE_ORDER_MSB_LAST ADDRESS_GRANULARITY_BYTE 
+        OPTIONAL_CMD SET_REQUEST 
+        OPTIONAL_CMD GET_SEED 
+        OPTIONAL_CMD UNLOCK 
+        OPTIONAL_CMD SET_MTA 
+        OPTIONAL_CMD SHORT_DOWNLOAD 
+        OPTIONAL_CMD PROGRAM_START 
+        OPTIONAL_CMD PROGRAM_CLEAR 
+        OPTIONAL_CMD PROGRAM 
+        OPTIONAL_CMD PROGRAM_RESET 
+        OPTIONAL_CMD GET_PGM_PROCESSOR_INFO 
+        OPTIONAL_CMD GET_SECTOR_INFO 
+        OPTIONAL_CMD PROGRAM_PREPARE 
+        OPTIONAL_CMD PROGRAM_NEXT 
+        OPTIONAL_CMD PROGRAM_MAX 
+        OPTIONAL_CMD PROGRAM_VERIFY 
+        OPTIONAL_CMD TRANSPORT_LAYER_CMD 
+        OPTIONAL_CMD GET_ID 
+        OPTIONAL_CMD UPLOAD 
+        OPTIONAL_CMD SHORT_UPLOAD 
+        OPTIONAL_CMD BUILD_CHECKSUM 
+        OPTIONAL_CMD DOWNLOAD_NEXT 
+        OPTIONAL_CMD SET_CAL_PAGE 
+        OPTIONAL_CMD GET_CAL_PAGE 
+        OPTIONAL_CMD CLEAR_DAQ_LIST 
+        OPTIONAL_CMD SET_DAQ_PTR 
+        OPTIONAL_CMD WRITE_DAQ 
+        OPTIONAL_CMD SET_DAQ_LIST_MODE 
+        OPTIONAL_CMD GET_DAQ_LIST_MODE 
+        OPTIONAL_CMD START_STOP_DAQ_LIST 
+        OPTIONAL_CMD FREE_DAQ 
+        OPTIONAL_CMD ALLOC_DAQ 
+        OPTIONAL_CMD ALLOC_ODT 
+        OPTIONAL_CMD ALLOC_ODT_ENTRY 
+        OPTIONAL_CMD START_STOP_SYNCH 
+        OPTIONAL_CMD DOWNLOAD 
+        OPTIONAL_CMD MODIFY_BITS 
+        OPTIONAL_CMD GET_PAG_PROCESSOR_INFO 
+        OPTIONAL_CMD GET_SEGMENT_INFO 
+        OPTIONAL_CMD GET_PAGE_INFO 
+        OPTIONAL_CMD SET_SEGMENT_MODE 
+        OPTIONAL_CMD GET_SEGMENT_MODE 
+        OPTIONAL_CMD COPY_CAL_PAGE 
+        OPTIONAL_CMD GET_DAQ_CLOCK 
+        OPTIONAL_CMD READ_DAQ 
+        OPTIONAL_CMD GET_DAQ_LIST_MODE 
+        OPTIONAL_CMD DOWNLOAD_MAX 
+        COMMUNICATION_MODE_SUPPORTED 
+          BLOCK 
+            SLAVE 
+            MASTER 0x14 0x5 
+      /end PROTOCOL_LAYER
+      /begin DAQ 
+        STATIC 0x3 0x2 0x0 OPTIMISATION_TYPE_DEFAULT ADDRESS_EXTENSION_DAQ IDENTIFICATION_FIELD_TYPE_ABSOLUTE GRANULARITY_ODT_ENTRY_SIZE_DAQ_BYTE 0x4 OVERLOAD_INDICATION_EVENT 
+        PRESCALER_SUPPORTED 
+        /begin TIMESTAMP_SUPPORTED 
+          0x1 SIZE_DWORD UNIT_1US 
+        /end TIMESTAMP_SUPPORTED
+        /begin DAQ_LIST 
+          0x0 
+          DAQ_LIST_TYPE DAQ 
+          MAX_ODT 0x5 
+          MAX_ODT_ENTRIES 0x7 
+        /end DAQ_LIST
+        /begin DAQ_LIST 
+          0x1 
+          DAQ_LIST_TYPE DAQ 
+          MAX_ODT 0x4 
+          MAX_ODT_ENTRIES 0x7 
+        /end DAQ_LIST
+        /begin DAQ_LIST 
+          0x2 
+          DAQ_LIST_TYPE DAQ 
+          MAX_ODT 0x3 
+          MAX_ODT_ENTRIES 0x7 
+        /end DAQ_LIST
+        /begin EVENT 
+          "5ms" "5ms" 0x0 DAQ 0xFF 0x5 0x6 0xFF 
+        /end EVENT
+        /begin EVENT 
+          "extEvent" "extEvent" 0x1 DAQ 0xFF 0x1 0xA 0xFF 
+        /end EVENT
+      /end DAQ
+      /begin XCP_ON_CAN 
+        0x100 
+        CAN_ID_BROADCAST 0x52 
+        CAN_ID_MASTER 0x51 
+        CAN_ID_SLAVE 0x50 
+        BAUDRATE 0x7A120 
+      /end XCP_ON_CAN
+    /end IF_DATA
+    /begin MOD_PAR ""
+      NO_OF_INTERFACES 1
+      /begin MEMORY_SEGMENT
+        MemorySegment "Memory segment for page REF_A_ECU_ROM" DATA FLASH EXTERN 0x16000 0x86C -1 -1 -1 -1 -1 
+      
+      /begin IF_DATA XCP 
+        /begin SEGMENT 
+          0x0 0x2 0x0 0x0 0x0 
+          /begin PAGE 
+            0x0 ECU_ACCESS_DONT_CARE XCP_READ_ACCESS_WITH_ECU_ONLY XCP_WRITE_ACCESS_NOT_ALLOWED 
+          /end PAGE
+          /begin PAGE 
+            0x1 ECU_ACCESS_DONT_CARE XCP_READ_ACCESS_WITH_ECU_ONLY XCP_WRITE_ACCESS_WITH_ECU_ONLY 
+          /end PAGE
+        /end SEGMENT
+      /end IF_DATA
+      /end MEMORY_SEGMENT
+      /begin MEMORY_SEGMENT
+        CDF20_docu "Memory segment for CDF20 documentationM" DATA FLASH EXTERN 0x810000 0x10000 -1 -1 -1 -1 -1 
+      /end MEMORY_SEGMENT
+    /end MOD_PAR
+
+
+    /begin COMPU_METHOD CDF20.CONVERSION ""
+      RAT_FUNC "%3.1" ""
+      COEFFS 0 1 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD CM_B_TRUE "boolean, positive Logic"
+      TAB_VERB "%6.3" ""
+      COMPU_TAB_REF CM_B_TRUE
+    /end COMPU_METHOD
+    /begin COMPU_VTAB CM_B_TRUE "boolean, positive Logic" TAB_VERB 2
+      0 "----"
+      1 "TRUE"
+      DEFAULT_VALUE ""
+    /end COMPU_VTAB
+
+    /begin COMPU_METHOD CM_DIV_10 "Divide 10 conversion"
+      RAT_FUNC "%3.1" "Cluster"
+      COEFFS 0 10 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD CM_FRMIN ""
+      RAT_FUNC "%8.4" ""
+      COEFFS 0 81.9175 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD CM_FWTM "grad C"
+      RAT_FUNC "%8.4" "grad C"
+      COEFFS 0 256.4102564 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD CM_N "U/min"
+      RAT_FUNC "%8.4" "Um/p"
+      COEFFS 0 1 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD CM_T "°C"
+      RAT_FUNC "%8.4" "°C"
+      COEFFS 0 1 50 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_0_0001 ""
+      RAT_FUNC "%5.4" "Hz"
+      COEFFS 0 10000 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_0_0001220703125 ""
+      RAT_FUNC "%5.4" ""
+      COEFFS 0 8192 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_0_000244140625 ""
+      RAT_FUNC "%5.4" "kg"
+      COEFFS 0 4096 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_0_000244140625_e ""
+      RAT_FUNC "%5.4" ""
+      COEFFS 0 4096 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_0_000244140625_j ""
+      RAT_FUNC "%6.4" ""
+      COEFFS 0 4096 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_0_000628318530717959 ""
+      RAT_FUNC "%6.4" ""
+      COEFFS 0 1591.549431 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_0_0009765625 ""
+      RAT_FUNC "%6.4" ""
+      COEFFS 0 1024 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_0_001953125 ""
+      RAT_FUNC "%6.3" ""
+      COEFFS 0 512 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_0_00488758553274682 ""
+      RAT_FUNC "%6.3" "V"
+      COEFFS 0 204.6 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_0_0078125 ""
+      RAT_FUNC "%6.3" ""
+      COEFFS 0 128 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_0_0078125_b ""
+      RAT_FUNC "%4.3" ""
+      COEFFS 0 128 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_0_0078125_g ""
+      RAT_FUNC "%6.3" "percent"
+      COEFFS 0 128 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_0_0078125_h ""
+      RAT_FUNC "%6.3" "degree"
+      COEFFS 0 128 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_0_015625 ""
+      RAT_FUNC "%3.2" ""
+      COEFFS 0 64 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_0_03125 ""
+      RAT_FUNC "%6.2" "rad/s"
+      COEFFS 0 32 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_0_03125_a ""
+      RAT_FUNC "%6.2" "1/s"
+      COEFFS 0 32 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_0_03125_c ""
+      RAT_FUNC "%6.2" ""
+      COEFFS 0 32 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_0_0625 ""
+      RAT_FUNC "%6.2" ""
+      COEFFS 0 16 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_0_25 ""
+      RAT_FUNC "%3.1" ""
+      COEFFS 0 4 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_1_19209289550781em07 ""
+      RAT_FUNC "%7.7" ""
+      COEFFS 0 8388608 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_2_38418579101563em07 ""
+      RAT_FUNC "%7.7" ""
+      COEFFS 0 4194304 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_3_0517578125em05 ""
+      RAT_FUNC "%6.5" ""
+      COEFFS 0 32768 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_5_96046447753906em08 ""
+      RAT_FUNC "%8.8" ""
+      COEFFS 0 16777216 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_6_103515625em05 ""
+      RAT_FUNC "%6.5" ""
+      COEFFS 0 16384 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_6_103515625em05_d ""
+      RAT_FUNC "%6.5" "rad"
+      COEFFS 0 16384 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_7_62939453125em06 ""
+      RAT_FUNC "%6.6" ""
+      COEFFS 0 131072 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD EQ_LSB_9_5367431640625em07 ""
+      RAT_FUNC "%7.7" "kg/rad"
+      COEFFS 0 1048576 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD SC_ADC_Type "Scaling for user-defined data type 'ADC'"
+      RAT_FUNC "%6.4" ""
+      COEFFS 0 2048 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD ScSignalForm ""
+      TAB_VERB "%12.6" ""
+      COMPU_TAB_REF ScSignalForm
+    /end COMPU_METHOD
+    /begin COMPU_VTAB ScSignalForm "" TAB_VERB 3
+      1 "SawTooth"
+      2 "Square"
+      3 "Sin"
+      DEFAULT_VALUE ""
+    /end COMPU_VTAB
+
+    /begin COMPU_METHOD VOID_SCALING ""
+      RAT_FUNC "%10.0" ""
+      COEFFS 0 1 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD VOID_SCALING_f ""
+      RAT_FUNC "%5.0" ""
+      COEFFS 0 1 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD ident ""
+      RAT_FUNC "%4.0" ""
+      COEFFS 0 1 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin COMPU_METHOD NO_FORMULA ""
+      RAT_FUNC "%6.2" ""
+      COEFFS 0 1 0 0 0 1
+    /end COMPU_METHOD
+
+    /begin MEASUREMENT BitMaskVariableMeas ""
+      UWORD VOID_SCALING_f 0 0 0 65535
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A12
+      FORMAT "%.0"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT BitMask_0x0080 ""
+      UBYTE VOID_SCALING_f 0 0 0 65535
+      BIT_MASK 0x80
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A12
+      FORMAT "%.0"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT BitMask_0x0100 ""
+      UWORD VOID_SCALING_f 0 0 0 65535
+      BIT_MASK 0x100
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A12
+      FORMAT "%.0"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT BitMask_0x0200 ""
+      UWORD VOID_SCALING_f 0 0 0 65535
+      BIT_MASK 0x200
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A12
+      FORMAT "%.0"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT BitMask_0x0400 ""
+      UWORD VOID_SCALING_f 0 0 0 65535
+      BIT_MASK 0x400
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A12
+      FORMAT "%.0"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT BuildTime "506291052"
+      ULONG VOID_SCALING 0 0 0 4294970000
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x10058
+      FORMAT "%.0"
+    /end MEASUREMENT
+
+    /begin CHARACTERISTIC CDF20 "Scalar FW U16 and CDF20 as name"
+      VALUE 0x810002 __UWORD_S 0 CDF20.CONVERSION  0 65535
+      EXTENDED_LIMITS 0 65535
+      BIT_MASK 0xFFFF
+      FORMAT "%.0"
+      DISPLAY_IDENTIFIER CDF20
+      /begin ANNOTATION
+        ANNOTATION_LABEL "ASAM Workinggroup"
+        ANNOTATION_ORIGIN ""
+        /begin ANNOTATION_TEXT
+          "Test the A2L notation with dots and how this is handled in the corosponding CDF20 file"
+        /end ANNOTATION_TEXT
+      /end ANNOTATION
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC CDF20.ASCII.N42_wU8 ""
+      ASCII 0x810030 STANDARD_FW_U08 0 NO_FORMULA 0 255
+      EXTENDED_LIMITS 0 255
+      MATRIX_DIM 42 1 1
+      DISPLAY_IDENTIFIER DI_CDF20.ASCII.N42_wU8
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC CDF20.BOOLEAN.FW_wU8 "BIT_MASK 0x0001"
+      VALUE 0x810004 STANDARD_FW_U08 0 ident  0 255
+      EXTENDED_LIMITS 0 255
+      BIT_MASK 0x1
+      FORMAT "%.0"
+      DISPLAY_IDENTIFIER DI_CDF20.BOOLEAN.FW_wU8
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC CDF20.BOOLEAN.FW_wU8_VTab "BIT_MASK 0x0002"
+      VALUE 0x810004 STANDARD_FW_U08 0 CM_B_TRUE  0 255
+      EXTENDED_LIMITS 0 255
+      BIT_MASK 0x2
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER DI_CDF20.BOOLEAN.FW_wU8_VTab
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC CDF20.Dependent.Base.FW_wU16 "Dependent Base"
+      VALUE 0x810008 STANDARD_FW_U16 0 ident  0 35565
+      EXTENDED_LIMITS 0 35565
+      BIT_MASK 0xFFFF
+      FORMAT "%.0"
+      DISPLAY_IDENTIFIER DI_CDF20.Dependent.Base.FW_wU16
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC CDF20.Dependent.Ref_1.FW_wU16 "Dependent Reference U16 1"
+      VALUE 0x81000C STANDARD_FW_U16 0 ident  0 65535
+      EXTENDED_LIMITS 0 65535
+      BIT_MASK 0xFFFF
+      READ_ONLY
+      FORMAT "%.0"
+      DISPLAY_IDENTIFIER DI_0x850030.Dependent.Ref_1.FW_wU16
+      /begin DEPENDENT_CHARACTERISTIC "X1 * 5" CDF20.Dependent.Base.FW_wU16
+      /end DEPENDENT_CHARACTERISTIC
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC CDF20.MATRIX_DIM.N341_wS8 "Array 3x4 of SByte"
+      VAL_BLK 0x810010 STANDARD_FW_S08 0 CM_FRMIN  -400 400
+      EXTENDED_LIMITS -400.0122 400
+      BIT_MASK 0xFF
+      MATRIX_DIM 3 4 1
+      FORMAT "%.4"
+      DISPLAY_IDENTIFIER DI_CDF20.MATRIX_DIM.N341_wS8
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC CDF20.array.Element[0] ""
+      VALUE 0x16080 SWORD_COL_DIRECT 0 EQ_LSB_0_0009765625  -20 20
+      EXTENDED_LIMITS -20 20
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.4"
+      DISPLAY_IDENTIFIER PARAM_VECTOR
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC CDF20.array.Element[1] ""
+      VALUE 0x16082 SWORD_COL_DIRECT 0 EQ_LSB_0_0009765625  -32 31.999
+      EXTENDED_LIMITS -32 31.999
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.4"
+      DISPLAY_IDENTIFIER PARAM_VECTOR
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC CDF20.array.Element[2] ""
+      VALUE 0x16084 SWORD_COL_DIRECT 0 EQ_LSB_0_0009765625  -32 31.999
+      EXTENDED_LIMITS -32 31.999
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.4"
+      DISPLAY_IDENTIFIER PARAM_VECTOR
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC CDF20.array.Element[3] ""
+      VALUE 0x16086 SWORD_COL_DIRECT 0 EQ_LSB_0_0009765625  -32 31.999
+      EXTENDED_LIMITS -32 31.999
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.4"
+      DISPLAY_IDENTIFIER PARAM_VECTOR
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC CDF20.array.Element[4] ""
+      VALUE 0x16088 SWORD_COL_DIRECT 0 EQ_LSB_0_0009765625  -32 31.999
+      EXTENDED_LIMITS -32 31.999
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.4"
+      DISPLAY_IDENTIFIER PARAM_VECTOR
+    /end CHARACTERISTIC
+
+    /begin AXIS_PTS CDF20.axis.X_AXIS_xU16 "X-Axis for CDF20.curve.GKL_xCOM_wU16"
+      0x810120 CDF20.measure.N RL_SSV 0 CM_N 15 0 20
+      EXTENDED_LIMITS 0 20
+      DEPOSIT ABSOLUTE
+      FORMAT "%.4"
+      DISPLAY_IDENTIFIER DI_CDF20.axis.X_AXIS_xU16
+    /end AXIS_PTS
+
+    /begin CHARACTERISTIC CDF20.axis.X_CU_AXIS_xU16_wU8 " X Curve Axis"
+      CURVE 0x810240 RL_CU_AXIS_xU16_wU8_DECR 0 CM_DIV_10  0 25.5
+      EXTENDED_LIMITS 0 25.5
+      BIT_MASK 0xFF
+      /begin AXIS_DESCR
+        STD_AXIS CDF20.measure.T CM_T  5 0 6500
+        EXTENDED_LIMITS 0 6500
+        DEPOSIT ABSOLUTE
+        FORMAT "%.4"
+      /end AXIS_DESCR
+      FORMAT "%.1"
+      DISPLAY_IDENTIFIER DI_CDF20.axis.X_CU_AXIS_xU16_wU8
+    /end CHARACTERISTIC
+
+    /begin AXIS_PTS CDF20.axis.X_RE_AXIS_xS8 "X-axis for KL_xRESs8_wS16"
+      0x810180 CDF20.measure.N RL_RES_AXIS_S8 0 CM_N 17 0 255
+      EXTENDED_LIMITS 0 255
+      DEPOSIT ABSOLUTE
+      FORMAT "%.0"
+      DISPLAY_IDENTIFIER DI_0x840600.RE_AXIS.X_RE_AXIS_xS8
+    /end AXIS_PTS
+
+    /begin CHARACTERISTIC CDF20.axis.Y_CU_AXIS_xU16_wU8 "Y  Curve Axis"
+      CURVE 0x810280 RL_CU_AXIS_xU16_wU8_DECR 0 CM_DIV_10  0 25.5
+      EXTENDED_LIMITS 0 25.5
+      BIT_MASK 0xFF
+      /begin AXIS_DESCR
+        STD_AXIS CDF20.measure.N CM_N  4 0 6500
+        EXTENDED_LIMITS 0 6500
+        DEPOSIT ABSOLUTE
+        FORMAT "%.4"
+      /end AXIS_DESCR
+      FORMAT "%.1"
+      DISPLAY_IDENTIFIER DI_CDF20.axis.Y_CU_AXIS_xU16_wU8
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC CDF20.curve.FKL_xFIX_wU8 "Curve fix axis"
+      CURVE 0x8100C0 RL_FKL_u_FWB 0 CM_FWTM  0 1
+      EXTENDED_LIMITS 0 1
+      BIT_MASK 0xFF
+      /begin AXIS_DESCR
+        FIX_AXIS CDF20.measure.T CM_T  6 -80 150
+        EXTENDED_LIMITS -80 150
+        READ_ONLY
+        FORMAT "%.4"
+        FIX_AXIS_PAR_DIST 1 1 6
+      /end AXIS_DESCR
+      FORMAT "%.4"
+      DISPLAY_IDENTIFIER DI_CDF20.curve.FKL_xFIX_wU8
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC CDF20.curve.GKL_xCOM_wU16 "GKL"
+      CURVE 0x810100 RL_GKL_u_GKF 0 CM_FWTM  0 1
+      EXTENDED_LIMITS 0 1
+      BIT_MASK 0xFFFF
+      /begin AXIS_DESCR
+        COM_AXIS CDF20.measure.N CM_N  15 0 20
+        EXTENDED_LIMITS 0 20
+        DEPOSIT ABSOLUTE
+        FORMAT "%.4"
+        AXIS_PTS_REF CDF20.axis.X_AXIS_xU16
+      /end AXIS_DESCR
+      FORMAT "%.4"
+      DISPLAY_IDENTIFIER DI_CDF20.curve.GKL_xCOM_wU16
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC CDF20.curve.KL_xRESs8_wS16 "Curve with rescale axis"
+      CURVE 0x810160 RL_FIX_AXIS_S16 0 CM_FWTM  -1 1
+      EXTENDED_LIMITS -1 1
+      BIT_MASK 0xFFFF
+      /begin AXIS_DESCR
+        RES_AXIS CDF20.measure.N CM_N  17 0 255
+        EXTENDED_LIMITS 0 255
+        DEPOSIT ABSOLUTE
+        FORMAT "%.0"
+        AXIS_PTS_REF CDF20.axis.X_RE_AXIS_xS8
+      /end AXIS_DESCR
+      FORMAT "%.4"
+      DISPLAY_IDENTIFIER DI_CDF20.curve.KL_xRESs8_wS16
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC CDF20.curve.KL_xU8_wU8 "Curve standard axis"
+      CURVE 0x810080 RL_KL 0 CM_FWTM  0 1
+      EXTENDED_LIMITS -127.7952 127.7913
+      BIT_MASK 0xFF
+      /begin AXIS_DESCR
+        STD_AXIS CDF20.measure.T CM_T  11 -80 150
+        EXTENDED_LIMITS -80 150
+        DEPOSIT ABSOLUTE
+        FORMAT "%.4"
+      /end AXIS_DESCR
+      FORMAT "%.4"
+      DISPLAY_IDENTIFIER DI_CDF20.curve.KL_xU8_wU8
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC CDF20.map.KF_xCURu16u8_yCURu16u8_wU8 "Map with CURVE_AXIS "
+      MAP 0x810200 RL_CU_AXIS_VALUES_wU8_ROW 0 CM_DIV_10  0 25.5
+      EXTENDED_LIMITS 0 25.5
+      BIT_MASK 0xFF
+      /begin AXIS_DESCR
+        CURVE_AXIS CDF20.measure.T NO_COMPU_METHOD  5 0 25.5
+        EXTENDED_LIMITS 0 25.5
+        DEPOSIT ABSOLUTE
+        FORMAT "%.1"
+        CURVE_AXIS_REF CDF20.axis.X_CU_AXIS_xU16_wU8
+      /end AXIS_DESCR
+      /begin AXIS_DESCR
+        CURVE_AXIS CDF20.measure.N NO_COMPU_METHOD  4 0 25.5
+        EXTENDED_LIMITS 0 25.5
+        DEPOSIT ABSOLUTE
+        FORMAT "%.1"
+        CURVE_AXIS_REF CDF20.axis.Y_CU_AXIS_xU16_wU8
+      /end AXIS_DESCR
+      FORMAT "%.1"
+      DISPLAY_IDENTIFIER DI_CDF20.map.KF_xCURu16u8_yCURu16u8_wU8
+    /end CHARACTERISTIC
+
+    /begin MEASUREMENT CDF20.measure.N "speed "
+      SWORD CM_N 0 0 0 6500
+      BIT_MASK 0xFFFF
+      ECU_ADDRESS 0xBB4
+      FORMAT "%.4"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT CDF20.measure.T " temperature"
+      UBYTE CM_T 0 0 -50 65485
+      BIT_MASK 0xFF
+      ECU_ADDRESS 0x46
+      FORMAT "%.4"
+    /end MEASUREMENT
+
+    /begin CHARACTERISTIC CDF20.scalar.FW_wU16 "Scalar FW U16"
+      VALUE 0x810000 STANDARD_FW_U16 0 CM_FRMIN  0 2
+      EXTENDED_LIMITS 0 3.112888
+      BIT_MASK 0xFFFF
+      FORMAT "%.4"
+      DISPLAY_IDENTIFIER DI_CDF20.scalar.FW_wU16
+    /end CHARACTERISTIC
+
+    /begin MEASUREMENT ControlOut ""
+      SWORD EQ_LSB_6_103515625em05 0 0 -2 1.99994
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A10
+      FORMAT "%.5"
+      DISPLAY_IDENTIFIER CtrlOut
+    /end MEASUREMENT
+
+    /begin CHARACTERISTIC DummyAirMass "air_mass"
+      VALUE 0x16000 SWORD_COL_DIRECT 0 SC_ADC_Type  -10 10
+      EXTENDED_LIMITS -10 10
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.4"
+      DISPLAY_IDENTIFIER DUMMY_AIR_MASS
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC DummyOmega "omega"
+      VALUE 0x16002 UWORD_COL_DIRECT 0 EQ_LSB_0_03125  0 2047.97
+      EXTENDED_LIMITS 0 2047.97
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.2"
+      DISPLAY_IDENTIFIER DUMMY_OMEGA
+    /end CHARACTERISTIC
+
+    /begin MEASUREMENT ECUCode_QADC_Single[0] ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A70
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER QADC_SINGLE
+    /end MEASUREMENT
+
+    /begin MEASUREMENT ECUCode_QADC_Single[1] ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A72
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER QADC_SINGLE
+    /end MEASUREMENT
+
+    /begin MEASUREMENT ECUCode_QADC_Single[2] ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A74
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER QADC_SINGLE
+    /end MEASUREMENT
+
+    /begin MEASUREMENT ECUCode_QADC_Single[3] ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A76
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER QADC_SINGLE
+    /end MEASUREMENT
+
+    /begin MEASUREMENT ECUCode_QADC_Single[4] ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A78
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER QADC_SINGLE
+    /end MEASUREMENT
+
+    /begin MEASUREMENT ECUCode_QADC_Single[5] ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A7A
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER QADC_SINGLE
+    /end MEASUREMENT
+
+    /begin MEASUREMENT ECUCode_QADC_Single[6] ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A7C
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER QADC_SINGLE
+    /end MEASUREMENT
+
+    /begin MEASUREMENT ECUCode_QADC_Single[7] ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A7E
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER QADC_SINGLE
+    /end MEASUREMENT
+
+    /begin MEASUREMENT ECUCode_air_mass ""
+      SWORD SC_ADC_Type 0 0 -10 10
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A30
+      FORMAT "%.4"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT ECUCode_dummy1_in "Dummy block"
+      SWORD EQ_LSB_0_0078125 0 0 -256 255.992
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A18
+      FORMAT "%.3"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT ECUCode_dummy1_in1 "Dummy block"
+      SWORD EQ_LSB_0_0078125 0 0 -256 255.992
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A48
+      FORMAT "%.3"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT ECUCode_dummy1_in2 "Dummy block"
+      SWORD EQ_LSB_0_0078125 0 0 -256 255.992
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A46
+      FORMAT "%.3"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT ECUCode_dummy1_in3 "Dummy block"
+      SWORD EQ_LSB_0_0078125 0 0 -256 255.992
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A44
+      FORMAT "%.3"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT ECUCode_dummy1_in4 "Dummy block"
+      SWORD EQ_LSB_0_0078125 0 0 -256 255.992
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A42
+      FORMAT "%.3"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT ECUCode_omega "engine speed"
+      SWORD EQ_LSB_0_03125_a 0 0 -1024 1023.97
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A14
+      FORMAT "%.2"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT ECU_DummyGain ""
+      SWORD EQ_LSB_0_0009765625 0 0 -32 31.999
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A66
+      FORMAT "%.4"
+    /end MEASUREMENT
+
+    /begin CHARACTERISTIC FrequencyPrescaler "Prescaler for the external frequency (ext. freq * prescaler = freq. of SigGen)"
+      VALUE 0x16006 UWORD_COL_DIRECT 0 EQ_LSB_0_0001  0 6.5535
+      EXTENDED_LIMITS 0 6.5535
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.4"
+    /end CHARACTERISTIC
+
+    /begin AXIS_PTS LUT1D_1_x_table ""
+      0x16008 SignalGenOutput SWORD_X_INCR_DIRECT 0 EQ_LSB_0_0078125 21 -256 255.992
+      EXTENDED_LIMITS -256 255.992
+      DEPOSIT ABSOLUTE
+      BYTE_ORDER MSB_LAST
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER LUT1D_1_X_TABLE
+    /end AXIS_PTS
+
+    /begin CHARACTERISTIC LUT1D_1_z_table ""
+      CURVE 0x16032 SBYTE_COL_DIRECT 0 EQ_LSB_0_015625  -2 1.98438
+      EXTENDED_LIMITS -2 1.98438
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFF
+      /begin AXIS_DESCR
+        COM_AXIS SignalGenOutput EQ_LSB_0_0078125  21 -256 255.992
+        EXTENDED_LIMITS -256 255.992
+        BYTE_ORDER MSB_LAST
+        DEPOSIT ABSOLUTE
+        FORMAT "%.3"
+        AXIS_PTS_REF LUT1D_1_x_table
+      /end AXIS_DESCR
+      FORMAT "%.2"
+      DISPLAY_IDENTIFIER LUT1D_1_Z_TABLE
+    /end CHARACTERISTIC
+
+    /begin AXIS_PTS LUT2D_1_x_table ""
+      0x16048 SignalGenOutput SWORD_X_INCR_DIRECT 0 EQ_LSB_0_0078125 10 -256 255.992
+      EXTENDED_LIMITS -256 255.992
+      DEPOSIT ABSOLUTE
+      BYTE_ORDER MSB_LAST
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER LUT2D_1_X_TABLE
+    /end AXIS_PTS
+
+    /begin AXIS_PTS LUT2D_1_y_table ""
+      0x1605C SignalGenOutput SWORD_X_INCR_DIRECT 0 EQ_LSB_0_0078125 3 -256 255.992
+      EXTENDED_LIMITS -256 255.992
+      DEPOSIT ABSOLUTE
+      BYTE_ORDER MSB_LAST
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER LUT2D_1_Y_TABLE
+    /end AXIS_PTS
+
+    /begin CHARACTERISTIC LUT2D_1_z_table ""
+      MAP 0x16062 UBYTE_COL_DIRECT 0 EQ_LSB_0_25  0 63.75
+      EXTENDED_LIMITS 0 63.75
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFF
+      /begin AXIS_DESCR
+        COM_AXIS SignalGenOutput EQ_LSB_0_0078125  10 -256 255.992
+        EXTENDED_LIMITS -256 255.992
+        BYTE_ORDER MSB_LAST
+        DEPOSIT ABSOLUTE
+        FORMAT "%.3"
+        AXIS_PTS_REF LUT2D_1_x_table
+      /end AXIS_DESCR
+      /begin AXIS_DESCR
+        COM_AXIS SignalGenOutput EQ_LSB_0_0078125  3 -256 255.992
+        EXTENDED_LIMITS -256 255.992
+        BYTE_ORDER MSB_LAST
+        DEPOSIT ABSOLUTE
+        FORMAT "%.3"
+        AXIS_PTS_REF LUT2D_1_y_table
+      /end AXIS_DESCR
+      FORMAT "%.1"
+      DISPLAY_IDENTIFIER LUT2D_1_Z_TABLE
+    /end CHARACTERISTIC
+
+    /begin MEASUREMENT MeasureVector ""
+      SWORD EQ_LSB_0_0078125 0 0 -256 255.992
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A20
+      FORMAT "%.3"
+      MATRIX_DIM 5 1 1
+    /end MEASUREMENT
+
+    /begin MEASUREMENT Out1D_1 ""
+      SWORD EQ_LSB_0_0078125 0 0 -100 100
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A84
+      FORMAT "%.3"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT Out1D_sin ""
+      SWORD EQ_LSB_6_103515625em05 0 0 -1 1
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A8E
+      FORMAT "%.5"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT Out2D_1 ""
+      UWORD EQ_LSB_0_0078125 0 0 0 100
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x132D0
+      FORMAT "%.3"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT Out2D_abs_sinp2_cosp2 ""
+      UWORD EQ_LSB_0_0078125 0 0 0 100
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x132D2
+      FORMAT "%.3"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT Out2D_sinp2_cosp ""
+      UWORD EQ_LSB_0_0078125 0 0 0 100
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x132D4
+      FORMAT "%.3"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT QADC_Single1 ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A3C
+      FORMAT "%.3"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT QADC_Single2 ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A3E
+      FORMAT "%.3"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT QADC_Single3 ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A40
+      FORMAT "%.3"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT QADC_Single4 ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A34
+      FORMAT "%.3"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT QADC_Single5 ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A36
+      FORMAT "%.3"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT QADC_Single6 ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A38
+      FORMAT "%.3"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT QADC_Single7 ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A3A
+      FORMAT "%.3"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT QADC_Single8 ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A2C
+      FORMAT "%.3"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT QADC_Vector[0] ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A50
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER QADC_VECTOR
+    /end MEASUREMENT
+
+    /begin MEASUREMENT QADC_Vector[1] ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A52
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER QADC_VECTOR
+    /end MEASUREMENT
+
+    /begin MEASUREMENT QADC_Vector[2] ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A54
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER QADC_VECTOR
+    /end MEASUREMENT
+
+    /begin MEASUREMENT QADC_Vector[3] ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A56
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER QADC_VECTOR
+    /end MEASUREMENT
+
+    /begin MEASUREMENT QADC_Vector[4] ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A58
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER QADC_VECTOR
+    /end MEASUREMENT
+
+    /begin MEASUREMENT QADC_Vector[5] ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A5A
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER QADC_VECTOR
+    /end MEASUREMENT
+
+    /begin MEASUREMENT QADC_Vector[6] ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A5C
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER QADC_VECTOR
+    /end MEASUREMENT
+
+    /begin MEASUREMENT QADC_Vector[7] ""
+      UWORD EQ_LSB_0_00488758553274682 0 0 0 5
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A5E
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER QADC_VECTOR
+    /end MEASUREMENT
+
+    /begin AXIS_PTS Rec2Sine_x_table ""
+      0x1608A input_tab UWORD_X_INCR_DIRECT 0 EQ_LSB_0_000628318530717959 19 0 41.1769
+      EXTENDED_LIMITS 0 41.1769
+      DEPOSIT ABSOLUTE
+      BYTE_ORDER MSB_LAST
+      FORMAT "%.4"
+      DISPLAY_IDENTIFIER REC2SINE_X_TABLE
+    /end AXIS_PTS
+
+    /begin CHARACTERISTIC Rec2Sine_z_table ""
+      CURVE 0x160B0 UWORD_COL_DIRECT 0 EQ_LSB_0_001953125  0 127.998
+      EXTENDED_LIMITS 0 127.998
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      /begin AXIS_DESCR
+        COM_AXIS input_tab EQ_LSB_0_000628318530717959  19 0 41.1769
+        EXTENDED_LIMITS 0 41.1769
+        BYTE_ORDER MSB_LAST
+        DEPOSIT ABSOLUTE
+        FORMAT "%.4"
+        AXIS_PTS_REF Rec2Sine_x_table
+      /end AXIS_DESCR
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER REC2SINE_Z_TABLE
+    /end CHARACTERISTIC
+
+    /begin MEASUREMENT Sb2_U_Poti1 ""
+      SWORD EQ_LSB_6_103515625em05 0 0 -2 1.99994
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A0A
+
+      FORMAT "%.5"
+    /end MEASUREMENT
+
+    /begin CHARACTERISTIC SelectColumn "Select column in 2D table sinp2_cosp2"
+      VALUE 0x160D6 UWORD_COL_DIRECT 0 EQ_LSB_3_0517578125em05  0 1
+      EXTENDED_LIMITS 0 1
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.5"
+      DISPLAY_IDENTIFIER SELECT_COLUMN
+    /end CHARACTERISTIC
+
+    /begin MEASUREMENT SelectRow ""
+      UWORD EQ_LSB_0_0001220703125 0 0 0 6.28319
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A64
+      FORMAT "%.4"
+    /end MEASUREMENT
+
+    /begin CHARACTERISTIC Select_param_set "selects parameter set (0= Set A, 1= Set B)"
+      VALUE 0x160D8 UBYTE_COL_DIRECT 0 VOID_SCALING_f  0 1
+      EXTENDED_LIMITS 0 1
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFF
+      FORMAT "%.0"
+      DISPLAY_IDENTIFIER SELECT_PARAM_SET
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC SignalAmplitude "Amplitude of output signal"
+      VALUE 0x160DA SWORD_COL_DIRECT 0 EQ_LSB_0_0078125  -100 100
+      EXTENDED_LIMITS -100 100
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER SIGNAL_AMPLITUDE
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC SignalForm "Form of output signal (1: sawtooth, 2: rectangle, 3: sine)"
+      VALUE 0x160DC UBYTE_COL_DIRECT 0 ScSignalForm  1 3
+      EXTENDED_LIMITS 1 3
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFF
+      FORMAT "%.6"
+      DISPLAY_IDENTIFIER SIGNAL_FORM
+    /end CHARACTERISTIC
+
+    /begin MEASUREMENT SignalGenOutput "Output of signal generator"
+      SWORD EQ_LSB_0_0078125 0 0 -256 255.992
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A62
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER SIGNAL_GEN_OUTPUT
+    /end MEASUREMENT
+
+    /begin CHARACTERISTIC SignalOffset "Offset of output signal"
+      VALUE 0x160DE SWORD_COL_DIRECT 0 EQ_LSB_0_0078125  -100 100
+      EXTENDED_LIMITS -100 100
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER SIGNAL_OFFSET
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC Soll_Lambda "Sollwert Lambda"
+      VALUE 0x160E0 UBYTE_COL_DIRECT 0 EQ_LSB_0_0078125_b  0 1.99219
+      EXTENDED_LIMITS 0 1.99219
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFF
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER SOLL_LAMBDA
+    /end CHARACTERISTIC
+
+    /begin MEASUREMENT ThrottleActualPosition ""
+      SWORD EQ_LSB_0_0078125 0 0 -256 255.992
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A68
+      FORMAT "%.3"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT ThrottlePlantCodeInGain ""
+      SWORD EQ_LSB_0_0009765625 0 0 -32 31.999
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A08
+      FORMAT "%.4"
+    /end MEASUREMENT
+
+    /begin CHARACTERISTIC ThrottleRefInputTest ""
+      VALUE 0x160E2 SWORD_COL_DIRECT 0 EQ_LSB_0_0078125  -256 255.992
+      EXTENDED_LIMITS -256 255.992
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.3"
+    /end CHARACTERISTIC
+
+    /begin MEASUREMENT Throttle_plant_out ""
+      SWORD EQ_LSB_0_0009765625 0 0 -32 31.999
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A0C
+      FORMAT "%.4"
+    /end MEASUREMENT
+
+    /begin CHARACTERISTIC abs_sinp2_cosp2_table ""
+      MAP 0x160E4 UBYTE_COL_DIRECT 0 EQ_LSB_0_0078125_b  0 1.99219
+      EXTENDED_LIMITS 0 1.99219
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFF
+      /begin AXIS_DESCR
+        COM_AXIS SelectRow EQ_LSB_0_0001220703125  19 0 7.99988
+        EXTENDED_LIMITS 0 7.99988
+        BYTE_ORDER MSB_LAST
+        DEPOSIT ABSOLUTE
+        FORMAT "%.4"
+        AXIS_PTS_REF x_table_0_2pi_2
+      /end AXIS_DESCR
+      /begin AXIS_DESCR
+        COM_AXIS NO_INPUT_QUANTITY EQ_LSB_3_0517578125em05  19 0 1.99997
+        EXTENDED_LIMITS 0 1.99997
+        BYTE_ORDER MSB_LAST
+        DEPOSIT ABSOLUTE
+        FORMAT "%.5"
+        AXIS_PTS_REF y_table_0_1_square1
+      /end AXIS_DESCR
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER ABS_SINP2_COSP2_TABLE
+    /end CHARACTERISTIC
+
+    /begin MEASUREMENT air_mass_per_cylinder__kg_s_ "air mass per cylinder"
+      UWORD EQ_LSB_5_96046447753906em08 0 0 0 0.00390619
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A2A
+      FORMAT "%.8"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT air_mass_per_stroke "air mass per stroke"
+      SWORD EQ_LSB_0_000244140625 0 0 0 6
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A86
+      FORMAT "%.4"
+    /end MEASUREMENT
+
+    /begin AXIS_PTS airmass_x_table "air mass per stroke"
+      0x1624E air_mass_per_stroke SWORD_X_INCR_DIRECT 0 EQ_LSB_0_000244140625 13 -4 4
+      EXTENDED_LIMITS -4 4
+      DEPOSIT ABSOLUTE
+      BYTE_ORDER MSB_LAST
+      FORMAT "%.4"
+      DISPLAY_IDENTIFIER AIRMASS_X_TABLE
+    /end AXIS_PTS
+
+    /begin MEASUREMENT error "throttle position error"
+      SWORD EQ_LSB_0_0078125 0 0 -256 255.992
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A82
+      FORMAT "%.3"
+    /end MEASUREMENT
+
+    /begin CHARACTERISTIC f_Kd_1 "differential gain"
+      VALUE 0x162B8 UWORD_COL_DIRECT 0 EQ_LSB_2_38418579101563em07  0 0.0156248
+      EXTENDED_LIMITS 0 0.0156248
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.7"
+      DISPLAY_IDENTIFIER F_KD_1
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC f_Kd_2 "differential gain"
+      VALUE 0x162BA UWORD_COL_DIRECT 0 EQ_LSB_2_38418579101563em07  0 0.0156248
+      EXTENDED_LIMITS 0 0.0156248
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.7"
+      DISPLAY_IDENTIFIER F_KD_2
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC f_Ki_1 "integral gain"
+      VALUE 0x162BC UWORD_COL_DIRECT 0 EQ_LSB_0_000244140625_j  0 15.9998
+      EXTENDED_LIMITS 0 15.9998
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.4"
+      DISPLAY_IDENTIFIER F_KI_1
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC f_Ki_2 "integral gain"
+      VALUE 0x162BE UWORD_COL_DIRECT 0 EQ_LSB_0_000244140625_j  0 15.9998
+      EXTENDED_LIMITS 0 15.9998
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.4"
+      DISPLAY_IDENTIFIER F_KI_2
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC f_Kp_1 "proportional gain"
+      VALUE 0x162C0 UWORD_COL_DIRECT 0 EQ_LSB_3_0517578125em05  0 1.9
+      EXTENDED_LIMITS 0 1.9
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.5"
+      DISPLAY_IDENTIFIER F_KP_1
+    /end CHARACTERISTIC
+
+    /begin CHARACTERISTIC f_Kp_2 "proportional gain"
+      VALUE 0x162C2 UWORD_COL_DIRECT 0 EQ_LSB_3_0517578125em05  0.1 1.9
+      EXTENDED_LIMITS 0.1 1.9
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.5"
+      DISPLAY_IDENTIFIER F_KP_2
+    /end CHARACTERISTIC
+
+    /begin MEASUREMENT ign_angle ""
+      SWORD EQ_LSB_6_103515625em05 0 0 -2 1.99994
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A2E
+      FORMAT "%.5"
+      DISPLAY_IDENTIFIER IGN_ANGLE
+    /end MEASUREMENT
+
+    /begin CHARACTERISTIC inj_offset "offset for injection time"
+      VALUE 0x162C4 SWORD_COL_DIRECT 0 EQ_LSB_1_19209289550781em07  -0.00390625 0.00390613
+      EXTENDED_LIMITS -0.00390625 0.00390613
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.7"
+      DISPLAY_IDENTIFIER INJ_OFFSET
+    /end CHARACTERISTIC
+
+    /begin MEASUREMENT inj_time ""
+      SWORD EQ_LSB_7_62939453125em06 0 0 0 0.05
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A90
+      FORMAT "%.6"
+      DISPLAY_IDENTIFIER INJ_TIME
+    /end MEASUREMENT
+
+    /begin MEASUREMENT input_LUT1D_sin ""
+      UWORD EQ_LSB_0_0001220703125 0 0 0 6.28319
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A8A
+      FORMAT "%.4"
+    /end MEASUREMENT
+
+    /begin MEASUREMENT input_tab ""
+      UWORD EQ_LSB_0_000628318530717959 0 0 0 41.1769
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A60
+      FORMAT "%.4"
+    /end MEASUREMENT
+
+    /begin CHARACTERISTIC inv_c_kumsrl "gain factor for air mass per stroke"
+      VALUE 0x162C6 SWORD_COL_DIRECT 0 EQ_LSB_0_0625  -2048 2047.94
+      EXTENDED_LIMITS -2048 2047.94
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      FORMAT "%.2"
+      DISPLAY_IDENTIFIER INV_C_KUMSRL
+    /end CHARACTERISTIC
+
+    /begin AXIS_PTS omega_x_table "omega index and fraction"
+      0x162C8 ECUCode_omega SWORD_X_INCR_DIRECT 0 EQ_LSB_0_03125_c 18 -1024 1023.97
+      EXTENDED_LIMITS -1024 1023.97
+      DEPOSIT ABSOLUTE
+      BYTE_ORDER MSB_LAST
+      FORMAT "%.2"
+      DISPLAY_IDENTIFIER OMEGA_X_TABLE
+    /end AXIS_PTS
+
+    /begin CHARACTERISTIC opt_ing_angle_z_table "ignition angle"
+      MAP 0x162EC SWORD_COL_DIRECT 0 EQ_LSB_6_103515625em05_d  0 1.21737
+      EXTENDED_LIMITS 0 1.21737
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      /begin AXIS_DESCR
+        COM_AXIS ECUCode_omega EQ_LSB_0_03125_c  18 -1024 1023.97
+        EXTENDED_LIMITS -1024 1023.97
+        BYTE_ORDER MSB_LAST
+        DEPOSIT ABSOLUTE
+        FORMAT "%.2"
+        AXIS_PTS_REF omega_x_table
+      /end AXIS_DESCR
+      /begin AXIS_DESCR
+        COM_AXIS air_mass_per_stroke EQ_LSB_0_000244140625  13 -4 4
+        EXTENDED_LIMITS -4 4
+        BYTE_ORDER MSB_LAST
+        DEPOSIT ABSOLUTE
+        FORMAT "%.4"
+        AXIS_PTS_REF airmass_x_table
+      /end AXIS_DESCR
+      FORMAT "%.5"
+      DISPLAY_IDENTIFIER OPT_ING_ANGLE_Z_TABLE
+    /end CHARACTERISTIC
+
+    /begin MEASUREMENT rel_air_mass "relative air mass"
+      SWORD EQ_LSB_9_5367431640625em07 0 0 -0.03125 0.031249
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A88
+      FORMAT "%.7"
+    /end MEASUREMENT
+
+    /begin CHARACTERISTIC sinp2_cosp2_table ""
+      MAP 0x164C0 SWORD_COL_DIRECT 0 EQ_LSB_0_000244140625_e  -8 7.99976
+      EXTENDED_LIMITS -8 7.99976
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      /begin AXIS_DESCR
+        COM_AXIS NO_INPUT_QUANTITY EQ_LSB_0_0001220703125  19 0 7.99988
+        EXTENDED_LIMITS 0 7.99988
+        BYTE_ORDER MSB_LAST
+        DEPOSIT ABSOLUTE
+        FORMAT "%.4"
+        AXIS_PTS_REF x_table_0_2pi3
+      /end AXIS_DESCR
+      /begin AXIS_DESCR
+        COM_AXIS NO_INPUT_QUANTITY EQ_LSB_3_0517578125em05  19 0 1.99997
+        EXTENDED_LIMITS 0 1.99997
+        BYTE_ORDER MSB_LAST
+        DEPOSIT ABSOLUTE
+        FORMAT "%.5"
+        AXIS_PTS_REF y_table_0_1_square2
+      /end AXIS_DESCR
+      FORMAT "%.4"
+      DISPLAY_IDENTIFIER SINP2_COSP2_TABLE
+    /end CHARACTERISTIC
+
+    /begin AXIS_PTS throttle2percent_x_table "measured position"
+      0x16792 ThrottleActualPosition SWORD_X_INCR_DIRECT 0 EQ_LSB_0_0078125_h 2 -256 255.992
+      EXTENDED_LIMITS -256 255.992
+      DEPOSIT ABSOLUTE
+      BYTE_ORDER MSB_LAST
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER THROTTLE2PERCENT_X_TABLE
+    /end AXIS_PTS
+
+    /begin CHARACTERISTIC throttle2percent_z_table "linearized position"
+      CURVE 0x16796 SWORD_COL_DIRECT 0 EQ_LSB_0_0078125_g  -256 255.992
+      EXTENDED_LIMITS -256 255.992
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFFFF
+      /begin AXIS_DESCR
+        COM_AXIS ThrottleActualPosition EQ_LSB_0_0078125_h  2 -256 255.992
+        EXTENDED_LIMITS -256 255.992
+        BYTE_ORDER MSB_LAST
+        DEPOSIT ABSOLUTE
+        FORMAT "%.3"
+        AXIS_PTS_REF throttle2percent_x_table
+      /end AXIS_DESCR
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER THROTTLE2PERCENT_Z_TABLE
+    /end CHARACTERISTIC
+
+    /begin MEASUREMENT throttle_act_pos_in ""
+      SWORD EQ_LSB_0_0009765625 0 0 -32 31.999
+      BIT_MASK 0xFFFF
+      BYTE_ORDER MSB_LAST
+      ECU_ADDRESS 0x13A16
+      FORMAT "%.4"
+    /end MEASUREMENT
+
+    /begin AXIS_PTS x_table_0_2pi3 ""
+      0x1679A NO_INPUT_QUANTITY UWORD_X_INCR_DIRECT 0 EQ_LSB_0_0001220703125 19 0 7.99988
+      EXTENDED_LIMITS 0 7.99988
+      DEPOSIT ABSOLUTE
+      BYTE_ORDER MSB_LAST
+      FORMAT "%.4"
+    /end AXIS_PTS
+
+    /begin AXIS_PTS x_table_0_2pi_1 ""
+      0x167C0 input_LUT1D_sin UWORD_X_INCR_DIRECT 0 EQ_LSB_0_0001220703125 19 0 7.99988
+      EXTENDED_LIMITS 0 7.99988
+      DEPOSIT ABSOLUTE
+      BYTE_ORDER MSB_LAST
+      FORMAT "%.4"
+    /end AXIS_PTS
+
+    /begin AXIS_PTS x_table_0_2pi_2 ""
+      0x167E6 SelectRow UWORD_X_INCR_DIRECT 0 EQ_LSB_0_0001220703125 19 0 7.99988
+      EXTENDED_LIMITS 0 7.99988
+      DEPOSIT ABSOLUTE
+      BYTE_ORDER MSB_LAST
+      FORMAT "%.4"
+    /end AXIS_PTS
+
+    /begin CHARACTERISTIC y_sin_z_table ""
+      CURVE 0x1680C UBYTE_COL_DIRECT 0 EQ_LSB_0_0078125_b  0 1.99219
+      EXTENDED_LIMITS 0 1.99219
+      BYTE_ORDER MSB_LAST
+      BIT_MASK 0xFF
+      /begin AXIS_DESCR
+        COM_AXIS input_LUT1D_sin EQ_LSB_0_0001220703125  19 0 7.99988
+        EXTENDED_LIMITS 0 7.99988
+        BYTE_ORDER MSB_LAST
+        DEPOSIT ABSOLUTE
+        FORMAT "%.4"
+        AXIS_PTS_REF x_table_0_2pi_1
+      /end AXIS_DESCR
+      FORMAT "%.3"
+      DISPLAY_IDENTIFIER Y_SIN_Z_TABLE
+    /end CHARACTERISTIC
+
+    /begin AXIS_PTS y_table_0_1_square1 ""
+      0x16820 NO_INPUT_QUANTITY UWORD_X_INCR_DIRECT 0 EQ_LSB_3_0517578125em05 19 0 1.99997
+      EXTENDED_LIMITS 0 1.99997
+      DEPOSIT ABSOLUTE
+      BYTE_ORDER MSB_LAST
+      FORMAT "%.5"
+    /end AXIS_PTS
+
+    /begin AXIS_PTS y_table_0_1_square2 ""
+      0x16846 NO_INPUT_QUANTITY UWORD_X_INCR_DIRECT 0 EQ_LSB_3_0517578125em05 19 0 1.99997
+      EXTENDED_LIMITS 0 1.99997
+      DEPOSIT ABSOLUTE
+      BYTE_ORDER MSB_LAST
+      FORMAT "%.5"
+    /end AXIS_PTS
+
+    /begin FUNCTION BitMask ""
+      /begin SUB_FUNCTION
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+        BitMaskVariableMeas 
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION CDF20_Array ""
+      /begin SUB_FUNCTION
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+        CDF20.ASCII.N42_wU8 CDF20.MATRIX_DIM.N341_wS8 
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+      /end LOC_MEASUREMENT
+      
+      FUNCTION_VERSION "1.10"
+      
+    /end FUNCTION
+
+    /begin FUNCTION CDF20_Axis ""
+      /begin SUB_FUNCTION
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+        CDF20.axis.X_AXIS_xU16 CDF20.axis.X_CU_AXIS_xU16_wU8 CDF20.axis.X_RE_AXIS_xS8 CDF20.axis.Y_CU_AXIS_xU16_wU8 
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+      /end LOC_MEASUREMENT
+      
+      FUNCTION_VERSION "9.99"
+    /end FUNCTION
+
+    /begin FUNCTION CDF20_Curve ""
+      /begin SUB_FUNCTION
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+        CDF20.curve.FKL_xFIX_wU8 CDF20.curve.GKL_xCOM_wU16 CDF20.curve.KL_xRESs8_wS16 CDF20.curve.KL_xU8_wU8 
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin GROUP CDF20_Group_Root "Base Group"
+      ROOT
+      /begin SUB_GROUP
+        CDF20_Group_Scalar 
+        CDF20_Group_array 
+      /end SUB_GROUP
+      /begin FUNCTION_LIST
+        CDF20_Labels 
+      /end FUNCTION_LIST
+      /begin REF_CHARACTERISTIC
+        CDF20.ASCII.N42_wU8 CDF20.BOOLEAN.FW_wU8 CDF20.BOOLEAN.FW_wU8_VTab CDF20.Dependent.Base.FW_wU16 CDF20.Dependent.Ref_1.FW_wU16 CDF20.MATRIX_DIM.N341_wS8 CDF20.axis.X_AXIS_xU16 CDF20.axis.X_CU_AXIS_xU16_wU8 
+        CDF20.axis.X_RE_AXIS_xS8 CDF20.axis.Y_CU_AXIS_xU16_wU8 CDF20.curve.FKL_xFIX_wU8 CDF20.curve.GKL_xCOM_wU16 CDF20.curve.KL_xRESs8_wS16 CDF20.curve.KL_xU8_wU8 CDF20.map.KF_xCURu16u8_yCURu16u8_wU8 CDF20.scalar.FW_wU16 
+      /end REF_CHARACTERISTIC
+      /begin REF_MEASUREMENT
+        CDF20.measure.N CDF20.measure.T 
+      /end REF_MEASUREMENT
+    /end GROUP
+
+    /begin GROUP CDF20_Group_Scalar "Scalar Group"
+      /begin SUB_GROUP
+      /end SUB_GROUP
+      /begin FUNCTION_LIST
+      /end FUNCTION_LIST
+      /begin REF_CHARACTERISTIC
+        CDF20 CDF20.BOOLEAN.FW_wU8 CDF20.BOOLEAN.FW_wU8_VTab CDF20.Dependent.Base.FW_wU16 CDF20.Dependent.Ref_1.FW_wU16 CDF20.scalar.FW_wU16 
+      /end REF_CHARACTERISTIC
+      /begin REF_MEASUREMENT
+      /end REF_MEASUREMENT
+    /end GROUP
+
+    /begin GROUP CDF20_Group_array "Group which contains elment to test the A2L dot notation and the representation in CDF20"
+      /begin SUB_GROUP
+      /end SUB_GROUP
+      /begin FUNCTION_LIST
+      /end FUNCTION_LIST
+      /begin REF_CHARACTERISTIC
+        CDF20.array.Element[0] CDF20.array.Element[1] CDF20.array.Element[2] CDF20.array.Element[3] CDF20.array.Element[4] 
+      /end REF_CHARACTERISTIC
+      /begin REF_MEASUREMENT
+      /end REF_MEASUREMENT
+    /end GROUP
+
+    /begin FUNCTION CDF20_Labels ""
+      /begin SUB_FUNCTION
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+        CDF20.ASCII.N42_wU8 CDF20.BOOLEAN.FW_wU8 CDF20.BOOLEAN.FW_wU8_VTab CDF20.Dependent.Base.FW_wU16 CDF20.Dependent.Ref_1.FW_wU16 CDF20.MATRIX_DIM.N341_wS8 CDF20.axis.X_AXIS_xU16 CDF20.axis.X_CU_AXIS_xU16_wU8 
+        CDF20.axis.X_RE_AXIS_xS8 CDF20.axis.Y_CU_AXIS_xU16_wU8 CDF20.curve.FKL_xFIX_wU8 CDF20.curve.GKL_xCOM_wU16 CDF20.curve.KL_xRESs8_wS16 CDF20.curve.KL_xU8_wU8 CDF20.map.KF_xCURu16u8_yCURu16u8_wU8 CDF20.scalar.FW_wU16 
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+        CDF20.measure.N CDF20.measure.T 
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION CDF20_Map ""
+      /begin SUB_FUNCTION
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+        CDF20.map.KF_xCURu16u8_yCURu16u8_wU8 
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION CDF20_Scalar ""
+      /begin SUB_FUNCTION
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+        CDF20.BOOLEAN.FW_wU8 CDF20.BOOLEAN.FW_wU8_VTab CDF20.Dependent.Base.FW_wU16 CDF20.Dependent.Ref_1.FW_wU16 CDF20.scalar.FW_wU16 
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION CDF20_Vectors "Kommentar"
+      /begin SUB_FUNCTION
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+        CDF20.array.Element[0] CDF20.array.Element[1] CDF20.array.Element[2] CDF20.array.Element[3] CDF20.array.Element[4] 
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION DummyBlock ""
+      /begin SUB_FUNCTION
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+        ECUCode_dummy1_in ECUCode_dummy1_in1 ECUCode_dummy1_in2 ECUCode_dummy1_in3 ECUCode_dummy1_in4 
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION ECUCode ""
+      /begin SUB_FUNCTION
+        BitMask 
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+        DummyAirMass DummyOmega ThrottleRefInputTest 
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+        throttle_act_pos_in 
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+        ControlOut ECUCode_QADC_Single[0] ECUCode_QADC_Single[1] ECUCode_QADC_Single[2] ECUCode_QADC_Single[3] ECUCode_QADC_Single[4] ECUCode_QADC_Single[5] ECUCode_QADC_Single[6] 
+        ECUCode_QADC_Single[7] QADC_Vector[0] QADC_Vector[1] QADC_Vector[2] QADC_Vector[3] QADC_Vector[4] QADC_Vector[5] QADC_Vector[6] 
+        QADC_Vector[7] SignalGenOutput ign_angle inj_time 
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+        BuildTime ECU_DummyGain 
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION PosControl ""
+      /begin SUB_FUNCTION
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+        Select_param_set f_Kd_1 f_Kd_2 f_Ki_1 f_Ki_2 f_Kp_1 f_Kp_2 throttle2percent_x_table 
+        throttle2percent_z_table 
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+        SignalGenOutput ThrottleActualPosition 
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+        ControlOut 
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+        error 
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION QADC ""
+      /begin SUB_FUNCTION
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+        ECUCode_QADC_Single[0] ECUCode_QADC_Single[1] ECUCode_QADC_Single[2] ECUCode_QADC_Single[3] ECUCode_QADC_Single[4] ECUCode_QADC_Single[5] ECUCode_QADC_Single[6] ECUCode_QADC_Single[7] 
+        QADC_Vector[0] QADC_Vector[1] QADC_Vector[2] QADC_Vector[3] QADC_Vector[4] QADC_Vector[5] QADC_Vector[6] QADC_Vector[7] 
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+        QADC_Single1 QADC_Single2 QADC_Single3 QADC_Single4 QADC_Single5 QADC_Single6 QADC_Single7 QADC_Single8 
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION SignalGenerator ""
+      /begin SUB_FUNCTION
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+        FrequencyPrescaler Rec2Sine_x_table Rec2Sine_z_table SignalAmplitude SignalForm SignalOffset 
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+        SignalGenOutput 
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+        input_tab 
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION Tables1D ""
+      /begin SUB_FUNCTION
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+        LUT1D_1_x_table LUT1D_1_z_table x_table_0_2pi_1 y_sin_z_table 
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+        SignalGenOutput 
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+        Out1D_1 Out1D_sin 
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+        input_LUT1D_sin 
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION Tables2D ""
+      /begin SUB_FUNCTION
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+        LUT2D_1_x_table LUT2D_1_y_table LUT2D_1_z_table SelectColumn abs_sinp2_cosp2_table sinp2_cosp2_table x_table_0_2pi3 x_table_0_2pi_2 
+        y_table_0_1_square1 y_table_0_1_square2 
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+        SignalGenOutput 
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+        Out2D_1 Out2D_abs_sinp2_cosp2 Out2D_sinp2_cosp 
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+        SelectRow 
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION Task5ms ""
+      /begin SUB_FUNCTION
+        ECUCode 
+        ign_inj_control 
+        QADC 
+        PosControl 
+        DummyBlock 
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION TaskCalBackground ""
+      /begin SUB_FUNCTION
+        Tables2D 
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION TaskExternal ""
+      /begin SUB_FUNCTION
+        SignalGenerator 
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION TaskTables1D ""
+      /begin SUB_FUNCTION
+        Tables1D 
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION TaskVectors ""
+      /begin SUB_FUNCTION
+        Vectors 
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION ThrottlePlantTask ""
+      /begin SUB_FUNCTION
+        Throttle_plant 
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION Throttle_plant ""
+      /begin SUB_FUNCTION
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+        Throttle_plant_out 
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+        Sb2_U_Poti1 ThrottlePlantCodeInGain 
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION Vectors ""
+      /begin SUB_FUNCTION
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+        CDF20.array.Element[0] CDF20.array.Element[1] CDF20.array.Element[2] CDF20.array.Element[3] CDF20.array.Element[4] 
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+        MeasureVector 
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+    /begin FUNCTION ign_inj_control ""
+      /begin SUB_FUNCTION
+      /end SUB_FUNCTION 
+      /begin REF_CHARACTERISTIC
+      /end REF_CHARACTERISTIC
+      /begin DEF_CHARACTERISTIC
+        Soll_Lambda airmass_x_table inj_offset inv_c_kumsrl omega_x_table opt_ing_angle_z_table 
+      /end DEF_CHARACTERISTIC
+      /begin IN_MEASUREMENT
+        ECUCode_air_mass ECUCode_omega 
+      /end IN_MEASUREMENT
+      /begin OUT_MEASUREMENT
+        ign_angle inj_time 
+      /end OUT_MEASUREMENT
+      /begin LOC_MEASUREMENT
+        air_mass_per_cylinder__kg_s_ air_mass_per_stroke rel_air_mass 
+      /end LOC_MEASUREMENT
+    /end FUNCTION
+
+
+    /begin RECORD_LAYOUT RL_CU_AXIS_VALUES_wU8_ROW 
+      FNC_VALUES 1 UBYTE ROW_DIR DIRECT
+      ALIGNMENT_WORD 2
+      ALIGNMENT_LONG 4
+      ALIGNMENT_FLOAT32_IEEE 4
+      ALIGNMENT_FLOAT64_IEEE 4
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT RL_CU_AXIS_xU16_wU8_DECR 
+      FNC_VALUES 2 UBYTE ROW_DIR DIRECT
+      AXIS_PTS_X 1 UWORD INDEX_DECR DIRECT
+      ALIGNMENT_WORD 2
+      ALIGNMENT_LONG 4
+      ALIGNMENT_FLOAT32_IEEE 4
+      ALIGNMENT_FLOAT64_IEEE 4
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT RL_FIX_AXIS_S16 
+      FNC_VALUES 1 SWORD COLUMN_DIR DIRECT
+      ALIGNMENT_WORD 2
+      ALIGNMENT_LONG 4
+      ALIGNMENT_FLOAT32_IEEE 4
+      ALIGNMENT_FLOAT64_IEEE 4
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT RL_FKL_u_FWB 
+      FNC_VALUES 2 UBYTE COLUMN_DIR DIRECT
+      NO_AXIS_PTS_X 1 UWORD
+      ALIGNMENT_WORD 2
+      ALIGNMENT_LONG 4
+      ALIGNMENT_FLOAT32_IEEE 4
+      ALIGNMENT_FLOAT64_IEEE 4
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT RL_GKL_u_GKF 
+      FNC_VALUES 2 UWORD COLUMN_DIR DIRECT
+      ALIGNMENT_WORD 2
+      ALIGNMENT_LONG 4
+      ALIGNMENT_FLOAT32_IEEE 4
+      ALIGNMENT_FLOAT64_IEEE 4
+      RESERVED 1 WORD
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT RL_KL 
+      FNC_VALUES 3 UBYTE COLUMN_DIR DIRECT
+      AXIS_PTS_X 2 UBYTE INDEX_INCR DIRECT
+      NO_AXIS_PTS_X 1 UBYTE
+      ALIGNMENT_WORD 2
+      ALIGNMENT_LONG 4
+      ALIGNMENT_FLOAT32_IEEE 4
+      ALIGNMENT_FLOAT64_IEEE 4
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT RL_RES_AXIS_S8 
+      AXIS_RESCALE_X 3 SBYTE 5 INDEX_INCR DIRECT
+      NO_RESCALE_X 1 UBYTE
+      ALIGNMENT_WORD 2
+      ALIGNMENT_LONG 4
+      ALIGNMENT_FLOAT32_IEEE 4
+      ALIGNMENT_FLOAT64_IEEE 4
+      RESERVED 2 BYTE
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT RL_SSV 
+      AXIS_PTS_X 2 UWORD INDEX_INCR DIRECT
+      NO_AXIS_PTS_X 1 UWORD
+      ALIGNMENT_WORD 2
+      ALIGNMENT_LONG 4
+      ALIGNMENT_FLOAT32_IEEE 4
+      ALIGNMENT_FLOAT64_IEEE 4
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT SBYTE_COL_DIRECT 
+      FNC_VALUES 1 SBYTE COLUMN_DIR DIRECT
+      ALIGNMENT_WORD 2
+      ALIGNMENT_LONG 4
+      ALIGNMENT_FLOAT32_IEEE 4
+      ALIGNMENT_FLOAT64_IEEE 4
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT STANDARD_FW_S08 
+      FNC_VALUES 1 SBYTE COLUMN_DIR DIRECT
+      ALIGNMENT_WORD 2
+      ALIGNMENT_LONG 4
+      ALIGNMENT_FLOAT32_IEEE 4
+      ALIGNMENT_FLOAT64_IEEE 4
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT STANDARD_FW_U08 
+      FNC_VALUES 1 UBYTE COLUMN_DIR DIRECT
+      ALIGNMENT_WORD 2
+      ALIGNMENT_LONG 4
+      ALIGNMENT_FLOAT32_IEEE 4
+      ALIGNMENT_FLOAT64_IEEE 4
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT STANDARD_FW_U16 
+      FNC_VALUES 1 UWORD COLUMN_DIR DIRECT
+      ALIGNMENT_WORD 2
+      ALIGNMENT_LONG 4
+      ALIGNMENT_FLOAT32_IEEE 4
+      ALIGNMENT_FLOAT64_IEEE 4
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT SWORD_COL_DIRECT 
+      FNC_VALUES 1 SWORD COLUMN_DIR DIRECT
+      ALIGNMENT_WORD 2
+      ALIGNMENT_LONG 4
+      ALIGNMENT_FLOAT32_IEEE 4
+      ALIGNMENT_FLOAT64_IEEE 4
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT SWORD_X_INCR_DIRECT 
+      AXIS_PTS_X 1 SWORD INDEX_INCR DIRECT
+      ALIGNMENT_WORD 2
+      ALIGNMENT_LONG 4
+      ALIGNMENT_FLOAT32_IEEE 4
+      ALIGNMENT_FLOAT64_IEEE 4
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT UBYTE_COL_DIRECT 
+      FNC_VALUES 1 UBYTE COLUMN_DIR DIRECT
+      ALIGNMENT_WORD 2
+      ALIGNMENT_LONG 4
+      ALIGNMENT_FLOAT32_IEEE 4
+      ALIGNMENT_FLOAT64_IEEE 4
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT UWORD_COL_DIRECT 
+      FNC_VALUES 1 UWORD COLUMN_DIR DIRECT
+      ALIGNMENT_WORD 2
+      ALIGNMENT_LONG 4
+      ALIGNMENT_FLOAT32_IEEE 4
+      ALIGNMENT_FLOAT64_IEEE 4
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT UWORD_X_INCR_DIRECT 
+      AXIS_PTS_X 1 UWORD INDEX_INCR DIRECT
+      ALIGNMENT_WORD 2
+      ALIGNMENT_LONG 4
+      ALIGNMENT_FLOAT32_IEEE 4
+      ALIGNMENT_FLOAT64_IEEE 4
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT __UBYTE_Z 
+      FNC_VALUES 1 UBYTE ROW_DIR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT __UWORD_Z 
+      FNC_VALUES 1 UWORD ROW_DIR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT __ULONG_Z 
+      FNC_VALUES 1 ULONG ROW_DIR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT __SBYTE_Z 
+      FNC_VALUES 1 SBYTE ROW_DIR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT __SWORD_Z 
+      FNC_VALUES 1 SWORD ROW_DIR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT __SLONG_Z 
+      FNC_VALUES 1 SLONG ROW_DIR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT __FLOAT32_IEEE_Z 
+      FNC_VALUES 1 FLOAT32_IEEE ROW_DIR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT __FLOAT64_IEEE_Z 
+      FNC_VALUES 1 FLOAT64_IEEE ROW_DIR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT __UBYTE_S 
+      FNC_VALUES 1 UBYTE COLUMN_DIR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT __UWORD_S 
+      FNC_VALUES 1 UWORD COLUMN_DIR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT __ULONG_S 
+      FNC_VALUES 1 ULONG COLUMN_DIR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT __SBYTE_S 
+      FNC_VALUES 1 SBYTE COLUMN_DIR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT __SWORD_S 
+      FNC_VALUES 1 SWORD COLUMN_DIR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT __SLONG_S 
+      FNC_VALUES 1 SLONG COLUMN_DIR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT __FLOAT32_IEEE_S 
+      FNC_VALUES 1 FLOAT32_IEEE COLUMN_DIR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT __FLOAT64_IEEE_S 
+      FNC_VALUES 1 FLOAT64_IEEE COLUMN_DIR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT SSV__UBYTE_S 
+      AXIS_PTS_X 1 UBYTE INDEX_INCR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT SSV__UWORD_S 
+      AXIS_PTS_X 1 UWORD INDEX_INCR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT SSV__ULONG_S 
+      AXIS_PTS_X 1 ULONG INDEX_INCR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT SSV__SBYTE_S 
+      AXIS_PTS_X 1 SBYTE INDEX_INCR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT SSV__SWORD_S 
+      AXIS_PTS_X 1 SWORD INDEX_INCR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT SSV__SLONG_S 
+      AXIS_PTS_X 1 SLONG INDEX_INCR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT SSV__FLOAT32_IEEE_S 
+      AXIS_PTS_X 1 FLOAT32_IEEE INDEX_INCR DIRECT
+    /end RECORD_LAYOUT
+
+    /begin RECORD_LAYOUT SSV__FLOAT64_IEEE_S 
+      AXIS_PTS_X 1 FLOAT64_IEEE INDEX_INCR DIRECT
+    /end RECORD_LAYOUT
+
+  /end MODULE
+/end PROJECT
