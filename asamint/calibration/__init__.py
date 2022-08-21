@@ -273,14 +273,11 @@ class Calibration:
         return Status.OK
 
     def load_axis_pts(self, axis_pts_name: str) -> Status:
-        ap = self.get_axis_pts(axis_pts_name, False)
-        # ap = AxisPts.get(self.session, axis_pts_name)
-        # mem_size = ap.total_allocated_memory
-        self.logger.debug("Processing AXIS_PTS '{}' @0x{:08x}".format(ap.name, ap.address))
-        rl_values = self.read_record_layout_values(ap, "x")
-        self.record_layout_correct_offsets(ap)
+        axis_pts = self.get_axis_pts(axis_pts_name, False)
+        rl_values = self.read_record_layout_values(axis_pts, "x")
+        self.record_layout_correct_offsets(axis_pts)
         virtual = False
-        axis = ap.record_layout_components.axes("x")
+        axis = axis_pts.record_layout_components.axes("x")
         paired = False
         if "axisRescale" in axis:
             category = "RES_AXIS"
@@ -312,29 +309,29 @@ class Calibration:
             else:
                 no_axis_points = axis["maxAxisPoints"]
             if (dist_op or shift_op) is None:
-                raise TypeError("Malformed AXIS_PTS '{}', neither DIST_OP nor SHIFT_OP specified.".format(ap))
+                raise TypeError(f"Malformed AXIS_PTS '{axis_pts}', neither DIST_OP nor SHIFT_OP specified.")
             if dist_op is not None:
                 raw_values = fix_axis_par_dist(offset, dist_op, no_axis_points)
             else:
                 raw_values = fix_axis_par(offset, shift_op, no_axis_points)
         else:
-            raise TypeError("Malformed AXIS_PTS '{}'.".format(ap))
+            raise TypeError(f"Malformed AXIS_PTS '{axis_pts}'.")
         if not virtual:
-            raw_values = self.read_nd_array(ap, "x", attr, count)
+            raw_values = self.read_nd_array(axis_pts, "x", attr, count)
             if index_incr == "INDEX_DECR":
                 raw_values = raw_values[::-1]
                 reversed_storage = True
             else:
                 reversed_storage = False
-        converted_values = self.int_to_physical(ap, raw_values)
-        unit = ap.compuMethod.refUnit
+        converted_values = self.int_to_physical(axis_pts, raw_values)
+        unit = axis_pts.compuMethod.refUnit
         return cmod.AxisPts(
-            name=ap.name,
-            comment=ap.longIdentifier,
+            name=axis_pts.name,
+            comment=axis_pts.longIdentifier,
             category=category,
             raw_values=raw_values,
             converted_values=converted_values,
-            displayIdentifier=ap.displayIdentifier,
+            displayIdentifier=axis_pts.displayIdentifier,
             paired=paired,
             unit=unit,
             reversed_storage=reversed_storage,

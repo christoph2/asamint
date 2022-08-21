@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from objutils import load
-from objutils import loads
 
 import numpy as np
 import pytest
 
 from asamint import calibration
-from asamint.calibration.model import Value
 
 
 class Boolean:
@@ -208,7 +206,7 @@ def test_value026(offline):
 
 def load_save_verify_axis_pts(conn, param_name, expected_rw, expected_cw):
     value = conn.load_axis_pts(param_name)
-    assert np.array_equal(value.converted_values, expected_cw)
+    assert np.allclose(value.converted_values, expected_cw)
     assert np.array_equal(value.raw_values, expected_rw)
     # conn.save_axis_pts(param_name, value.converted_value)
 
@@ -271,10 +269,52 @@ def test_axis_pts005(offline):
 
 
 def test_axis_pts006(offline):
-    # load_save_verify_axis_pts(offline, "Rec2Sine_x_table", [0, 11266, 22276, 33542, 44552, 55818, 1293, 12559, 23569,
-    # 34835, 46101, 57111, 2842, 13852, 25118, 36128, 47394, 58404, 4135], [0. ,7.07863657, 13.99642359, 21.07506016,
-    # 27.99284718, 35.07148375, 0.81241586, 7.89105243, 14.80883945, 21.88747602, 28.96611258, 35.88389961, 1.78568126,
-    # 8.70346829, 15.78210485, 22.69989188, 29.77852844, 36.69631547, 2.59809712])
+    load_save_verify_axis_pts(
+        offline,
+        "Rec2Sine_x_table",
+        [
+            0,
+            11266,
+            22276,
+            33542,
+            44552,
+            55818,
+            1293,
+            12559,
+            23569,
+            34835,
+            46101,
+            57111,
+            2842,
+            13852,
+            25118,
+            36128,
+            47394,
+            58404,
+            4135,
+        ],
+        [
+            0.0,
+            7.07863657,
+            13.99642359,
+            21.07506016,
+            27.99284718,
+            35.07148375,
+            0.81241586,
+            7.89105243,
+            14.80883945,
+            21.88747602,
+            28.96611258,
+            35.88389961,
+            1.78568126,
+            8.70346829,
+            15.78210485,
+            22.69989188,
+            29.77852844,
+            36.69631547,
+            2.59809712,
+        ],
+    )
     pass
 
 
