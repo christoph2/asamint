@@ -753,8 +753,8 @@ class CalibrationData(AsamBaseType):
         for block in blocks:
             xcp_master.setMta(block.address)
             mem = xcp_master.pull(block.length)
-            sections.append(Section(start_address=block.address, data=mem))
-        img = Image(sections=sections, join=False)
+            sections.append(Section(start_address=block.address, data=mem[ : block.length]))
+        img = Image(sections=sections, join=True)
         if save_to_file:
             file_name = "CalParams{}.{}".format(current_timestamp(), "hex" if hexfile_type == "ihex" else "srec")
             file_name = os.path.join(self.sub_dir("hexfiles"), file_name)
