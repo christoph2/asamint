@@ -537,7 +537,7 @@ class CalibrationData(AsamBaseType):
         if self.a2l_epk is None:
             self.logger.info("A2L doesn't contains an EPK.")
         else:
-            self.logger.info("EPK from A2L: {}".format(self.a2l_epk))
+            self.logger.info("EPK from A2L: '{}'".format(self.a2l_epk[0]))
         self._parameters = {
             k: OrderedDict()
             for k in (
@@ -575,10 +575,11 @@ class CalibrationData(AsamBaseType):
             return None
         epk_a2l, epk_addr = self.a2l_epk
         xcp_master.setMta(epk_addr)
-        epk_xcp = xcp_master.pull(len(epk_a2l)).decode("ascii")
+        epk_xcp = xcp_master.pull(len(epk_a2l))
+        epk_xcp = epk_xcp[ : len(epk_a2l)].decode("ascii")
         ok = epk_xcp == epk_a2l
         if not ok:
-            self.logger.warn("EPK is invalid -- A2L: '{}' got '{}'.".format(self.mod_par.epk, epk_xcp))
+            self.logger.warn("EPK is invalid -- A2L: '{}' XCP: '{}'.".format(self.mod_par.epk, epk_xcp))
         else:
             self.logger.info("OK, found matching EPK.")
         return ok
