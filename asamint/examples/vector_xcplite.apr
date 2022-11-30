@@ -1,0 +1,22 @@
+#LOGLEVEL = "WARN"
+#MDF_VERSION = "4.10"
+#A2L_FILE = "ASAP2_Demo_V161"
+A2L_FILE = "C_Demo"
+A2L_ENCODING = "latin-1"
+AUTHOR = "John Doe"
+COMPANY = "ACME corp"
+DEPARTMENT = "Engineering"
+PROJECT = "Example23"
+SHORTNAME = "Example23"
+
+#SEED_N_KEY_DLL = "SeedNKeyXcp.dll"
+
+##
+## XCPonEth parameters.
+##
+TRANSPORT = "ETH"
+HOST = "localhost"
+PORT = 5555
+PROTOCOL = "UDP"
+IPV6 = false
+CREATE_DAQ_TIMESTAMPS = false
