@@ -537,7 +537,7 @@ class CalibrationData(AsamBaseType):
         if self.a2l_epk is None:
             self.logger.info("A2L doesn't contains an EPK.")
         else:
-            self.logger.info("EPK from A2L: '{}'".format(self.a2l_epk[0]))
+            self.logger.info(f"EPK from A2L: '{self.a2l_epk[0]}'")
         self._parameters = {
             k: OrderedDict()
             for k in (
@@ -579,9 +579,9 @@ class CalibrationData(AsamBaseType):
         epk_xcp = epk_xcp[ : len(epk_a2l)].decode("ascii")
         ok = epk_xcp == epk_a2l
         if not ok:
-            self.logger.warn("EPK is invalid -- A2L: '{}' XCP: '{}'.".format(self.mod_par.epk, epk_xcp))
+            self.logger.warn(f"EPK is invalid -- A2L: '{self.mod_par.epk}' XCP: '{epk_xcp}'.")
         else:
-            self.logger.info("OK, found matching EPK.")
+            self.logger.info("OK, matching EPKs.")
         return ok
 
     def epk_from_a2l(self):
@@ -622,10 +622,10 @@ class CalibrationData(AsamBaseType):
             if not hexfile:
                 hexfile = self.project_config.get("MASTER_HEXFILE")
                 hexfile_type = self.project_config.get("MASTER_HEXFILE_TYPE")
-            with open("{}".format(hexfile), "rb") as inf:
+            with open(f"{hexfile}", "rb") as inf:
                 image = load(hexfile_type, inf)
             image.file_name = hexfile
-            self.logger.info("Using image from HEX file '{}'".format(hexfile))
+            self.logger.info(f"Using image from HEX file '{hexfile}'")
         if not image:
             raise ValueError("")
         else:
@@ -673,12 +673,12 @@ class CalibrationData(AsamBaseType):
             xcp_master.setMta(addr)
             mem = xcp_master.pull(size)
             sections.append(Section(start_address=addr, data=mem))
-        file_name = "CalRAM{}_P{}.{}".format(current_timestamp(), page, "hex" if file_type == "ihex" else "srec")
+        file_name = f'CalRAM{current_timestamp()}_P{page}.{"hex" if file_type == "ihex" else "srec"}'
         file_name = os.path.join(self.sub_dir("hexfiles"), file_name)
         img = Image(sections=sections, join=False)
-        with open("{}".format(file_name), "wb") as outf:
+        with open(f"{file_name}", "wb") as outf:
             dump(file_type, outf, img, row_length=32)
-        self.logger.info("CalRAM written to {}".format(file_name))
+        self.logger.info(f"CalRAM written to {file_name}")
         return img
 
     def download_calram(self, xcp_master, module_name: str = None, data: bytes = None):
@@ -749,7 +749,7 @@ class CalibrationData(AsamBaseType):
             result.append(McObject(characteristic.name, characteristic.address, mem_size))
         blocks = make_continuous_blocks(result)
         total_size = functools.reduce(lambda a, s: s.length + a, blocks, 0)
-        self.logger.info("Fetching a total of {:.2f} KBytes from XCP slave".format(total_size / 1024))
+        self.logger.info(f"Fetching a total of {total_size / 1024:.2f} KBytes from XCP slave")
         sections = []
         for block in blocks:
             xcp_master.setMta(block.address)
@@ -757,16 +757,16 @@ class CalibrationData(AsamBaseType):
             sections.append(Section(start_address=block.address, data=mem[ : block.length]))
         img = Image(sections=sections, join=True)
         if save_to_file:
-            file_name = "CalParams{}.{}".format(current_timestamp(), "hex" if hexfile_type == "ihex" else "srec")
+            file_name = f'CalParams{current_timestamp()}.{"hex" if hexfile_type == "ihex" else "srec"}'
             file_name = os.path.join(self.sub_dir("hexfiles"), file_name)
-            with open("{}".format(file_name), "wb") as outf:
+            with open(f"{file_name}", "wb") as outf:
                 dump(hexfile_type, outf, img, row_length=32)
-            self.logger.info("CalParams written to {}".format(file_name))
+            self.logger.info(f"CalParams written to {file_name}")
         return img
 
     def _load_asciis(self):
         for characteristic in self.characteristics("ASCII"):
-            self.logger.debug("Processing ASCII '{}' @0x{:08x}".format(characteristic.name, characteristic.address))
+            self.logger.debug(f"Processing ASCII '{characteristic.name}' @0x{characteristic.address:08x}")
             if characteristic.matrixDim:
                 length = characteristic.matrixDim["x"]
             else:
@@ -783,7 +783,7 @@ class CalibrationData(AsamBaseType):
 
     def _load_value_blocks(self):
         for characteristic in self.characteristics("VAL_BLK"):
-            self.logger.debug("Processing VAL_BLK '{}' @0x{:08x}".format(characteristic.name, characteristic.address))
+            self.logger.debug(f"Processing VAL_BLK '{characteristic.name}' @0x{characteristic.address:08x}")
             reader = get_section_reader(characteristic.fnc_asam_dtype, self.byte_order(characteristic))
             raw_values = self.image.read_ndarray(
                 addr=characteristic.address,
@@ -807,7 +807,7 @@ class CalibrationData(AsamBaseType):
 
     def _load_values(self):
         for characteristic in self.characteristics("VALUE"):
-            self.logger.debug("Processing VALUE '{}' @0x{:08x}".format(characteristic.name, characteristic.address))
+            self.logger.debug(f"Processing VALUE '{characteristic.name}' @0x{characteristic.address:08x}")
             # CALIBRATION_ACCESS
             # READ_ONLY
             fnc_asam_dtype = characteristic.fnc_asam_dtype
@@ -848,7 +848,7 @@ class CalibrationData(AsamBaseType):
         for item in self.axis_points():
             ap = AxisPts.get(self.session, item.name)
             # mem_size = ap.total_allocated_memory
-            self.logger.debug("Processing AXIS_PTS '{}' @0x{:08x}".format(ap.name, ap.address))
+            self.logger.debug(f"Processing AXIS_PTS '{ap.name}' @0x{ap.address:08x}")
             rl_values = self.read_record_layout_values(ap, "x")
             self.record_layout_correct_offsets(ap)
             virtual = False
@@ -884,13 +884,13 @@ class CalibrationData(AsamBaseType):
                 else:
                     no_axis_points = axis["maxAxisPoints"]
                 if (dist_op or shift_op) is None:
-                    raise TypeError("Malformed AXIS_PTS '{}', neither DIST_OP nor SHIFT_OP specified.".format(ap))
+                    raise TypeError(f"Malformed AXIS_PTS '{ap}', neither DIST_OP nor SHIFT_OP specified.")
                 if dist_op is not None:
                     raw_values = fix_axis_par_dist(offset, dist_op, no_axis_points)
                 else:
                     raw_values = fix_axis_par(offset, shift_op, no_axis_points)
             else:
-                raise TypeError("Malformed AXIS_PTS '{}'.".format(ap))
+                raise TypeError(f"Malformed AXIS_PTS '{ap}'.")
             if not virtual:
                 raw_values = self.read_nd_array(ap, "x", attr, count)
                 if index_incr == "INDEX_DECR":
@@ -959,7 +959,7 @@ class CalibrationData(AsamBaseType):
             # CURVEs may reference other CURVEs, so some ordering is required.
             characteristics = self._order_curves(characteristics)
         for characteristic in characteristics:
-            self.logger.debug("Processing {} '{}' @0x{:08x}".format(category, characteristic.name, characteristic.address))
+            self.logger.debug(f"Processing {category} '{characteristic.name}' @0x{characteristic.address:08x}")
 
             if characteristic.compuMethod != "NO_COMPU_METHOD":
                 characteristic_cm = characteristic.compuMethod.name
@@ -1074,7 +1074,7 @@ class CalibrationData(AsamBaseType):
                 raw_values = np.flip(raw_values, axis=flipper)
             converted_values = chr_cm.int_to_physical(raw_values)
             klass = cmod.get_calibration_class(category)
-            self._parameters["{}".format(category)][characteristic.name] = klass(
+            self._parameters[f"{category}"][characteristic.name] = klass(
                 name=characteristic.name,
                 comment=characteristic.longIdentifier,
                 category=category,
