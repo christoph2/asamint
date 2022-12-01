@@ -33,6 +33,7 @@ from enum import IntEnum
 import functools
 import os
 from typing import Any, Union
+import sys
 
 import numpy as np
 from pya2l.classes import READ_ONLY
@@ -55,7 +56,13 @@ import pya2l.model as model
 from objutils import dump, load, Image, Section
 
 
-ValueType = Union[float, int, bool, str]
+ver_info = sys.version_info
+
+if ver_info.major == 3 and ver_info.minor < 10:
+    ValueType = (float, int, bool, str)
+else:
+    ValueType = Union[float, int, bool, str]
+
 BOOLEAN_MAP = {"true": 1, "false": 0}
 AXES = ("x", "y", "z", "4", "5")
 
