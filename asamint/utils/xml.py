@@ -29,6 +29,7 @@ __author__ = "Christoph Schueler"
 
 
 from decimal import Decimal as D, InvalidOperation
+from typing import Optional, Union
 
 from lxml import etree
 from lxml.etree import SubElement, Comment, _Comment, _ProcessingInstruction
@@ -59,6 +60,15 @@ def as_numeric(element):
         return D(text)
     except InvalidOperation:
         return text
+
+
+def create_validator(file_name: str) -> Optional[Union[etree.DTD, etree.XMLSchema]]:
+    if file_name.lower().endswith(".dtd"):
+        return etree.DTD(file=file_name)
+    elif file_name.lower().endswith(".xsd"):
+        return etree.XMLSchema(file=file_name)
+    else:
+        return None
 
 
 class XMLTraversor:
