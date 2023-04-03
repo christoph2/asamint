@@ -6,7 +6,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2020-2023 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -61,6 +61,7 @@ class AsamBaseType:
         "LOGLEVEL": (str, False, "WARN"),
         "A2L_FILE": (str, True, ""),
         "A2L_ENCODING": (str, False, "latin-1"),
+        "A2L_DYNAMIC": (bool, False, False),
         "AUTHOR": (str, False, ""),
         "COMPANY": (str, False, ""),
         "DEPARTMENT": (str, False, ""),
@@ -87,7 +88,8 @@ class AsamBaseType:
     def __init__(self, project_config=None, experiment_config=None, *args, **kws):
         self.project_config = Configuration(AsamBaseType.PROJECT_PARAMETER_MAP or {}, project_config or {})
         self.experiment_config = Configuration(AsamBaseType.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
-        if not hasattr(AsamBaseType, "_session_obj"):
+        self.a2l_dynamic = self.project_config.get("A2L_DYNAMIC")
+        if not hasattr(AsamBaseType, "_session_obj") and not self.a2l_dynamic:
             db = DB()
             AsamBaseType._session_obj = db.open_create(
                 self.project_config.get("A2L_FILE"), encoding=self.project_config.get("A2L_ENCODING")
