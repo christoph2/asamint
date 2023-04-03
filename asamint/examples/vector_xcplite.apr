@@ -1,13 +1,12 @@
 #LOGLEVEL = "WARN"
-#MDF_VERSION = "4.10"
-#A2L_FILE = "ASAP2_Demo_V161"
-A2L_FILE = "C_Demo"
+A2L_FILE = "XCPlite"
 A2L_ENCODING = "latin-1"
+A2L_DYNAMIC = true
 AUTHOR = "John Doe"
 COMPANY = "ACME corp"
 DEPARTMENT = "Engineering"
-PROJECT = "Example23"
-SHORTNAME = "Example23"
+PROJECT = "XCPlite"
+SHORTNAME = "XCPlite"
 
 #SEED_N_KEY_DLL = "SeedNKeyXcp.dll"
 
