@@ -89,17 +89,19 @@ class AsamBaseType:
         self.project_config = Configuration(AsamBaseType.PROJECT_PARAMETER_MAP or {}, project_config or {})
         self.experiment_config = Configuration(AsamBaseType.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
         self.a2l_dynamic = self.project_config.get("A2L_DYNAMIC")
-        if not hasattr(AsamBaseType, "_session_obj") and not self.a2l_dynamic:
-            db = DB()
-            AsamBaseType._session_obj = db.open_create(
-                self.project_config.get("A2L_FILE"), encoding=self.project_config.get("A2L_ENCODING")
-            )
+        if not self.a2l_dynamic:
+            self.open_create_session(self.project_config.get("A2L_FILE"), encoding=self.project_config.get("A2L_ENCODING"))
         cond_create_directories()
         self.logger = getLogger(self.__class__.__name__)
         self.logger.setLevel(self.project_config.get("LOGLEVEL"))
         self.mod_common = ModCommon.get(self.session)
         self.mod_par = ModPar.get(self.session) if ModPar.exists(self.session) else None
         self.on_init(project_config, experiment_config, *args, **kws)
+
+    def open_create_session(self, a2l_file, encoding="latin-1"):
+        if not hasattr(AsamBaseType, "_session_obj"):
+            db = DB()
+            AsamBaseType._session_obj = db.open_create(a2l_file, encoding=encoding)
 
     def on_init(self, *args, **kws):
         raise NotImplementedError()

@@ -45,6 +45,9 @@ def main():
             x.getCommModeInfo()
         if ap.args.unlock:
             x.cond_unlock()
+        if ap.project.get("A2L_DYNAMIC"):
+            a2l_data = x.identifier(4)
+            print(a2l_data)
         # print(cd.check_epk(x))
         cd.save_parameters(x)
         x.disconnect()
