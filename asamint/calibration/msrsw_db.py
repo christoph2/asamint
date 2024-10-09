@@ -75,7 +75,7 @@ class Base:
                 result.append(f"{name} = '{value}'")
             else:
                 result.append(f"{name} = {value}")
-        return "{}({})".format(self.__class__.__name__, ", ".join(result))
+        return '{}({})'.format(self.__class__.__name__, ", ".join(result))
 
 
 class DatetimeType(types.TypeDecorator):
@@ -25554,7 +25554,6 @@ class Parser:
 
     def update_metadata(self):
         msrsw = self.db.session.query(Msrsw).first()
-        print("MSRSW!!!", msrsw)
         meta = self.db.session.query(MetaData).first()
         if msrsw:
             category = msrsw.category.content
