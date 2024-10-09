@@ -32,7 +32,8 @@ from lxml import etree
 
 import asamint.msrsw as msrsw
 from asamint.calibration import CalibrationData
-from asamint.utils import add_suffix_to_path, get_dtd
+from asamint.utils import add_suffix_to_path
+from asamint.utils.data import get_dtd
 from asamint.utils.xml import create_elem, xml_comment
 
 

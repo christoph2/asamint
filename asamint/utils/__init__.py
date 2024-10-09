@@ -29,16 +29,12 @@ __copyright__ = """
 __author__ = "Christoph Schueler"
 
 import hashlib
-import importlib.resources
 import math
 import os
 import pathlib
 import pkgutil
 from datetime import datetime
 from io import StringIO
-
-ddd=importlib.resources.open_text("asamint.data.dtds", "cdf_v2.0.0.sl.dtd")
-
 
 import re
 import time
@@ -127,17 +123,6 @@ def cond_create_directories():
     for d in SUB_DIRS:
         if not os.access(d, os.F_OK):
             os.mkdir(d)
-
-
-def get_dtd(name: str) -> StringIO:
-    """ """
-    return StringIO(
-        str(
-            pkgutil.get_data("asamint", f"data/dtds/{name}.dtd"),
-            encoding="ascii",
-        )
-    )
-
 
 def recursive_dict(element):
     return element.tag, dict(map(recursive_dict, element)) or element.text
