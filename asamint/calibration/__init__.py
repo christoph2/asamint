@@ -32,20 +32,18 @@ import os
 import sys
 from collections import OrderedDict
 from enum import IntEnum
-from typing import Any, Union
+from typing import Union
 
-# from asamint.calibration import model as cmod
-import model as cmod
 import numpy as np
 import pya2l.model as model
 from objutils import Image, Section, dump, load
 from pya2l import DB
-from pya2l.api import inspect
 from pya2l.api.inspect import (AxisPts, Characteristic, CompuMethod, ModCommon,
                                ModPar)
-from pya2l.classes import READ_ONLY
 from pya2l.functions import fix_axis_par, fix_axis_par_dist
 
+# from asamint.calibration import model as cmod
+import asamint.model.model
 from asamint.asam import (TYPE_SIZES, AsamBaseType, ByteOrder,
                           get_section_reader)
 from asamint.logger import Logger
@@ -123,14 +121,14 @@ class Calibration:
         """To the actual update of parameters (write to HEX file / XCP)."""
         pass
 
-    def load_ascii(self, characteristic_name: str) -> cmod.Ascii:
+    def load_ascii(self, characteristic_name: str) -> asamint.model.model.Ascii:
         characteristic = self.get_characteristic(characteristic_name, "ASCII", False)
         if characteristic.matrixDim:
             length = characteristic.matrixDim["x"]
         else:
             length = characteristic.number
         value = self.image.read_string(characteristic.address, length=length)
-        return cmod.Ascii(
+        return asamint.model.model.Ascii(
             name=characteristic.name,
             comment=characteristic.longIdentifier,
             category="ASCII",
@@ -154,7 +152,7 @@ class Calibration:
         self.image.write_string(characteristic.address, length=length, value=value)
         return Status.OK
 
-    def load_value_block(self, characteristic_name: str) -> cmod.ValueBlock:
+    def load_value_block(self, characteristic_name: str) -> asamint.model.model.ValueBlock:
         characteristic = self.get_characteristic(characteristic_name, "VAL_BLK", False)
         reader = get_section_reader("UBYTE", 0)
         raw_values = self.image.read_ndarray(
@@ -166,7 +164,7 @@ class Calibration:
             bit_mask=characteristic.bitMask,
         )
         converted_values = self.int_to_physical(characteristic, raw_values)
-        return cmod.ValueBlock(
+        return asamint.model.model.ValueBlock(
             name=characteristic.name,
             comment=characteristic.longIdentifier,
             category="VAL_BLK",
@@ -191,7 +189,7 @@ class Calibration:
         self.image.write_ndarray(addr=characteristic.address, array=values, order=characteristic.fnc_np_order)
         return Status.OK
 
-    def load_value(self, characteristic_name: str) -> cmod.Value:
+    def load_value(self, characteristic_name: str) -> asamint.model.model.Value:
         characteristic = self.get_characteristic(characteristic_name, "VALUE", False)
 
         # CALIBRATION_ACCESS
@@ -219,7 +217,7 @@ class Calibration:
             category = "TEXT"
         if characteristic.dependentCharacteristic:
             category = "DEPENDENT_VALUE"
-        return cmod.Value(
+        return asamint.model.model.Value(
             name=characteristic.name,
             comment=characteristic.longIdentifier,
             category=category,
@@ -328,7 +326,7 @@ class Calibration:
                 reversed_storage = False
         converted_values = self.int_to_physical(axis_pts, raw_values)
         unit = axis_pts.compuMethod.refUnit
-        return cmod.AxisPts(
+        return asamint.model.model.AxisPts(
             name=axis_pts.name,
             comment=axis_pts.longIdentifier,
             category=category,
@@ -775,7 +773,7 @@ class CalibrationData(AsamBaseType):
             else:
                 length = characteristic.number
             value = self.image.read_string(characteristic.address, length=length)
-            self._parameters["ASCII"][characteristic.name] = cmod.Ascii(
+            self._parameters["ASCII"][characteristic.name] = asamint.model.model.Ascii(
                 name=characteristic.name,
                 comment=characteristic.longIdentifier,
                 category="ASCII",
@@ -797,7 +795,7 @@ class CalibrationData(AsamBaseType):
                 bit_mask=characteristic.bitMask,
             )
             converted_values = self.int_to_physical(characteristic, raw_values)
-            self._parameters["VAL_BLK"][characteristic.name] = cmod.ValueBlock(
+            self._parameters["VAL_BLK"][characteristic.name] = asamint.model.model.ValueBlock(
                 name=characteristic.name,
                 comment=characteristic.longIdentifier,
                 category="VAL_BLK",
@@ -837,7 +835,7 @@ class CalibrationData(AsamBaseType):
                 category = "TEXT"
             if characteristic.dependentCharacteristic:
                 category = "DEPENDENT_VALUE"
-            self._parameters["VALUE"][characteristic.name] = cmod.Value(
+            self._parameters["VALUE"][characteristic.name] = asamint.model.model.Value(
                 name=characteristic.name,
                 comment=characteristic.longIdentifier,
                 category=category,
@@ -903,7 +901,7 @@ class CalibrationData(AsamBaseType):
                     reversed_storage = False
             converted_values = self.int_to_physical(ap, raw_values)
             unit = ap.compuMethod.refUnit
-            self._parameters["AXIS_PTS"][ap.name] = cmod.AxisPts(
+            self._parameters["AXIS_PTS"][ap.name] = asamint.model.model.AxisPts(
                 name=ap.name,
                 comment=ap.longIdentifier,
                 category=category,
@@ -1051,7 +1049,7 @@ class CalibrationData(AsamBaseType):
                 if reversed_storage:
                     flipper.append(axis_idx)
                 axes.append(
-                    cmod.AxisContainer(
+                    asamint.model.model.AxisContainer(
                         category=axis_attribute,
                         unit=axis_unit,
                         reversed_storage=reversed_storage,
@@ -1076,7 +1074,7 @@ class CalibrationData(AsamBaseType):
             if flipper:
                 raw_values = np.flip(raw_values, axis=flipper)
             converted_values = chr_cm.int_to_physical(raw_values)
-            klass = cmod.get_calibration_class(category)
+            klass = asamint.model.model.get_calibration_class(category)
             self._parameters[f"{category}"][characteristic.name] = klass(
                 name=characteristic.name,
                 comment=characteristic.longIdentifier,
