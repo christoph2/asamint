@@ -96,7 +96,9 @@ class McObject:
             raise ValueError("length must be positive")
 
     def __contains__(self, address: int, ext: int = 0) -> bool:
-        return (self.ext == ext) and (self.address <= address < self.address + self.length)
+        return (self.ext == ext) and (
+            self.address <= address < self.address + self.length
+        )
 
     """
     def index(self, address: int) -> int:
@@ -107,7 +109,9 @@ class McObject:
     """
 
 
-def make_continuous_blocks(chunks: List[McObject], upper_bound=None, upper_bound_initial=None) -> List[McObject]:
+def make_continuous_blocks(
+    chunks: List[McObject], upper_bound=None, upper_bound_initial=None
+) -> List[McObject]:
     """Try to make continous blocks from a list of small, unordered `chunks`.
 
     Parameters
@@ -131,7 +135,10 @@ def make_continuous_blocks(chunks: List[McObject], upper_bound=None, upper_bound
     last_ext = None
     while values:
         section = values.pop(0)
-        if (last_section and section.address <= last_section.address + last_section.length) and not (section.ext != last_ext):
+        if (
+            last_section
+            and section.address <= last_section.address + last_section.length
+        ) and not (section.ext != last_ext):
             last_end = last_section.address + last_section.length - 1
             current_end = section.address + section.length - 1
             if last_end > section.address:
@@ -142,12 +149,26 @@ def make_continuous_blocks(chunks: List[McObject], upper_bound=None, upper_bound
                     if last_section.length + offset <= upper_bound:
                         last_section.length += offset
                     else:
-                        result_sections.append(McObject(name="", address=section.address, ext=section.ext, length=section.length))
+                        result_sections.append(
+                            McObject(
+                                name="",
+                                address=section.address,
+                                ext=section.ext,
+                                length=section.length,
+                            )
+                        )
                 else:
                     last_section.length += offset
         else:
             # Create a new section.
-            result_sections.append(McObject(name="", address=section.address, ext=section.ext, length=section.length))
+            result_sections.append(
+                McObject(
+                    name="",
+                    address=section.address,
+                    ext=section.ext,
+                    length=section.length,
+                )
+            )
         last_section = result_sections[-1]
         last_ext = last_section.ext
     return result_sections

@@ -124,6 +124,7 @@ def cond_create_directories():
         if not os.access(d, os.F_OK):
             os.mkdir(d)
 
+
 def recursive_dict(element):
     return element.tag, dict(map(recursive_dict, element)) or element.text
 
@@ -148,7 +149,10 @@ def slicer(iterable, sliceLength, converter=None):
     if converter is None:
         converter = type(iterable)
     length = len(iterable)
-    return [converter(iterable[item : item + sliceLength]) for item in range(0, length, sliceLength)]
+    return [
+        converter(iterable[item : item + sliceLength])
+        for item in range(0, length, sliceLength)
+    ]
 
 
 def int_log2(x: float) -> int:

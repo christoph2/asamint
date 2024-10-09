@@ -33,10 +33,20 @@ from pathlib import Path
 
 from rich.logging import RichHandler
 from rich.prompt import Confirm
-from traitlets import (Any, Bool, Callable, Dict, Enum, Float, Integer, List,
-                       TraitError, Unicode, Union)
-from traitlets.config import (Application, Instance, SingletonConfigurable,
-                              default)
+from traitlets import (
+    Any,
+    Bool,
+    Callable,
+    Dict,
+    Enum,
+    Float,
+    Integer,
+    List,
+    TraitError,
+    Unicode,
+    Union,
+)
+from traitlets.config import Application, Instance, SingletonConfigurable, default
 
 
 class General(SingletonConfigurable):
@@ -44,15 +54,28 @@ class General(SingletonConfigurable):
 
     author = Unicode(default_value="", help="Author of the project").tag(config=True)
     company = Unicode(default_value="", help="Company of the project").tag(config=True)
-    department = Unicode(default_value="", help="Department of the project").tag(config=True)
+    department = Unicode(default_value="", help="Department of the project").tag(
+        config=True
+    )
     project = Unicode(default_value="", help="Project name").tag(config=True)
-    shortname = Unicode(default_value="", help="Short name of the project (Contributes to filename generation)").tag(config=True)
-    pyxcp_config_file = Unicode(default_value="pyxcp_conf.py", help="pyXCP config file").tag(config=True)
+    shortname = Unicode(
+        default_value="",
+        help="Short name of the project (Contributes to filename generation)",
+    ).tag(config=True)
+    pyxcp_config_file = Unicode(
+        default_value="pyxcp_conf.py", help="pyXCP config file"
+    ).tag(config=True)
     a2l_file = Unicode(default_value="", help="Input A2L file").tag(config=True)
-    a2l_encoding = Unicode(default_value="latin-1", help="Input A2L file encoding").tag(config=True)
-    a2l_dynamic = Bool(False, help="Enable dynamic (via XCP) A2L parsing").tag(config=True)
+    a2l_encoding = Unicode(default_value="latin-1", help="Input A2L file encoding").tag(
+        config=True
+    )
+    a2l_dynamic = Bool(False, help="Enable dynamic (via XCP) A2L parsing").tag(
+        config=True
+    )
     master_hexfile = Unicode(default_value="", help="Master HEX file").tag(config=True)
-    master_hexfile_type = Enum(values=["ihex", "srec"], default_value="ihex", help="Choose HEX file type").tag(config=True)
+    master_hexfile_type = Enum(
+        values=["ihex", "srec"], default_value="ihex", help="Choose HEX file type"
+    ).tag(config=True)
     experiments = List(
         trait=Unicode(),
         default_value=[],
@@ -65,7 +88,9 @@ class General(SingletonConfigurable):
 class ProfileCreate(Application):
     description = "\nCreate a new profile"
 
-    dest_file = Unicode(default_value=None, allow_none=True, help="destination file name").tag(config=True)
+    dest_file = Unicode(
+        default_value=None, allow_none=True, help="destination file name"
+    ).tag(config=True)
     aliases = Dict(  # type:ignore[assignment]
         dict(
             d="ProfileCreate.dest_file",
@@ -78,7 +103,9 @@ class ProfileCreate(Application):
         if self.dest_file:
             dest = Path(self.dest_file)
             if dest.exists():
-                if not Confirm.ask(f"Destination file [green]{dest.name!r}[/green] already exists. Do you want to overwrite it?"):
+                if not Confirm.ask(
+                    f"Destination file [green]{dest.name!r}[/green] already exists. Do you want to overwrite it?"
+                ):
                     print("Aborting...")
                     self.exit(1)
             with dest.open("w", encoding="latin1") as out_file:
@@ -96,7 +123,9 @@ class ProfileApp(Application):
 
     def start(self):
         if self.subapp is None:
-            print(f"No subcommand specified. Must specify one of: {self.subcommands.keys()}")
+            print(
+                f"No subcommand specified. Must specify one of: {self.subcommands.keys()}"
+            )
             print()
             self.print_description()
             self.print_subcommands()
@@ -107,7 +136,9 @@ class ProfileApp(Application):
 
 class Asamint(Application):
     description = "ASAMInt application"
-    config_file = Unicode(default_value="asamint_conf.py", help="base name of config file").tag(config=True)
+    config_file = Unicode(
+        default_value="asamint_conf.py", help="base name of config file"
+    ).tag(config=True)
 
     classes = List([General])
 
@@ -187,7 +218,13 @@ class Asamint(Application):
         )
     )
 
-    def _iterate_config_class(self, klass, class_names: typing.List[str], config, out_file: io.IOBase = sys.stdout) -> None:
+    def _iterate_config_class(
+        self,
+        klass,
+        class_names: typing.List[str],
+        config,
+        out_file: io.IOBase = sys.stdout,
+    ) -> None:
         sub_classes = []
         class_path = ".".join(class_names)
         print(
@@ -209,7 +246,10 @@ class Asamint(Application):
                 commented_lines = "\n".join([f"# {line}" for line in help.split("\n")])
                 print(f"#{commented_lines}", file=out_file)
                 value = tr.default()
-                if isinstance(tr, Instance) and tr.__class__.__name__ not in ("Dict", "List"):
+                if isinstance(tr, Instance) and tr.__class__.__name__ not in (
+                    "Dict",
+                    "List",
+                ):
                     continue
                 if isinstance(tr, Enum):
                     print(f"#  Choices: {tr.info()}", file=out_file)
@@ -218,14 +258,25 @@ class Asamint(Application):
                 print(f"#  Default: {value!r}", file=out_file)
                 if name in config:
                     cfg_value = config[name]
-                    print(f"c.{class_path!s}.{name!s} = {cfg_value!r}", end="\n\n", file=out_file)
+                    print(
+                        f"c.{class_path!s}.{name!s} = {cfg_value!r}",
+                        end="\n\n",
+                        file=out_file,
+                    )
                 else:
-                    print(f"#  c.{class_path!s}.{name!s} = {value!r}", end="\n\n", file=out_file)
+                    print(
+                        f"#  c.{class_path!s}.{name!s} = {value!r}",
+                        end="\n\n",
+                        file=out_file,
+                    )
         if class_names is None:
             class_names = []
         for sub_klass in sub_classes:
             self._iterate_config_class(
-                sub_klass, class_names + [sub_klass.__name__], config=config.get(sub_klass.__name__, {}), out_file=out_file
+                sub_klass,
+                class_names + [sub_klass.__name__],
+                config=config.get(sub_klass.__name__, {}),
+                out_file=out_file,
             )
 
     def generate_config_file(self, file_like: io.IOBase, config=None) -> None:
@@ -236,14 +287,19 @@ class Asamint(Application):
 
         for klass in self._classes_with_config_traits():
             self._iterate_config_class(
-                klass, [klass.__name__], config=self.config.get(klass.__name__, {}) if config is None else {}, out_file=file_like
+                klass,
+                [klass.__name__],
+                config=self.config.get(klass.__name__, {}) if config is None else {},
+                out_file=file_like,
             )
 
 
 application: typing.Optional[Asamint] = None
 
 
-def create_application(options: typing.Optional[typing.List[typing.Any]] = None) -> Asamint:
+def create_application(
+    options: typing.Optional[typing.List[typing.Any]] = None,
+) -> Asamint:
     global application
     if options is None:
         options = []
@@ -255,7 +311,9 @@ def create_application(options: typing.Optional[typing.List[typing.Any]] = None)
     return application
 
 
-def get_application(options: typing.Optional[typing.List[typing.Any]] = None) -> Asamint:
+def get_application(
+    options: typing.Optional[typing.List[typing.Any]] = None,
+) -> Asamint:
     if options is None:
         options = []
     global application

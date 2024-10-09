@@ -85,11 +85,18 @@ class AsamBaseType:
     }
 
     def __init__(self, project_config=None, experiment_config=None, *args, **kws):
-        self.project_config = Configuration(AsamBaseType.PROJECT_PARAMETER_MAP or {}, project_config or {})
-        self.experiment_config = Configuration(AsamBaseType.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
+        self.project_config = Configuration(
+            AsamBaseType.PROJECT_PARAMETER_MAP or {}, project_config or {}
+        )
+        self.experiment_config = Configuration(
+            AsamBaseType.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {}
+        )
         self.a2l_dynamic = self.project_config.get("A2L_DYNAMIC")
         if not self.a2l_dynamic:
-            self.open_create_session(self.project_config.get("A2L_FILE"), encoding=self.project_config.get("A2L_ENCODING"))
+            self.open_create_session(
+                self.project_config.get("A2L_FILE"),
+                encoding=self.project_config.get("A2L_ENCODING"),
+            )
         cond_create_directories()
         self.logger = getLogger(self.__class__.__name__)
         self.logger.setLevel(self.project_config.get("LOGLEVEL"))
@@ -107,8 +114,12 @@ class AsamBaseType:
 
     def loadConfig(self, project_config, experiment_config):
         """Load configuration data."""
-        project_config = Configuration(self.__class__.PROJECT_PARAMETER_MAP or {}, project_config or {})
-        experiment_config = Configuration(self.__class__.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
+        project_config = Configuration(
+            self.__class__.PROJECT_PARAMETER_MAP or {}, project_config or {}
+        )
+        experiment_config = Configuration(
+            self.__class__.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {}
+        )
         self.project_config.update(project_config)
         self.experiment_config.update(experiment_config)
 
@@ -136,7 +147,12 @@ class AsamBaseType:
     def measurements(self):
         """ """
         query = self.query(model.Measurement.name)
-        query = query.filter(or_(func.regexp(model.Measurement.name, m) for m in self.experiment_config.get("MEASUREMENTS")))
+        query = query.filter(
+            or_(
+                func.regexp(model.Measurement.name, m)
+                for m in self.experiment_config.get("MEASUREMENTS")
+            )
+        )
         for meas in query.all():
             yield Measurement.get(self.session, meas.name)
 
@@ -154,7 +170,8 @@ class AsamBaseType:
         """
         return (
             ByteOrder.BIG_ENDIAN
-            if obj.byteOrder or self.mod_common.byteOrder in ("MSB_FIRST", "LITTLE_ENDIAN")
+            if obj.byteOrder
+            or self.mod_common.byteOrder in ("MSB_FIRST", "LITTLE_ENDIAN")
             else ByteOrder.LITTLE_ENDIAN
         )
 

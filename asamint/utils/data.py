@@ -44,6 +44,7 @@ for key in _KEYS:
         # print(key, pp.name)
         _DATA_FILES[key][pp.name] = pp
 
+
 def get_template(name: str) -> str:
     """
     Retrieves a template file from the 'templates' directory.
@@ -60,6 +61,7 @@ def get_template(name: str) -> str:
         return ""
     else:
         return TMPs[name].read_text()
+
 
 @lru_cache
 def get_dtd(name: str) -> StringIO:

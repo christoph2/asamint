@@ -68,7 +68,9 @@ def doTemplate(
     buf = StringIO()
     ctx = Context(buf, **namespace)
     try:
-        tobj = Template(filename=tmpl, output_encoding=encoding, format_exceptions=formatExceptions)  # , imports ='re'
+        tobj = Template(
+            filename=tmpl, output_encoding=encoding, format_exceptions=formatExceptions
+        )  # , imports ='re'
         tobj.render_context(ctx)
     except Exception:
         print(exceptions.text_error_template().render())
@@ -89,7 +91,9 @@ def doTemplateFromText(
     buf = StringIO()
     ctx = Context(buf, **namespace)
     try:
-        tobj = Template(text=tmpl, output_encoding=encoding, format_exceptions=formatExceptions)  # , imports ='re'
+        tobj = Template(
+            text=tmpl, output_encoding=encoding, format_exceptions=formatExceptions
+        )  # , imports ='re'
         tobj.render_context(ctx)
     except Exception:
         print(exceptions.text_error_template().render())

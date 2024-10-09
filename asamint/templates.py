@@ -86,7 +86,9 @@ def renderTemplateFromText(
     buf = StringIO()
     ctx = Context(buf, **namespace)
     try:
-        tobj = Template(text=tmpl, output_encoding=encoding, format_exceptions=formatExceptions)
+        tobj = Template(
+            text=tmpl, output_encoding=encoding, format_exceptions=formatExceptions
+        )
         tobj.render_context(ctx)
     except Exception:
         print(exceptions.text_error_template().render())

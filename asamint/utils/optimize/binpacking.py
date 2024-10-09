@@ -47,10 +47,15 @@ class Bin:
         return len(self.entries)
 
     def __eq__(self, other) -> bool:
-        return self.residual_capacity == other.residual_capacity and self.entries == other.entries
+        return (
+            self.residual_capacity == other.residual_capacity
+            and self.entries == other.entries
+        )
 
     def __str__(self) -> str:
-        return f"Bin(residual_capacity: {self.residual_capacity}  entries: {self.entries})"
+        return (
+            f"Bin(residual_capacity: {self.residual_capacity}  entries: {self.entries})"
+        )
 
     __repr__ = __str__
 
