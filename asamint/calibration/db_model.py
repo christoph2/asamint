@@ -31,23 +31,13 @@ import re
 import sqlite3
 from datetime import datetime
 
-from sqlalchemy import (
-    Column,
-    ForeignKey,
-    ForeignKeyConstraint,
-    MetaData,
-    UniqueConstraint,
-    create_engine,
-    event,
-    func,
-    inspect,
-    orm,
-    schema,
-    types,
-)
+from sqlalchemy import (Column, ForeignKey, ForeignKeyConstraint, MetaData,
+                        UniqueConstraint, create_engine, event, func, inspect,
+                        orm, schema, types)
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.ext.declarative import as_declarative, declarative_base, declared_attr
+from sqlalchemy.ext.declarative import (as_declarative, declarative_base,
+                                        declared_attr)
 from sqlalchemy.ext.orderinglist import ordering_list
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.sql import and_, exists

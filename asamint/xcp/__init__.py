@@ -35,19 +35,14 @@ from pprint import pprint
 
 import pya2l.model as model
 from objutils import Image, Section, dump, load
-from pya2l.api.inspect import (
-    AxisPts,
-    Characteristic,
-    Function,
-    Group,
-    ModCommon,
-    ModPar,
-)
+from pya2l.api.inspect import (AxisPts, Characteristic, Function, Group,
+                               ModCommon, ModPar)
 
 from asamint.asam import TYPE_SIZES, AsamBaseType
 from asamint.cdf import CDFCreator
 from asamint.utils import chunks, current_timestamp
-from asamint.utils.optimize import DaqList, McObject, binpacking, make_continuous_blocks
+from asamint.utils.optimize import (DaqList, McObject, binpacking,
+                                    make_continuous_blocks)
 from asamint.xcp.reco import LogConverter, Worker
 
 

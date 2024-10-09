@@ -61,7 +61,12 @@ def test_ascii(offline):
 def test_block(offline):
     block = offline.load_value_block("CDF20.MATRIX_DIM.N341_wS8")
     # print(block)
-    assert np.all(np.equal(block.raw_values, np.array([[8, 16, 25], [33, 41, 49], [57, 66, 74], [82, 90, 98]])))
+    assert np.all(
+        np.equal(
+            block.raw_values,
+            np.array([[8, 16, 25], [33, 41, 49], [57, 66, 74], [82, 90, 98]]),
+        )
+    )
     # assert np.all(np.equal(block.converted_values, np.array([
     #    [0.09765923, 0.19531846, 0.30518509],
     #    [0.40284433,  0.50050356, 0.59816279],
@@ -210,7 +215,12 @@ def load_save_verify_axis_pts(conn, param_name, expected_rw, expected_cw):
 
 
 def test_axis_pts001(offline):
-    load_save_verify_axis_pts(offline, "CDF20.axis.X_AXIS_xU16", [52, 55, 56, 64, 66], [52.0, 55.0, 56.0, 64.0, 66.0])
+    load_save_verify_axis_pts(
+        offline,
+        "CDF20.axis.X_AXIS_xU16",
+        [52, 55, 56, 64, 66],
+        [52.0, 55.0, 56.0, 64.0, 66.0],
+    )
 
 
 def test_axis_pts002(offline):
@@ -226,7 +236,29 @@ def test_axis_pts003(offline):
     load_save_verify_axis_pts(
         offline,
         "LUT1D_1_x_table",
-        [156, 166, 176, 186, 196, 206, 216, 226, 236, 246, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+        [
+            156,
+            166,
+            176,
+            186,
+            196,
+            206,
+            216,
+            226,
+            236,
+            246,
+            0,
+            10,
+            20,
+            30,
+            40,
+            50,
+            60,
+            70,
+            80,
+            90,
+            100,
+        ],
         [
             1.21875,
             1.296875,
@@ -258,12 +290,25 @@ def test_axis_pts004(offline):
         offline,
         "LUT2D_1_x_table",
         [166, 186, 206, 226, 246, 10, 30, 50, 70, 90],
-        [1.296875, 1.453125, 1.609375, 1.765625, 1.921875, 0.078125, 0.234375, 0.390625, 0.546875, 0.703125],
+        [
+            1.296875,
+            1.453125,
+            1.609375,
+            1.765625,
+            1.921875,
+            0.078125,
+            0.234375,
+            0.390625,
+            0.546875,
+            0.703125,
+        ],
     )
 
 
 def test_axis_pts005(offline):
-    load_save_verify_axis_pts(offline, "LUT2D_1_y_table", [181, 231, 75], [1.4140625, 1.8046875, 0.5859375])
+    load_save_verify_axis_pts(
+        offline, "LUT2D_1_y_table", [181, 231, 75], [1.4140625, 1.8046875, 0.5859375]
+    )
 
 
 def test_axis_pts006(offline):

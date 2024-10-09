@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 
 """
@@ -29,10 +28,10 @@ __copyright__ = """
 """
 __author__ = "Christoph Schueler"
 
-from collections import defaultdict
-from io import StringIO
-from functools import lru_cache
 import importlib.resources
+from collections import defaultdict
+from functools import lru_cache
+from io import FileIO
 
 _KEYS = frozenset(["dtds", "templates"])
 
@@ -64,7 +63,7 @@ def get_template(name: str) -> str:
 
 
 @lru_cache
-def get_dtd(name: str) -> StringIO:
+def get_dtd(name: str) -> FileIO:
     """
     Retrieves a DTD file from the 'dtds' directory and returns it as a StringIO object.
 
@@ -77,6 +76,6 @@ def get_dtd(name: str) -> StringIO:
     DTDs = _DATA_FILES["dtds"]
 
     if name not in DTDs:
-        return StringIO()
+        return FileIO()
     else:
-        return StringIO(DTDs[name].read_text())
+        return FileIO(DTDs[name])

@@ -15,6 +15,8 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import as_declarative, relationship
 from sqlalchemy.orm.collections import InstrumentedList
 
+from asamint.utils.xml import create_validator
+
 DB_EXTENSION = "msrswdb"
 
 CURRENT_SCHEMA_VERSION = 10
@@ -123,8 +125,10 @@ def StdDecimal(default=0.0):
     return Column(DecimalType, default=default, nullable=True)
 
 
-def StdDate():
-    return Column(DatetimeType, nullable=True)
+def StdDate(default=None):
+    if not default:
+        default = datetime.datetime.now().strftime(DatetimeType.FMT)
+    return Column(DatetimeType, nullable=True, default=default)
 
 
 def StdBlob():
@@ -192,7 +196,7 @@ class MetaData(Base):
     schema_version = StdShort()
     variant = StdString()
     xml_schema = StdString()
-    created = Column(types.DateTime, default=datetime.datetime.now)
+    created = StdDate()
 
 
 #
@@ -25491,11 +25495,20 @@ class Parser:
     def __init__(
         self, file_name: str, db: MSRSWDatabase, root_elem: str = ROOT_ELEMENT
     ):
+        self.validator = create_validator("cdf_v2.0.0.sl.dtd")
         self.schema_version = 0
         self.variant = "MSRSW"
         self.file_name = file_name
         self.db = db
         self.msrsw = etree.parse(file_name)  # nosec
+
+        validate_result = self.validator.validate(self.msrsw)
+        if not validate_result:
+            print("Validation failed:", validate_result)
+            print(self.validator.error_log)
+        else:
+            print("Validation passed")
+
         self.root = self.msrsw.getroot()
         self.parse(self.root)
         self.db.commit_transaction()

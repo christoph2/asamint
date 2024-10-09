@@ -34,6 +34,8 @@ from typing import Optional, Union
 from lxml import etree
 from lxml.etree import Comment, SubElement, _Comment, _ProcessingInstruction
 
+from asamint.utils.data import get_dtd
+
 
 def element_name(tree):
     """ """
@@ -63,10 +65,12 @@ def as_numeric(element):
 
 
 def create_validator(file_name: str) -> Optional[Union[etree.DTD, etree.XMLSchema]]:
+    content = get_dtd(file_name)
+    print("VA", content)
     if file_name.lower().endswith(".dtd"):
-        return etree.DTD(file=file_name)
+        return etree.DTD(file=content)
     elif file_name.lower().endswith(".xsd"):
-        return etree.XMLSchema(file=file_name)
+        return etree.XMLSchema(file=content)
     else:
         return None
 

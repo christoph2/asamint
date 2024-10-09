@@ -33,20 +33,10 @@ from pathlib import Path
 
 from rich.logging import RichHandler
 from rich.prompt import Confirm
-from traitlets import (
-    Any,
-    Bool,
-    Callable,
-    Dict,
-    Enum,
-    Float,
-    Integer,
-    List,
-    TraitError,
-    Unicode,
-    Union,
-)
-from traitlets.config import Application, Instance, SingletonConfigurable, default
+from traitlets import (Any, Bool, Callable, Dict, Enum, Float, Integer, List,
+                       TraitError, Unicode, Union)
+from traitlets.config import (Application, Instance, SingletonConfigurable,
+                              default)
 
 
 class General(SingletonConfigurable):

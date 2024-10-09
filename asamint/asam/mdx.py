@@ -30,7 +30,8 @@ __copyright__ = """
 
 import pya2l.model as model
 from lxml import etree
-from pya2l.api.inspect import Characteristic, CompuMethod, Measurement, ModCommon
+from pya2l.api.inspect import (Characteristic, CompuMethod, Measurement,
+                               ModCommon)
 
 import asamint.msrsw as msrsw
 from asamint.asam import AsamBaseType

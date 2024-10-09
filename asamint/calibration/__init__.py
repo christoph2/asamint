@@ -38,15 +38,16 @@ import numpy as np
 import pya2l.model as model
 from objutils import Image, Section, dump, load
 from pya2l import DB
-from pya2l.api.inspect import AxisPts, Characteristic, CompuMethod, ModCommon, ModPar
+from pya2l.api.inspect import (AxisPts, Characteristic, CompuMethod, ModCommon,
+                               ModPar)
 from pya2l.functions import fix_axis_par, fix_axis_par_dist
 
 # from asamint.calibration import model as cmod
 import asamint.model.model
-from asamint.asam import TYPE_SIZES, AsamBaseType, ByteOrder, get_section_reader
+from asamint.asam import (TYPE_SIZES, AsamBaseType, ByteOrder,
+                          get_section_reader)
 from asamint.logger import Logger
 from asamint.utils import SINGLE_BITS, current_timestamp, ffs
-from asamint.utils.optimize import McObject, make_continuous_blocks
 
 ver_info = sys.version_info
 

@@ -33,11 +33,10 @@ import math
 import os
 import pathlib
 import pkgutil
-from datetime import datetime
-from io import StringIO
-
 import re
 import time
+from datetime import datetime
+from io import StringIO
 
 import numpy as np
 from babel import default_locale
