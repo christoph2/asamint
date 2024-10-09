@@ -1,9 +1,7 @@
 import pytest
 
-from asamint.utils.optimize import make_continuous_blocks
-from asamint.utils.optimize import McObject
-from asamint.utils.optimize.binpacking import Bin
-from asamint.utils.optimize.binpacking import first_fit_decreasing
+from asamint.utils.optimize import McObject, make_continuous_blocks
+from asamint.utils.optimize.binpacking import Bin, first_fit_decreasing
 
 
 @pytest.fixture
@@ -46,7 +44,7 @@ def test_pack_to_single_bin(blocks):
 def test_pack_empty_block_set():
     BIN_SIZE = 253
     bins = first_fit_decreasing(items=[], bin_size=BIN_SIZE)
-    assert bins == [Bin(length=BIN_SIZE)]
+    assert bins == [Bin(size=BIN_SIZE)]
 
 
 def test_pack_to_multiple_bins(blocks):
@@ -76,3 +74,57 @@ def test_pack_to_multiple_bins(blocks):
     assert bin4.entries == [McObject(name="", address=0x001252A4, length=4)]
     assert bin5.residual_capacity == 3
     assert bin5.entries == [McObject(name="", address=0x00125438, length=3)]
+
+
+def test_make_continuous_blocks1():
+    BLOCKS = [
+        McObject(name="", address=0x000E0002, length=2),
+        McObject(name="", address=0x000E0008, ext=23, length=4),
+        McObject(name="", address=0x000E0004, length=4),
+        McObject(name="", address=0x000E000C, ext=23, length=4),
+        McObject(name="", address=0x000E0000, length=2),
+    ]
+    bins = make_continuous_blocks(chunks=BLOCKS)
+    assert bins == [
+        McObject(name="", address=0x000E0000, ext=0x0000, length=8),
+        McObject(name="", address=0x000E0008, ext=0x0017, length=8),
+    ]
+
+
+def test_make_continuous_blocks2():
+    BLOCKS = [
+        McObject(name="", address=0x000E0002, length=2),
+        McObject(name="", address=0x000E0008, length=4),
+        McObject(name="", address=0x000E0004, length=4),
+        McObject(name="", address=0x000E000C, length=4),
+        McObject(name="", address=0x000E0000, length=2),
+    ]
+    bins = make_continuous_blocks(chunks=BLOCKS)
+    assert bins == [McObject(name="", address=0x000E0000, ext=0x0000, length=16)]
+
+
+def test_make_continuous_blocks3():
+    BLOCKS = [
+        McObject(name="", address=0x000E0002, ext=0x01, length=2),
+        McObject(name="", address=0x000E0008, ext=0x03, length=4),
+        McObject(name="", address=0x000E0004, ext=0x02, length=4),
+        McObject(name="", address=0x000E000C, ext=0x04, length=4),
+        McObject(name="", address=0x000E0000, ext=0x00, length=2),
+    ]
+    bins = make_continuous_blocks(chunks=BLOCKS)
+    assert bins == [
+        McObject(name="", address=0x000E0000, ext=0x0000, length=2),
+        McObject(name="", address=0x000E0002, ext=0x0001, length=2),
+        McObject(name="", address=0x000E0004, ext=0x0002, length=4),
+        McObject(name="", address=0x000E0008, ext=0x0003, length=4),
+        McObject(name="", address=0x000E000C, ext=0x0004, length=4),
+    ]
+
+
+def test_mc_object_len_zero():
+    with pytest.raises(ValueError):
+        McObject(name="", address=0, ext=0, length=0)
+
+
+def test_mc_object_ok():
+    mc = McObject(name="", address=0, ext=0, length=1)

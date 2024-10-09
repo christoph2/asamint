@@ -1,6 +1,4 @@
-from objutils import dump
-from objutils import Image
-from objutils import Section
+from objutils import Image, Section, dump
 
 NUM_PAGES = 32
 PAGE_SIZE = 0x4000

@@ -1,9 +1,7 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from objutils import load
-
 import numpy as np
 import pytest
+from objutils import load
 
 from asamint import calibration
 

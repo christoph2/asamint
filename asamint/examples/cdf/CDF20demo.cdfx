@@ -68,10 +68,10 @@
             <SW-COLLECTION-REF>CDF20_Group_Scalar</SW-COLLECTION-REF>
           </SW-CS-COLLECTION>
         </SW-CS-COLLECTIONS>
-        
 
-        
-                
+
+
+
 <!--  ==================== Scalar ======================================== -->
 
         <SW-INSTANCE>
@@ -106,7 +106,7 @@
 
         <SW-INSTANCE>
           <SHORT-NAME>CDF20.ASCII.N42_wU8</SHORT-NAME>
-          <LONG-NAME></LONG-NAME> 
+          <LONG-NAME></LONG-NAME>
           <CATEGORY>ASCII</CATEGORY>
           <SW-FEATURE-REF>CDF20_Array</SW-FEATURE-REF>
           <SW-INSTANCE-PROPS-VARIANTS>
@@ -129,7 +129,7 @@
                   <REMARK><P>Comment for function</P></REMARK>
                 </CS-ENTRY>
               </SW-CS-HISTORY>
-          
+
             </SW-INSTANCE-PROPS-VARIANT>
           </SW-INSTANCE-PROPS-VARIANTS>
         </SW-INSTANCE>
@@ -230,14 +230,14 @@
           <SW-FEATURE-REF>CDF20_Curve</SW-FEATURE-REF>
           <SW-INSTANCE-PROPS-VARIANTS>
             <SW-INSTANCE-PROPS-VARIANT>
-        
+
               <SW-VALUE-CONT>
                 <UNIT-DISPLAY-NAME>grad C</UNIT-DISPLAY-NAME>
                 <SW-VALUES-PHYS>
                   <V>0.0429000000000000</V><V>0.0468000000000000</V><V>0.0507000000000000</V><V>0.0546000000000000</V><V>0.0585000000000000</V><V>0.0624000000000000</V><V>0.0663000000000000</V><V>0.0702000000000000</V><V>0.0741000000000000</V><V>0.0780000000000000</V>
                 </SW-VALUES-PHYS>
               </SW-VALUE-CONT>
-        
+
               <SW-AXIS-CONTS>
                 <SW-AXIS-CONT>
                   <CATEGORY>STD_AXIS</CATEGORY>
@@ -365,9 +365,9 @@
                   </VG>
                 </SW-VALUES-PHYS>
               </SW-VALUE-CONT>
-          
+
 <!-- SW-VALUES-PHYS + SW-INSTANCE-REF for rescale and curve axis as they are calculated ? -->
-          
+
               <SW-AXIS-CONTS>
                 <SW-AXIS-CONT>
                   <CATEGORY>CURVE_AXIS</CATEGORY>
@@ -378,18 +378,18 @@
                   <SW-VALUES-PHYS>
                     <V>206.0000000000000000</V><V>318.0000000000000000</V><V>318.0000000000000000</V><V>318.0000000000000000</V><V>318.0000000000000000</V><V>318.0000000000000000</V><V>318.0000000000000000</V>
                   </SW-VALUES-PHYS>
--->          
+-->
                 </SW-AXIS-CONT>
                 <SW-AXIS-CONT>
                   <CATEGORY>CURVE_AXIS</CATEGORY>
                   <SW-INSTANCE-REF>CDF20.axis.Y_CU_AXIS_xU16_wU8</SW-INSTANCE-REF>
                   <SW-ARRAYSIZE><V>6</V></SW-ARRAYSIZE>
 
-<!--  should be optional possible        
+<!--  should be optional possible
                   <SW-VALUES-PHYS>
                     <V>256.0000000000000000</V><V>320.0000000000000000</V><V>320.0000000000000000</V><V>320.0000000000000000</V><V>320.0000000000000000</V><V>320.0000000000000000</V>
                   </SW-VALUES-PHYS>
--->          
+-->
                 </SW-AXIS-CONT>
               </SW-AXIS-CONTS>
             </SW-INSTANCE-PROPS-VARIANT>

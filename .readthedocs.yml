@@ -14,4 +14,3 @@ python:
           path: .
         - method: setuptools
           path: .
-

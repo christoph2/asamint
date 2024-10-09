@@ -1,111 +1,50 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""
+Parse (transport-layer specific) command line parameters
+and create a XCP master instance.
 """
 
-"""
+import warnings
+from dataclasses import dataclass
+from typing import List
 
-__copyright__ = """
-   pySART - Simplified AUTOSAR-Toolkit for Python.
+from asamint.config import create_application
 
-   (C) 2021 by Christoph Schueler <cpu12.gems.googlemail.com>
+warnings.simplefilter("always")
 
-   All Rights Reserved
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
+@dataclass
+class Option:
+    short_opt: str
+    long_opt: str = ""
+    dest: str = ""
+    help: str = ""
+    type: str = ""
+    default: str = ""
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
 
-   You should have received a copy of the GNU General Public License along
-   with this program; if not, write to the Free Software Foundation, Inc.,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+class FakeParser:
 
-   s. FLOSS-EXCEPTION.txt
-"""
+    options: List[Option] = []
 
-import argparse
-
-from asamint.config import read_configuration
-
-from pyxcp.master import Master
-from pyxcp.transport.can import (
-    try_to_install_system_supplied_drivers,
-    registered_drivers,
-)
-
-try_to_install_system_supplied_drivers()
-
-CAN_DRIVERS = registered_drivers()
+    def add_argument(self, short_opt: str, long_opt: str = "", dest: str = "", help: str = "", type: str = "", default: str = ""):
+        warnings.warn("Argument parser extension is currently not supported.", DeprecationWarning, 2)
+        self.options.append(Option(short_opt, long_opt, dest, help, type, default))
 
 
 class ArgumentParser:
-    """
+    def __init__(self, callout=None, *args, **kws):
+        self._parser = FakeParser()
+        if callout is not None:
+            warnings.warn("callout  argument is currently not supported.", DeprecationWarning, 2)
 
-    Parameter
-    ---------
-    callout: callable
-        Process user-supplied arguments.
-    """
-
-    def __init__(self, use_xcp=True, callout=None, *args, **kws):
-        self.callout = callout
-        self.use_xcp = use_xcp
-        kws.update(formatter_class=argparse.RawDescriptionHelpFormatter, add_help=True)
-        self._parser = argparse.ArgumentParser(*args, **kws)
-        self._parser.add_argument(
-            "-p",
-            "--project-file",
-            type=argparse.FileType("r"),
-            dest="project",
-            help="General project configuration.",
-        )
-
-        self._parser.add_argument(
-            "-e",
-            "--experiment-file",
-            type=argparse.FileType("r"),
-            dest="experiment",
-            help="Experiment specific configuration.",
-        )
-
-        self._parser.add_argument(
-            "-l",
-            "--loglevel",
-            choices=["ERROR", "WARN", "INFO", "DEBUG"],
-            default="INFO",
-        )
-        self._parser.add_argument(
-            "-u",
-            "--unlock",
-            help="Unlock protected resources",
-            dest="unlock",
-            action="store_true",
-        )
-        self._args = self.parser.parse_args()
-        args = self.args
-        self.project = read_configuration(args.project)
-        self.experiment = read_configuration(args.experiment)
-        self.project["LOGLEVEL"] = args.loglevel
-
-    @property
-    def args(self):
-        return self._args
-
-    def run(self):
-        """ """
-        if self.use_xcp:
-            if "TRANSPORT" not in self.project:
-                raise AttributeError("TRANSPORT must be specified in config!")
-            transport = self.project["TRANSPORT"].lower()
-            master = Master(transport, config=self.project) if self.use_xcp else None
-            if self.callout:
-                self.callout(master, self.args)
-            return master
+    def run(self, policy=None, transport_layer_interface=None):
+        application = create_application(self.parser.options)
+        # master = Master(
+        #    application.transport.layer, config=application, policy=policy, transport_layer_interface=transport_layer_interface
+        # )
+        master = {"hello": "world! 2.0.0-alpha.14 (development)"}
+        return master
 
     @property
     def parser(self):

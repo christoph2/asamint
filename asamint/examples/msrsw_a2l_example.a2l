@@ -90,7 +90,7 @@ ASAP2_VERSION 1 31
                 ROM
                 INTERN
                 0x0 0xC000 -1 -1 -1 -1 -1
-                /begin IF_DATA 
+                /begin IF_DATA
                     ASAP1B_ETK DP_BLOB 0x0 0xC000
                 /end IF_DATA
             /end MEMORY_SEGMENT
@@ -341,4 +341,3 @@ ASAP2_VERSION 1 31
         /end MEASUREMENT
     /end MODULE
 /end PROJECT
-

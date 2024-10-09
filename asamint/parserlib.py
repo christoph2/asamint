@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
@@ -59,8 +58,8 @@ class ParserWrapper:
         self.listener = listener
 
     def _load(self, name):
-        className = "{0}{1}".format(self.grammarName, name)
-        moduleName = "asamint.parsers.{0}".format(className)
+        className = f"{self.grammarName}{name}"
+        moduleName = f"asamint.parsers.{className}"
         module = importlib.import_module(moduleName)
         klass = getattr(module, className)
         return (

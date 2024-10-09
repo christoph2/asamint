@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 
 """
@@ -29,19 +28,24 @@ __copyright__ = """
 """
 __author__ = "Christoph Schueler"
 
-from datetime import datetime
-from io import StringIO
 import hashlib
+import importlib.resources
 import math
 import os
 import pathlib
 import pkgutil
+from datetime import datetime
+from io import StringIO
+
+ddd=importlib.resources.open_text("asamint.data.dtds", "cdf_v2.0.0.sl.dtd")
+
+
 import re
 import time
 
+import numpy as np
 from babel import default_locale
 from babel.dates import format_datetime
-import numpy as np
 
 SINGLE_BITS = frozenset([2**b for b in range(64 + 1)])
 
@@ -72,7 +76,7 @@ class Bunch(dict):
     """ """
 
     def __init__(self, *args, **kwds):
-        super(Bunch, self).__init__(*args, **kwds)
+        super().__init__(*args, **kwds)
         self.__dict__ = self
 
 
@@ -108,9 +112,9 @@ def generate_filename(project_config, experiment_config, extension, extra=None):
     project = project_config.get("PROJECT")
     subject = experiment_config.get("SUBJECT")
     if extra:
-        return "{}_{}{}_{}.{}".format(project, subject, current_timestamp(), extra, extension)
+        return f"{project}_{subject}{current_timestamp()}_{extra}.{extension}"
     else:
-        return "{}_{}{}.{}".format(project, subject, current_timestamp(), extension)
+        return f"{project}_{subject}{current_timestamp()}.{extension}"
 
 
 def cond_create_directories():
@@ -129,7 +133,7 @@ def get_dtd(name: str) -> StringIO:
     """ """
     return StringIO(
         str(
-            pkgutil.get_data("asamint", "data/dtds/{}.dtd".format(name)),
+            pkgutil.get_data("asamint", f"data/dtds/{name}.dtd"),
             encoding="ascii",
         )
     )
@@ -146,7 +150,7 @@ def ffs(v: int) -> int:
 
 def ffs_np(v):
     """Find first set bit (numpy)."""
-    return np.uint64(np.log2((v & (-v)))) if v != 0 else 0
+    return np.uint64(np.log2(v & (-v))) if v != 0 else 0
 
 
 def add_suffix_to_path(path: str, suffix: str) -> str:
@@ -159,7 +163,7 @@ def slicer(iterable, sliceLength, converter=None):
     if converter is None:
         converter = type(iterable)
     length = len(iterable)
-    return [converter((iterable[item : item + sliceLength])) for item in range(0, length, sliceLength)]
+    return [converter(iterable[item : item + sliceLength]) for item in range(0, length, sliceLength)]
 
 
 def int_log2(x: float) -> int:

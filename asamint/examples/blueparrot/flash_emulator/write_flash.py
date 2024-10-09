@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """HEX file downloader.
 """
 
@@ -28,7 +27,6 @@ __copyright__ = """
 from os.path import exists
 
 from create import create_example_hexfile
-
 from objutils import load
 from pyxcp.cmdline import ArgumentParser
 
@@ -47,7 +45,7 @@ def upload_file(xcp_master):
         address_ext = (sec.start_address >> 16) - 0x10  # Calculate page number.
         data = sec.data
         # print(hex(address), address_ext, len(sec))
-        print("Writing page {:02d} of 32".format(idx), end="\r")
+        print(f"Writing page {idx:02d} of 32", end="\r")
         xcp_master.setMta(address, address_ext)
         xcp_master.push(data)
     print("OK, successfully written 32 pages.")

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 
 """
@@ -29,14 +28,15 @@ __copyright__ = """
 """
 
 
-from lxml import etree
 import pya2l.model as model
-from pya2l.api.inspect import ModCommon, CompuMethod, Characteristic, Measurement
+from lxml import etree
+from pya2l.api.inspect import (Characteristic, CompuMethod, Measurement,
+                               ModCommon)
 
-from asamint.asam import AsamBaseType
-from asamint.utils import sha1_digest, replace_non_c_char
-from asamint.utils.xml import create_elem
 import asamint.msrsw as msrsw
+from asamint.asam import AsamBaseType
+from asamint.utils import replace_non_c_char, sha1_digest
+from asamint.utils.xml import create_elem
 
 
 def matching_dcis(tree):
@@ -48,7 +48,6 @@ def matching_dcis(tree):
 
 
 class MDXCreator(msrsw.MSRMixIn, AsamBaseType):
-
     """
     <!ELEMENT SW-DATA-DICTIONARY-SPEC
     (
@@ -85,7 +84,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamBaseType):
         self._datatypes(self.sub_trees["SW-DATA-DICTIONARY-SPEC"])
         self._data_constrs(self.sub_trees["SW-DATA-DICTIONARY-SPEC"])
 
-        with open("CDF20demo{}".format(self.EXTENSION), "wb") as of:
+        with open(f"CDF20demo{self.EXTENSION}", "wb") as of:
             of.write(
                 etree.tostring(
                     self.root,
@@ -115,7 +114,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamBaseType):
         PHYSICAL-DIMENSION-REF?
         """
         cm_units = self.query(model.CompuMethod.unit.distinct()).all()
-        self.cm_units = {u[0]: format("{}_{}".format(replace_non_c_char(u[0]), sha1_digest(u[0]))) for u in cm_units if u[0]}
+        self.cm_units = {u[0]: format(f"{replace_non_c_char(u[0])}_{sha1_digest(u[0])}") for u in cm_units if u[0]}
         unit_spec = create_elem(tree, "UNIT-SPEC")
         units = create_elem(unit_spec, "UNITS")
         for k, v in self.cm_units.items():
@@ -133,7 +132,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamBaseType):
             meas = Measurement.get(self.session, meas_name)
             # print(meas)
             compu_method = meas.compuMethod
-            constr_name = "CONSTR_{}".format(meas.name)
+            constr_name = f"CONSTR_{meas.name}"
             arraySize = (meas.arraySize,) if meas.arraySize else None
             matrixDim = (meas.matrixDim["x"], meas.matrixDim["y"], meas.matrixDim["z"]) if meas.matrixDim else None
             is_array = arraySize or matrixDim

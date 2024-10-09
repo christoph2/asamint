@@ -295,7 +295,7 @@ class dcm20Lexer(Lexer):
     WS = 40
     COMMENT = 41
 
-    channelNames = [u"DEFAULT_TOKEN_CHANNEL", u"HIDDEN"]
+    channelNames = ["DEFAULT_TOKEN_CHANNEL", "HIDDEN"]
 
     modeNames = ["DEFAULT_MODE"]
 
@@ -402,8 +402,6 @@ class dcm20Lexer(Lexer):
     def __init__(self, input=None, output: TextIO = sys.stdout):
         super().__init__(input, output)
         self.checkVersion("4.8")
-        self._interp = LexerATNSimulator(
-            self, self.atn, self.decisionsToDFA, PredictionContextCache()
-        )
+        self._interp = LexerATNSimulator(self, self.atn, self.decisionsToDFA, PredictionContextCache())
         self._actions = None
         self._predicates = None

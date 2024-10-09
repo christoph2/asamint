@@ -1,6 +1,4 @@
-
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 
 """
@@ -29,13 +27,13 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
+import pya2l.model as model
 from lxml import etree
 
-from asamint.utils import get_dtd, add_suffix_to_path
-from asamint.utils.xml import create_elem, xml_comment
 import asamint.msrsw as msrsw
 from asamint.calibration import CalibrationData
-import pya2l.model as model
+from asamint.utils import add_suffix_to_path, get_dtd
+from asamint.utils.xml import create_elem, xml_comment
 
 
 class CDFCreator(msrsw.MSRMixIn, CalibrationData):
@@ -48,7 +46,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
     EXTENSION = ".cdfx"
 
     def on_init(self, project_config, experiment_config, *args, **kws):
-        super(CDFCreator, self).on_init(project_config, experiment_config, *args, **kws)
+        super().on_init(project_config, experiment_config, *args, **kws)
         self.loadConfig(project_config, experiment_config)
 
     def save(self):

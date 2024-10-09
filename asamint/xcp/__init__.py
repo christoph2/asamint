@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 
 """
@@ -28,28 +27,23 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
-from collections import namedtuple, defaultdict
 import functools
 import os
-from pprint import pprint
 import time
+from collections import defaultdict, namedtuple
+from pprint import pprint
 
-
-from asamint.asam import AsamBaseType, TYPE_SIZES
-from asamint.xcp.reco import Worker, LogConverter
-from asamint.cdf import CDFCreator
-from asamint.utils.optimize import DaqList, McObject, make_continuous_blocks, binpacking
-from asamint.utils import chunks, current_timestamp
 import pya2l.model as model
-from pya2l.api.inspect import (
-    AxisPts,
-    Characteristic,
-    Group,
-    Function,
-    ModPar,
-    ModCommon,
-)
-from objutils import dump, load, Image, Section
+from objutils import Image, Section, dump, load
+from pya2l.api.inspect import (AxisPts, Characteristic, Function, Group,
+                               ModCommon, ModPar)
+
+from asamint.asam import TYPE_SIZES, AsamBaseType
+from asamint.cdf import CDFCreator
+from asamint.utils import chunks, current_timestamp
+from asamint.utils.optimize import (DaqList, McObject, binpacking,
+                                    make_continuous_blocks)
+from asamint.xcp.reco import LogConverter, Worker
 
 
 class CalibrationData(AsamBaseType):
@@ -80,7 +74,7 @@ class CalibrationData(AsamBaseType):
         epk_xcp = xcp_master.pull(len(epk_a2l)).decode("ascii")
         ok = epk_xcp == epk_a2l
         if not ok:
-            self.logger.warn("EPK is invalid -- A2L: '{}' got '{}'.".format(epk_a2l, epk_xcp))
+            self.logger.warn(f"EPK is invalid -- A2L: '{epk_a2l}' got '{epk_xcp}'.")
         else:
             self.logger.info("OK, found matching EPK.")
         return ok
@@ -114,7 +108,7 @@ class CalibrationData(AsamBaseType):
             if not hexfile:
                 hexfile = self.project_config.get("MASTER_HEXFILE")
                 hexfile_type = self.project_config.get("MASTER_HEXFILE_TYPE")
-            with open("{}".format(hexfile), "rb") as inf:
+            with open(f"{hexfile}", "rb") as inf:
                 img = load(hexfile_type, inf)
             img.file_name = hexfile
         if not img:
@@ -149,7 +143,7 @@ class CalibrationData(AsamBaseType):
             result.append(McObject(chx.name, chx.address, mem_size))
         blocks = make_continuous_blocks(result)
         total_size = functools.reduce(lambda a, s: s.length + a, blocks, 0)
-        self.logger.info("Fetching a total of {:.3f} KBytes from XCP slave".format(total_size / 1024))
+        self.logger.info(f"Fetching a total of {total_size / 1024:.3f} KBytes from XCP slave")
         sections = []
         for block in blocks:
             xcp_master.setMta(block.address)
@@ -159,9 +153,9 @@ class CalibrationData(AsamBaseType):
         if save_to_file:
             file_name = "CalParams{}.{}".format(current_timestamp(), "hex" if hexfile_type == "ihex" else "srec")
             file_name = os.path.join(self.sub_dir("hexfiles"), file_name)
-            with open("{}".format(file_name), "wb") as outf:
+            with open(f"{file_name}", "wb") as outf:
                 dump(hexfile_type, outf, img, row_length=32)
-            self.logger.info("CalParams written to {}".format(file_name))
+            self.logger.info(f"CalParams written to {file_name}")
         return img
 
 

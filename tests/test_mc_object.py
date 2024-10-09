@@ -1,9 +1,7 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import pytest
 
-from asamint.utils.optimize import make_continuous_blocks
-from asamint.utils.optimize import McObject
+from asamint.utils.optimize import McObject, make_continuous_blocks
 
 
 def make_blocks(objs, upper_bound=None):

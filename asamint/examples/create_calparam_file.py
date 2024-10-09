@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Create ASAM CDF files from CDF20demo.a2l / CDF20demo.hex"""
 
 __copyright__ = """
@@ -26,8 +25,8 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
-from asamint.cmdline import ArgumentParser
 from asamint.cdf import CDFCreator
+from asamint.cmdline import ArgumentParser
 
 
 def main():

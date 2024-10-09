@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 
 """
@@ -34,10 +33,10 @@ __email__ = "cpu12.gems@googlemail.com"
 import os
 from pprint import pprint
 
-from lxml import etree
 import numpy as np
-
 import pya2l.model as model
+from lxml import etree
+
 from asamint.utils import slicer
 from asamint.utils.xml import create_elem
 
@@ -58,7 +57,7 @@ class MSRMixIn:
         self.validate()
         file_name = self.generate_filename(self.EXTENSION)
         file_name = os.path.join(self.sub_dir("parameters"), file_name)
-        self.logger.info("Saving tree to {}".format(file_name))
+        self.logger.info(f"Saving tree to {file_name}")
         with open(file_name, "wb") as of:
             of.write(
                 etree.tostring(
@@ -131,7 +130,7 @@ class MSRMixIn:
         project_comment = proj.longIdentifier
 
         root = etree.Element("MSRSW")
-        create_elem(root, "SHORT-NAME", text="{}_{}".format(project_name, suffix))
+        create_elem(root, "SHORT-NAME", text=f"{project_name}_{suffix}")
         create_elem(root, "CATEGORY", category)
         sw_systems = create_elem(root, "SW-SYSTEMS")
         sw_system = create_elem(sw_systems, "SW-SYSTEM")

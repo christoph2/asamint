@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 __copyright__ = """
     pySART - Simplified AUTOSAR-Toolkit for Python.
@@ -23,10 +22,11 @@ __copyright__ = """
   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """
 
-from collections.abc import MutableMapping
 import io
 import json
 import pathlib
+from collections.abc import MutableMapping
+
 import toml
 
 
@@ -63,10 +63,10 @@ class Configuration(MutableMapping):
         for key, (tp, required, default) in self.parameters.items():
             if key in self.config:
                 if not isinstance(self.config[key], tp):
-                    raise TypeError("Parameter {} requires {}".format(key, tp))
+                    raise TypeError(f"Parameter {key} requires {tp}")
             else:
                 if required:
-                    raise AttributeError("{} must be specified in config!".format(key))
+                    raise AttributeError(f"{key} must be specified in config!")
                 else:
                     self.config[key] = default
 
@@ -86,6 +86,6 @@ class Configuration(MutableMapping):
         return len(self.config)
 
     def __repr__(self):
-        return "{}".format(self.config)
+        return f"{self.config}"
 
     __str__ = __repr__

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Model representing calibration data.
 """
 
@@ -27,35 +26,26 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
-from datetime import datetime
 import mmap
 import re
 import sqlite3
+from datetime import datetime
 
-from sqlalchemy import (
-    MetaData,
-    schema,
-    types,
-    orm,
-    event,
-    create_engine,
-    Column,
-    ForeignKey,
-    ForeignKeyConstraint,
-    func,
-    UniqueConstraint,
-    inspect,
-)
+from sqlalchemy import (Column, ForeignKey, ForeignKeyConstraint, MetaData,
+                        UniqueConstraint, create_engine, event, func, inspect,
+                        orm, schema, types)
 from sqlalchemy.engine import Engine
-from sqlalchemy.ext.declarative import as_declarative, declarative_base, declared_attr
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.declarative import (as_declarative, declarative_base,
+                                        declared_attr)
 from sqlalchemy.ext.orderinglist import ordering_list
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.sql import and_, exists
 
+from asamint.logger import Logger
+
 # from sqlalchemy.ext.automap import automap_base
 
-from asamint.logger import Logger
 
 # Base = declarative_base()
 
@@ -85,7 +75,7 @@ def regexer(value, expr):
 
 
 @as_declarative()
-class Base(object):
+class Base:
     @declared_attr
     def __tablename__(cls):
         return cls.__name__.lower()
@@ -209,7 +199,7 @@ class Value(Base):
         self.text_value = text_value
 
 
-class HasValues(object):
+class HasValues:
     @declared_attr
     def value_association_rid(cls):
         return Column(types.Integer, ForeignKey("value_association.rid"))
@@ -402,8 +392,8 @@ def set_sqlite3_pragmas(dbapi_connection, connection_record):
     cursor = dbapi_connection.cursor()
     # cursor.execute("PRAGMA jornal_mode=WAL")
     cursor.execute("PRAGMA FOREIGN_KEYS=ON")
-    cursor.execute("PRAGMA PAGE_SIZE={}".format(PAGE_SIZE))
-    cursor.execute("PRAGMA CACHE_SIZE={}".format(calculateCacheSize(CACHE_SIZE * 1025 * 1024)))
+    cursor.execute(f"PRAGMA PAGE_SIZE={PAGE_SIZE}")
+    cursor.execute(f"PRAGMA CACHE_SIZE={calculateCacheSize(CACHE_SIZE * 1025 * 1024)}")
     cursor.execute("PRAGMA SYNCHRONOUS=OFF")  # FULL
     cursor.execute("PRAGMA LOCKING_MODE=EXCLUSIVE")  # NORMAL
     cursor.execute("PRAGMA TEMP_STORE=MEMORY")  # FILE
@@ -418,11 +408,11 @@ class CalibrationDB:
             self.dbname = ""
         else:
             if not filename.lower().endswith(DB_EXTENSION):
-                self.dbname = "{}.{}".format(filename, DB_EXTENSION)
+                self.dbname = f"{filename}.{DB_EXTENSION}"
             else:
                 self.dbname = filename
         self._engine = create_engine(
-            "sqlite:///{}".format(self.dbname),
+            f"sqlite:///{self.dbname}",
             echo=debug,
             connect_args={"detect_types": sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES},
             native_datetime=True,

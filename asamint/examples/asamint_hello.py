@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""Create ASAM MDF files from CDF20demo.a2l and some random data"""
+
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""Create ASAM CDF files from CDF20demo.a2l / CDF20demo.hex"""
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
@@ -25,42 +28,16 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
-
-import numpy as np
-
 from asamint.cmdline import ArgumentParser
-from asamint.mdf import MDFCreator
 
-
-def random_data(mdf_obj, num_values=100):
-
-    STEPPER = 0.1
-    data = {
-        "TIMESTAMPS": np.arange(
-            start=STEPPER,
-            stop=(num_values // 10) + STEPPER,
-            step=STEPPER,
-            dtype=np.float32,
-        )
-    }
-    for meas in mdf_obj.measurements:
-        if meas.datatype in ("FLOAT32_IEEE", "FLOAT64_IEEE"):
-            samples = 200 * np.random.random_sample(num_values) - 100
-        elif meas.datatype in ("SBYTE", "SWORD", "SLONG", "A_INT64"):
-            samples = np.random.randint(-100, 100 + 1, num_values)
-        else:
-            samples = np.random.randint(0, 100 + 1, num_values)
-        data[meas.name] = samples
-    return data
+# from asamint.cdf import CDFCreator
 
 
 def main():
     ap = ArgumentParser(use_xcp=False)
-
-    mdf = MDFCreator(project_config=ap.project, experiment_config=ap.experiment)
-
-    data = random_data(mdf, 1000)
-    mdf.save_measurements("CDF20demo.mf4", data)
+    ap.run()
+    # cd = CDFCreator(ap.project, ap.experiment)
+    # cd.save_parameters(hexfile="CDF20demo.hex")
 
 
 if __name__ == "__main__":

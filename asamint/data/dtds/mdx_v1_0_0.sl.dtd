@@ -33,11 +33,11 @@ $Id:$
 
 *******************************************************************
 -->
-<!-- undefined elements: 
+<!-- undefined elements:
 
 -->
 
-<!-- undefined masters: 
+<!-- undefined masters:
 
 -->
 
@@ -621,7 +621,7 @@ $Id:$
 <!ELEMENT COMPU-SCALE
         (
           LOWER-LIMIT? ,
-          UPPER-LIMIT? ,          
+          UPPER-LIMIT? ,
           (
             COMPU-CONST |
             COMPU-RATIONAL-COEFFS
@@ -847,7 +847,7 @@ $Id:$
 <!-- from msrsw_v3_0_0_rc8.sl.dtd -->
 <!ELEMENT DISPLAY-NAME
         (
-          #PCDATA 
+          #PCDATA
         )
 >
 
@@ -875,7 +875,7 @@ $Id:$
           REVISION-LABEL? ,
           REVISION-LABEL-P1? ,
           REVISION-LABEL-P2? ,
-          DATE? 
+          DATE?
         )
 >
 
@@ -940,7 +940,7 @@ $Id:$
 <!-- from msrsw_v3_0_0_rc8.sl.dtd -->
 <!ELEMENT FORMULA
         (
-         VERBATIM? 
+         VERBATIM?
         )
 >
 
@@ -967,7 +967,7 @@ $Id:$
 <!ELEMENT INTERNAL-CONSTRS
         (
           LOWER-LIMIT? ,
-          UPPER-LIMIT? 
+          UPPER-LIMIT?
         )
 >
 
@@ -990,8 +990,8 @@ $Id:$
 <!-- from msrsw_v3_0_0_rc8.sl.dtd -->
 <!ELEMENT LABEL
         (
-          #PCDATA  
-        ) 
+          #PCDATA
+        )
 >
 
 <!ATTLIST LABEL
@@ -1057,8 +1057,8 @@ $Id:$
 <!-- from msrsw_v3_0_0_rc8.sl.dtd -->
 <!ELEMENT LONG-NAME
         (
-          #PCDATA  
-        ) 
+          #PCDATA
+        )
 >
 
 <!ATTLIST LONG-NAME
@@ -1154,7 +1154,7 @@ $Id:$
         (
           LABEL? ,
           SHORT-LABEL? ,
-          URL?  
+          URL?
         )
 >
 
@@ -1360,7 +1360,7 @@ $Id:$
 <!ELEMENT PHYS-CONSTRS
         (
           LOWER-LIMIT? ,
-          UPPER-LIMIT? 
+          UPPER-LIMIT?
         )
 >
 
@@ -1555,7 +1555,7 @@ $Id:$
 <!ELEMENT SDG
         (
           SDG-CAPTION? ,
-          
+
           (
             SD? |
             SDG?
@@ -1584,7 +1584,7 @@ $Id:$
 <!ELEMENT SDG-CAPTION
         (
           SHORT-NAME ,
-          LONG-NAME?  
+          LONG-NAME?
         )
 >
 
@@ -1702,7 +1702,7 @@ $Id:$
 <!-- from msrsw_v3_0_0_rc8.sl.dtd -->
 <!ELEMENT SW-ACCESSED-SERVICE
         (
-          SW-SERVICE-REF 
+          SW-SERVICE-REF
         )
 >
 
@@ -1750,7 +1750,7 @@ $Id:$
         (
           SW-VARIABLE-REF? ,
           SW-VARIABLE-USAGE? ,
-          SW-VARIABLE-ACCESS-IMPL? 
+          SW-VARIABLE-ACCESS-IMPL?
         )
 >
 
@@ -1799,7 +1799,7 @@ $Id:$
           SHORT-NAME ,
           LONG-NAME? ,
           CATEGORY? ,
-          SW-CPU-MEM-SEG-REF? 
+          SW-CPU-MEM-SEG-REF?
         )
 >
 
@@ -1901,7 +1901,7 @@ $Id:$
 <!ELEMENT SW-AXIS-GENERIC
         (
           SW-AXIS-TYPE-REF ,
-          SW-GENERIC-AXIS-PARAMS? 
+          SW-GENERIC-AXIS-PARAMS?
         )
 >
 
@@ -2153,7 +2153,7 @@ $Id:$
           CATEGORY? ,
           SW-ARRAYSIZE? ,
           SW-DATA-DEF-PROPS? ,
-          SW-CALPRMS? 
+          SW-CALPRMS?
         )
 >
 
@@ -2181,7 +2181,7 @@ $Id:$
         (
           SW-AXIS-INDEX? ,
           CATEGORY?,
-          
+
           (
             SW-AXIS-INDIVIDUAL |
             SW-AXIS-GROUPED
@@ -2311,7 +2311,7 @@ $Id:$
           SHORT-NAME ,
           LONG-NAME? ,
           CATEGORY? ,
-          SW-DATA-DEF-PROPS? 
+          SW-DATA-DEF-PROPS?
         )
 >
 
@@ -2541,7 +2541,7 @@ $Id:$
           CATEGORY? ,
           SW-DATA-DEF-PROPS? ,
           SW-VARIABLE-IMPLS? ,
-          SW-CALPRM-IMPLS? 
+          SW-CALPRM-IMPLS?
         )
 >
 
@@ -2895,7 +2895,7 @@ $Id:$
         (
           SHORT-NAME ,
           LONG-NAME? ,
-          CATEGORY? 
+          CATEGORY?
         )
 >
 
@@ -3004,7 +3004,7 @@ $Id:$
           SW-VARIABLE-REFS? ,
           SW-CALPRM-REFS? ,
           SW-CLASS-INSTANCE-REFS? ,
-          SW-SYSTEMCONST-REFS? 
+          SW-SYSTEMCONST-REFS?
         )
 >
 
@@ -3177,7 +3177,7 @@ $Id:$
           SW-MEM-ATTR? ,
           SW-MEM-BASE-ADDR? ,
           SW-MEM-SIZE? ,
-          SW-MEM-OFFSETS?  
+          SW-MEM-OFFSETS?
         )
 >
 
@@ -3252,7 +3252,7 @@ $Id:$
 <!-- from msrsw_v3_0_0_rc8.sl.dtd -->
 <!ELEMENT SW-CPU-SPEC
         (
-          SW-CPU-MEM-SEGS? 
+          SW-CPU-MEM-SEGS?
         )
 >
 
@@ -3340,7 +3340,7 @@ $Id:$
 <!-- from msrsw_v3_0_0_rc8.sl.dtd -->
 <!ELEMENT SW-DATA-DEPENDENCY-ARGS
         (
-          SW-CALPRM-REF 
+          SW-CALPRM-REF
         )*
 >
 
@@ -3427,7 +3427,7 @@ $Id:$
           ADMIN-DATA? ,
           SW-DATA-DICTIONARY-SPEC? ,
           SW-FEATURE-OWNED-ELEMENT-SETS? ,
-          SW-FEATURE-INTERFACES?  
+          SW-FEATURE-INTERFACES?
         )
 >
 
@@ -3609,7 +3609,7 @@ $Id:$
 <!-- from msrsw_v3_0_0_rc8.sl.dtd -->
 <!ELEMENT SW-FEATURE-REFS
         (
-          SW-FEATURE-REF 
+          SW-FEATURE-REF
         )*
 >
 
@@ -3712,7 +3712,7 @@ $Id:$
         (
           SHORT-NAME ,
           LONG-NAME? ,
-          CATEGORY? 
+          CATEGORY?
         )
 >
 
@@ -4299,7 +4299,7 @@ $Id:$
           SW-RECORD-LAYOUT-GROUP-TO? ,
           SW-RECORD-LAYOUT-GROUP-STEP? ,
           SW-RECORD-LAYOUT-COMPONENT? ,
-          
+
           (
             SW-RECORD-LAYOUT-REF |
             SW-RECORD-LAYOUT-V |
@@ -4618,7 +4618,7 @@ $Id:$
           SW-SERVICE-RETURN? ,
           SW-SERVICE-ARGS? ,
           SW-SERVICE-ACCESSED-ELEMENT-SETS? ,
-          SW-SERVICE-PROPS? 
+          SW-SERVICE-PROPS?
         )
 >
 
@@ -4689,7 +4689,7 @@ $Id:$
           SHORT-NAME? ,
           LONG-NAME? ,
           CATEGORY? ,
-          SW-DATA-DEF-PROPS? 
+          SW-DATA-DEF-PROPS?
         )
 >
 
@@ -5129,7 +5129,7 @@ $Id:$
 <!ELEMENT SW-VALUES-CODED
         (
           VF |
-          V 
+          V
         )
 >
 
@@ -5157,7 +5157,7 @@ $Id:$
         (
           VF |
           VT |
-          V 
+          V
         )
 >
 
@@ -5259,7 +5259,7 @@ $Id:$
 <!ELEMENT SW-VARIABLE-IMPL
         (
           SW-VARIABLE-PROTOTYPE-REF ,
-          SW-DATA-DEF-PROPS? 
+          SW-DATA-DEF-PROPS?
         )
 >
 
@@ -5410,7 +5410,7 @@ $Id:$
 <!-- from msrsw_v3_0_0_rc8.sl.dtd -->
 <!ELEMENT SW-VARIABLE-REFS
         (
-          SW-VARIABLE-REF 
+          SW-VARIABLE-REF
         )*
 >
 

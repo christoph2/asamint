@@ -1,12 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import os
 import subprocess
+from distutils.core import Extension, setup
 
-from distutils.core import Extension
-from distutils.core import setup
-from pybind11.setup_helpers import build_ext
-from pybind11.setup_helpers import Pybind11Extension
+from pybind11.setup_helpers import Pybind11Extension, build_ext
 
 
 def probe(command: str) -> str:

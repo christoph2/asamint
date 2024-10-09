@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 
 """
@@ -33,10 +32,10 @@ import pkgutil
 import pya2l.model as model
 
 from asamint.calibration import CalibrationData
-from asamint.logger import Logger
-from asamint.templates import renderTemplateFromText
 from asamint.damos.dcm_listener import Dcm20Listener
+from asamint.logger import Logger
 from asamint.parserlib import ParserWrapper
+from asamint.templates import renderTemplateFromText
 
 # parser = ParserWrapper("dcm20", "konservierung", Dcm20Listener, debug = True)
 
@@ -48,7 +47,7 @@ class DCMCreator(CalibrationData):
     TEMPLATE = pkgutil.get_data("asamint", "data/templates/dcm.tmpl")
 
     def on_init(self, project_config, experiment_config, *args, **kws):
-        super(DCMCreator, self).on_init(project_config, experiment_config, *args, **kws)
+        super().on_init(project_config, experiment_config, *args, **kws)
         self.loadConfig(project_config, experiment_config)
 
     def save(self):
@@ -61,7 +60,7 @@ class DCMCreator(CalibrationData):
 
         res = renderTemplateFromText(self.TEMPLATE, namespace, formatExceptions=False, encoding="latin-1")
         file_name = self.generate_filename(self.EXTENSION)
-        self.logger.info("Saving tree to {}".format(file_name))
-        with open("{}".format(file_name), "wt") as of:
+        self.logger.info(f"Saving tree to {file_name}")
+        with open(f"{file_name}", "w") as of:
             of.write(res)
         print(res)

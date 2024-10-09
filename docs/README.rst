@@ -81,4 +81,3 @@ Miscellaneous
 -------------
 
 **asamint** includes some more or less useful `tools <../tools/README.rst>`_.
-

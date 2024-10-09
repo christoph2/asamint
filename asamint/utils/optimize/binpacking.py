@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Bin-packing algorithms.
 
 Used for instance to optimally assign measurements to ODTs.
@@ -29,33 +28,35 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
+from typing import List
+
 
 class Bin:
     """ """
 
-    def __init__(self, length):
-        self.length = length
-        self.residual_capacity = length  # initial Bin is empty
+    def __init__(self, size):
+        self.size = size
+        self.residual_capacity = size
         self.entries = []
 
     def append(self, entry):
         self.entries.append(entry)
 
     @property
-    def num_entries(self):
+    def __len__(self) -> int:
         return len(self.entries)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self.residual_capacity == other.residual_capacity and self.entries == other.entries
 
-    def __str__(self):
-        return "Bin(residual_capacity: {}  entries: {})".format(self.residual_capacity, self.entries)
+    def __str__(self) -> str:
+        return f"Bin(residual_capacity: {self.residual_capacity}  entries: {self.entries})"
 
     __repr__ = __str__
 
 
-def first_fit_decreasing(items, bin_size):
-    """Solve the classic bin-packing problem with first-fit-decreasing algorithm.
+def first_fit_decreasing(items, bin_size: int) -> List[Bin]:
+    """bin-packing with first-fit-decreasing algorithm.
 
     Parameters
     ----------
@@ -69,7 +70,7 @@ def first_fit_decreasing(items, bin_size):
     list
         Resulting bins
     """
-    bins = [Bin(length=bin_size)]  # Initial bin
+    bins = [Bin(size=bin_size)]  # Initial bin
     for item in sorted(items, key=lambda x: x.length, reverse=True):
         for bin in bins:
             if bin.residual_capacity >= item.length:
@@ -77,7 +78,7 @@ def first_fit_decreasing(items, bin_size):
                 bin.residual_capacity -= item.length
                 break
         else:
-            new_bin = Bin(length=bin_size)
+            new_bin = Bin(size=bin_size)
             bins.append(new_bin)
             new_bin.append(item)
             new_bin.residual_capacity -= item.length

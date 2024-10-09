@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """XML helper classes and functions."""
 
 __copyright__ = """
@@ -28,11 +27,12 @@ __copyright__ = """
 __author__ = "Christoph Schueler"
 
 
-from decimal import Decimal as D, InvalidOperation
+from decimal import Decimal as D
+from decimal import InvalidOperation
 from typing import Optional, Union
 
 from lxml import etree
-from lxml.etree import SubElement, Comment, _Comment, _ProcessingInstruction
+from lxml.etree import Comment, SubElement, _Comment, _ProcessingInstruction
 
 
 def element_name(tree):
@@ -107,7 +107,7 @@ class XMLTraversor:
                     )
                 }
             else:
-                raise TypeError("Not handled node type '{}'".format(type(tree)))
+                raise TypeError(f"Not handled node type '{type(tree)}'")
                 return
         method = "visit_{}".format(tree.tag.lower().replace("-", "_"))
         visitor = getattr(self, method, self.generic_visit)

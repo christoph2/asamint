@@ -55,4 +55,3 @@ Usage
              -t <type>    (timestamp: (a)bsolute/(d)elta/(z)ero/(A)bsolute w date)
 
     CAN IDs and addresses are given and expected in hexadecimal values.
-

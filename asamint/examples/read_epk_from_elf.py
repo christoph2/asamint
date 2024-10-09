@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 __copyright__ = """
   (C) 2022 by Christoph Schueler <cpu12.gems@googlemail.com>
@@ -22,6 +21,7 @@ __copyright__ = """
 """
 
 import argparse
+
 from objutils.elf import ElfParser
 
 
@@ -32,7 +32,7 @@ def main():
     try:
         ep = ElfParser(args.elf_file)
     except Exception as e:
-        print("\n'{}' is not valid ELF file. Raised exception: '{}'.".format(args.elf_file, repr(e)))
+        print(f"\n'{args.elf_file}' is not valid ELF file. Raised exception: '{repr(e)}'.")
         exit(1)
     for section_name, syms in ep.symbols.fetch(sections="calflash_signature", name_pattern="epk", types_str="object").items():
         if not syms:

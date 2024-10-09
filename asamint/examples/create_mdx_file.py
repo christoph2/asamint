@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Create ASAM MDX files from CDF20demo.a2l"""
 
 __copyright__ = """
@@ -26,8 +25,8 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
-from asamint.cmdline import ArgumentParser
 from asamint.asam.mdx import MDXCreator
+from asamint.cmdline import ArgumentParser
 
 
 def main():

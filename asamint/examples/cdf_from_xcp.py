@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 
 """
@@ -28,8 +27,8 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
-from asamint.cmdline import ArgumentParser
 from asamint.cdf import CDFCreator
+from asamint.cmdline import ArgumentParser
 
 
 def main():

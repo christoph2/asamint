@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 """
 
@@ -32,13 +31,13 @@ __author__ = "Christoph Schueler"
 from enum import IntEnum
 from logging import getLogger
 
-from sqlalchemy import func, or_
-
-from pya2l.api.inspect import Measurement, ModCommon, ModPar
 import pya2l.model as model
 from pya2l import DB
+from pya2l.api.inspect import Measurement, ModCommon, ModPar
+from sqlalchemy import func, or_
+
+from asamint.config import get_application
 from asamint.utils import cond_create_directories, current_timestamp
-from asamint.config import Configuration
 
 
 class AsamBaseType:
@@ -121,9 +120,9 @@ class AsamBaseType:
         project = self.project_config.get("SHORTNAME")
         subject = self.experiment_config.get("SHORTNAME")
         if extra:
-            return "{}_{}{}_{}{}".format(project, subject, current_timestamp(), extra, extension)
+            return f"{project}_{subject}{current_timestamp()}_{extra}{extension}"
         else:
-            return "{}_{}{}{}".format(project, subject, current_timestamp(), extension)
+            return f"{project}_{subject}{current_timestamp()}{extension}"
 
     @property
     def session(self):

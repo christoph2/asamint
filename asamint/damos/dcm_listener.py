@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Damos DCM 2.0 Parser.
 """
 
@@ -28,12 +27,11 @@ __copyright__ = """
 """
 
 from decimal import Decimal as D
+from pprint import pprint
 
 import antlr4
 
 from asamint.logger import Logger
-
-from pprint import pprint
 
 
 class BaseListener(antlr4.ParseTreeListener):
@@ -42,7 +40,7 @@ class BaseListener(antlr4.ParseTreeListener):
     value = []
 
     def __init__(self, *args, **kws):
-        super(BaseListener, self).__init__(*args, **kws)
+        super().__init__(*args, **kws)
         self.logger = Logger(__name__)
 
     def getList(self, attr):
@@ -72,7 +70,7 @@ class BaseListener(antlr4.ParseTreeListener):
         ctx.value = ctx.n.text if ctx.n else None
 
     def _formatMessage(self, msg, location):
-        return "[{0}:{1}] {2}".format(location.start.line, location.start.column + 1, msg)
+        return f"[{location.start.line}:{location.start.column + 1}] {msg}"
 
     def _log(self, method, msg, location=None):
         if location:

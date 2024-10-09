@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
@@ -28,9 +27,8 @@ __author__ = "Christoph Schueler"
 
 
 import numpy as np
-from lxml.etree import Element, tostring
-
 from asammdf import MDF, Signal
+from lxml.etree import Element, tostring
 from pya2l.api import inspect
 
 from asamint.asam import AsamBaseType
@@ -126,9 +124,9 @@ class MDFCreator(AsamBaseType):
         for measurement in self.measurements:
             # matrixDim = measurement.matrixDim  # TODO: Measurements are not necessarily scalars!
             if measurement.name not in data:
-                self.logger.warn("NO data for measurement '{}'.".format(measurement.name))
+                self.logger.warn(f"NO data for measurement '{measurement.name}'.")
                 continue
-            self.logger.info("Adding SIGNAL: '{}'.".format(measurement.name))
+            self.logger.info(f"Adding SIGNAL: '{measurement.name}'.")
 
             comment = measurement.longIdentifier
             # data_type = measurement.datatype
@@ -206,8 +204,8 @@ class MDFCreator(AsamBaseType):
                 default_value = compuMethod.tab["default_value"]
                 in_values = compuMethod.tab["in_values"]
                 out_values = compuMethod.tab["out_values"]
-                conversion = {"raw_{}".format(i): in_values[i] for i in range(len(in_values))}
-                conversion.update({"phys_{}".format(i): out_values[i] for i in range(len(out_values))})
+                conversion = {f"raw_{i}": in_values[i] for i in range(len(in_values))}
+                conversion.update({f"phys_{i}": out_values[i] for i in range(len(out_values))})
                 conversion.update(default=default_value)
                 conversion.update(interpolation=interpolation)
             elif cm_type == "TAB_VERB":
@@ -216,14 +214,14 @@ class MDFCreator(AsamBaseType):
                 if compuMethod.tab_verb["ranges"]:
                     lower_values = compuMethod.tab_verb["lower_values"]
                     upper_values = compuMethod.tab_verb["upper_values"]
-                    conversion = {"lower_{}".format(i): lower_values[i] for i in range(len(lower_values))}
-                    conversion.update({"upper_{}".format(i): upper_values[i] for i in range(len(upper_values))})
-                    conversion.update({"text_{}".format(i): text_values[i] for i in range(len(text_values))})
+                    conversion = {f"lower_{i}": lower_values[i] for i in range(len(lower_values))}
+                    conversion.update({f"upper_{i}": upper_values[i] for i in range(len(upper_values))})
+                    conversion.update({f"text_{i}": text_values[i] for i in range(len(text_values))})
                     conversion.update(default=bytes(default_value, encoding="utf-8") if default_value else b"")
                 else:
                     in_values = compuMethod.tab_verb["in_values"]
-                    conversion = {"val_{}".format(i): in_values[i] for i in range(len(in_values))}
-                    conversion.update({"text_{}".format(i): text_values[i] for i in range(len(text_values))})
+                    conversion = {f"val_{i}": in_values[i] for i in range(len(in_values))}
+                    conversion.update({f"text_{i}": text_values[i] for i in range(len(text_values))})
                     conversion.update(default=default_value)
         return conversion
 

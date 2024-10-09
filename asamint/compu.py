@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
@@ -29,10 +28,8 @@ __author__ = "Christoph Schueler"
 
 from collections.abc import Mapping
 
-
-from pya2l import DB
 import pya2l.model as model
-
+from pya2l import DB
 
 """
 a2ldb_import [imex]
@@ -134,7 +131,7 @@ measurements = session.query(model.Measurement).order_by(model.Measurement.name)
 cms = CompuMethods(session)
 
 for m in measurements:
-    print("{:48} {:12} 0x{:08x}".format(m.name, m.datatype, m.ecu_address.address))
+    print(f"{m.name:48} {m.datatype:12} 0x{m.ecu_address.address:08x}")
     # print("{:48} {:12} 0x{:08x} [{}]".format(m.name, m.datatype, m.ecu_address.address, m.conversion))
 
 conversions = session.query(model.Measurement.conversion).filter(model.Measurement.conversion != "NO_COMPU_METHOD").distinct()

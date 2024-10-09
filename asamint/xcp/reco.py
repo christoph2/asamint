@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Raw XCP traffic recorder.
 
 Data is stored in LZ4 compressed containers.
@@ -39,23 +38,22 @@ __copyright__ = """
 """
 
 import bisect
-from collections import namedtuple
 import enum
 import mmap
-from multiprocessing import Event, Process, Pool, Queue, cpu_count
 import os
 import pathlib
-from pprint import pprint
 import struct
+from collections import namedtuple
+from multiprocessing import Event, Pool, Process, Queue, cpu_count
+from pprint import pprint
 
 import lz4.block as lz4block
-
 
 FILE_EXTENSION = ".xmraw"  # XCP Measurement / raw data.
 
 MAGIC = b"ASAMINT::XCP_RAW"
 
-FILE_HEADER_STRUCT = struct.Struct("<{:d}sHHHLLLL".format(len(MAGIC)))
+FILE_HEADER_STRUCT = struct.Struct(f"<{len(MAGIC):d}sHHHLLLL")
 FileHeader = namedtuple(
     "FileHeader",
     "magic hdr_size version options num_containers record_count size_compressed size_uncompressed",
@@ -132,7 +130,7 @@ class XcpLogFileWriter:
     ):
         self._is_closed = True
         try:
-            self._of = open("{}{}".format(file_name, FILE_EXTENSION), "w+b")
+            self._of = open(f"{file_name}{FILE_EXTENSION}", "w+b")
         except Exception:
             raise
         else:
@@ -211,7 +209,7 @@ class XcpLogFileWriter:
         try:
             self._mapping[address : address + length] = data
         except IndexError:
-            raise XcpLogFileCapacityExceededError("Maximum file size of {} MBytes exceeded.".format(self.prealloc))
+            raise XcpLogFileCapacityExceededError(f"Maximum file size of {self.prealloc} MBytes exceeded.")
 
     def _write_header(
         self,
@@ -251,7 +249,7 @@ class XcpLogFileReader:
     def __init__(self, file_name):
         self._is_closed = True
         try:
-            self._log_file = open("{}{}".format(file_name, FILE_EXTENSION), "r+b")
+            self._log_file = open(f"{file_name}{FILE_EXTENSION}", "r+b")
         except Exception:
             raise
         else:
@@ -268,7 +266,7 @@ class XcpLogFileReader:
             self.total_size_uncompressed,
         ) = FILE_HEADER_STRUCT.unpack(self.get(0, FILE_HEADER_STRUCT.size))
         if magic != MAGIC:
-            raise XcpLogFileParseError("Invalid file magic: '{}'.".format(magic))
+            raise XcpLogFileParseError(f"Invalid file magic: '{magic}'.")
 
     def __del__(self):
         if not self._is_closed:
@@ -340,7 +338,7 @@ class Worker(Process):
         chunk_size: int = 1024,
         compression_level: int = 9,
     ):
-        super(Worker, self).__init__()
+        super().__init__()
         self.shutdown_event = Event()
         self.frame_queue = Queue()
         self.file_name = file_name
@@ -372,7 +370,7 @@ class Worker(Process):
 
 class LogConverter(Process):
     def __init__(self, slave_properties, daq_info, log_file_name):
-        super(LogConverter, self).__init__()
+        super().__init__()
         self.daq_info = daq_info
         self.slave_properties = slave_properties
         self.byte_order_prefix = struct_byte_order_prefix(slave_properties["byteOrder"])
@@ -402,7 +400,7 @@ class LogConverter(Process):
         idf = daq_key_byte["identificationField"]
 
         if idf:
-            daq_pid_struct = struct.Struct("{}{}".format(self.byte_order_prefix, DAQ_PID_FORMAT.get(idf)))
+            daq_pid_struct = struct.Struct(f"{self.byte_order_prefix}{DAQ_PID_FORMAT.get(idf)}")
             # daq_pid_size = daq_pid_struct.size
         else:
             daq_pid_struct = None
@@ -422,7 +420,7 @@ class LogConverter(Process):
         print("# of frames:        ", reader.total_record_count)
         print("Size / uncompressed:", reader.total_size_uncompressed)
         print("Size / compressed:  ", reader.total_size_compressed)
-        print("Compression ratio:   {:3.3f}".format(reader.compression_ratio or 0.0))
+        print(f"Compression ratio:   {reader.compression_ratio or 0.0:3.3f}")
         print("-" * 32, end="\n\n")
         print("Processing frames...")
         for frame in reader.frames:

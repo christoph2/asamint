@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 
 """
@@ -28,33 +27,30 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
-from collections import OrderedDict
-from enum import IntEnum
 import functools
 import os
-from typing import Any, Union
 import sys
+from collections import OrderedDict
+from enum import IntEnum
+from typing import Any, Union
 
+# from asamint.calibration import model as cmod
+import model as cmod
 import numpy as np
-from pya2l.classes import READ_ONLY
-
-from asamint.asam import AsamBaseType
-
-from asamint.asam import ByteOrder, TYPE_SIZES, get_section_reader
-from asamint.logger import Logger
-from asamint.utils import SINGLE_BITS, ffs, current_timestamp
-from asamint.utils.optimize import McObject, make_continuous_blocks
-from asamint.calibration import model as cmod
-
+import pya2l.model as model
+from objutils import Image, Section, dump, load
 from pya2l import DB
-from pya2l.api.inspect import AxisPts, CompuMethod, Characteristic, ModCommon, ModPar
 from pya2l.api import inspect
+from pya2l.api.inspect import (AxisPts, Characteristic, CompuMethod, ModCommon,
+                               ModPar)
+from pya2l.classes import READ_ONLY
 from pya2l.functions import fix_axis_par, fix_axis_par_dist
 
-import pya2l.model as model
-
-from objutils import dump, load, Image, Section
-
+from asamint.asam import (TYPE_SIZES, AsamBaseType, ByteOrder,
+                          get_section_reader)
+from asamint.logger import Logger
+from asamint.utils import SINGLE_BITS, current_timestamp, ffs
+from asamint.utils.optimize import McObject, make_continuous_blocks
 
 ver_info = sys.version_info
 
@@ -583,7 +579,7 @@ class CalibrationData(AsamBaseType):
         epk_a2l, epk_addr = self.a2l_epk
         xcp_master.setMta(epk_addr)
         epk_xcp = xcp_master.pull(len(epk_a2l))
-        epk_xcp = epk_xcp[ : len(epk_a2l)].decode("ascii")
+        epk_xcp = epk_xcp[: len(epk_a2l)].decode("ascii")
         ok = epk_xcp == epk_a2l
         if not ok:
             self.logger.warn(f"EPK is invalid -- A2L: '{self.mod_par.epk}' XCP: '{epk_xcp}'.")
@@ -761,7 +757,7 @@ class CalibrationData(AsamBaseType):
         for block in blocks:
             xcp_master.setMta(block.address)
             mem = xcp_master.pull(block.length)
-            sections.append(Section(start_address=block.address, data=mem[ : block.length]))
+            sections.append(Section(start_address=block.address, data=mem[: block.length]))
         img = Image(sections=sections, join=True)
         if save_to_file:
             file_name = f'CalParams{current_timestamp()}.{"hex" if hexfile_type == "ihex" else "srec"}'

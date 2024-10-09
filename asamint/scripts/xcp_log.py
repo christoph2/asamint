@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Read / export XCP raw measurement files.
 """
 
@@ -45,11 +44,11 @@ def main():
     print("# of frames:        ", reader.total_record_count)
     print("Size / uncompressed:", reader.total_size_uncompressed)
     print("Size / compressed:  ", reader.total_size_compressed)
-    print("Compression ratio:   {:3.3f}".format(reader.compression_ratio))
+    print(f"Compression ratio:   {reader.compression_ratio:3.3f}")
     print("-" * 32, end="\n\n")
     if args.csv_file:
-        with open(args.csv_file, "wt", newline="") as outf:
-            print("Writing frames to '{}'...".format(outf.name))
+        with open(args.csv_file, "w", newline="") as outf:
+            print(f"Writing frames to '{outf.name}'...")
             csv_writer = csv.writer(outf)
             for frame in reader.frames:
                 cat, counter, timestamp, data = frame

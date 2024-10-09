@@ -1,5 +1,4 @@
 # Generated from dcm20.g4 by ANTLR 4.8
-# encoding: utf-8
 import sys
 from io import StringIO
 
@@ -1717,10 +1716,8 @@ class dcm20Parser(Parser):
             localctx.cat = self._input.LT(1)
             _la = self._input.LA(1)
             if not (
-                (
                     ((_la) & ~0x3F) == 0
                     and ((1 << _la) & ((1 << dcm20Parser.T__13) | (1 << dcm20Parser.T__14) | (1 << dcm20Parser.T__15))) != 0
-                )
             ):
                 localctx.cat = self._errHandler.recoverInline(self)
             else:
@@ -1864,10 +1861,8 @@ class dcm20Parser(Parser):
             localctx.cat = self._input.LT(1)
             _la = self._input.LA(1)
             if not (
-                (
                     ((_la) & ~0x3F) == 0
                     and ((1 << _la) & ((1 << dcm20Parser.T__16) | (1 << dcm20Parser.T__17) | (1 << dcm20Parser.T__18))) != 0
-                )
             ):
                 localctx.cat = self._errHandler.recoverInline(self)
             else:

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Optimize data-structures like memory sections."""
 
 __copyright__ = """
@@ -27,8 +26,10 @@ __copyright__ = """
 """
 
 from collections import defaultdict, namedtuple
+from dataclasses import dataclass, field
 from itertools import groupby
 from operator import attrgetter
+from typing import Dict, List, Tuple, Union
 
 from sortedcontainers import SortedListWithKey
 
@@ -78,34 +79,35 @@ class DaqList:
                 return None
 
 
+@dataclass(init=True, repr=True, eq=True)
 class McObject:
-    """Measurement and Calibration objects have an address and a length.
+    """Measurement and Calibration objects have an address, address-extension, and a length.
 
     Used as input for optimization algorithms.
     """
 
-    def __init__(self, name="", address=0, length=0):
-        self.name = name
-        self.address = address
-        self.length = length
+    name: str
+    address: int
+    ext: int = 0
+    length: int = 0
 
-    def __repr__(self):
-        return 'McObject(name = "{}", address = 0x{:08x}, length = {})'.format(self.name, self.address, self.length)
+    def __post_init__(self):
+        if self.length <= 0:
+            raise ValueError("length must be positive")
 
-    def __eq__(self, other):
-        return self.address == other.address and self.length == other.length
+    def __contains__(self, address: int, ext: int = 0) -> bool:
+        return (self.ext == ext) and (self.address <= address < self.address + self.length)
 
-    def __contains__(self, address):
-        return self.address <= address < self.address + self.length
-
-    def index(self, address):
+    """
+    def index(self, address: int) -> int:
         if address not in self:
             raise ValueError("0x{:08x} is not in address range.".format(address))
         else:
             return address - self.address
+    """
 
 
-def make_continuous_blocks(chunks, upper_bound=None, upper_bound_initial=None):
+def make_continuous_blocks(chunks: List[McObject], upper_bound=None, upper_bound_initial=None) -> List[McObject]:
     """Try to make continous blocks from a list of small, unordered `chunks`.
 
     Parameters
@@ -117,17 +119,19 @@ def make_continuous_blocks(chunks, upper_bound=None, upper_bound_initial=None):
     sorted list of `McObject`
     """
 
-    # Objects can share addresses, for instance MEASUREMENTs with different COMPU_METHODs.
+    KEY = lambda x: (x.ext, x.address)
+
     values = []
     # 1. Groupy by address.
-    for key, value in groupby(sorted(chunks, key=attrgetter("address")), key=attrgetter("address")):
+    for key, value in groupby(sorted(chunks, key=KEY), key=KEY):
         # 2. Pick the largest one.
         values.append(max(value, key=attrgetter("length")))
     result_sections = []
     last_section = None
+    last_ext = None
     while values:
         section = values.pop(0)
-        if last_section and section.address <= last_section.address + last_section.length:
+        if (last_section and section.address <= last_section.address + last_section.length) and not (section.ext != last_ext):
             last_end = last_section.address + last_section.length - 1
             current_end = section.address + section.length - 1
             if last_end > section.address:
@@ -138,11 +142,12 @@ def make_continuous_blocks(chunks, upper_bound=None, upper_bound_initial=None):
                     if last_section.length + offset <= upper_bound:
                         last_section.length += offset
                     else:
-                        result_sections.append(McObject(address=section.address, length=section.length))
+                        result_sections.append(McObject(name="", address=section.address, ext=section.ext, length=section.length))
                 else:
                     last_section.length += offset
         else:
             # Create a new section.
-            result_sections.append(McObject(address=section.address, length=section.length))
+            result_sections.append(McObject(name="", address=section.address, ext=section.ext, length=section.length))
         last_section = result_sections[-1]
+        last_ext = last_section.ext
     return result_sections

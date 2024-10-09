@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
@@ -30,12 +29,12 @@ __version__ = "0.9"
 ## Convenience functions for Mako Templates.
 ##
 
-from io import StringIO
 import re
+from io import StringIO
 
-from mako.template import Template
-from mako.runtime import Context
 from mako import exceptions
+from mako.runtime import Context
+from mako.template import Template
 
 
 def indentText(text: str, leftmargin: int = 0):
