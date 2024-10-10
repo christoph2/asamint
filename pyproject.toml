@@ -55,4 +55,72 @@ requires = ["poetry-core>=1.0.0", "pybind11>=2.12.0",  "pybind11[global]>=2.12.0
 build-backend = "poetry.core.masonry.api"
 
 [project]
+name = "asamint"
 dynamic = ["license", "readme", "authors", "requires-python", "description", "classifiers", "scripts", "dependencies", "optional-dependencies"]
+
+[tool.pytest]
+addopts = "--verbose --tb=short --junitxml=result.xml -o junit_family=xunit2"
+testpaths = "pyxcp/tests"
+
+[tool.isort]
+profile = "black"
+force_single_line = false
+lines_after_imports = 2
+
+[tool.mypy]
+strict = false
+warn_unreachable = true
+pretty = true
+show_column_numbers = true
+show_error_context = true
+
+[tool.flake8]
+ignore = ["D203", "E203", "E266", "E501", "W503", "F403", "F401", "BLK100"]
+exclude = '''
+/(
+    \.git
+    | __pycache__
+    | __pypackages__
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | \.eggs
+    | _build
+    | build
+    | docs
+    | dist
+    | experimental
+	| asamint/parsers/
+)/
+'''
+max-complexity = 10
+count = true
+statistics = true
+show-source = true
+max-line-length = 132
+select = ["B","C","E","F","W","T4","B9"]
+# extend-select = "B950"
+extend-ignore = ["E203", "E501", "E701"]
+
+[tool.ruff]
+line-length = 132
+
+[tool.black]
+line-length=132
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | build
+    | docs
+    | experimental
+    | __pycache__
+    | __pypackages__
+    | dist
+	| asamint/parsers/
+)/
+'''

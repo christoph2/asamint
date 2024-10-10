@@ -24803,6 +24803,7 @@ ELEMENTS = {
     "MSR-QUERY-NAME": MsrQueryName,
     "MSR-QUERY-RESULT-TEXT": MsrQueryResultText,
     "COMMENT": Comment,
+    etree.Comment: Comment,
     "MSR-QUERY-ARG": MsrQueryArg,
     "MSR-QUERY-PROPS": MsrQueryProps,
     "MSR-QUERY-TEXT": MsrQueryText,
@@ -25520,6 +25521,9 @@ class Parser:
         print(tree, tree.text)
         res = []
         element = ELEMENTS.get(tree.tag)
+        if not element:
+            print(f"invalid tag: {tree.tag}")
+            return []
         obj = element()
         for name, value in tree.attrib.items():
             name = self.get_attr(name)
@@ -25538,11 +25542,14 @@ class Parser:
                 res, key=lambda c: c.__class__.__name__
             ):
                 items = list(items)
-                axx = getattr(obj, obj.ELEMENTS[key])
-                if isinstance(axx, InstrumentedList):
-                    axx.extend(items)
+                if key == 'Comment':
+                    pass
                 else:
-                    setattr(obj, obj.ELEMENTS[key], items[0])
+                    axx = getattr(obj, obj.ELEMENTS[key])
+                    if isinstance(axx, InstrumentedList):
+                        axx.extend(items)
+                    else:
+                        setattr(obj, obj.ELEMENTS[key], items[0])
         self.db.session.add(obj)
         return obj
 
