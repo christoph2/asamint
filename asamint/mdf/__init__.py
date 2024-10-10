@@ -82,9 +82,7 @@ class MDFCreator(AsamBaseType):
             if sys_constants:
                 elem_constants = create_elem(elem_root, "constants")
                 for name, value in sys_constants.items():
-                    create_elem(
-                        elem_constants, "const", text=str(value), attrib={"name": name}
-                    )
+                    create_elem(elem_constants, "const", text=str(value), attrib={"name": name})
             cps = create_elem(elem_root, "common_properties")
             create_elem(
                 cps,
@@ -136,9 +134,7 @@ class MDFCreator(AsamBaseType):
             conversion_map = self.ccblock(compuMethod)
             unit = compuMethod.unit if compuMethod != "NO_COMPU_METHOD" else None
             samples = data.get(measurement.name)
-            samples = np.array(
-                samples, copy=False
-            )  # Make sure array-like data is of type `ndarray`.
+            samples = np.array(samples, copy=False)  # Make sure array-like data is of type `ndarray`.
 
             # Step #1: bit fiddling.
             bitMask = measurement.bitMask
@@ -209,9 +205,7 @@ class MDFCreator(AsamBaseType):
                 in_values = compuMethod.tab["in_values"]
                 out_values = compuMethod.tab["out_values"]
                 conversion = {f"raw_{i}": in_values[i] for i in range(len(in_values))}
-                conversion.update(
-                    {f"phys_{i}": out_values[i] for i in range(len(out_values))}
-                )
+                conversion.update({f"phys_{i}": out_values[i] for i in range(len(out_values))})
                 conversion.update(default=default_value)
                 conversion.update(interpolation=interpolation)
             elif cm_type == "TAB_VERB":
@@ -220,33 +214,14 @@ class MDFCreator(AsamBaseType):
                 if compuMethod.tab_verb["ranges"]:
                     lower_values = compuMethod.tab_verb["lower_values"]
                     upper_values = compuMethod.tab_verb["upper_values"]
-                    conversion = {
-                        f"lower_{i}": lower_values[i] for i in range(len(lower_values))
-                    }
-                    conversion.update(
-                        {
-                            f"upper_{i}": upper_values[i]
-                            for i in range(len(upper_values))
-                        }
-                    )
-                    conversion.update(
-                        {f"text_{i}": text_values[i] for i in range(len(text_values))}
-                    )
-                    conversion.update(
-                        default=(
-                            bytes(default_value, encoding="utf-8")
-                            if default_value
-                            else b""
-                        )
-                    )
+                    conversion = {f"lower_{i}": lower_values[i] for i in range(len(lower_values))}
+                    conversion.update({f"upper_{i}": upper_values[i] for i in range(len(upper_values))})
+                    conversion.update({f"text_{i}": text_values[i] for i in range(len(text_values))})
+                    conversion.update(default=(bytes(default_value, encoding="utf-8") if default_value else b""))
                 else:
                     in_values = compuMethod.tab_verb["in_values"]
-                    conversion = {
-                        f"val_{i}": in_values[i] for i in range(len(in_values))
-                    }
-                    conversion.update(
-                        {f"text_{i}": text_values[i] for i in range(len(text_values))}
-                    )
+                    conversion = {f"val_{i}": in_values[i] for i in range(len(in_values))}
+                    conversion.update({f"text_{i}": text_values[i] for i in range(len(text_values))})
                     conversion.update(default=default_value)
         return conversion
 

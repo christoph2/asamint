@@ -26,8 +26,7 @@ __copyright__ = """
 from asamint import parserlib
 from asamint.damos.dcm_listener import Dcm20Listener
 
+
 parser = parserlib.ParserWrapper("dcm20", "konservierung", Dcm20Listener)
-res = parser.parseFromFile(
-    r"F:\projekte\csProjects\py-asam-int\asam_integration_package\asamint\damos\ex.dcm"
-)
+res = parser.parseFromFile(r"F:\projekte\csProjects\py-asam-int\asam_integration_package\asamint\damos\ex.dcm")
 print(res)

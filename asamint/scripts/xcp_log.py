@@ -36,9 +36,7 @@ from asamint.xcp.reco import XcpLogFileReader
 def main():
     ep = argparse.ArgumentParser()
     ep.add_argument("input_file", help="Input file (extension .xmraw)")
-    ep.add_argument(
-        "-c", "--export-to-csv", dest="csv_file", help="Write XCP frames to .CSV file"
-    )
+    ep.add_argument("-c", "--export-to-csv", dest="csv_file", help="Write XCP frames to .CSV file")
     args = ep.parse_args()
     print()
     reader = XcpLogFileReader(args.input_file)

@@ -306,9 +306,7 @@ def test_axis_pts004(offline):
 
 
 def test_axis_pts005(offline):
-    load_save_verify_axis_pts(
-        offline, "LUT2D_1_y_table", [181, 231, 75], [1.4140625, 1.8046875, 0.5859375]
-    )
+    load_save_verify_axis_pts(offline, "LUT2D_1_y_table", [181, 231, 75], [1.4140625, 1.8046875, 0.5859375])
 
 
 def test_axis_pts006(offline):

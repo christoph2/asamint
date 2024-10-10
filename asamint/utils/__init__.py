@@ -42,6 +42,7 @@ import numpy as np
 from babel import default_locale
 from babel.dates import format_datetime
 
+
 SINGLE_BITS = frozenset([2**b for b in range(64 + 1)])
 
 
@@ -148,10 +149,7 @@ def slicer(iterable, sliceLength, converter=None):
     if converter is None:
         converter = type(iterable)
     length = len(iterable)
-    return [
-        converter(iterable[item : item + sliceLength])
-        for item in range(0, length, sliceLength)
-    ]
+    return [converter(iterable[item : item + sliceLength]) for item in range(0, length, sliceLength)]
 
 
 def int_log2(x: float) -> int:

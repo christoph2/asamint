@@ -10,6 +10,7 @@ from typing import List
 
 from asamint.config import create_application
 
+
 warnings.simplefilter("always")
 
 
@@ -25,7 +26,7 @@ class Option:
 
 class FakeParser:
 
-    options: List[Option] = []
+    options: list[Option] = []
 
     def add_argument(
         self,
@@ -48,9 +49,7 @@ class ArgumentParser:
     def __init__(self, callout=None, *args, **kws):
         self._parser = FakeParser()
         if callout is not None:
-            warnings.warn(
-                "callout  argument is currently not supported.", DeprecationWarning, 2
-            )
+            warnings.warn("callout  argument is currently not supported.", DeprecationWarning, 2)
 
     def run(self, policy=None, transport_layer_interface=None):
         application = create_application(self.parser.options)

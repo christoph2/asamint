@@ -30,6 +30,7 @@ from rich import pretty
 from rich.console import Console
 from rich.traceback import install as tb_install
 
+
 pretty.install()
 
 # from .master import Master  # noqa: F401, E402

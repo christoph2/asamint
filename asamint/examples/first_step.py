@@ -29,6 +29,7 @@ from pprint import pprint
 
 from pyxcp.cmdline import ArgumentParser
 
+
 ap = ArgumentParser(description="pyXCP hello world.")
 with ap.run() as x:
     x.connect()

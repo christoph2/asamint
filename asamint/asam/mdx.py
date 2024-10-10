@@ -30,8 +30,7 @@ __copyright__ = """
 
 import pya2l.model as model
 from lxml import etree
-from pya2l.api.inspect import (Characteristic, CompuMethod, Measurement,
-                               ModCommon)
+from pya2l.api.inspect import Characteristic, CompuMethod, Measurement, ModCommon
 
 import asamint.msrsw as msrsw
 from asamint.asam import AsamBaseType
@@ -68,9 +67,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamBaseType):
     )
     """
 
-    DOCTYPE = (
-        '<!DOCTYPE MSRSW PUBLIC "-//MSR//DTD MSR SOFTWARE DTD:V2.2.0:MSRSW.DTD//EN">'
-    )
+    DOCTYPE = '<!DOCTYPE MSRSW PUBLIC "-//MSR//DTD MSR SOFTWARE DTD:V2.2.0:MSRSW.DTD//EN">'
     # <!DOCTYPE MSRSW PUBLIC"-//ASAM//DTD MSR SOFTWARE DTD:V3.0.0:LAI:IAI:XML:MSRSW300.XSD//EN" "MSRSW_v3.0.0.DTD">
     DTD = "mdx_v1_0_0.sl.dtd"
     EXTENSION = "_mdx.xml"
@@ -116,11 +113,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamBaseType):
         PHYSICAL-DIMENSION-REF?
         """
         cm_units = self.query(model.CompuMethod.unit.distinct()).all()
-        self.cm_units = {
-            u[0]: format(f"{replace_non_c_char(u[0])}_{sha1_digest(u[0])}")
-            for u in cm_units
-            if u[0]
-        }
+        self.cm_units = {u[0]: format(f"{replace_non_c_char(u[0])}_{sha1_digest(u[0])}") for u in cm_units if u[0]}
         unit_spec = create_elem(tree, "UNIT-SPEC")
         units = create_elem(unit_spec, "UNITS")
         for k, v in self.cm_units.items():
@@ -140,11 +133,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamBaseType):
             compu_method = meas.compuMethod
             constr_name = f"CONSTR_{meas.name}"
             arraySize = (meas.arraySize,) if meas.arraySize else None
-            matrixDim = (
-                (meas.matrixDim["x"], meas.matrixDim["y"], meas.matrixDim["z"])
-                if meas.matrixDim
-                else None
-            )
+            matrixDim = (meas.matrixDim["x"], meas.matrixDim["y"], meas.matrixDim["z"]) if meas.matrixDim else None
             is_array = arraySize or matrixDim
             datatype = meas.datatype
             is_ascii = datatype == "ASCII"
@@ -222,11 +211,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamBaseType):
             # print(chx)
             compu_method = chx.compuMethod
             # constr_name = "CONSTR_{}".format(chx.name)
-            matrixDim = (
-                (chx.matrixDim["x"], chx.matrixDim["y"], chx.matrixDim["z"])
-                if chx.matrixDim
-                else None
-            )
+            matrixDim = (chx.matrixDim["x"], chx.matrixDim["y"], chx.matrixDim["z"]) if chx.matrixDim else None
             datatype = chx.fnc_asam_dtype
             is_dependent = True if chx.dependentCharacteristic else False
             is_ascii = chx.type == "ASCII"
@@ -234,15 +219,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamBaseType):
             if is_block:
                 if matrixDim:
                     dim = (m for m in matrixDim if m and m > 1)
-            category = (
-                "VALUE_ARRAY"
-                if is_block
-                else (
-                    "DEPENDENT_VALUE"
-                    if is_dependent
-                    else "ASCII" if is_ascii else "VALUE"
-                )
-            )
+            category = "VALUE_ARRAY" if is_block else ("DEPENDENT_VALUE" if is_dependent else "ASCII" if is_ascii else "VALUE")
             cal_parm = create_elem(cal_parms, "SW-CALPRM", attrib={"ID": ch_name})
             self.common_elements(
                 cal_parm,
@@ -262,11 +239,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamBaseType):
             )
             if is_ascii:
                 text_props = create_elem(data_def_props, "SW-TEXT-PROPS")
-                size = (
-                    chx.number
-                    if chx.number is not None
-                    else matrixDim[0] if matrixDim else 0
-                )
+                size = chx.number if chx.number is not None else matrixDim[0] if matrixDim else 0
                 create_elem(text_props, "SW-MAX-TEXT-SIZE", text=str(size))
             else:
                 create_elem(data_def_props, "COMPU-METHOD-REF", text=compu_method.name)
@@ -342,9 +315,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamBaseType):
 
     def _compu_methods(self, tree):
         cm_tree = create_elem(tree, "COMPU-METHODS")
-        for conversion in [
-            x[0] for x in self.session.query(model.CompuMethod.name).all()
-        ]:
+        for conversion in [x[0] for x in self.session.query(model.CompuMethod.name).all()]:
             cm = CompuMethod.get(self.session, conversion)
             self._compu_method(cm_tree, conversion, cm)
 
@@ -421,9 +392,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamBaseType):
                 lower_values = compu_method.tab_verb["lower_values"]
                 upper_values = compu_method.tab_verb["upper_values"]
                 text_values = compu_method.tab_verb["text_values"]
-                for lower_value, upper_value, text_value in zip(
-                    lower_values, upper_values, text_values
-                ):
+                for lower_value, upper_value, text_value in zip(lower_values, upper_values, text_values):
                     scale = create_elem(scales, "COMPU-SCALE")
                     create_elem(
                         scale,

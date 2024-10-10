@@ -31,18 +31,29 @@ import re
 import sqlite3
 from datetime import datetime
 
-from sqlalchemy import (Column, ForeignKey, ForeignKeyConstraint, MetaData,
-                        UniqueConstraint, create_engine, event, func, inspect,
-                        orm, schema, types)
+from sqlalchemy import (
+    Column,
+    ForeignKey,
+    ForeignKeyConstraint,
+    MetaData,
+    UniqueConstraint,
+    create_engine,
+    event,
+    func,
+    inspect,
+    orm,
+    schema,
+    types,
+)
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.ext.declarative import (as_declarative, declarative_base,
-                                        declared_attr)
+from sqlalchemy.ext.declarative import as_declarative, declarative_base, declared_attr
 from sqlalchemy.ext.orderinglist import ordering_list
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.sql import and_, exists
 
 from asamint.logger import Logger
+
 
 # from sqlalchemy.ext.automap import automap_base
 
@@ -183,16 +194,12 @@ class ValueAssociation(Base):
 class Value(Base):
 
     association_rid = Column(types.Integer, ForeignKey("value_association.rid"))
-    association = relationship(
-        "ValueAssociation", backref="raw_values", foreign_keys=[association_rid]
-    )
+    association = relationship("ValueAssociation", backref="raw_values", foreign_keys=[association_rid])
     # association = relationship("ValueAssociation", backref = "raw_values")
     parent = association_proxy("association", "parent")
 
     c_association_rid = Column(types.Integer, ForeignKey("value_association.rid"))
-    c_association = relationship(
-        "ValueAssociation", backref="converted_values", foreign_keys=[c_association_rid]
-    )
+    c_association = relationship("ValueAssociation", backref="converted_values", foreign_keys=[c_association_rid])
     parent = association_proxy("c_association", "parent")
 
     float_value = StdFloat()
@@ -230,9 +237,7 @@ class HasValues:
         cls.converted_values = association_proxy(
             "value_association",
             "converted_values",
-            creator=lambda converted_values: assoc_cls(
-                converted_values=converted_values
-            ),
+            creator=lambda converted_values: assoc_cls(converted_values=converted_values),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -420,9 +425,7 @@ class CalibrationDB:
         self._engine = create_engine(
             f"sqlite:///{self.dbname}",
             echo=debug,
-            connect_args={
-                "detect_types": sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
-            },
+            connect_args={"detect_types": sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES},
             native_datetime=True,
         )
         self._session = orm.Session(self._engine, autoflush=False, autocommit=False)
@@ -434,9 +437,7 @@ class CalibrationDB:
         self.logger = Logger(__name__, level=logLevel)
 
     @classmethod
-    def _open_or_create(
-        cls, filename=":memory:", debug=False, logLevel="INFO", create=True
-    ):
+    def _open_or_create(cls, filename=":memory:", debug=False, logLevel="INFO", create=True):
         """ """
         inst = cls(filename, debug, logLevel, create)
         return inst

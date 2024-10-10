@@ -30,6 +30,7 @@ from create import create_example_hexfile
 from objutils import load
 from pyxcp.cmdline import ArgumentParser
 
+
 HEX_FILE_NAME = "paged_flash.s28"
 
 if not exists(HEX_FILE_NAME):

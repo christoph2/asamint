@@ -5,6 +5,7 @@ from glob import glob
 
 from setuptools import find_packages, setup
 
+
 with open("docs/README.rst") as readme_file:
     readme = readme_file.read()
 

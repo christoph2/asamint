@@ -33,10 +33,20 @@ from pathlib import Path
 
 from rich.logging import RichHandler
 from rich.prompt import Confirm
-from traitlets import (Any, Bool, Callable, Dict, Enum, Float, Integer, List,
-                       TraitError, Unicode, Union)
-from traitlets.config import (Application, Instance, SingletonConfigurable,
-                              default)
+from traitlets import (
+    Any,
+    Bool,
+    Callable,
+    Dict,
+    Enum,
+    Float,
+    Integer,
+    List,
+    TraitError,
+    Unicode,
+    Union,
+)
+from traitlets.config import Application, Instance, SingletonConfigurable, default
 
 
 class General(SingletonConfigurable):
@@ -44,28 +54,18 @@ class General(SingletonConfigurable):
 
     author = Unicode(default_value="", help="Author of the project").tag(config=True)
     company = Unicode(default_value="", help="Company of the project").tag(config=True)
-    department = Unicode(default_value="", help="Department of the project").tag(
-        config=True
-    )
+    department = Unicode(default_value="", help="Department of the project").tag(config=True)
     project = Unicode(default_value="", help="Project name").tag(config=True)
     shortname = Unicode(
         default_value="",
         help="Short name of the project (Contributes to filename generation)",
     ).tag(config=True)
-    pyxcp_config_file = Unicode(
-        default_value="pyxcp_conf.py", help="pyXCP config file"
-    ).tag(config=True)
+    pyxcp_config_file = Unicode(default_value="pyxcp_conf.py", help="pyXCP config file").tag(config=True)
     a2l_file = Unicode(default_value="", help="Input A2L file").tag(config=True)
-    a2l_encoding = Unicode(default_value="latin-1", help="Input A2L file encoding").tag(
-        config=True
-    )
-    a2l_dynamic = Bool(False, help="Enable dynamic (via XCP) A2L parsing").tag(
-        config=True
-    )
+    a2l_encoding = Unicode(default_value="latin-1", help="Input A2L file encoding").tag(config=True)
+    a2l_dynamic = Bool(False, help="Enable dynamic (via XCP) A2L parsing").tag(config=True)
     master_hexfile = Unicode(default_value="", help="Master HEX file").tag(config=True)
-    master_hexfile_type = Enum(
-        values=["ihex", "srec"], default_value="ihex", help="Choose HEX file type"
-    ).tag(config=True)
+    master_hexfile_type = Enum(values=["ihex", "srec"], default_value="ihex", help="Choose HEX file type").tag(config=True)
     experiments = List(
         trait=Unicode(),
         default_value=[],
@@ -78,9 +78,7 @@ class General(SingletonConfigurable):
 class ProfileCreate(Application):
     description = "\nCreate a new profile"
 
-    dest_file = Unicode(
-        default_value=None, allow_none=True, help="destination file name"
-    ).tag(config=True)
+    dest_file = Unicode(default_value=None, allow_none=True, help="destination file name").tag(config=True)
     aliases = Dict(  # type:ignore[assignment]
         dict(
             d="ProfileCreate.dest_file",
@@ -93,9 +91,7 @@ class ProfileCreate(Application):
         if self.dest_file:
             dest = Path(self.dest_file)
             if dest.exists():
-                if not Confirm.ask(
-                    f"Destination file [green]{dest.name!r}[/green] already exists. Do you want to overwrite it?"
-                ):
+                if not Confirm.ask(f"Destination file [green]{dest.name!r}[/green] already exists. Do you want to overwrite it?"):
                     print("Aborting...")
                     self.exit(1)
             with dest.open("w", encoding="latin1") as out_file:
@@ -113,9 +109,7 @@ class ProfileApp(Application):
 
     def start(self):
         if self.subapp is None:
-            print(
-                f"No subcommand specified. Must specify one of: {self.subcommands.keys()}"
-            )
+            print(f"No subcommand specified. Must specify one of: {self.subcommands.keys()}")
             print()
             self.print_description()
             self.print_subcommands()
@@ -126,9 +120,7 @@ class ProfileApp(Application):
 
 class Asamint(Application):
     description = "ASAMInt application"
-    config_file = Unicode(
-        default_value="asamint_conf.py", help="base name of config file"
-    ).tag(config=True)
+    config_file = Unicode(default_value="asamint_conf.py", help="base name of config file").tag(config=True)
 
     classes = List([General])
 
@@ -211,7 +203,7 @@ class Asamint(Application):
     def _iterate_config_class(
         self,
         klass,
-        class_names: typing.List[str],
+        class_names: list[str],
         config,
         out_file: io.IOBase = sys.stdout,
     ) -> None:
@@ -288,7 +280,7 @@ application: typing.Optional[Asamint] = None
 
 
 def create_application(
-    options: typing.Optional[typing.List[typing.Any]] = None,
+    options: typing.Optional[list[typing.Any]] = None,
 ) -> Asamint:
     global application
     if options is None:
@@ -302,7 +294,7 @@ def create_application(
 
 
 def get_application(
-    options: typing.Optional[typing.List[typing.Any]] = None,
+    options: typing.Optional[list[typing.Any]] = None,
 ) -> Asamint:
     if options is None:
         options = []

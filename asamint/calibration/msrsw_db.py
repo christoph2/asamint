@@ -17,6 +17,7 @@ from sqlalchemy.orm.collections import InstrumentedList
 
 from asamint.utils.xml import create_validator
 
+
 DB_EXTENSION = "msrswdb"
 
 CURRENT_SCHEMA_VERSION = 10
@@ -68,14 +69,12 @@ class Base:
     def __repr__(self):
         columns = [c.name for c in self.__class__.__table__.c]
         result = []
-        for name, value in [
-            (n, getattr(self, n)) for n in columns if not n.startswith("_")
-        ]:
+        for name, value in [(n, getattr(self, n)) for n in columns if not n.startswith("_")]:
             if isinstance(value, str):
                 result.append(f"{name} = '{value}'")
             else:
                 result.append(f"{name} = {value}")
-        return '{}({})'.format(self.__class__.__name__, ", ".join(result))
+        return "{}({})".format(self.__class__.__name__, ", ".join(result))
 
 
 class DatetimeType(types.TypeDecorator):
@@ -85,9 +84,7 @@ class DatetimeType(types.TypeDecorator):
     cache_ok = True
 
     def process_bind_param(self, value, dialect):  # IN
-        return str(
-            Decimal(datetime.datetime.strptime(value, DatetimeType.FMT).timestamp())
-        )
+        return str(Decimal(datetime.datetime.strptime(value, DatetimeType.FMT).timestamp()))
 
     def process_result_value(self, value, dialect):  # OUT
         return datetime.datetime.fromtimestamp(value).strftime(DatetimeType.FMT)
@@ -314,12 +311,8 @@ class Desc(Base):
     tt = relationship("Tt", foreign_keys=[tt_id], uselist=True, cascade="all")
     xref_id = Column(types.Integer, ForeignKey("xref.rid", use_alter=True))
     xref = relationship("Xref", foreign_keys=[xref_id], uselist=True, cascade="all")
-    xref_target_id = Column(
-        types.Integer, ForeignKey("xref_target.rid", use_alter=True)
-    )
-    xref_target = relationship(
-        "XrefTarget", foreign_keys=[xref_target_id], uselist=True, cascade="all"
-    )
+    xref_target_id = Column(types.Integer, ForeignKey("xref_target.rid", use_alter=True))
+    xref_target = relationship("XrefTarget", foreign_keys=[xref_target_id], uselist=True, cascade="all")
     e_id = Column(types.Integer, ForeignKey("e.rid", use_alter=True))
     e = relationship("E", foreign_keys=[e_id], uselist=True, cascade="all")
     ft_id = Column(types.Integer, ForeignKey("ft.rid", use_alter=True))
@@ -330,12 +323,8 @@ class Desc(Base):
     sub = relationship("Sub", foreign_keys=[sub_id], uselist=True, cascade="all")
     ie_id = Column(types.Integer, ForeignKey("ie.rid", use_alter=True))
     ie = relationship("Ie", foreign_keys=[ie_id], uselist=True, cascade="all")
-    msr_query_text_id = Column(
-        types.Integer, ForeignKey("msr_query_text.rid", use_alter=True)
-    )
-    msr_query_text = relationship(
-        "MsrQueryText", foreign_keys=[msr_query_text_id], uselist=True, cascade="all"
-    )
+    msr_query_text_id = Column(types.Integer, ForeignKey("msr_query_text.rid", use_alter=True))
+    msr_query_text = relationship("MsrQueryText", foreign_keys=[msr_query_text_id], uselist=True, cascade="all")
 
 
 class OverallProject(Base):
@@ -498,9 +487,7 @@ class Companies(Base):
     t = StdString()
     si = StdString()
     company_id = Column(types.Integer, ForeignKey("company.rid", use_alter=True))
-    company = relationship(
-        "Company", foreign_keys=[company_id], uselist=True, cascade="all"
-    )
+    company = relationship("Company", foreign_keys=[company_id], uselist=True, cascade="all")
 
 
 class Xref(Base):
@@ -659,16 +646,10 @@ class XrefTarget(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    long_name_1_id = Column(
-        types.Integer, ForeignKey("long_name_1.rid", use_alter=True)
-    )
-    long_name_1 = relationship(
-        "LongName1", foreign_keys=[long_name_1_id], uselist=False, cascade="all"
-    )
+    long_name_1_id = Column(types.Integer, ForeignKey("long_name_1.rid", use_alter=True))
+    long_name_1 = relationship("LongName1", foreign_keys=[long_name_1_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
 
 
 class Ft(Base):
@@ -733,12 +714,8 @@ class MsrQueryResultText(Base):
     tt = relationship("Tt", foreign_keys=[tt_id], uselist=True, cascade="all")
     xref_id = Column(types.Integer, ForeignKey("xref.rid", use_alter=True))
     xref = relationship("Xref", foreign_keys=[xref_id], uselist=True, cascade="all")
-    xref_target_id = Column(
-        types.Integer, ForeignKey("xref_target.rid", use_alter=True)
-    )
-    xref_target = relationship(
-        "XrefTarget", foreign_keys=[xref_target_id], uselist=True, cascade="all"
-    )
+    xref_target_id = Column(types.Integer, ForeignKey("xref_target.rid", use_alter=True))
+    xref_target = relationship("XrefTarget", foreign_keys=[xref_target_id], uselist=True, cascade="all")
     e_id = Column(types.Integer, ForeignKey("e.rid", use_alter=True))
     e = relationship("E", foreign_keys=[e_id], uselist=True, cascade="all")
     ft_id = Column(types.Integer, ForeignKey("ft.rid", use_alter=True))
@@ -749,12 +726,8 @@ class MsrQueryResultText(Base):
     sub = relationship("Sub", foreign_keys=[sub_id], uselist=True, cascade="all")
     ie_id = Column(types.Integer, ForeignKey("ie.rid", use_alter=True))
     ie = relationship("Ie", foreign_keys=[ie_id], uselist=True, cascade="all")
-    msr_query_text_id = Column(
-        types.Integer, ForeignKey("msr_query_text.rid", use_alter=True)
-    )
-    msr_query_text = relationship(
-        "MsrQueryText", foreign_keys=[msr_query_text_id], uselist=True, cascade="all"
-    )
+    msr_query_text_id = Column(types.Integer, ForeignKey("msr_query_text.rid", use_alter=True))
+    msr_query_text = relationship("MsrQueryText", foreign_keys=[msr_query_text_id], uselist=True, cascade="all")
 
 
 class Comment(Base):
@@ -812,22 +785,12 @@ class MsrQueryProps(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    msr_query_name_id = Column(
-        types.Integer, ForeignKey("msr_query_name.rid", use_alter=True)
-    )
-    msr_query_name = relationship(
-        "MsrQueryName", foreign_keys=[msr_query_name_id], uselist=False, cascade="all"
-    )
-    msr_query_arg_id = Column(
-        types.Integer, ForeignKey("msr_query_arg.rid", use_alter=True)
-    )
-    msr_query_arg = relationship(
-        "MsrQueryArg", foreign_keys=[msr_query_arg_id], uselist=True, cascade="all"
-    )
+    msr_query_name_id = Column(types.Integer, ForeignKey("msr_query_name.rid", use_alter=True))
+    msr_query_name = relationship("MsrQueryName", foreign_keys=[msr_query_name_id], uselist=False, cascade="all")
+    msr_query_arg_id = Column(types.Integer, ForeignKey("msr_query_arg.rid", use_alter=True))
+    msr_query_arg = relationship("MsrQueryArg", foreign_keys=[msr_query_arg_id], uselist=True, cascade="all")
     comment_id = Column(types.Integer, ForeignKey("comment.rid", use_alter=True))
-    comment = relationship(
-        "Comment", foreign_keys=[comment_id], uselist=False, cascade="all"
-    )
+    comment = relationship("Comment", foreign_keys=[comment_id], uselist=False, cascade="all")
 
 
 class MsrQueryText(Base):
@@ -847,15 +810,9 @@ class MsrQueryText(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    msr_query_props_id = Column(
-        types.Integer, ForeignKey("msr_query_props.rid", use_alter=True)
-    )
-    msr_query_props = relationship(
-        "MsrQueryProps", foreign_keys=[msr_query_props_id], uselist=False, cascade="all"
-    )
-    msr_query_result_text_id = Column(
-        types.Integer, ForeignKey("msr_query_result_text.rid", use_alter=True)
-    )
+    msr_query_props_id = Column(types.Integer, ForeignKey("msr_query_props.rid", use_alter=True))
+    msr_query_props = relationship("MsrQueryProps", foreign_keys=[msr_query_props_id], uselist=False, cascade="all")
+    msr_query_result_text_id = Column(types.Integer, ForeignKey("msr_query_result_text.rid", use_alter=True))
     msr_query_result_text = relationship(
         "MsrQueryResultText",
         foreign_keys=[msr_query_result_text_id],
@@ -897,12 +854,8 @@ class TeamMemberRefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    team_member_ref_id = Column(
-        types.Integer, ForeignKey("team_member_ref.rid", use_alter=True)
-    )
-    team_member_ref = relationship(
-        "TeamMemberRef", foreign_keys=[team_member_ref_id], uselist=True, cascade="all"
-    )
+    team_member_ref_id = Column(types.Integer, ForeignKey("team_member_ref.rid", use_alter=True))
+    team_member_ref = relationship("TeamMemberRef", foreign_keys=[team_member_ref_id], uselist=True, cascade="all")
 
 
 class LongName(Base):
@@ -976,12 +929,8 @@ class TeamMembers(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    team_member_id = Column(
-        types.Integer, ForeignKey("team_member.rid", use_alter=True)
-    )
-    team_member = relationship(
-        "TeamMember", foreign_keys=[team_member_id], uselist=True, cascade="all"
-    )
+    team_member_id = Column(types.Integer, ForeignKey("team_member.rid", use_alter=True))
+    team_member = relationship("TeamMember", foreign_keys=[team_member_id], uselist=True, cascade="all")
 
 
 class Role(Base):
@@ -1034,21 +983,13 @@ class Company(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     roles_id = Column(types.Integer, ForeignKey("roles.rid", use_alter=True))
     roles = relationship("Roles", foreign_keys=[roles_id], uselist=False, cascade="all")
-    team_members_id = Column(
-        types.Integer, ForeignKey("team_members.rid", use_alter=True)
-    )
-    team_members = relationship(
-        "TeamMembers", foreign_keys=[team_members_id], uselist=False, cascade="all"
-    )
+    team_members_id = Column(types.Integer, ForeignKey("team_members.rid", use_alter=True))
+    team_members = relationship("TeamMembers", foreign_keys=[team_members_id], uselist=False, cascade="all")
 
 
 class Department(Base):
@@ -1218,23 +1159,15 @@ class TeamMember(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     roles_id = Column(types.Integer, ForeignKey("roles.rid", use_alter=True))
     roles = relationship("Roles", foreign_keys=[roles_id], uselist=False, cascade="all")
     department_id = Column(types.Integer, ForeignKey("department.rid", use_alter=True))
-    department = relationship(
-        "Department", foreign_keys=[department_id], uselist=False, cascade="all"
-    )
+    department = relationship("Department", foreign_keys=[department_id], uselist=False, cascade="all")
     address_id = Column(types.Integer, ForeignKey("address.rid", use_alter=True))
-    address = relationship(
-        "Address", foreign_keys=[address_id], uselist=False, cascade="all"
-    )
+    address = relationship("Address", foreign_keys=[address_id], uselist=False, cascade="all")
     zip_id = Column(types.Integer, ForeignKey("zip.rid", use_alter=True))
     _zip = relationship("Zip", foreign_keys=[zip_id], uselist=False, cascade="all")
     city_id = Column(types.Integer, ForeignKey("city.rid", use_alter=True))
@@ -1246,9 +1179,7 @@ class TeamMember(Base):
     email_id = Column(types.Integer, ForeignKey("email.rid", use_alter=True))
     email = relationship("Email", foreign_keys=[email_id], uselist=False, cascade="all")
     homepage_id = Column(types.Integer, ForeignKey("homepage.rid", use_alter=True))
-    homepage = relationship(
-        "Homepage", foreign_keys=[homepage_id], uselist=False, cascade="all"
-    )
+    homepage = relationship("Homepage", foreign_keys=[homepage_id], uselist=False, cascade="all")
 
 
 class SampleRef(Base):
@@ -1325,12 +1256,8 @@ class Tbr(Base):
     tt = relationship("Tt", foreign_keys=[tt_id], uselist=True, cascade="all")
     xref_id = Column(types.Integer, ForeignKey("xref.rid", use_alter=True))
     xref = relationship("Xref", foreign_keys=[xref_id], uselist=True, cascade="all")
-    xref_target_id = Column(
-        types.Integer, ForeignKey("xref_target.rid", use_alter=True)
-    )
-    xref_target = relationship(
-        "XrefTarget", foreign_keys=[xref_target_id], uselist=True, cascade="all"
-    )
+    xref_target_id = Column(types.Integer, ForeignKey("xref_target.rid", use_alter=True))
+    xref_target = relationship("XrefTarget", foreign_keys=[xref_target_id], uselist=True, cascade="all")
     e_id = Column(types.Integer, ForeignKey("e.rid", use_alter=True))
     e = relationship("E", foreign_keys=[e_id], uselist=True, cascade="all")
     ft_id = Column(types.Integer, ForeignKey("ft.rid", use_alter=True))
@@ -1347,12 +1274,8 @@ class Tbr(Base):
     xdoc = relationship("Xdoc", foreign_keys=[xdoc_id], uselist=True, cascade="all")
     xfile_id = Column(types.Integer, ForeignKey("xfile.rid", use_alter=True))
     xfile = relationship("Xfile", foreign_keys=[xfile_id], uselist=True, cascade="all")
-    msr_query_text_id = Column(
-        types.Integer, ForeignKey("msr_query_text.rid", use_alter=True)
-    )
-    msr_query_text = relationship(
-        "MsrQueryText", foreign_keys=[msr_query_text_id], uselist=True, cascade="all"
-    )
+    msr_query_text_id = Column(types.Integer, ForeignKey("msr_query_text.rid", use_alter=True))
+    msr_query_text = relationship("MsrQueryText", foreign_keys=[msr_query_text_id], uselist=True, cascade="all")
 
 
 class Schedule(Base):
@@ -1373,9 +1296,7 @@ class Schedule(Base):
     t = StdString()
     si = StdString()
     sample_ref_id = Column(types.Integer, ForeignKey("sample_ref.rid", use_alter=True))
-    sample_ref = relationship(
-        "SampleRef", foreign_keys=[sample_ref_id], uselist=False, cascade="all"
-    )
+    sample_ref = relationship("SampleRef", foreign_keys=[sample_ref_id], uselist=False, cascade="all")
     date_id = Column(types.Integer, ForeignKey("date.rid", use_alter=True))
     date = relationship("Date", foreign_keys=[date_id], uselist=False, cascade="all")
 
@@ -1423,9 +1344,7 @@ class Tbd(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    team_member_refs_id = Column(
-        types.Integer, ForeignKey("team_member_refs.rid", use_alter=True)
-    )
+    team_member_refs_id = Column(types.Integer, ForeignKey("team_member_refs.rid", use_alter=True))
     team_member_refs = relationship(
         "TeamMemberRefs",
         foreign_keys=[team_member_refs_id],
@@ -1433,9 +1352,7 @@ class Tbd(Base):
         cascade="all",
     )
     schedule_id = Column(types.Integer, ForeignKey("schedule.rid", use_alter=True))
-    schedule = relationship(
-        "Schedule", foreign_keys=[schedule_id], uselist=False, cascade="all"
-    )
+    schedule = relationship("Schedule", foreign_keys=[schedule_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
 
@@ -1473,9 +1390,7 @@ class CompanyDocInfos(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    company_doc_info_id = Column(
-        types.Integer, ForeignKey("company_doc_info.rid", use_alter=True)
-    )
+    company_doc_info_id = Column(types.Integer, ForeignKey("company_doc_info.rid", use_alter=True))
     company_doc_info = relationship(
         "CompanyDocInfo",
         foreign_keys=[company_doc_info_id],
@@ -1500,12 +1415,8 @@ class FormatterCtrls(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    formatter_ctrl_id = Column(
-        types.Integer, ForeignKey("formatter_ctrl.rid", use_alter=True)
-    )
-    formatter_ctrl = relationship(
-        "FormatterCtrl", foreign_keys=[formatter_ctrl_id], uselist=True, cascade="all"
-    )
+    formatter_ctrl_id = Column(types.Integer, ForeignKey("formatter_ctrl.rid", use_alter=True))
+    formatter_ctrl = relationship("FormatterCtrl", foreign_keys=[formatter_ctrl_id], uselist=True, cascade="all")
 
 
 class Subtitle(Base):
@@ -1619,34 +1530,20 @@ class Std(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    long_name_1_id = Column(
-        types.Integer, ForeignKey("long_name_1.rid", use_alter=True)
-    )
-    long_name_1 = relationship(
-        "LongName1", foreign_keys=[long_name_1_id], uselist=False, cascade="all"
-    )
+    long_name_1_id = Column(types.Integer, ForeignKey("long_name_1.rid", use_alter=True))
+    long_name_1 = relationship("LongName1", foreign_keys=[long_name_1_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     subtitle_id = Column(types.Integer, ForeignKey("subtitle.rid", use_alter=True))
-    subtitle = relationship(
-        "Subtitle", foreign_keys=[subtitle_id], uselist=False, cascade="all"
-    )
+    subtitle = relationship("Subtitle", foreign_keys=[subtitle_id], uselist=False, cascade="all")
     state_1_id = Column(types.Integer, ForeignKey("state_1.rid", use_alter=True))
-    state_1 = relationship(
-        "State1", foreign_keys=[state_1_id], uselist=False, cascade="all"
-    )
+    state_1 = relationship("State1", foreign_keys=[state_1_id], uselist=False, cascade="all")
     date_1_id = Column(types.Integer, ForeignKey("date_1.rid", use_alter=True))
-    date_1 = relationship(
-        "Date1", foreign_keys=[date_1_id], uselist=False, cascade="all"
-    )
+    date_1 = relationship("Date1", foreign_keys=[date_1_id], uselist=False, cascade="all")
     url_id = Column(types.Integer, ForeignKey("url.rid", use_alter=True))
     url = relationship("Url", foreign_keys=[url_id], uselist=False, cascade="all")
     position_id = Column(types.Integer, ForeignKey("position.rid", use_alter=True))
-    position = relationship(
-        "Position", foreign_keys=[position_id], uselist=False, cascade="all"
-    )
+    position = relationship("Position", foreign_keys=[position_id], uselist=False, cascade="all")
 
 
 class Number(Base):
@@ -1710,38 +1607,22 @@ class Xdoc(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    long_name_1_id = Column(
-        types.Integer, ForeignKey("long_name_1.rid", use_alter=True)
-    )
-    long_name_1 = relationship(
-        "LongName1", foreign_keys=[long_name_1_id], uselist=False, cascade="all"
-    )
+    long_name_1_id = Column(types.Integer, ForeignKey("long_name_1.rid", use_alter=True))
+    long_name_1 = relationship("LongName1", foreign_keys=[long_name_1_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     number_id = Column(types.Integer, ForeignKey("number.rid", use_alter=True))
-    number = relationship(
-        "Number", foreign_keys=[number_id], uselist=False, cascade="all"
-    )
+    number = relationship("Number", foreign_keys=[number_id], uselist=False, cascade="all")
     state_1_id = Column(types.Integer, ForeignKey("state_1.rid", use_alter=True))
-    state_1 = relationship(
-        "State1", foreign_keys=[state_1_id], uselist=False, cascade="all"
-    )
+    state_1 = relationship("State1", foreign_keys=[state_1_id], uselist=False, cascade="all")
     date_1_id = Column(types.Integer, ForeignKey("date_1.rid", use_alter=True))
-    date_1 = relationship(
-        "Date1", foreign_keys=[date_1_id], uselist=False, cascade="all"
-    )
+    date_1 = relationship("Date1", foreign_keys=[date_1_id], uselist=False, cascade="all")
     publisher_id = Column(types.Integer, ForeignKey("publisher.rid", use_alter=True))
-    publisher = relationship(
-        "Publisher", foreign_keys=[publisher_id], uselist=False, cascade="all"
-    )
+    publisher = relationship("Publisher", foreign_keys=[publisher_id], uselist=False, cascade="all")
     url_id = Column(types.Integer, ForeignKey("url.rid", use_alter=True))
     url = relationship("Url", foreign_keys=[url_id], uselist=False, cascade="all")
     position_id = Column(types.Integer, ForeignKey("position.rid", use_alter=True))
-    position = relationship(
-        "Position", foreign_keys=[position_id], uselist=False, cascade="all"
-    )
+    position = relationship("Position", foreign_keys=[position_id], uselist=False, cascade="all")
 
 
 class Notation(Base):
@@ -1820,30 +1701,18 @@ class Xfile(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    long_name_1_id = Column(
-        types.Integer, ForeignKey("long_name_1.rid", use_alter=True)
-    )
-    long_name_1 = relationship(
-        "LongName1", foreign_keys=[long_name_1_id], uselist=False, cascade="all"
-    )
+    long_name_1_id = Column(types.Integer, ForeignKey("long_name_1.rid", use_alter=True))
+    long_name_1 = relationship("LongName1", foreign_keys=[long_name_1_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     url_id = Column(types.Integer, ForeignKey("url.rid", use_alter=True))
     url = relationship("Url", foreign_keys=[url_id], uselist=False, cascade="all")
     notation_id = Column(types.Integer, ForeignKey("notation.rid", use_alter=True))
-    notation = relationship(
-        "Notation", foreign_keys=[notation_id], uselist=False, cascade="all"
-    )
+    notation = relationship("Notation", foreign_keys=[notation_id], uselist=False, cascade="all")
     tool_id = Column(types.Integer, ForeignKey("tool.rid", use_alter=True))
     tool = relationship("Tool", foreign_keys=[tool_id], uselist=False, cascade="all")
-    tool_version_id = Column(
-        types.Integer, ForeignKey("tool_version.rid", use_alter=True)
-    )
-    tool_version = relationship(
-        "ToolVersion", foreign_keys=[tool_version_id], uselist=False, cascade="all"
-    )
+    tool_version_id = Column(types.Integer, ForeignKey("tool_version.rid", use_alter=True))
+    tool_version = relationship("ToolVersion", foreign_keys=[tool_version_id], uselist=False, cascade="all")
 
 
 class Introduction(Base):
@@ -1876,46 +1745,26 @@ class Introduction(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
-    msr_query_p_2_id = Column(
-        types.Integer, ForeignKey("msr_query_p_2.rid", use_alter=True)
-    )
-    msr_query_p_2 = relationship(
-        "MsrQueryP2", foreign_keys=[msr_query_p_2_id], uselist=True, cascade="all"
-    )
+    msr_query_p_2_id = Column(types.Integer, ForeignKey("msr_query_p_2.rid", use_alter=True))
+    msr_query_p_2 = relationship("MsrQueryP2", foreign_keys=[msr_query_p_2_id], uselist=True, cascade="all")
     topic_2_id = Column(types.Integer, ForeignKey("topic_2.rid", use_alter=True))
-    topic_2 = relationship(
-        "Topic2", foreign_keys=[topic_2_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_2_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_2.rid", use_alter=True)
-    )
+    topic_2 = relationship("Topic2", foreign_keys=[topic_2_id], uselist=True, cascade="all")
+    msr_query_topic_2_id = Column(types.Integer, ForeignKey("msr_query_topic_2.rid", use_alter=True))
     msr_query_topic_2 = relationship(
         "MsrQueryTopic2",
         foreign_keys=[msr_query_topic_2_id],
@@ -1940,12 +1789,8 @@ class DocRevisions(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    doc_revision_id = Column(
-        types.Integer, ForeignKey("doc_revision.rid", use_alter=True)
-    )
-    doc_revision = relationship(
-        "DocRevision", foreign_keys=[doc_revision_id], uselist=True, cascade="all"
-    )
+    doc_revision_id = Column(types.Integer, ForeignKey("doc_revision.rid", use_alter=True))
+    doc_revision = relationship("DocRevision", foreign_keys=[doc_revision_id], uselist=True, cascade="all")
 
 
 class AdminData(Base):
@@ -1969,39 +1814,25 @@ class AdminData(Base):
     t = StdString()
     si = StdString()
     language_id = Column(types.Integer, ForeignKey("language.rid", use_alter=True))
-    language = relationship(
-        "Language", foreign_keys=[language_id], uselist=False, cascade="all"
-    )
-    used_languages_id = Column(
-        types.Integer, ForeignKey("used_languages.rid", use_alter=True)
-    )
-    used_languages = relationship(
-        "UsedLanguages", foreign_keys=[used_languages_id], uselist=False, cascade="all"
-    )
-    company_doc_infos_id = Column(
-        types.Integer, ForeignKey("company_doc_infos.rid", use_alter=True)
-    )
+    language = relationship("Language", foreign_keys=[language_id], uselist=False, cascade="all")
+    used_languages_id = Column(types.Integer, ForeignKey("used_languages.rid", use_alter=True))
+    used_languages = relationship("UsedLanguages", foreign_keys=[used_languages_id], uselist=False, cascade="all")
+    company_doc_infos_id = Column(types.Integer, ForeignKey("company_doc_infos.rid", use_alter=True))
     company_doc_infos = relationship(
         "CompanyDocInfos",
         foreign_keys=[company_doc_infos_id],
         uselist=False,
         cascade="all",
     )
-    formatter_ctrls_id = Column(
-        types.Integer, ForeignKey("formatter_ctrls.rid", use_alter=True)
-    )
+    formatter_ctrls_id = Column(types.Integer, ForeignKey("formatter_ctrls.rid", use_alter=True))
     formatter_ctrls = relationship(
         "FormatterCtrls",
         foreign_keys=[formatter_ctrls_id],
         uselist=False,
         cascade="all",
     )
-    doc_revisions_id = Column(
-        types.Integer, ForeignKey("doc_revisions.rid", use_alter=True)
-    )
-    doc_revisions = relationship(
-        "DocRevisions", foreign_keys=[doc_revisions_id], uselist=False, cascade="all"
-    )
+    doc_revisions_id = Column(types.Integer, ForeignKey("doc_revisions.rid", use_alter=True))
+    doc_revisions = relationship("DocRevisions", foreign_keys=[doc_revisions_id], uselist=False, cascade="all")
 
 
 class Ncoi1(Base):
@@ -2037,48 +1868,28 @@ class Ncoi1(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True)
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
+    msr_query_topic_1_id = Column(types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True))
     msr_query_topic_1 = relationship(
         "MsrQueryTopic1",
         foreign_keys=[msr_query_topic_1_id],
@@ -2086,12 +1897,8 @@ class Ncoi1(Base):
         cascade="all",
     )
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
-    msr_query_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True)
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
+    msr_query_chapter_id = Column(types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True))
     msr_query_chapter = relationship(
         "MsrQueryChapter",
         foreign_keys=[msr_query_chapter_id],
@@ -2158,12 +1965,8 @@ class PrivateCodes(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    private_code_id = Column(
-        types.Integer, ForeignKey("private_code.rid", use_alter=True)
-    )
-    private_code = relationship(
-        "PrivateCode", foreign_keys=[private_code_id], uselist=True, cascade="all"
-    )
+    private_code_id = Column(types.Integer, ForeignKey("private_code.rid", use_alter=True))
+    private_code = relationship("PrivateCode", foreign_keys=[private_code_id], uselist=True, cascade="all")
 
 
 class EntityName(Base):
@@ -2222,34 +2025,16 @@ class CompanyDocInfo(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    company_ref_id = Column(
-        types.Integer, ForeignKey("company_ref.rid", use_alter=True)
-    )
-    company_ref = relationship(
-        "CompanyRef", foreign_keys=[company_ref_id], uselist=False, cascade="all"
-    )
+    company_ref_id = Column(types.Integer, ForeignKey("company_ref.rid", use_alter=True))
+    company_ref = relationship("CompanyRef", foreign_keys=[company_ref_id], uselist=False, cascade="all")
     doc_label_id = Column(types.Integer, ForeignKey("doc_label.rid", use_alter=True))
-    doc_label = relationship(
-        "DocLabel", foreign_keys=[doc_label_id], uselist=False, cascade="all"
-    )
-    team_member_ref_id = Column(
-        types.Integer, ForeignKey("team_member_ref.rid", use_alter=True)
-    )
-    team_member_ref = relationship(
-        "TeamMemberRef", foreign_keys=[team_member_ref_id], uselist=False, cascade="all"
-    )
-    private_codes_id = Column(
-        types.Integer, ForeignKey("private_codes.rid", use_alter=True)
-    )
-    private_codes = relationship(
-        "PrivateCodes", foreign_keys=[private_codes_id], uselist=False, cascade="all"
-    )
-    entity_name_id = Column(
-        types.Integer, ForeignKey("entity_name.rid", use_alter=True)
-    )
-    entity_name = relationship(
-        "EntityName", foreign_keys=[entity_name_id], uselist=False, cascade="all"
-    )
+    doc_label = relationship("DocLabel", foreign_keys=[doc_label_id], uselist=False, cascade="all")
+    team_member_ref_id = Column(types.Integer, ForeignKey("team_member_ref.rid", use_alter=True))
+    team_member_ref = relationship("TeamMemberRef", foreign_keys=[team_member_ref_id], uselist=False, cascade="all")
+    private_codes_id = Column(types.Integer, ForeignKey("private_codes.rid", use_alter=True))
+    private_codes = relationship("PrivateCodes", foreign_keys=[private_codes_id], uselist=False, cascade="all")
+    entity_name_id = Column(types.Integer, ForeignKey("entity_name.rid", use_alter=True))
+    entity_name = relationship("EntityName", foreign_keys=[entity_name_id], uselist=False, cascade="all")
 
 
 class SystemOverview(Base):
@@ -2278,16 +2063,10 @@ class SystemOverview(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class FormatterCtrl(Base):
@@ -2335,16 +2114,10 @@ class ReasonOrder(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class CompanyRevisionInfos(Base):
@@ -2363,9 +2136,7 @@ class CompanyRevisionInfos(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    company_revision_info_id = Column(
-        types.Integer, ForeignKey("company_revision_info.rid", use_alter=True)
-    )
+    company_revision_info_id = Column(types.Integer, ForeignKey("company_revision_info.rid", use_alter=True))
     company_revision_info = relationship(
         "CompanyRevisionInfo",
         foreign_keys=[company_revision_info_id],
@@ -2434,29 +2205,17 @@ class Remark(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
 
@@ -2497,24 +2256,14 @@ class CompanyRevisionInfo(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    company_ref_id = Column(
-        types.Integer, ForeignKey("company_ref.rid", use_alter=True)
-    )
-    company_ref = relationship(
-        "CompanyRef", foreign_keys=[company_ref_id], uselist=False, cascade="all"
-    )
-    revision_label_id = Column(
-        types.Integer, ForeignKey("revision_label.rid", use_alter=True)
-    )
-    revision_label = relationship(
-        "RevisionLabel", foreign_keys=[revision_label_id], uselist=False, cascade="all"
-    )
+    company_ref_id = Column(types.Integer, ForeignKey("company_ref.rid", use_alter=True))
+    company_ref = relationship("CompanyRef", foreign_keys=[company_ref_id], uselist=False, cascade="all")
+    revision_label_id = Column(types.Integer, ForeignKey("revision_label.rid", use_alter=True))
+    revision_label = relationship("RevisionLabel", foreign_keys=[revision_label_id], uselist=False, cascade="all")
     state_id = Column(types.Integer, ForeignKey("state.rid", use_alter=True))
     state = relationship("State", foreign_keys=[state_id], uselist=False, cascade="all")
     remark_id = Column(types.Integer, ForeignKey("remark.rid", use_alter=True))
-    remark = relationship(
-        "Remark", foreign_keys=[remark_id], uselist=False, cascade="all"
-    )
+    remark = relationship("Remark", foreign_keys=[remark_id], uselist=False, cascade="all")
 
 
 class P(Base):
@@ -2556,12 +2305,8 @@ class P(Base):
     tt = relationship("Tt", foreign_keys=[tt_id], uselist=True, cascade="all")
     xref_id = Column(types.Integer, ForeignKey("xref.rid", use_alter=True))
     xref = relationship("Xref", foreign_keys=[xref_id], uselist=True, cascade="all")
-    xref_target_id = Column(
-        types.Integer, ForeignKey("xref_target.rid", use_alter=True)
-    )
-    xref_target = relationship(
-        "XrefTarget", foreign_keys=[xref_target_id], uselist=True, cascade="all"
-    )
+    xref_target_id = Column(types.Integer, ForeignKey("xref_target.rid", use_alter=True))
+    xref_target = relationship("XrefTarget", foreign_keys=[xref_target_id], uselist=True, cascade="all")
     e_id = Column(types.Integer, ForeignKey("e.rid", use_alter=True))
     e = relationship("E", foreign_keys=[e_id], uselist=True, cascade="all")
     ft_id = Column(types.Integer, ForeignKey("ft.rid", use_alter=True))
@@ -2578,12 +2323,8 @@ class P(Base):
     xdoc = relationship("Xdoc", foreign_keys=[xdoc_id], uselist=True, cascade="all")
     xfile_id = Column(types.Integer, ForeignKey("xfile.rid", use_alter=True))
     xfile = relationship("Xfile", foreign_keys=[xfile_id], uselist=True, cascade="all")
-    msr_query_text_id = Column(
-        types.Integer, ForeignKey("msr_query_text.rid", use_alter=True)
-    )
-    msr_query_text = relationship(
-        "MsrQueryText", foreign_keys=[msr_query_text_id], uselist=True, cascade="all"
-    )
+    msr_query_text_id = Column(types.Integer, ForeignKey("msr_query_text.rid", use_alter=True))
+    msr_query_text = relationship("MsrQueryText", foreign_keys=[msr_query_text_id], uselist=True, cascade="all")
 
 
 class Verbatim(Base):
@@ -2643,13 +2384,9 @@ class FigureCaption(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
 
 
 class Graphic(Base):
@@ -2780,22 +2517,14 @@ class Figure(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    figure_caption_id = Column(
-        types.Integer, ForeignKey("figure_caption.rid", use_alter=True)
-    )
-    figure_caption = relationship(
-        "FigureCaption", foreign_keys=[figure_caption_id], uselist=False, cascade="all"
-    )
+    figure_caption_id = Column(types.Integer, ForeignKey("figure_caption.rid", use_alter=True))
+    figure_caption = relationship("FigureCaption", foreign_keys=[figure_caption_id], uselist=False, cascade="all")
     graphic_id = Column(types.Integer, ForeignKey("graphic.rid", use_alter=True))
-    graphic = relationship(
-        "Graphic", foreign_keys=[graphic_id], uselist=False, cascade="all"
-    )
+    graphic = relationship("Graphic", foreign_keys=[graphic_id], uselist=False, cascade="all")
     map_id = Column(types.Integer, ForeignKey("map.rid", use_alter=True))
     _map = relationship("Map", foreign_keys=[map_id], uselist=False, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=False, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
 
@@ -2830,13 +2559,9 @@ class FormulaCaption(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
 
 
 class TexMath(Base):
@@ -2917,9 +2642,7 @@ class Formula(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    formula_caption_id = Column(
-        types.Integer, ForeignKey("formula_caption.rid", use_alter=True)
-    )
+    formula_caption_id = Column(types.Integer, ForeignKey("formula_caption.rid", use_alter=True))
     formula_caption = relationship(
         "FormulaCaption",
         foreign_keys=[formula_caption_id],
@@ -2927,29 +2650,17 @@ class Formula(Base):
         cascade="all",
     )
     graphic_id = Column(types.Integer, ForeignKey("graphic.rid", use_alter=True))
-    graphic = relationship(
-        "Graphic", foreign_keys=[graphic_id], uselist=False, cascade="all"
-    )
+    graphic = relationship("Graphic", foreign_keys=[graphic_id], uselist=False, cascade="all")
     map_id = Column(types.Integer, ForeignKey("map.rid", use_alter=True))
     _map = relationship("Map", foreign_keys=[map_id], uselist=False, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=False, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=False, cascade="all")
     tex_math_id = Column(types.Integer, ForeignKey("tex_math.rid", use_alter=True))
-    tex_math = relationship(
-        "TexMath", foreign_keys=[tex_math_id], uselist=False, cascade="all"
-    )
+    tex_math = relationship("TexMath", foreign_keys=[tex_math_id], uselist=False, cascade="all")
     c_code_id = Column(types.Integer, ForeignKey("c_code.rid", use_alter=True))
-    c_code = relationship(
-        "CCode", foreign_keys=[c_code_id], uselist=False, cascade="all"
-    )
-    generic_math_id = Column(
-        types.Integer, ForeignKey("generic_math.rid", use_alter=True)
-    )
-    generic_math = relationship(
-        "GenericMath", foreign_keys=[generic_math_id], uselist=False, cascade="all"
-    )
+    c_code = relationship("CCode", foreign_keys=[c_code_id], uselist=False, cascade="all")
+    generic_math_id = Column(types.Integer, ForeignKey("generic_math.rid", use_alter=True))
+    generic_math = relationship("GenericMath", foreign_keys=[generic_math_id], uselist=False, cascade="all")
 
 
 class List(Base):
@@ -3011,29 +2722,17 @@ class Item(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
 
@@ -3060,9 +2759,7 @@ class DefList(Base):
     t = StdString()
     si = StdString()
     def_item_id = Column(types.Integer, ForeignKey("def_item.rid", use_alter=True))
-    def_item = relationship(
-        "DefItem", foreign_keys=[def_item_id], uselist=True, cascade="all"
-    )
+    def_item = relationship("DefItem", foreign_keys=[def_item_id], uselist=True, cascade="all")
 
 
 class Def(Base):
@@ -3115,13 +2812,9 @@ class DefItem(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     def_id = Column(types.Integer, ForeignKey("def.rid", use_alter=True))
     _def = relationship("Def", foreign_keys=[def_id], uselist=False, cascade="all")
 
@@ -3159,12 +2852,8 @@ class IndentSample(Base):
     tt = relationship("Tt", foreign_keys=[tt_id], uselist=True, cascade="all")
     xref_id = Column(types.Integer, ForeignKey("xref.rid", use_alter=True))
     xref = relationship("Xref", foreign_keys=[xref_id], uselist=True, cascade="all")
-    xref_target_id = Column(
-        types.Integer, ForeignKey("xref_target.rid", use_alter=True)
-    )
-    xref_target = relationship(
-        "XrefTarget", foreign_keys=[xref_target_id], uselist=True, cascade="all"
-    )
+    xref_target_id = Column(types.Integer, ForeignKey("xref_target.rid", use_alter=True))
+    xref_target = relationship("XrefTarget", foreign_keys=[xref_target_id], uselist=True, cascade="all")
     e_id = Column(types.Integer, ForeignKey("e.rid", use_alter=True))
     e = relationship("E", foreign_keys=[e_id], uselist=True, cascade="all")
     ft_id = Column(types.Integer, ForeignKey("ft.rid", use_alter=True))
@@ -3175,12 +2864,8 @@ class IndentSample(Base):
     sub = relationship("Sub", foreign_keys=[sub_id], uselist=True, cascade="all")
     ie_id = Column(types.Integer, ForeignKey("ie.rid", use_alter=True))
     ie = relationship("Ie", foreign_keys=[ie_id], uselist=True, cascade="all")
-    msr_query_text_id = Column(
-        types.Integer, ForeignKey("msr_query_text.rid", use_alter=True)
-    )
-    msr_query_text = relationship(
-        "MsrQueryText", foreign_keys=[msr_query_text_id], uselist=True, cascade="all"
-    )
+    msr_query_text_id = Column(types.Integer, ForeignKey("msr_query_text.rid", use_alter=True))
+    msr_query_text = relationship("MsrQueryText", foreign_keys=[msr_query_text_id], uselist=True, cascade="all")
 
 
 class LabeledList(Base):
@@ -3205,18 +2890,10 @@ class LabeledList(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    indent_sample_id = Column(
-        types.Integer, ForeignKey("indent_sample.rid", use_alter=True)
-    )
-    indent_sample = relationship(
-        "IndentSample", foreign_keys=[indent_sample_id], uselist=False, cascade="all"
-    )
-    labeled_item_id = Column(
-        types.Integer, ForeignKey("labeled_item.rid", use_alter=True)
-    )
-    labeled_item = relationship(
-        "LabeledItem", foreign_keys=[labeled_item_id], uselist=True, cascade="all"
-    )
+    indent_sample_id = Column(types.Integer, ForeignKey("indent_sample.rid", use_alter=True))
+    indent_sample = relationship("IndentSample", foreign_keys=[indent_sample_id], uselist=False, cascade="all")
+    labeled_item_id = Column(types.Integer, ForeignKey("labeled_item.rid", use_alter=True))
+    labeled_item = relationship("LabeledItem", foreign_keys=[labeled_item_id], uselist=True, cascade="all")
 
 
 class ItemLabel(Base):
@@ -3247,12 +2924,8 @@ class ItemLabel(Base):
     tt = relationship("Tt", foreign_keys=[tt_id], uselist=True, cascade="all")
     xref_id = Column(types.Integer, ForeignKey("xref.rid", use_alter=True))
     xref = relationship("Xref", foreign_keys=[xref_id], uselist=True, cascade="all")
-    xref_target_id = Column(
-        types.Integer, ForeignKey("xref_target.rid", use_alter=True)
-    )
-    xref_target = relationship(
-        "XrefTarget", foreign_keys=[xref_target_id], uselist=True, cascade="all"
-    )
+    xref_target_id = Column(types.Integer, ForeignKey("xref_target.rid", use_alter=True))
+    xref_target = relationship("XrefTarget", foreign_keys=[xref_target_id], uselist=True, cascade="all")
     e_id = Column(types.Integer, ForeignKey("e.rid", use_alter=True))
     e = relationship("E", foreign_keys=[e_id], uselist=True, cascade="all")
     ft_id = Column(types.Integer, ForeignKey("ft.rid", use_alter=True))
@@ -3263,12 +2936,8 @@ class ItemLabel(Base):
     sub = relationship("Sub", foreign_keys=[sub_id], uselist=True, cascade="all")
     ie_id = Column(types.Integer, ForeignKey("ie.rid", use_alter=True))
     ie = relationship("Ie", foreign_keys=[ie_id], uselist=True, cascade="all")
-    msr_query_text_id = Column(
-        types.Integer, ForeignKey("msr_query_text.rid", use_alter=True)
-    )
-    msr_query_text = relationship(
-        "MsrQueryText", foreign_keys=[msr_query_text_id], uselist=True, cascade="all"
-    )
+    msr_query_text_id = Column(types.Integer, ForeignKey("msr_query_text.rid", use_alter=True))
+    msr_query_text = relationship("MsrQueryText", foreign_keys=[msr_query_text_id], uselist=True, cascade="all")
 
 
 class LabeledItem(Base):
@@ -3303,35 +2972,21 @@ class LabeledItem(Base):
     t = StdString()
     si = StdString()
     item_label_id = Column(types.Integer, ForeignKey("item_label.rid", use_alter=True))
-    item_label = relationship(
-        "ItemLabel", foreign_keys=[item_label_id], uselist=False, cascade="all"
-    )
+    item_label = relationship("ItemLabel", foreign_keys=[item_label_id], uselist=False, cascade="all")
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
 
@@ -3385,12 +3040,8 @@ class Modifications(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    modification_id = Column(
-        types.Integer, ForeignKey("modification.rid", use_alter=True)
-    )
-    modification = relationship(
-        "Modification", foreign_keys=[modification_id], uselist=True, cascade="all"
-    )
+    modification_id = Column(types.Integer, ForeignKey("modification.rid", use_alter=True))
+    modification = relationship("Modification", foreign_keys=[modification_id], uselist=True, cascade="all")
 
 
 class DocRevision(Base):
@@ -3415,41 +3066,25 @@ class DocRevision(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    company_revision_infos_id = Column(
-        types.Integer, ForeignKey("company_revision_infos.rid", use_alter=True)
-    )
+    company_revision_infos_id = Column(types.Integer, ForeignKey("company_revision_infos.rid", use_alter=True))
     company_revision_infos = relationship(
         "CompanyRevisionInfos",
         foreign_keys=[company_revision_infos_id],
         uselist=False,
         cascade="all",
     )
-    revision_label_id = Column(
-        types.Integer, ForeignKey("revision_label.rid", use_alter=True)
-    )
-    revision_label = relationship(
-        "RevisionLabel", foreign_keys=[revision_label_id], uselist=False, cascade="all"
-    )
+    revision_label_id = Column(types.Integer, ForeignKey("revision_label.rid", use_alter=True))
+    revision_label = relationship("RevisionLabel", foreign_keys=[revision_label_id], uselist=False, cascade="all")
     state_id = Column(types.Integer, ForeignKey("state.rid", use_alter=True))
     state = relationship("State", foreign_keys=[state_id], uselist=False, cascade="all")
     issued_by_id = Column(types.Integer, ForeignKey("issued_by.rid", use_alter=True))
-    issued_by = relationship(
-        "IssuedBy", foreign_keys=[issued_by_id], uselist=False, cascade="all"
-    )
-    team_member_ref_id = Column(
-        types.Integer, ForeignKey("team_member_ref.rid", use_alter=True)
-    )
-    team_member_ref = relationship(
-        "TeamMemberRef", foreign_keys=[team_member_ref_id], uselist=False, cascade="all"
-    )
+    issued_by = relationship("IssuedBy", foreign_keys=[issued_by_id], uselist=False, cascade="all")
+    team_member_ref_id = Column(types.Integer, ForeignKey("team_member_ref.rid", use_alter=True))
+    team_member_ref = relationship("TeamMemberRef", foreign_keys=[team_member_ref_id], uselist=False, cascade="all")
     date_id = Column(types.Integer, ForeignKey("date.rid", use_alter=True))
     date = relationship("Date", foreign_keys=[date_id], uselist=False, cascade="all")
-    modifications_id = Column(
-        types.Integer, ForeignKey("modifications.rid", use_alter=True)
-    )
-    modifications = relationship(
-        "Modifications", foreign_keys=[modifications_id], uselist=False, cascade="all"
-    )
+    modifications_id = Column(types.Integer, ForeignKey("modifications.rid", use_alter=True))
+    modifications = relationship("Modifications", foreign_keys=[modifications_id], uselist=False, cascade="all")
 
 
 class Change(Base):
@@ -3480,12 +3115,8 @@ class Change(Base):
     tt = relationship("Tt", foreign_keys=[tt_id], uselist=True, cascade="all")
     xref_id = Column(types.Integer, ForeignKey("xref.rid", use_alter=True))
     xref = relationship("Xref", foreign_keys=[xref_id], uselist=True, cascade="all")
-    xref_target_id = Column(
-        types.Integer, ForeignKey("xref_target.rid", use_alter=True)
-    )
-    xref_target = relationship(
-        "XrefTarget", foreign_keys=[xref_target_id], uselist=True, cascade="all"
-    )
+    xref_target_id = Column(types.Integer, ForeignKey("xref_target.rid", use_alter=True))
+    xref_target = relationship("XrefTarget", foreign_keys=[xref_target_id], uselist=True, cascade="all")
     e_id = Column(types.Integer, ForeignKey("e.rid", use_alter=True))
     e = relationship("E", foreign_keys=[e_id], uselist=True, cascade="all")
     ft_id = Column(types.Integer, ForeignKey("ft.rid", use_alter=True))
@@ -3496,12 +3127,8 @@ class Change(Base):
     sub = relationship("Sub", foreign_keys=[sub_id], uselist=True, cascade="all")
     ie_id = Column(types.Integer, ForeignKey("ie.rid", use_alter=True))
     ie = relationship("Ie", foreign_keys=[ie_id], uselist=True, cascade="all")
-    msr_query_text_id = Column(
-        types.Integer, ForeignKey("msr_query_text.rid", use_alter=True)
-    )
-    msr_query_text = relationship(
-        "MsrQueryText", foreign_keys=[msr_query_text_id], uselist=True, cascade="all"
-    )
+    msr_query_text_id = Column(types.Integer, ForeignKey("msr_query_text.rid", use_alter=True))
+    msr_query_text = relationship("MsrQueryText", foreign_keys=[msr_query_text_id], uselist=True, cascade="all")
 
 
 class Reason(Base):
@@ -3532,12 +3159,8 @@ class Reason(Base):
     tt = relationship("Tt", foreign_keys=[tt_id], uselist=True, cascade="all")
     xref_id = Column(types.Integer, ForeignKey("xref.rid", use_alter=True))
     xref = relationship("Xref", foreign_keys=[xref_id], uselist=True, cascade="all")
-    xref_target_id = Column(
-        types.Integer, ForeignKey("xref_target.rid", use_alter=True)
-    )
-    xref_target = relationship(
-        "XrefTarget", foreign_keys=[xref_target_id], uselist=True, cascade="all"
-    )
+    xref_target_id = Column(types.Integer, ForeignKey("xref_target.rid", use_alter=True))
+    xref_target = relationship("XrefTarget", foreign_keys=[xref_target_id], uselist=True, cascade="all")
     e_id = Column(types.Integer, ForeignKey("e.rid", use_alter=True))
     e = relationship("E", foreign_keys=[e_id], uselist=True, cascade="all")
     ft_id = Column(types.Integer, ForeignKey("ft.rid", use_alter=True))
@@ -3548,12 +3171,8 @@ class Reason(Base):
     sub = relationship("Sub", foreign_keys=[sub_id], uselist=True, cascade="all")
     ie_id = Column(types.Integer, ForeignKey("ie.rid", use_alter=True))
     ie = relationship("Ie", foreign_keys=[ie_id], uselist=True, cascade="all")
-    msr_query_text_id = Column(
-        types.Integer, ForeignKey("msr_query_text.rid", use_alter=True)
-    )
-    msr_query_text = relationship(
-        "MsrQueryText", foreign_keys=[msr_query_text_id], uselist=True, cascade="all"
-    )
+    msr_query_text_id = Column(types.Integer, ForeignKey("msr_query_text.rid", use_alter=True))
+    msr_query_text = relationship("MsrQueryText", foreign_keys=[msr_query_text_id], uselist=True, cascade="all")
 
 
 class Modification(Base):
@@ -3579,13 +3198,9 @@ class Modification(Base):
     t = StdString()
     si = StdString()
     change_id = Column(types.Integer, ForeignKey("change.rid", use_alter=True))
-    change = relationship(
-        "Change", foreign_keys=[change_id], uselist=False, cascade="all"
-    )
+    change = relationship("Change", foreign_keys=[change_id], uselist=False, cascade="all")
     reason_id = Column(types.Integer, ForeignKey("reason.rid", use_alter=True))
-    reason = relationship(
-        "Reason", foreign_keys=[reason_id], uselist=False, cascade="all"
-    )
+    reason = relationship("Reason", foreign_keys=[reason_id], uselist=False, cascade="all")
 
 
 class ProductDesc(Base):
@@ -3614,16 +3229,10 @@ class ProductDesc(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class TableCaption(Base):
@@ -3648,13 +3257,9 @@ class TableCaption(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
 
 
 class Table(Base):
@@ -3702,16 +3307,10 @@ class Table(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    table_caption_id = Column(
-        types.Integer, ForeignKey("table_caption.rid", use_alter=True)
-    )
-    table_caption = relationship(
-        "TableCaption", foreign_keys=[table_caption_id], uselist=False, cascade="all"
-    )
+    table_caption_id = Column(types.Integer, ForeignKey("table_caption.rid", use_alter=True))
+    table_caption = relationship("TableCaption", foreign_keys=[table_caption_id], uselist=False, cascade="all")
     tgroup_id = Column(types.Integer, ForeignKey("tgroup.rid", use_alter=True))
-    tgroup = relationship(
-        "Tgroup", foreign_keys=[tgroup_id], uselist=True, cascade="all"
-    )
+    tgroup = relationship("Tgroup", foreign_keys=[tgroup_id], uselist=True, cascade="all")
 
 
 class Thead(Base):
@@ -3737,9 +3336,7 @@ class Thead(Base):
     t = StdString()
     si = StdString()
     colspec_id = Column(types.Integer, ForeignKey("colspec.rid", use_alter=True))
-    colspec = relationship(
-        "Colspec", foreign_keys=[colspec_id], uselist=True, cascade="all"
-    )
+    colspec = relationship("Colspec", foreign_keys=[colspec_id], uselist=True, cascade="all")
     row_id = Column(types.Integer, ForeignKey("row.rid", use_alter=True))
     _row = relationship("Row", foreign_keys=[row_id], uselist=True, cascade="all")
 
@@ -3783,9 +3380,7 @@ class Tfoot(Base):
     t = StdString()
     si = StdString()
     colspec_id = Column(types.Integer, ForeignKey("colspec.rid", use_alter=True))
-    colspec = relationship(
-        "Colspec", foreign_keys=[colspec_id], uselist=True, cascade="all"
-    )
+    colspec = relationship("Colspec", foreign_keys=[colspec_id], uselist=True, cascade="all")
     row_id = Column(types.Integer, ForeignKey("row.rid", use_alter=True))
     _row = relationship("Row", foreign_keys=[row_id], uselist=True, cascade="all")
 
@@ -3871,29 +3466,17 @@ class Entry(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
 
@@ -3961,13 +3544,9 @@ class Tgroup(Base):
     t = StdString()
     si = StdString()
     colspec_id = Column(types.Integer, ForeignKey("colspec.rid", use_alter=True))
-    colspec = relationship(
-        "Colspec", foreign_keys=[colspec_id], uselist=True, cascade="all"
-    )
+    colspec = relationship("Colspec", foreign_keys=[colspec_id], uselist=True, cascade="all")
     spanspec_id = Column(types.Integer, ForeignKey("spanspec.rid", use_alter=True))
-    spanspec = relationship(
-        "Spanspec", foreign_keys=[spanspec_id], uselist=True, cascade="all"
-    )
+    spanspec = relationship("Spanspec", foreign_keys=[spanspec_id], uselist=True, cascade="all")
     thead_id = Column(types.Integer, ForeignKey("thead.rid", use_alter=True))
     thead = relationship("Thead", foreign_keys=[thead_id], uselist=False, cascade="all")
     tfoot_id = Column(types.Integer, ForeignKey("tfoot.rid", use_alter=True))
@@ -4003,29 +3582,17 @@ class MsrQueryResultP2(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
@@ -4054,15 +3621,9 @@ class MsrQueryP2(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    msr_query_props_id = Column(
-        types.Integer, ForeignKey("msr_query_props.rid", use_alter=True)
-    )
-    msr_query_props = relationship(
-        "MsrQueryProps", foreign_keys=[msr_query_props_id], uselist=False, cascade="all"
-    )
-    msr_query_result_p_2_id = Column(
-        types.Integer, ForeignKey("msr_query_result_p_2.rid", use_alter=True)
-    )
+    msr_query_props_id = Column(types.Integer, ForeignKey("msr_query_props.rid", use_alter=True))
+    msr_query_props = relationship("MsrQueryProps", foreign_keys=[msr_query_props_id], uselist=False, cascade="all")
+    msr_query_result_p_2_id = Column(types.Integer, ForeignKey("msr_query_result_p_2.rid", use_alter=True))
     msr_query_result_p_2 = relationship(
         "MsrQueryResultP2",
         foreign_keys=[msr_query_result_p_2_id],
@@ -4110,49 +3671,29 @@ class Topic2(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
-    msr_query_p_2_id = Column(
-        types.Integer, ForeignKey("msr_query_p_2.rid", use_alter=True)
-    )
-    msr_query_p_2 = relationship(
-        "MsrQueryP2", foreign_keys=[msr_query_p_2_id], uselist=True, cascade="all"
-    )
+    msr_query_p_2_id = Column(types.Integer, ForeignKey("msr_query_p_2.rid", use_alter=True))
+    msr_query_p_2 = relationship("MsrQueryP2", foreign_keys=[msr_query_p_2_id], uselist=True, cascade="all")
 
 
 class MsrQueryResultTopic2(Base):
@@ -4172,9 +3713,7 @@ class MsrQueryResultTopic2(Base):
     t = StdString()
     si = StdString()
     topic_2_id = Column(types.Integer, ForeignKey("topic_2.rid", use_alter=True))
-    topic_2 = relationship(
-        "Topic2", foreign_keys=[topic_2_id], uselist=True, cascade="all"
-    )
+    topic_2 = relationship("Topic2", foreign_keys=[topic_2_id], uselist=True, cascade="all")
 
 
 class MsrQueryTopic2(Base):
@@ -4199,15 +3738,9 @@ class MsrQueryTopic2(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    msr_query_props_id = Column(
-        types.Integer, ForeignKey("msr_query_props.rid", use_alter=True)
-    )
-    msr_query_props = relationship(
-        "MsrQueryProps", foreign_keys=[msr_query_props_id], uselist=False, cascade="all"
-    )
-    msr_query_result_topic_2_id = Column(
-        types.Integer, ForeignKey("msr_query_result_topic_2.rid", use_alter=True)
-    )
+    msr_query_props_id = Column(types.Integer, ForeignKey("msr_query_props.rid", use_alter=True))
+    msr_query_props = relationship("MsrQueryProps", foreign_keys=[msr_query_props_id], uselist=False, cascade="all")
+    msr_query_result_topic_2_id = Column(types.Integer, ForeignKey("msr_query_result_topic_2.rid", use_alter=True))
     msr_query_result_topic_2 = relationship(
         "MsrQueryResultTopic2",
         foreign_keys=[msr_query_result_topic_2_id],
@@ -4242,16 +3775,10 @@ class Objectives(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class Rights(Base):
@@ -4280,16 +3807,10 @@ class Rights(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class Prms(Base):
@@ -4344,19 +3865,13 @@ class Prm(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     prm_char_id = Column(types.Integer, ForeignKey("prm_char.rid", use_alter=True))
-    prm_char = relationship(
-        "PrmChar", foreign_keys=[prm_char_id], uselist=True, cascade="all"
-    )
+    prm_char = relationship("PrmChar", foreign_keys=[prm_char_id], uselist=True, cascade="all")
 
 
 class Cond(Base):
@@ -4581,9 +4096,7 @@ class PrmChar(Base):
     text_id = Column(types.Integer, ForeignKey("text.rid", use_alter=True))
     text = relationship("Text", foreign_keys=[text_id], uselist=False, cascade="all")
     remark_id = Column(types.Integer, ForeignKey("remark.rid", use_alter=True))
-    remark = relationship(
-        "Remark", foreign_keys=[remark_id], uselist=False, cascade="all"
-    )
+    remark = relationship("Remark", foreign_keys=[remark_id], uselist=False, cascade="all")
 
 
 class MsrQueryResultP1(Base):
@@ -4614,29 +4127,17 @@ class MsrQueryResultP1(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
@@ -4667,15 +4168,9 @@ class MsrQueryP1(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    msr_query_props_id = Column(
-        types.Integer, ForeignKey("msr_query_props.rid", use_alter=True)
-    )
-    msr_query_props = relationship(
-        "MsrQueryProps", foreign_keys=[msr_query_props_id], uselist=False, cascade="all"
-    )
-    msr_query_result_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_result_p_1.rid", use_alter=True)
-    )
+    msr_query_props_id = Column(types.Integer, ForeignKey("msr_query_props.rid", use_alter=True))
+    msr_query_props = relationship("MsrQueryProps", foreign_keys=[msr_query_props_id], uselist=False, cascade="all")
+    msr_query_result_p_1_id = Column(types.Integer, ForeignKey("msr_query_result_p_1.rid", use_alter=True))
     msr_query_result_p_1 = relationship(
         "MsrQueryResultP1",
         foreign_keys=[msr_query_result_p_1_id],
@@ -4724,51 +4219,31 @@ class Topic1(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
 
 
 class MsrQueryResultTopic1(Base):
@@ -4788,9 +4263,7 @@ class MsrQueryResultTopic1(Base):
     t = StdString()
     si = StdString()
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
 
 
 class MsrQueryTopic1(Base):
@@ -4815,15 +4288,9 @@ class MsrQueryTopic1(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    msr_query_props_id = Column(
-        types.Integer, ForeignKey("msr_query_props.rid", use_alter=True)
-    )
-    msr_query_props = relationship(
-        "MsrQueryProps", foreign_keys=[msr_query_props_id], uselist=False, cascade="all"
-    )
-    msr_query_result_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_result_topic_1.rid", use_alter=True)
-    )
+    msr_query_props_id = Column(types.Integer, ForeignKey("msr_query_props.rid", use_alter=True))
+    msr_query_props = relationship("MsrQueryProps", foreign_keys=[msr_query_props_id], uselist=False, cascade="all")
+    msr_query_result_topic_1_id = Column(types.Integer, ForeignKey("msr_query_result_topic_1.rid", use_alter=True))
     msr_query_result_topic_1 = relationship(
         "MsrQueryResultTopic1",
         foreign_keys=[msr_query_result_topic_1_id],
@@ -4881,68 +4348,38 @@ class Chapter(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True)
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
+    msr_query_topic_1_id = Column(types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True))
     msr_query_topic_1 = relationship(
         "MsrQueryTopic1",
         foreign_keys=[msr_query_topic_1_id],
@@ -4950,12 +4387,8 @@ class Chapter(Base):
         cascade="all",
     )
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
-    msr_query_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True)
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
+    msr_query_chapter_id = Column(types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True))
     msr_query_chapter = relationship(
         "MsrQueryChapter",
         foreign_keys=[msr_query_chapter_id],
@@ -4981,9 +4414,7 @@ class MsrQueryResultChapter(Base):
     t = StdString()
     si = StdString()
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
 
 
 class MsrQueryChapter(Base):
@@ -5008,15 +4439,9 @@ class MsrQueryChapter(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    msr_query_props_id = Column(
-        types.Integer, ForeignKey("msr_query_props.rid", use_alter=True)
-    )
-    msr_query_props = relationship(
-        "MsrQueryProps", foreign_keys=[msr_query_props_id], uselist=False, cascade="all"
-    )
-    msr_query_result_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_result_chapter.rid", use_alter=True)
-    )
+    msr_query_props_id = Column(types.Integer, ForeignKey("msr_query_props.rid", use_alter=True))
+    msr_query_props = relationship("MsrQueryProps", foreign_keys=[msr_query_props_id], uselist=False, cascade="all")
+    msr_query_result_chapter_id = Column(types.Integer, ForeignKey("msr_query_result_chapter.rid", use_alter=True))
     msr_query_result_chapter = relationship(
         "MsrQueryResultChapter",
         foreign_keys=[msr_query_result_chapter_id],
@@ -5051,16 +4476,10 @@ class Guarantee(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class Maintenance(Base):
@@ -5089,16 +4508,10 @@ class Maintenance(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class Samples(Base):
@@ -5118,9 +4531,7 @@ class Samples(Base):
     t = StdString()
     si = StdString()
     sample_id = Column(types.Integer, ForeignKey("sample.rid", use_alter=True))
-    sample = relationship(
-        "Sample", foreign_keys=[sample_id], uselist=True, cascade="all"
-    )
+    sample = relationship("Sample", foreign_keys=[sample_id], uselist=True, cascade="all")
 
 
 class AddSpec(Base):
@@ -5149,16 +4560,10 @@ class AddSpec(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class ContractAspects(Base):
@@ -5190,30 +4595,16 @@ class ContractAspects(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     rights_id = Column(types.Integer, ForeignKey("rights.rid", use_alter=True))
-    rights = relationship(
-        "Rights", foreign_keys=[rights_id], uselist=False, cascade="all"
-    )
+    rights = relationship("Rights", foreign_keys=[rights_id], uselist=False, cascade="all")
     guarantee_id = Column(types.Integer, ForeignKey("guarantee.rid", use_alter=True))
-    guarantee = relationship(
-        "Guarantee", foreign_keys=[guarantee_id], uselist=False, cascade="all"
-    )
-    maintenance_id = Column(
-        types.Integer, ForeignKey("maintenance.rid", use_alter=True)
-    )
-    maintenance = relationship(
-        "Maintenance", foreign_keys=[maintenance_id], uselist=False, cascade="all"
-    )
+    guarantee = relationship("Guarantee", foreign_keys=[guarantee_id], uselist=False, cascade="all")
+    maintenance_id = Column(types.Integer, ForeignKey("maintenance.rid", use_alter=True))
+    maintenance = relationship("Maintenance", foreign_keys=[maintenance_id], uselist=False, cascade="all")
     add_spec_id = Column(types.Integer, ForeignKey("add_spec.rid", use_alter=True))
-    add_spec = relationship(
-        "AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all"
-    )
+    add_spec = relationship("AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all")
 
 
 class SampleSpec(Base):
@@ -5242,16 +4633,10 @@ class SampleSpec(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     samples_id = Column(types.Integer, ForeignKey("samples.rid", use_alter=True))
-    samples = relationship(
-        "Samples", foreign_keys=[samples_id], uselist=False, cascade="all"
-    )
+    samples = relationship("Samples", foreign_keys=[samples_id], uselist=False, cascade="all")
 
 
 class VariantChars(Base):
@@ -5270,12 +4655,8 @@ class VariantChars(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    variant_char_id = Column(
-        types.Integer, ForeignKey("variant_char.rid", use_alter=True)
-    )
-    variant_char = relationship(
-        "VariantChar", foreign_keys=[variant_char_id], uselist=True, cascade="all"
-    )
+    variant_char_id = Column(types.Integer, ForeignKey("variant_char.rid", use_alter=True))
+    variant_char = relationship("VariantChar", foreign_keys=[variant_char_id], uselist=True, cascade="all")
 
 
 class VariantDefs(Base):
@@ -5294,12 +4675,8 @@ class VariantDefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    variant_def_id = Column(
-        types.Integer, ForeignKey("variant_def.rid", use_alter=True)
-    )
-    variant_def = relationship(
-        "VariantDef", foreign_keys=[variant_def_id], uselist=True, cascade="all"
-    )
+    variant_def_id = Column(types.Integer, ForeignKey("variant_def.rid", use_alter=True))
+    variant_def = relationship("VariantDef", foreign_keys=[variant_def_id], uselist=True, cascade="all")
 
 
 class VariantSpec(Base):
@@ -5329,24 +4706,12 @@ class VariantSpec(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    variant_chars_id = Column(
-        types.Integer, ForeignKey("variant_chars.rid", use_alter=True)
-    )
-    variant_chars = relationship(
-        "VariantChars", foreign_keys=[variant_chars_id], uselist=False, cascade="all"
-    )
-    variant_defs_id = Column(
-        types.Integer, ForeignKey("variant_defs.rid", use_alter=True)
-    )
-    variant_defs = relationship(
-        "VariantDefs", foreign_keys=[variant_defs_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    variant_chars_id = Column(types.Integer, ForeignKey("variant_chars.rid", use_alter=True))
+    variant_chars = relationship("VariantChars", foreign_keys=[variant_chars_id], uselist=False, cascade="all")
+    variant_defs_id = Column(types.Integer, ForeignKey("variant_defs.rid", use_alter=True))
+    variant_defs = relationship("VariantDefs", foreign_keys=[variant_defs_id], uselist=False, cascade="all")
 
 
 class Sample(Base):
@@ -5374,17 +4739,11 @@ class Sample(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class DemarcationOtherProjects(Base):
@@ -5413,16 +4772,10 @@ class DemarcationOtherProjects(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class ParallelDesigns(Base):
@@ -5451,16 +4804,10 @@ class ParallelDesigns(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class Code(Base):
@@ -5508,13 +4855,9 @@ class VariantChar(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     code_id = Column(types.Integer, ForeignKey("code.rid", use_alter=True))
     code = relationship("Code", foreign_keys=[code_id], uselist=False, cascade="all")
 
@@ -5545,16 +4888,10 @@ class IntegrationCapability(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class VariantCharAssigns(Base):
@@ -5573,9 +4910,7 @@ class VariantCharAssigns(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    variant_char_assign_id = Column(
-        types.Integer, ForeignKey("variant_char_assign.rid", use_alter=True)
-    )
+    variant_char_assign_id = Column(types.Integer, ForeignKey("variant_char_assign.rid", use_alter=True))
     variant_char_assign = relationship(
         "VariantCharAssign",
         foreign_keys=[variant_char_assign_id],
@@ -5608,18 +4943,12 @@ class VariantDef(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     code_id = Column(types.Integer, ForeignKey("code.rid", use_alter=True))
     code = relationship("Code", foreign_keys=[code_id], uselist=False, cascade="all")
-    variant_char_assigns_id = Column(
-        types.Integer, ForeignKey("variant_char_assigns.rid", use_alter=True)
-    )
+    variant_char_assigns_id = Column(types.Integer, ForeignKey("variant_char_assigns.rid", use_alter=True))
     variant_char_assigns = relationship(
         "VariantCharAssigns",
         foreign_keys=[variant_char_assigns_id],
@@ -5710,18 +5039,14 @@ class VariantCharAssign(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    variant_char_ref_id = Column(
-        types.Integer, ForeignKey("variant_char_ref.rid", use_alter=True)
-    )
+    variant_char_ref_id = Column(types.Integer, ForeignKey("variant_char_ref.rid", use_alter=True))
     variant_char_ref = relationship(
         "VariantCharRef",
         foreign_keys=[variant_char_ref_id],
         uselist=False,
         cascade="all",
     )
-    variant_char_value_id = Column(
-        types.Integer, ForeignKey("variant_char_value.rid", use_alter=True)
-    )
+    variant_char_value_id = Column(types.Integer, ForeignKey("variant_char_value.rid", use_alter=True))
     variant_char_value = relationship(
         "VariantCharValue",
         foreign_keys=[variant_char_value_id],
@@ -5756,16 +5081,10 @@ class AcceptanceCond(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class ProjectSchedule(Base):
@@ -5794,16 +5113,10 @@ class ProjectSchedule(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class PurchasingCond(Base):
@@ -5832,16 +5145,10 @@ class PurchasingCond(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class Protocols(Base):
@@ -5870,16 +5177,10 @@ class Protocols(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class DirHandOverDocData(Base):
@@ -5908,16 +5209,10 @@ class DirHandOverDocData(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class GeneralProjectData(Base):
@@ -5962,103 +5257,67 @@ class GeneralProjectData(Base):
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    system_overview_id = Column(
-        types.Integer, ForeignKey("system_overview.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    system_overview_id = Column(types.Integer, ForeignKey("system_overview.rid", use_alter=True))
     system_overview = relationship(
         "SystemOverview",
         foreign_keys=[system_overview_id],
         uselist=False,
         cascade="all",
     )
-    reason_order_id = Column(
-        types.Integer, ForeignKey("reason_order.rid", use_alter=True)
-    )
-    reason_order = relationship(
-        "ReasonOrder", foreign_keys=[reason_order_id], uselist=False, cascade="all"
-    )
+    reason_order_id = Column(types.Integer, ForeignKey("reason_order.rid", use_alter=True))
+    reason_order = relationship("ReasonOrder", foreign_keys=[reason_order_id], uselist=False, cascade="all")
     objectives_id = Column(types.Integer, ForeignKey("objectives.rid", use_alter=True))
-    objectives = relationship(
-        "Objectives", foreign_keys=[objectives_id], uselist=False, cascade="all"
-    )
-    contract_aspects_id = Column(
-        types.Integer, ForeignKey("contract_aspects.rid", use_alter=True)
-    )
+    objectives = relationship("Objectives", foreign_keys=[objectives_id], uselist=False, cascade="all")
+    contract_aspects_id = Column(types.Integer, ForeignKey("contract_aspects.rid", use_alter=True))
     contract_aspects = relationship(
         "ContractAspects",
         foreign_keys=[contract_aspects_id],
         uselist=False,
         cascade="all",
     )
-    sample_spec_id = Column(
-        types.Integer, ForeignKey("sample_spec.rid", use_alter=True)
-    )
-    sample_spec = relationship(
-        "SampleSpec", foreign_keys=[sample_spec_id], uselist=False, cascade="all"
-    )
-    variant_spec_id = Column(
-        types.Integer, ForeignKey("variant_spec.rid", use_alter=True)
-    )
-    variant_spec = relationship(
-        "VariantSpec", foreign_keys=[variant_spec_id], uselist=False, cascade="all"
-    )
-    demarcation_other_projects_id = Column(
-        types.Integer, ForeignKey("demarcation_other_projects.rid", use_alter=True)
-    )
+    sample_spec_id = Column(types.Integer, ForeignKey("sample_spec.rid", use_alter=True))
+    sample_spec = relationship("SampleSpec", foreign_keys=[sample_spec_id], uselist=False, cascade="all")
+    variant_spec_id = Column(types.Integer, ForeignKey("variant_spec.rid", use_alter=True))
+    variant_spec = relationship("VariantSpec", foreign_keys=[variant_spec_id], uselist=False, cascade="all")
+    demarcation_other_projects_id = Column(types.Integer, ForeignKey("demarcation_other_projects.rid", use_alter=True))
     demarcation_other_projects = relationship(
         "DemarcationOtherProjects",
         foreign_keys=[demarcation_other_projects_id],
         uselist=False,
         cascade="all",
     )
-    parallel_designs_id = Column(
-        types.Integer, ForeignKey("parallel_designs.rid", use_alter=True)
-    )
+    parallel_designs_id = Column(types.Integer, ForeignKey("parallel_designs.rid", use_alter=True))
     parallel_designs = relationship(
         "ParallelDesigns",
         foreign_keys=[parallel_designs_id],
         uselist=False,
         cascade="all",
     )
-    integration_capability_id = Column(
-        types.Integer, ForeignKey("integration_capability.rid", use_alter=True)
-    )
+    integration_capability_id = Column(types.Integer, ForeignKey("integration_capability.rid", use_alter=True))
     integration_capability = relationship(
         "IntegrationCapability",
         foreign_keys=[integration_capability_id],
         uselist=False,
         cascade="all",
     )
-    acceptance_cond_id = Column(
-        types.Integer, ForeignKey("acceptance_cond.rid", use_alter=True)
-    )
+    acceptance_cond_id = Column(types.Integer, ForeignKey("acceptance_cond.rid", use_alter=True))
     acceptance_cond = relationship(
         "AcceptanceCond",
         foreign_keys=[acceptance_cond_id],
         uselist=False,
         cascade="all",
     )
-    project_schedule_id = Column(
-        types.Integer, ForeignKey("project_schedule.rid", use_alter=True)
-    )
+    project_schedule_id = Column(types.Integer, ForeignKey("project_schedule.rid", use_alter=True))
     project_schedule = relationship(
         "ProjectSchedule",
         foreign_keys=[project_schedule_id],
         uselist=False,
         cascade="all",
     )
-    purchasing_cond_id = Column(
-        types.Integer, ForeignKey("purchasing_cond.rid", use_alter=True)
-    )
+    purchasing_cond_id = Column(types.Integer, ForeignKey("purchasing_cond.rid", use_alter=True))
     purchasing_cond = relationship(
         "PurchasingCond",
         foreign_keys=[purchasing_cond_id],
@@ -6066,12 +5325,8 @@ class GeneralProjectData(Base):
         cascade="all",
     )
     protocols_id = Column(types.Integer, ForeignKey("protocols.rid", use_alter=True))
-    protocols = relationship(
-        "Protocols", foreign_keys=[protocols_id], uselist=False, cascade="all"
-    )
-    dir_hand_over_doc_data_id = Column(
-        types.Integer, ForeignKey("dir_hand_over_doc_data.rid", use_alter=True)
-    )
+    protocols = relationship("Protocols", foreign_keys=[protocols_id], uselist=False, cascade="all")
+    dir_hand_over_doc_data_id = Column(types.Integer, ForeignKey("dir_hand_over_doc_data.rid", use_alter=True))
     dir_hand_over_doc_data = relationship(
         "DirHandOverDocData",
         foreign_keys=[dir_hand_over_doc_data_id],
@@ -6079,9 +5334,7 @@ class GeneralProjectData(Base):
         cascade="all",
     )
     add_spec_id = Column(types.Integer, ForeignKey("add_spec.rid", use_alter=True))
-    add_spec = relationship(
-        "AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all"
-    )
+    add_spec = relationship("AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all")
 
 
 class Project(Base):
@@ -6108,12 +5361,8 @@ class Project(Base):
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     companies_id = Column(types.Integer, ForeignKey("companies.rid", use_alter=True))
-    companies = relationship(
-        "Companies", foreign_keys=[companies_id], uselist=False, cascade="all"
-    )
-    general_project_data_id = Column(
-        types.Integer, ForeignKey("general_project_data.rid", use_alter=True)
-    )
+    companies = relationship("Companies", foreign_keys=[companies_id], uselist=False, cascade="all")
+    general_project_data_id = Column(types.Integer, ForeignKey("general_project_data.rid", use_alter=True))
     general_project_data = relationship(
         "GeneralProjectData",
         foreign_keys=[general_project_data_id],
@@ -6139,9 +5388,7 @@ class ProjectData(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    overall_project_id = Column(
-        types.Integer, ForeignKey("overall_project.rid", use_alter=True)
-    )
+    overall_project_id = Column(types.Integer, ForeignKey("overall_project.rid", use_alter=True))
     overall_project = relationship(
         "OverallProject",
         foreign_keys=[overall_project_id],
@@ -6149,9 +5396,7 @@ class ProjectData(Base):
         cascade="all",
     )
     project_id = Column(types.Integer, ForeignKey("project.rid", use_alter=True))
-    project = relationship(
-        "Project", foreign_keys=[project_id], uselist=False, cascade="all"
-    )
+    project = relationship("Project", foreign_keys=[project_id], uselist=False, cascade="all")
 
 
 class SwSystems(Base):
@@ -6171,9 +5416,7 @@ class SwSystems(Base):
     t = StdString()
     si = StdString()
     sw_system_id = Column(types.Integer, ForeignKey("sw_system.rid", use_alter=True))
-    sw_system = relationship(
-        "SwSystem", foreign_keys=[sw_system_id], uselist=True, cascade="all"
-    )
+    sw_system = relationship("SwSystem", foreign_keys=[sw_system_id], uselist=True, cascade="all")
 
 
 class Requirements(Base):
@@ -6192,12 +5435,8 @@ class Requirements(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    requirement_id = Column(
-        types.Integer, ForeignKey("requirement.rid", use_alter=True)
-    )
-    requirement = relationship(
-        "Requirement", foreign_keys=[requirement_id], uselist=True, cascade="all"
-    )
+    requirement_id = Column(types.Integer, ForeignKey("requirement.rid", use_alter=True))
+    requirement = relationship("Requirement", foreign_keys=[requirement_id], uselist=True, cascade="all")
 
 
 class FunctionOverview(Base):
@@ -6226,16 +5465,10 @@ class FunctionOverview(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class FreeInfo(Base):
@@ -6271,48 +5504,28 @@ class FreeInfo(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True)
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
+    msr_query_topic_1_id = Column(types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True))
     msr_query_topic_1 = relationship(
         "MsrQueryTopic1",
         foreign_keys=[msr_query_topic_1_id],
@@ -6320,12 +5533,8 @@ class FreeInfo(Base):
         cascade="all",
     )
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
-    msr_query_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True)
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
+    msr_query_chapter_id = Column(types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True))
     msr_query_chapter = relationship(
         "MsrQueryChapter",
         foreign_keys=[msr_query_chapter_id],
@@ -6351,9 +5560,7 @@ class PrmRefs(Base):
     t = StdString()
     si = StdString()
     prm_ref_id = Column(types.Integer, ForeignKey("prm_ref.rid", use_alter=True))
-    prm_ref = relationship(
-        "PrmRef", foreign_keys=[prm_ref_id], uselist=True, cascade="all"
-    )
+    prm_ref = relationship("PrmRef", foreign_keys=[prm_ref_id], uselist=True, cascade="all")
 
 
 class KeyData(Base):
@@ -6383,20 +5590,12 @@ class KeyData(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     free_info_id = Column(types.Integer, ForeignKey("free_info.rid", use_alter=True))
-    free_info = relationship(
-        "FreeInfo", foreign_keys=[free_info_id], uselist=False, cascade="all"
-    )
+    free_info = relationship("FreeInfo", foreign_keys=[free_info_id], uselist=False, cascade="all")
     prm_refs_id = Column(types.Integer, ForeignKey("prm_refs.rid", use_alter=True))
-    prm_refs = relationship(
-        "PrmRefs", foreign_keys=[prm_refs_id], uselist=False, cascade="all"
-    )
+    prm_refs = relationship("PrmRefs", foreign_keys=[prm_refs_id], uselist=False, cascade="all")
 
 
 class ProductDemarcation(Base):
@@ -6425,16 +5624,10 @@ class ProductDemarcation(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class PrmRef(Base):
@@ -6488,16 +5681,10 @@ class SimilarProducts(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class OperatingEnv(Base):
@@ -6526,16 +5713,10 @@ class OperatingEnv(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class UsefulLifePrms(Base):
@@ -6557,22 +5738,12 @@ class UsefulLifePrms(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    availability_id = Column(
-        types.Integer, ForeignKey("availability.rid", use_alter=True)
-    )
-    availability = relationship(
-        "Availability", foreign_keys=[availability_id], uselist=True, cascade="all"
-    )
+    availability_id = Column(types.Integer, ForeignKey("availability.rid", use_alter=True))
+    availability = relationship("Availability", foreign_keys=[availability_id], uselist=True, cascade="all")
     life_time_id = Column(types.Integer, ForeignKey("life_time.rid", use_alter=True))
-    life_time = relationship(
-        "LifeTime", foreign_keys=[life_time_id], uselist=True, cascade="all"
-    )
-    operating_time_id = Column(
-        types.Integer, ForeignKey("operating_time.rid", use_alter=True)
-    )
-    operating_time = relationship(
-        "OperatingTime", foreign_keys=[operating_time_id], uselist=True, cascade="all"
-    )
+    life_time = relationship("LifeTime", foreign_keys=[life_time_id], uselist=True, cascade="all")
+    operating_time_id = Column(types.Integer, ForeignKey("operating_time.rid", use_alter=True))
+    operating_time = relationship("OperatingTime", foreign_keys=[operating_time_id], uselist=True, cascade="all")
     prm_id = Column(types.Integer, ForeignKey("prm.rid", use_alter=True))
     prm = relationship("Prm", foreign_keys=[prm_id], uselist=True, cascade="all")
 
@@ -6607,46 +5778,26 @@ class Ncoi3(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
-    msr_query_p_2_id = Column(
-        types.Integer, ForeignKey("msr_query_p_2.rid", use_alter=True)
-    )
-    msr_query_p_2 = relationship(
-        "MsrQueryP2", foreign_keys=[msr_query_p_2_id], uselist=True, cascade="all"
-    )
+    msr_query_p_2_id = Column(types.Integer, ForeignKey("msr_query_p_2.rid", use_alter=True))
+    msr_query_p_2 = relationship("MsrQueryP2", foreign_keys=[msr_query_p_2_id], uselist=True, cascade="all")
     topic_2_id = Column(types.Integer, ForeignKey("topic_2.rid", use_alter=True))
-    topic_2 = relationship(
-        "Topic2", foreign_keys=[topic_2_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_2_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_2.rid", use_alter=True)
-    )
+    topic_2 = relationship("Topic2", foreign_keys=[topic_2_id], uselist=True, cascade="all")
+    msr_query_topic_2_id = Column(types.Integer, ForeignKey("msr_query_topic_2.rid", use_alter=True))
     msr_query_topic_2 = relationship(
         "MsrQueryTopic2",
         foreign_keys=[msr_query_topic_2_id],
@@ -6708,15 +5859,9 @@ class UsefulLife(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    useful_life_prms_id = Column(
-        types.Integer, ForeignKey("useful_life_prms.rid", use_alter=True)
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    useful_life_prms_id = Column(types.Integer, ForeignKey("useful_life_prms.rid", use_alter=True))
     useful_life_prms = relationship(
         "UsefulLifePrms",
         foreign_keys=[useful_life_prms_id],
@@ -6724,9 +5869,7 @@ class UsefulLife(Base):
         cascade="all",
     )
     ncoi_3_id = Column(types.Integer, ForeignKey("ncoi_3.rid", use_alter=True))
-    ncoi_3 = relationship(
-        "Ncoi3", foreign_keys=[ncoi_3_id], uselist=False, cascade="all"
-    )
+    ncoi_3 = relationship("Ncoi3", foreign_keys=[ncoi_3_id], uselist=False, cascade="all")
 
 
 class Availability(Base):
@@ -6753,19 +5896,13 @@ class Availability(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     prm_char_id = Column(types.Integer, ForeignKey("prm_char.rid", use_alter=True))
-    prm_char = relationship(
-        "PrmChar", foreign_keys=[prm_char_id], uselist=True, cascade="all"
-    )
+    prm_char = relationship("PrmChar", foreign_keys=[prm_char_id], uselist=True, cascade="all")
 
 
 class LifeTime(Base):
@@ -6792,19 +5929,13 @@ class LifeTime(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     prm_char_id = Column(types.Integer, ForeignKey("prm_char.rid", use_alter=True))
-    prm_char = relationship(
-        "PrmChar", foreign_keys=[prm_char_id], uselist=True, cascade="all"
-    )
+    prm_char = relationship("PrmChar", foreign_keys=[prm_char_id], uselist=True, cascade="all")
 
 
 class OperatingTime(Base):
@@ -6831,19 +5962,13 @@ class OperatingTime(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     prm_char_id = Column(types.Integer, ForeignKey("prm_char.rid", use_alter=True))
-    prm_char = relationship(
-        "PrmChar", foreign_keys=[prm_char_id], uselist=True, cascade="all"
-    )
+    prm_char = relationship("PrmChar", foreign_keys=[prm_char_id], uselist=True, cascade="all")
 
 
 class Reliability(Base):
@@ -6873,15 +5998,9 @@ class Reliability(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    reliability_prms_id = Column(
-        types.Integer, ForeignKey("reliability_prms.rid", use_alter=True)
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    reliability_prms_id = Column(types.Integer, ForeignKey("reliability_prms.rid", use_alter=True))
     reliability_prms = relationship(
         "ReliabilityPrms",
         foreign_keys=[reliability_prms_id],
@@ -6889,9 +6008,7 @@ class Reliability(Base):
         cascade="all",
     )
     ncoi_3_id = Column(types.Integer, ForeignKey("ncoi_3.rid", use_alter=True))
-    ncoi_3 = relationship(
-        "Ncoi3", foreign_keys=[ncoi_3_id], uselist=False, cascade="all"
-    )
+    ncoi_3 = relationship("Ncoi3", foreign_keys=[ncoi_3_id], uselist=False, cascade="all")
 
 
 class GeneralHardware(Base):
@@ -6923,34 +6040,16 @@ class GeneralHardware(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    operating_env_id = Column(
-        types.Integer, ForeignKey("operating_env.rid", use_alter=True)
-    )
-    operating_env = relationship(
-        "OperatingEnv", foreign_keys=[operating_env_id], uselist=False, cascade="all"
-    )
-    useful_life_id = Column(
-        types.Integer, ForeignKey("useful_life.rid", use_alter=True)
-    )
-    useful_life = relationship(
-        "UsefulLife", foreign_keys=[useful_life_id], uselist=False, cascade="all"
-    )
-    reliability_id = Column(
-        types.Integer, ForeignKey("reliability.rid", use_alter=True)
-    )
-    reliability = relationship(
-        "Reliability", foreign_keys=[reliability_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    operating_env_id = Column(types.Integer, ForeignKey("operating_env.rid", use_alter=True))
+    operating_env = relationship("OperatingEnv", foreign_keys=[operating_env_id], uselist=False, cascade="all")
+    useful_life_id = Column(types.Integer, ForeignKey("useful_life.rid", use_alter=True))
+    useful_life = relationship("UsefulLife", foreign_keys=[useful_life_id], uselist=False, cascade="all")
+    reliability_id = Column(types.Integer, ForeignKey("reliability.rid", use_alter=True))
+    reliability = relationship("Reliability", foreign_keys=[reliability_id], uselist=False, cascade="all")
     add_spec_id = Column(types.Integer, ForeignKey("add_spec.rid", use_alter=True))
-    add_spec = relationship(
-        "AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all"
-    )
+    add_spec = relationship("AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all")
 
 
 class NormativeReference(Base):
@@ -6979,16 +6078,10 @@ class NormativeReference(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class Mtbf(Base):
@@ -7015,19 +6108,13 @@ class Mtbf(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     prm_char_id = Column(types.Integer, ForeignKey("prm_char.rid", use_alter=True))
-    prm_char = relationship(
-        "PrmChar", foreign_keys=[prm_char_id], uselist=True, cascade="all"
-    )
+    prm_char = relationship("PrmChar", foreign_keys=[prm_char_id], uselist=True, cascade="all")
 
 
 class Ppm(Base):
@@ -7054,19 +6141,13 @@ class Ppm(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     prm_char_id = Column(types.Integer, ForeignKey("prm_char.rid", use_alter=True))
-    prm_char = relationship(
-        "PrmChar", foreign_keys=[prm_char_id], uselist=True, cascade="all"
-    )
+    prm_char = relationship("PrmChar", foreign_keys=[prm_char_id], uselist=True, cascade="all")
 
 
 class DataStructures(Base):
@@ -7095,16 +6176,10 @@ class DataStructures(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class DataDesc(Base):
@@ -7133,16 +6208,10 @@ class DataDesc(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class RestrictionsByHardware(Base):
@@ -7171,16 +6240,10 @@ class RestrictionsByHardware(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class StandardSwModules(Base):
@@ -7209,16 +6272,10 @@ class StandardSwModules(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class DesignRequirements(Base):
@@ -7250,33 +6307,23 @@ class DesignRequirements(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    normative_reference_id = Column(
-        types.Integer, ForeignKey("normative_reference.rid", use_alter=True)
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    normative_reference_id = Column(types.Integer, ForeignKey("normative_reference.rid", use_alter=True))
     normative_reference = relationship(
         "NormativeReference",
         foreign_keys=[normative_reference_id],
         uselist=False,
         cascade="all",
     )
-    restrictions_by_hardware_id = Column(
-        types.Integer, ForeignKey("restrictions_by_hardware.rid", use_alter=True)
-    )
+    restrictions_by_hardware_id = Column(types.Integer, ForeignKey("restrictions_by_hardware.rid", use_alter=True))
     restrictions_by_hardware = relationship(
         "RestrictionsByHardware",
         foreign_keys=[restrictions_by_hardware_id],
         uselist=False,
         cascade="all",
     )
-    standard_sw_modules_id = Column(
-        types.Integer, ForeignKey("standard_sw_modules.rid", use_alter=True)
-    )
+    standard_sw_modules_id = Column(types.Integer, ForeignKey("standard_sw_modules.rid", use_alter=True))
     standard_sw_modules = relationship(
         "StandardSwModules",
         foreign_keys=[standard_sw_modules_id],
@@ -7284,9 +6331,7 @@ class DesignRequirements(Base):
         cascade="all",
     )
     add_spec_id = Column(types.Integer, ForeignKey("add_spec.rid", use_alter=True))
-    add_spec = relationship(
-        "AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all"
-    )
+    add_spec = relationship("AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all")
 
 
 class BinaryCompatibility(Base):
@@ -7315,16 +6360,10 @@ class BinaryCompatibility(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class DataRequirements(Base):
@@ -7355,15 +6394,9 @@ class DataRequirements(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    data_structures_id = Column(
-        types.Integer, ForeignKey("data_structures.rid", use_alter=True)
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    data_structures_id = Column(types.Integer, ForeignKey("data_structures.rid", use_alter=True))
     data_structures = relationship(
         "DataStructures",
         foreign_keys=[data_structures_id],
@@ -7371,13 +6404,9 @@ class DataRequirements(Base):
         cascade="all",
     )
     data_desc_id = Column(types.Integer, ForeignKey("data_desc.rid", use_alter=True))
-    data_desc = relationship(
-        "DataDesc", foreign_keys=[data_desc_id], uselist=False, cascade="all"
-    )
+    data_desc = relationship("DataDesc", foreign_keys=[data_desc_id], uselist=False, cascade="all")
     add_spec_id = Column(types.Integer, ForeignKey("add_spec.rid", use_alter=True))
-    add_spec = relationship(
-        "AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all"
-    )
+    add_spec = relationship("AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all")
 
 
 class Extensibility(Base):
@@ -7406,16 +6435,10 @@ class Extensibility(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class Compatibility(Base):
@@ -7444,16 +6467,10 @@ class Compatibility(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class GeneralSoftware(Base):
@@ -7487,55 +6504,35 @@ class GeneralSoftware(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    design_requirements_id = Column(
-        types.Integer, ForeignKey("design_requirements.rid", use_alter=True)
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    design_requirements_id = Column(types.Integer, ForeignKey("design_requirements.rid", use_alter=True))
     design_requirements = relationship(
         "DesignRequirements",
         foreign_keys=[design_requirements_id],
         uselist=False,
         cascade="all",
     )
-    data_requirements_id = Column(
-        types.Integer, ForeignKey("data_requirements.rid", use_alter=True)
-    )
+    data_requirements_id = Column(types.Integer, ForeignKey("data_requirements.rid", use_alter=True))
     data_requirements = relationship(
         "DataRequirements",
         foreign_keys=[data_requirements_id],
         uselist=False,
         cascade="all",
     )
-    binary_compatibility_id = Column(
-        types.Integer, ForeignKey("binary_compatibility.rid", use_alter=True)
-    )
+    binary_compatibility_id = Column(types.Integer, ForeignKey("binary_compatibility.rid", use_alter=True))
     binary_compatibility = relationship(
         "BinaryCompatibility",
         foreign_keys=[binary_compatibility_id],
         uselist=False,
         cascade="all",
     )
-    extensibility_id = Column(
-        types.Integer, ForeignKey("extensibility.rid", use_alter=True)
-    )
-    extensibility = relationship(
-        "Extensibility", foreign_keys=[extensibility_id], uselist=False, cascade="all"
-    )
-    compatibility_id = Column(
-        types.Integer, ForeignKey("compatibility.rid", use_alter=True)
-    )
-    compatibility = relationship(
-        "Compatibility", foreign_keys=[compatibility_id], uselist=False, cascade="all"
-    )
+    extensibility_id = Column(types.Integer, ForeignKey("extensibility.rid", use_alter=True))
+    extensibility = relationship("Extensibility", foreign_keys=[extensibility_id], uselist=False, cascade="all")
+    compatibility_id = Column(types.Integer, ForeignKey("compatibility.rid", use_alter=True))
+    compatibility = relationship("Compatibility", foreign_keys=[compatibility_id], uselist=False, cascade="all")
     add_spec_id = Column(types.Integer, ForeignKey("add_spec.rid", use_alter=True))
-    add_spec = relationship(
-        "AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all"
-    )
+    add_spec = relationship("AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all")
 
 
 class UserInterface(Base):
@@ -7564,16 +6561,10 @@ class UserInterface(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class HardwareInterface(Base):
@@ -7602,16 +6593,10 @@ class HardwareInterface(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class InternalInterfaces(Base):
@@ -7640,16 +6625,10 @@ class InternalInterfaces(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class CommunicationInterface(Base):
@@ -7678,16 +6657,10 @@ class CommunicationInterface(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class FlashProgramming(Base):
@@ -7716,16 +6689,10 @@ class FlashProgramming(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class GeneralInterfaces(Base):
@@ -7759,48 +6726,32 @@ class GeneralInterfaces(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    user_interface_id = Column(
-        types.Integer, ForeignKey("user_interface.rid", use_alter=True)
-    )
-    user_interface = relationship(
-        "UserInterface", foreign_keys=[user_interface_id], uselist=False, cascade="all"
-    )
-    hardware_interface_id = Column(
-        types.Integer, ForeignKey("hardware_interface.rid", use_alter=True)
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    user_interface_id = Column(types.Integer, ForeignKey("user_interface.rid", use_alter=True))
+    user_interface = relationship("UserInterface", foreign_keys=[user_interface_id], uselist=False, cascade="all")
+    hardware_interface_id = Column(types.Integer, ForeignKey("hardware_interface.rid", use_alter=True))
     hardware_interface = relationship(
         "HardwareInterface",
         foreign_keys=[hardware_interface_id],
         uselist=False,
         cascade="all",
     )
-    internal_interfaces_id = Column(
-        types.Integer, ForeignKey("internal_interfaces.rid", use_alter=True)
-    )
+    internal_interfaces_id = Column(types.Integer, ForeignKey("internal_interfaces.rid", use_alter=True))
     internal_interfaces = relationship(
         "InternalInterfaces",
         foreign_keys=[internal_interfaces_id],
         uselist=False,
         cascade="all",
     )
-    communication_interface_id = Column(
-        types.Integer, ForeignKey("communication_interface.rid", use_alter=True)
-    )
+    communication_interface_id = Column(types.Integer, ForeignKey("communication_interface.rid", use_alter=True))
     communication_interface = relationship(
         "CommunicationInterface",
         foreign_keys=[communication_interface_id],
         uselist=False,
         cascade="all",
     )
-    flash_programming_id = Column(
-        types.Integer, ForeignKey("flash_programming.rid", use_alter=True)
-    )
+    flash_programming_id = Column(types.Integer, ForeignKey("flash_programming.rid", use_alter=True))
     flash_programming = relationship(
         "FlashProgramming",
         foreign_keys=[flash_programming_id],
@@ -7808,9 +6759,7 @@ class GeneralInterfaces(Base):
         cascade="all",
     )
     add_spec_id = Column(types.Integer, ForeignKey("add_spec.rid", use_alter=True))
-    add_spec = relationship(
-        "AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all"
-    )
+    add_spec = relationship("AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all")
 
 
 class Fmea(Base):
@@ -7839,16 +6788,10 @@ class Fmea(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class FailSaveConcept(Base):
@@ -7877,16 +6820,10 @@ class FailSaveConcept(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class ReplacementValues(Base):
@@ -7915,16 +6852,10 @@ class ReplacementValues(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class FailureMem(Base):
@@ -7953,16 +6884,10 @@ class FailureMem(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class SelfDiagnosis(Base):
@@ -7991,16 +6916,10 @@ class SelfDiagnosis(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class FailureManagement(Base):
@@ -8034,48 +6953,30 @@ class FailureManagement(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     fmea_id = Column(types.Integer, ForeignKey("fmea.rid", use_alter=True))
     fmea = relationship("Fmea", foreign_keys=[fmea_id], uselist=False, cascade="all")
-    fail_save_concept_id = Column(
-        types.Integer, ForeignKey("fail_save_concept.rid", use_alter=True)
-    )
+    fail_save_concept_id = Column(types.Integer, ForeignKey("fail_save_concept.rid", use_alter=True))
     fail_save_concept = relationship(
         "FailSaveConcept",
         foreign_keys=[fail_save_concept_id],
         uselist=False,
         cascade="all",
     )
-    replacement_values_id = Column(
-        types.Integer, ForeignKey("replacement_values.rid", use_alter=True)
-    )
+    replacement_values_id = Column(types.Integer, ForeignKey("replacement_values.rid", use_alter=True))
     replacement_values = relationship(
         "ReplacementValues",
         foreign_keys=[replacement_values_id],
         uselist=False,
         cascade="all",
     )
-    failure_mem_id = Column(
-        types.Integer, ForeignKey("failure_mem.rid", use_alter=True)
-    )
-    failure_mem = relationship(
-        "FailureMem", foreign_keys=[failure_mem_id], uselist=False, cascade="all"
-    )
-    self_diagnosis_id = Column(
-        types.Integer, ForeignKey("self_diagnosis.rid", use_alter=True)
-    )
-    self_diagnosis = relationship(
-        "SelfDiagnosis", foreign_keys=[self_diagnosis_id], uselist=False, cascade="all"
-    )
+    failure_mem_id = Column(types.Integer, ForeignKey("failure_mem.rid", use_alter=True))
+    failure_mem = relationship("FailureMem", foreign_keys=[failure_mem_id], uselist=False, cascade="all")
+    self_diagnosis_id = Column(types.Integer, ForeignKey("self_diagnosis.rid", use_alter=True))
+    self_diagnosis = relationship("SelfDiagnosis", foreign_keys=[self_diagnosis_id], uselist=False, cascade="all")
     add_spec_id = Column(types.Integer, ForeignKey("add_spec.rid", use_alter=True))
-    add_spec = relationship(
-        "AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all"
-    )
+    add_spec = relationship("AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all")
 
 
 class ResourceAllocation(Base):
@@ -8104,16 +7005,10 @@ class ResourceAllocation(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class Calibration(Base):
@@ -8142,16 +7037,10 @@ class Calibration(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class Safety(Base):
@@ -8180,16 +7069,10 @@ class Safety(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class Quality(Base):
@@ -8218,16 +7101,10 @@ class Quality(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class GeneralCond(Base):
@@ -8256,16 +7133,10 @@ class GeneralCond(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class AddDesignDoc(Base):
@@ -8294,16 +7165,10 @@ class AddDesignDoc(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class DevelopmentProcessSpec(Base):
@@ -8332,16 +7197,10 @@ class DevelopmentProcessSpec(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class GeneralProductData1(Base):
@@ -8389,24 +7248,12 @@ class GeneralProductData1(Base):
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    product_desc_id = Column(
-        types.Integer, ForeignKey("product_desc.rid", use_alter=True)
-    )
-    product_desc = relationship(
-        "ProductDesc", foreign_keys=[product_desc_id], uselist=False, cascade="all"
-    )
-    function_overview_id = Column(
-        types.Integer, ForeignKey("function_overview.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    product_desc_id = Column(types.Integer, ForeignKey("product_desc.rid", use_alter=True))
+    product_desc = relationship("ProductDesc", foreign_keys=[product_desc_id], uselist=False, cascade="all")
+    function_overview_id = Column(types.Integer, ForeignKey("function_overview.rid", use_alter=True))
     function_overview = relationship(
         "FunctionOverview",
         foreign_keys=[function_overview_id],
@@ -8414,107 +7261,69 @@ class GeneralProductData1(Base):
         cascade="all",
     )
     key_data_id = Column(types.Integer, ForeignKey("key_data.rid", use_alter=True))
-    key_data = relationship(
-        "KeyData", foreign_keys=[key_data_id], uselist=False, cascade="all"
-    )
-    product_demarcation_id = Column(
-        types.Integer, ForeignKey("product_demarcation.rid", use_alter=True)
-    )
+    key_data = relationship("KeyData", foreign_keys=[key_data_id], uselist=False, cascade="all")
+    product_demarcation_id = Column(types.Integer, ForeignKey("product_demarcation.rid", use_alter=True))
     product_demarcation = relationship(
         "ProductDemarcation",
         foreign_keys=[product_demarcation_id],
         uselist=False,
         cascade="all",
     )
-    similar_products_id = Column(
-        types.Integer, ForeignKey("similar_products.rid", use_alter=True)
-    )
+    similar_products_id = Column(types.Integer, ForeignKey("similar_products.rid", use_alter=True))
     similar_products = relationship(
         "SimilarProducts",
         foreign_keys=[similar_products_id],
         uselist=False,
         cascade="all",
     )
-    general_hardware_id = Column(
-        types.Integer, ForeignKey("general_hardware.rid", use_alter=True)
-    )
+    general_hardware_id = Column(types.Integer, ForeignKey("general_hardware.rid", use_alter=True))
     general_hardware = relationship(
         "GeneralHardware",
         foreign_keys=[general_hardware_id],
         uselist=False,
         cascade="all",
     )
-    general_software_id = Column(
-        types.Integer, ForeignKey("general_software.rid", use_alter=True)
-    )
+    general_software_id = Column(types.Integer, ForeignKey("general_software.rid", use_alter=True))
     general_software = relationship(
         "GeneralSoftware",
         foreign_keys=[general_software_id],
         uselist=False,
         cascade="all",
     )
-    general_interfaces_id = Column(
-        types.Integer, ForeignKey("general_interfaces.rid", use_alter=True)
-    )
+    general_interfaces_id = Column(types.Integer, ForeignKey("general_interfaces.rid", use_alter=True))
     general_interfaces = relationship(
         "GeneralInterfaces",
         foreign_keys=[general_interfaces_id],
         uselist=False,
         cascade="all",
     )
-    failure_management_id = Column(
-        types.Integer, ForeignKey("failure_management.rid", use_alter=True)
-    )
+    failure_management_id = Column(types.Integer, ForeignKey("failure_management.rid", use_alter=True))
     failure_management = relationship(
         "FailureManagement",
         foreign_keys=[failure_management_id],
         uselist=False,
         cascade="all",
     )
-    resource_allocation_id = Column(
-        types.Integer, ForeignKey("resource_allocation.rid", use_alter=True)
-    )
+    resource_allocation_id = Column(types.Integer, ForeignKey("resource_allocation.rid", use_alter=True))
     resource_allocation = relationship(
         "ResourceAllocation",
         foreign_keys=[resource_allocation_id],
         uselist=False,
         cascade="all",
     )
-    calibration_id = Column(
-        types.Integer, ForeignKey("calibration.rid", use_alter=True)
-    )
-    calibration = relationship(
-        "Calibration", foreign_keys=[calibration_id], uselist=False, cascade="all"
-    )
+    calibration_id = Column(types.Integer, ForeignKey("calibration.rid", use_alter=True))
+    calibration = relationship("Calibration", foreign_keys=[calibration_id], uselist=False, cascade="all")
     safety_id = Column(types.Integer, ForeignKey("safety.rid", use_alter=True))
-    safety = relationship(
-        "Safety", foreign_keys=[safety_id], uselist=False, cascade="all"
-    )
+    safety = relationship("Safety", foreign_keys=[safety_id], uselist=False, cascade="all")
     quality_id = Column(types.Integer, ForeignKey("quality.rid", use_alter=True))
-    quality = relationship(
-        "Quality", foreign_keys=[quality_id], uselist=False, cascade="all"
-    )
-    maintenance_id = Column(
-        types.Integer, ForeignKey("maintenance.rid", use_alter=True)
-    )
-    maintenance = relationship(
-        "Maintenance", foreign_keys=[maintenance_id], uselist=False, cascade="all"
-    )
-    general_cond_id = Column(
-        types.Integer, ForeignKey("general_cond.rid", use_alter=True)
-    )
-    general_cond = relationship(
-        "GeneralCond", foreign_keys=[general_cond_id], uselist=False, cascade="all"
-    )
-    add_design_doc_id = Column(
-        types.Integer, ForeignKey("add_design_doc.rid", use_alter=True)
-    )
-    add_design_doc = relationship(
-        "AddDesignDoc", foreign_keys=[add_design_doc_id], uselist=False, cascade="all"
-    )
-    development_process_spec_id = Column(
-        types.Integer, ForeignKey("development_process_spec.rid", use_alter=True)
-    )
+    quality = relationship("Quality", foreign_keys=[quality_id], uselist=False, cascade="all")
+    maintenance_id = Column(types.Integer, ForeignKey("maintenance.rid", use_alter=True))
+    maintenance = relationship("Maintenance", foreign_keys=[maintenance_id], uselist=False, cascade="all")
+    general_cond_id = Column(types.Integer, ForeignKey("general_cond.rid", use_alter=True))
+    general_cond = relationship("GeneralCond", foreign_keys=[general_cond_id], uselist=False, cascade="all")
+    add_design_doc_id = Column(types.Integer, ForeignKey("add_design_doc.rid", use_alter=True))
+    add_design_doc = relationship("AddDesignDoc", foreign_keys=[add_design_doc_id], uselist=False, cascade="all")
+    development_process_spec_id = Column(types.Integer, ForeignKey("development_process_spec.rid", use_alter=True))
     development_process_spec = relationship(
         "DevelopmentProcessSpec",
         foreign_keys=[development_process_spec_id],
@@ -8522,9 +7331,7 @@ class GeneralProductData1(Base):
         cascade="all",
     )
     add_spec_id = Column(types.Integer, ForeignKey("add_spec.rid", use_alter=True))
-    add_spec = relationship(
-        "AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all"
-    )
+    add_spec = relationship("AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all")
 
 
 class RequirementSpec(Base):
@@ -8555,21 +7362,11 @@ class RequirementSpec(Base):
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    requirements_id = Column(
-        types.Integer, ForeignKey("requirements.rid", use_alter=True)
-    )
-    requirements = relationship(
-        "Requirements", foreign_keys=[requirements_id], uselist=False, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    requirements_id = Column(types.Integer, ForeignKey("requirements.rid", use_alter=True))
+    requirements = relationship("Requirements", foreign_keys=[requirements_id], uselist=False, cascade="all")
 
 
 class Monitoring(Base):
@@ -8598,16 +7395,10 @@ class Monitoring(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class Diagnosis(Base):
@@ -8636,16 +7427,10 @@ class Diagnosis(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class RequirementBody(Base):
@@ -8681,48 +7466,28 @@ class RequirementBody(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True)
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
+    msr_query_topic_1_id = Column(types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True))
     msr_query_topic_1 = relationship(
         "MsrQueryTopic1",
         foreign_keys=[msr_query_topic_1_id],
@@ -8730,12 +7495,8 @@ class RequirementBody(Base):
         cascade="all",
     )
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
-    msr_query_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True)
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
+    msr_query_chapter_id = Column(types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True))
     msr_query_chapter = relationship(
         "MsrQueryChapter",
         foreign_keys=[msr_query_chapter_id],
@@ -8777,48 +7538,28 @@ class CriticalAspects(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True)
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
+    msr_query_topic_1_id = Column(types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True))
     msr_query_topic_1 = relationship(
         "MsrQueryTopic1",
         foreign_keys=[msr_query_topic_1_id],
@@ -8826,12 +7567,8 @@ class CriticalAspects(Base):
         cascade="all",
     )
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
-    msr_query_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True)
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
+    msr_query_chapter_id = Column(types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True))
     msr_query_chapter = relationship(
         "MsrQueryChapter",
         foreign_keys=[msr_query_chapter_id],
@@ -8873,48 +7610,28 @@ class TechnicalAspects(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True)
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
+    msr_query_topic_1_id = Column(types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True))
     msr_query_topic_1 = relationship(
         "MsrQueryTopic1",
         foreign_keys=[msr_query_topic_1_id],
@@ -8922,12 +7639,8 @@ class TechnicalAspects(Base):
         cascade="all",
     )
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
-    msr_query_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True)
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
+    msr_query_chapter_id = Column(types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True))
     msr_query_chapter = relationship(
         "MsrQueryChapter",
         foreign_keys=[msr_query_chapter_id],
@@ -8969,48 +7682,28 @@ class RealtimeRequirements(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True)
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
+    msr_query_topic_1_id = Column(types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True))
     msr_query_topic_1 = relationship(
         "MsrQueryTopic1",
         foreign_keys=[msr_query_topic_1_id],
@@ -9018,12 +7711,8 @@ class RealtimeRequirements(Base):
         cascade="all",
     )
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
-    msr_query_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True)
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
+    msr_query_chapter_id = Column(types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True))
     msr_query_chapter = relationship(
         "MsrQueryChapter",
         foreign_keys=[msr_query_chapter_id],
@@ -9065,48 +7754,28 @@ class Risks(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True)
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
+    msr_query_topic_1_id = Column(types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True))
     msr_query_topic_1 = relationship(
         "MsrQueryTopic1",
         foreign_keys=[msr_query_topic_1_id],
@@ -9114,12 +7783,8 @@ class Risks(Base):
         cascade="all",
     )
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
-    msr_query_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True)
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
+    msr_query_chapter_id = Column(types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True))
     msr_query_chapter = relationship(
         "MsrQueryChapter",
         foreign_keys=[msr_query_chapter_id],
@@ -9161,48 +7826,28 @@ class RequirementsDependency(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True)
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
+    msr_query_topic_1_id = Column(types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True))
     msr_query_topic_1 = relationship(
         "MsrQueryTopic1",
         foreign_keys=[msr_query_topic_1_id],
@@ -9210,12 +7855,8 @@ class RequirementsDependency(Base):
         cascade="all",
     )
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
-    msr_query_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True)
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
+    msr_query_chapter_id = Column(types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True))
     msr_query_chapter = relationship(
         "MsrQueryChapter",
         foreign_keys=[msr_query_chapter_id],
@@ -9257,48 +7898,28 @@ class AddInfo(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True)
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
+    msr_query_topic_1_id = Column(types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True))
     msr_query_topic_1 = relationship(
         "MsrQueryTopic1",
         foreign_keys=[msr_query_topic_1_id],
@@ -9306,12 +7927,8 @@ class AddInfo(Base):
         cascade="all",
     )
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
-    msr_query_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True)
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
+    msr_query_chapter_id = Column(types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True))
     msr_query_chapter = relationship(
         "MsrQueryChapter",
         foreign_keys=[msr_query_chapter_id],
@@ -9353,53 +7970,37 @@ class Requirement(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    requirement_body_id = Column(
-        types.Integer, ForeignKey("requirement_body.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    requirement_body_id = Column(types.Integer, ForeignKey("requirement_body.rid", use_alter=True))
     requirement_body = relationship(
         "RequirementBody",
         foreign_keys=[requirement_body_id],
         uselist=False,
         cascade="all",
     )
-    critical_aspects_id = Column(
-        types.Integer, ForeignKey("critical_aspects.rid", use_alter=True)
-    )
+    critical_aspects_id = Column(types.Integer, ForeignKey("critical_aspects.rid", use_alter=True))
     critical_aspects = relationship(
         "CriticalAspects",
         foreign_keys=[critical_aspects_id],
         uselist=False,
         cascade="all",
     )
-    technical_aspects_id = Column(
-        types.Integer, ForeignKey("technical_aspects.rid", use_alter=True)
-    )
+    technical_aspects_id = Column(types.Integer, ForeignKey("technical_aspects.rid", use_alter=True))
     technical_aspects = relationship(
         "TechnicalAspects",
         foreign_keys=[technical_aspects_id],
         uselist=False,
         cascade="all",
     )
-    realtime_requirements_id = Column(
-        types.Integer, ForeignKey("realtime_requirements.rid", use_alter=True)
-    )
+    realtime_requirements_id = Column(types.Integer, ForeignKey("realtime_requirements.rid", use_alter=True))
     realtime_requirements = relationship(
         "RealtimeRequirements",
         foreign_keys=[realtime_requirements_id],
@@ -9408,9 +8009,7 @@ class Requirement(Base):
     )
     risks_id = Column(types.Integer, ForeignKey("risks.rid", use_alter=True))
     risks = relationship("Risks", foreign_keys=[risks_id], uselist=False, cascade="all")
-    requirements_dependency_id = Column(
-        types.Integer, ForeignKey("requirements_dependency.rid", use_alter=True)
-    )
+    requirements_dependency_id = Column(types.Integer, ForeignKey("requirements_dependency.rid", use_alter=True))
     requirements_dependency = relationship(
         "RequirementsDependency",
         foreign_keys=[requirements_dependency_id],
@@ -9418,15 +8017,9 @@ class Requirement(Base):
         cascade="all",
     )
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
-    requirement_id = Column(
-        types.Integer, ForeignKey("requirement.rid", use_alter=True)
-    )
-    requirement = relationship(
-        "Requirement", foreign_keys=[requirement_id], uselist=True, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
+    requirement_id = Column(types.Integer, ForeignKey("requirement.rid", use_alter=True))
+    requirement = relationship("Requirement", foreign_keys=[requirement_id], uselist=True, cascade="all")
 
 
 class Communication(Base):
@@ -9455,16 +8048,10 @@ class Communication(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class OperationalRequirements(Base):
@@ -9493,16 +8080,10 @@ class OperationalRequirements(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class FunctionalRequirements(Base):
@@ -9538,18 +8119,10 @@ class FunctionalRequirements(Base):
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    requirement_spec_id = Column(
-        types.Integer, ForeignKey("requirement_spec.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    requirement_spec_id = Column(types.Integer, ForeignKey("requirement_spec.rid", use_alter=True))
     requirement_spec = relationship(
         "RequirementSpec",
         foreign_keys=[requirement_spec_id],
@@ -9557,22 +8130,12 @@ class FunctionalRequirements(Base):
         cascade="all",
     )
     monitoring_id = Column(types.Integer, ForeignKey("monitoring.rid", use_alter=True))
-    monitoring = relationship(
-        "Monitoring", foreign_keys=[monitoring_id], uselist=False, cascade="all"
-    )
+    monitoring = relationship("Monitoring", foreign_keys=[monitoring_id], uselist=False, cascade="all")
     diagnosis_id = Column(types.Integer, ForeignKey("diagnosis.rid", use_alter=True))
-    diagnosis = relationship(
-        "Diagnosis", foreign_keys=[diagnosis_id], uselist=False, cascade="all"
-    )
-    communication_id = Column(
-        types.Integer, ForeignKey("communication.rid", use_alter=True)
-    )
-    communication = relationship(
-        "Communication", foreign_keys=[communication_id], uselist=False, cascade="all"
-    )
-    operational_requirements_id = Column(
-        types.Integer, ForeignKey("operational_requirements.rid", use_alter=True)
-    )
+    diagnosis = relationship("Diagnosis", foreign_keys=[diagnosis_id], uselist=False, cascade="all")
+    communication_id = Column(types.Integer, ForeignKey("communication.rid", use_alter=True))
+    communication = relationship("Communication", foreign_keys=[communication_id], uselist=False, cascade="all")
+    operational_requirements_id = Column(types.Integer, ForeignKey("operational_requirements.rid", use_alter=True))
     operational_requirements = relationship(
         "OperationalRequirements",
         foreign_keys=[operational_requirements_id],
@@ -9580,9 +8143,7 @@ class FunctionalRequirements(Base):
         cascade="all",
     )
     add_spec_id = Column(types.Integer, ForeignKey("add_spec.rid", use_alter=True))
-    add_spec = relationship(
-        "AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all"
-    )
+    add_spec = relationship("AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all")
 
 
 class GeneralRequirements(Base):
@@ -9615,27 +8176,17 @@ class GeneralRequirements(Base):
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    general_product_data_1_id = Column(
-        types.Integer, ForeignKey("general_product_data_1.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    general_product_data_1_id = Column(types.Integer, ForeignKey("general_product_data_1.rid", use_alter=True))
     general_product_data_1 = relationship(
         "GeneralProductData1",
         foreign_keys=[general_product_data_1_id],
         uselist=False,
         cascade="all",
     )
-    functional_requirements_id = Column(
-        types.Integer, ForeignKey("functional_requirements.rid", use_alter=True)
-    )
+    functional_requirements_id = Column(types.Integer, ForeignKey("functional_requirements.rid", use_alter=True))
     functional_requirements = relationship(
         "FunctionalRequirements",
         foreign_keys=[functional_requirements_id],
@@ -9643,9 +8194,7 @@ class GeneralRequirements(Base):
         cascade="all",
     )
     add_spec_id = Column(types.Integer, ForeignKey("add_spec.rid", use_alter=True))
-    add_spec = relationship(
-        "AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all"
-    )
+    add_spec = relationship("AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all")
 
 
 class SwMcInterfaceSpec(Base):
@@ -9666,15 +8215,9 @@ class SwMcInterfaceSpec(Base):
     t = StdString()
     si = StdString()
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_mc_interface_id = Column(
-        types.Integer, ForeignKey("sw_mc_interface.rid", use_alter=True)
-    )
-    sw_mc_interface = relationship(
-        "SwMcInterface", foreign_keys=[sw_mc_interface_id], uselist=True, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_mc_interface_id = Column(types.Integer, ForeignKey("sw_mc_interface.rid", use_alter=True))
+    sw_mc_interface = relationship("SwMcInterface", foreign_keys=[sw_mc_interface_id], uselist=True, cascade="all")
 
 
 class Overview(Base):
@@ -9703,16 +8246,10 @@ class Overview(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class SwTestSpec(Base):
@@ -9741,16 +8278,10 @@ class SwTestSpec(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class SwTasks(Base):
@@ -9770,9 +8301,7 @@ class SwTasks(Base):
     t = StdString()
     si = StdString()
     sw_task_id = Column(types.Integer, ForeignKey("sw_task.rid", use_alter=True))
-    sw_task = relationship(
-        "SwTask", foreign_keys=[sw_task_id], uselist=True, cascade="all"
-    )
+    sw_task = relationship("SwTask", foreign_keys=[sw_task_id], uselist=True, cascade="all")
 
 
 class SwTaskSpec(Base):
@@ -9804,23 +8333,13 @@ class SwTaskSpec(Base):
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     sw_tasks_id = Column(types.Integer, ForeignKey("sw_tasks.rid", use_alter=True))
-    sw_tasks = relationship(
-        "SwTasks", foreign_keys=[sw_tasks_id], uselist=False, cascade="all"
-    )
+    sw_tasks = relationship("SwTasks", foreign_keys=[sw_tasks_id], uselist=False, cascade="all")
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class InterruptSpec(Base):
@@ -9849,16 +8368,10 @@ class InterruptSpec(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class SwCseCode(Base):
@@ -9912,15 +8425,9 @@ class SwRefreshTiming(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_cse_code_id = Column(
-        types.Integer, ForeignKey("sw_cse_code.rid", use_alter=True)
-    )
-    sw_cse_code = relationship(
-        "SwCseCode", foreign_keys=[sw_cse_code_id], uselist=False, cascade="all"
-    )
-    sw_cse_code_factor_id = Column(
-        types.Integer, ForeignKey("sw_cse_code_factor.rid", use_alter=True)
-    )
+    sw_cse_code_id = Column(types.Integer, ForeignKey("sw_cse_code.rid", use_alter=True))
+    sw_cse_code = relationship("SwCseCode", foreign_keys=[sw_cse_code_id], uselist=False, cascade="all")
+    sw_cse_code_factor_id = Column(types.Integer, ForeignKey("sw_cse_code_factor.rid", use_alter=True))
     sw_cse_code_factor = relationship(
         "SwCseCodeFactor",
         foreign_keys=[sw_cse_code_factor_id],
@@ -9955,26 +8462,16 @@ class SwTask(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_refresh_timing_id = Column(
-        types.Integer, ForeignKey("sw_refresh_timing.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_refresh_timing_id = Column(types.Integer, ForeignKey("sw_refresh_timing.rid", use_alter=True))
     sw_refresh_timing = relationship(
         "SwRefreshTiming",
         foreign_keys=[sw_refresh_timing_id],
@@ -10009,16 +8506,10 @@ class TimeDependency(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class SwArchitecture(Base):
@@ -10053,34 +8544,16 @@ class SwArchitecture(Base):
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     overview_id = Column(types.Integer, ForeignKey("overview.rid", use_alter=True))
-    overview = relationship(
-        "Overview", foreign_keys=[overview_id], uselist=False, cascade="all"
-    )
-    sw_task_spec_id = Column(
-        types.Integer, ForeignKey("sw_task_spec.rid", use_alter=True)
-    )
-    sw_task_spec = relationship(
-        "SwTaskSpec", foreign_keys=[sw_task_spec_id], uselist=False, cascade="all"
-    )
-    interrupt_spec_id = Column(
-        types.Integer, ForeignKey("interrupt_spec.rid", use_alter=True)
-    )
-    interrupt_spec = relationship(
-        "InterruptSpec", foreign_keys=[interrupt_spec_id], uselist=False, cascade="all"
-    )
-    time_dependency_id = Column(
-        types.Integer, ForeignKey("time_dependency.rid", use_alter=True)
-    )
+    overview = relationship("Overview", foreign_keys=[overview_id], uselist=False, cascade="all")
+    sw_task_spec_id = Column(types.Integer, ForeignKey("sw_task_spec.rid", use_alter=True))
+    sw_task_spec = relationship("SwTaskSpec", foreign_keys=[sw_task_spec_id], uselist=False, cascade="all")
+    interrupt_spec_id = Column(types.Integer, ForeignKey("interrupt_spec.rid", use_alter=True))
+    interrupt_spec = relationship("InterruptSpec", foreign_keys=[interrupt_spec_id], uselist=False, cascade="all")
+    time_dependency_id = Column(types.Integer, ForeignKey("time_dependency.rid", use_alter=True))
     time_dependency = relationship(
         "TimeDependency",
         foreign_keys=[time_dependency_id],
@@ -10088,9 +8561,7 @@ class SwArchitecture(Base):
         cascade="all",
     )
     add_spec_id = Column(types.Integer, ForeignKey("add_spec.rid", use_alter=True))
-    add_spec = relationship(
-        "AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all"
-    )
+    add_spec = relationship("AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all")
 
 
 class SwUnits(Base):
@@ -10111,13 +8582,9 @@ class SwUnits(Base):
     t = StdString()
     si = StdString()
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
     sw_unit_id = Column(types.Integer, ForeignKey("sw_unit.rid", use_alter=True))
-    sw_unit = relationship(
-        "SwUnit", foreign_keys=[sw_unit_id], uselist=True, cascade="all"
-    )
+    sw_unit = relationship("SwUnit", foreign_keys=[sw_unit_id], uselist=True, cascade="all")
 
 
 class SwComponents(Base):
@@ -10139,17 +8606,11 @@ class SwComponents(Base):
     t = StdString()
     si = StdString()
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
     sw_class_id = Column(types.Integer, ForeignKey("sw_class.rid", use_alter=True))
-    sw_class = relationship(
-        "SwClass", foreign_keys=[sw_class_id], uselist=True, cascade="all"
-    )
+    sw_class = relationship("SwClass", foreign_keys=[sw_class_id], uselist=True, cascade="all")
     sw_feature_id = Column(types.Integer, ForeignKey("sw_feature.rid", use_alter=True))
-    sw_feature = relationship(
-        "SwFeature", foreign_keys=[sw_feature_id], uselist=True, cascade="all"
-    )
+    sw_feature = relationship("SwFeature", foreign_keys=[sw_feature_id], uselist=True, cascade="all")
 
 
 class SwTemplates(Base):
@@ -10168,12 +8629,8 @@ class SwTemplates(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_template_id = Column(
-        types.Integer, ForeignKey("sw_template.rid", use_alter=True)
-    )
-    sw_template = relationship(
-        "SwTemplate", foreign_keys=[sw_template_id], uselist=True, cascade="all"
-    )
+    sw_template_id = Column(types.Integer, ForeignKey("sw_template.rid", use_alter=True))
+    sw_template = relationship("SwTemplate", foreign_keys=[sw_template_id], uselist=True, cascade="all")
 
 
 class SwUnitDisplay(Base):
@@ -10281,21 +8738,15 @@ class SwUnitConversionMethod(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_unit_gradient_id = Column(
-        types.Integer, ForeignKey("sw_unit_gradient.rid", use_alter=True)
-    )
+    sw_unit_gradient_id = Column(types.Integer, ForeignKey("sw_unit_gradient.rid", use_alter=True))
     sw_unit_gradient = relationship(
         "SwUnitGradient",
         foreign_keys=[sw_unit_gradient_id],
         uselist=False,
         cascade="all",
     )
-    sw_unit_offset_id = Column(
-        types.Integer, ForeignKey("sw_unit_offset.rid", use_alter=True)
-    )
-    sw_unit_offset = relationship(
-        "SwUnitOffset", foreign_keys=[sw_unit_offset_id], uselist=False, cascade="all"
-    )
+    sw_unit_offset_id = Column(types.Integer, ForeignKey("sw_unit_offset.rid", use_alter=True))
+    sw_unit_offset = relationship("SwUnitOffset", foreign_keys=[sw_unit_offset_id], uselist=False, cascade="all")
 
 
 class SwUnitRef(Base):
@@ -10353,32 +8804,18 @@ class SwUnit(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_unit_display_id = Column(
-        types.Integer, ForeignKey("sw_unit_display.rid", use_alter=True)
-    )
-    sw_unit_display = relationship(
-        "SwUnitDisplay", foreign_keys=[sw_unit_display_id], uselist=False, cascade="all"
-    )
-    sw_unit_conversion_method_id = Column(
-        types.Integer, ForeignKey("sw_unit_conversion_method.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_unit_display_id = Column(types.Integer, ForeignKey("sw_unit_display.rid", use_alter=True))
+    sw_unit_display = relationship("SwUnitDisplay", foreign_keys=[sw_unit_display_id], uselist=False, cascade="all")
+    sw_unit_conversion_method_id = Column(types.Integer, ForeignKey("sw_unit_conversion_method.rid", use_alter=True))
     sw_unit_conversion_method = relationship(
         "SwUnitConversionMethod",
         foreign_keys=[sw_unit_conversion_method_id],
@@ -10386,19 +8823,11 @@ class SwUnit(Base):
         cascade="all",
     )
     si_unit_id = Column(types.Integer, ForeignKey("si_unit.rid", use_alter=True))
-    si_unit = relationship(
-        "SiUnit", foreign_keys=[si_unit_id], uselist=False, cascade="all"
-    )
-    sw_unit_ref_id = Column(
-        types.Integer, ForeignKey("sw_unit_ref.rid", use_alter=True)
-    )
-    sw_unit_ref = relationship(
-        "SwUnitRef", foreign_keys=[sw_unit_ref_id], uselist=False, cascade="all"
-    )
+    si_unit = relationship("SiUnit", foreign_keys=[si_unit_id], uselist=False, cascade="all")
+    sw_unit_ref_id = Column(types.Integer, ForeignKey("sw_unit_ref.rid", use_alter=True))
+    sw_unit_ref = relationship("SwUnitRef", foreign_keys=[sw_unit_ref_id], uselist=False, cascade="all")
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class SwVariables(Base):
@@ -10419,15 +8848,9 @@ class SwVariables(Base):
     t = StdString()
     si = StdString()
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_variable_id = Column(
-        types.Integer, ForeignKey("sw_variable.rid", use_alter=True)
-    )
-    sw_variable = relationship(
-        "SwVariable", foreign_keys=[sw_variable_id], uselist=True, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_variable_id = Column(types.Integer, ForeignKey("sw_variable.rid", use_alter=True))
+    sw_variable = relationship("SwVariable", foreign_keys=[sw_variable_id], uselist=True, cascade="all")
 
 
 class Annotations(Base):
@@ -10447,9 +8870,7 @@ class Annotations(Base):
     t = StdString()
     si = StdString()
     annotation_id = Column(types.Integer, ForeignKey("annotation.rid", use_alter=True))
-    annotation = relationship(
-        "Annotation", foreign_keys=[annotation_id], uselist=True, cascade="all"
-    )
+    annotation = relationship("Annotation", foreign_keys=[annotation_id], uselist=True, cascade="all")
 
 
 class SwAddrMethodRef(Base):
@@ -10531,9 +8952,7 @@ class AnnotationText(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
 
 
 class Annotation(Base):
@@ -10556,18 +8975,14 @@ class Annotation(Base):
     si = StdString()
     label_id = Column(types.Integer, ForeignKey("label.rid", use_alter=True))
     label = relationship("Label", foreign_keys=[label_id], uselist=False, cascade="all")
-    annotation_origin_id = Column(
-        types.Integer, ForeignKey("annotation_origin.rid", use_alter=True)
-    )
+    annotation_origin_id = Column(types.Integer, ForeignKey("annotation_origin.rid", use_alter=True))
     annotation_origin = relationship(
         "AnnotationOrigin",
         foreign_keys=[annotation_origin_id],
         uselist=False,
         cascade="all",
     )
-    annotation_text_id = Column(
-        types.Integer, ForeignKey("annotation_text.rid", use_alter=True)
-    )
+    annotation_text_id = Column(types.Integer, ForeignKey("annotation_text.rid", use_alter=True))
     annotation_text = relationship(
         "AnnotationText",
         foreign_keys=[annotation_text_id],
@@ -10652,18 +9067,10 @@ class SwBitRepresentation(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    bit_position_id = Column(
-        types.Integer, ForeignKey("bit_position.rid", use_alter=True)
-    )
-    bit_position = relationship(
-        "BitPosition", foreign_keys=[bit_position_id], uselist=False, cascade="all"
-    )
-    number_of_bits_id = Column(
-        types.Integer, ForeignKey("number_of_bits.rid", use_alter=True)
-    )
-    number_of_bits = relationship(
-        "NumberOfBits", foreign_keys=[number_of_bits_id], uselist=False, cascade="all"
-    )
+    bit_position_id = Column(types.Integer, ForeignKey("bit_position.rid", use_alter=True))
+    bit_position = relationship("BitPosition", foreign_keys=[bit_position_id], uselist=False, cascade="all")
+    number_of_bits_id = Column(types.Integer, ForeignKey("number_of_bits.rid", use_alter=True))
+    number_of_bits = relationship("NumberOfBits", foreign_keys=[number_of_bits_id], uselist=False, cascade="all")
 
 
 class SwCalibrationAccess(Base):
@@ -10699,12 +9106,8 @@ class SwCalprmAxisSet(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_calprm_axis_id = Column(
-        types.Integer, ForeignKey("sw_calprm_axis.rid", use_alter=True)
-    )
-    sw_calprm_axis = relationship(
-        "SwCalprmAxis", foreign_keys=[sw_calprm_axis_id], uselist=True, cascade="all"
-    )
+    sw_calprm_axis_id = Column(types.Integer, ForeignKey("sw_calprm_axis.rid", use_alter=True))
+    sw_calprm_axis = relationship("SwCalprmAxis", foreign_keys=[sw_calprm_axis_id], uselist=True, cascade="all")
 
 
 class SwCalprmNoEffectValue(Base):
@@ -10782,12 +9185,8 @@ class SwVariableRefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variable_ref_id = Column(
-        types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True)
-    )
-    sw_variable_ref = relationship(
-        "SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=True, cascade="all"
-    )
+    sw_variable_ref_id = Column(types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True))
+    sw_variable_ref = relationship("SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=True, cascade="all")
 
 
 class SwCalprmRef(Base):
@@ -10882,18 +9281,14 @@ class SwMaxAxisPoints(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_systemconst_coded_ref_id = Column(
-        types.Integer, ForeignKey("sw_systemconst_coded_ref.rid", use_alter=True)
-    )
+    sw_systemconst_coded_ref_id = Column(types.Integer, ForeignKey("sw_systemconst_coded_ref.rid", use_alter=True))
     sw_systemconst_coded_ref = relationship(
         "SwSystemconstCodedRef",
         foreign_keys=[sw_systemconst_coded_ref_id],
         uselist=True,
         cascade="all",
     )
-    sw_systemconst_phys_ref_id = Column(
-        types.Integer, ForeignKey("sw_systemconst_phys_ref.rid", use_alter=True)
-    )
+    sw_systemconst_phys_ref_id = Column(types.Integer, ForeignKey("sw_systemconst_phys_ref.rid", use_alter=True))
     sw_systemconst_phys_ref = relationship(
         "SwSystemconstPhysRef",
         foreign_keys=[sw_systemconst_phys_ref_id],
@@ -10919,18 +9314,14 @@ class SwMinAxisPoints(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_systemconst_coded_ref_id = Column(
-        types.Integer, ForeignKey("sw_systemconst_coded_ref.rid", use_alter=True)
-    )
+    sw_systemconst_coded_ref_id = Column(types.Integer, ForeignKey("sw_systemconst_coded_ref.rid", use_alter=True))
     sw_systemconst_coded_ref = relationship(
         "SwSystemconstCodedRef",
         foreign_keys=[sw_systemconst_coded_ref_id],
         uselist=True,
         cascade="all",
     )
-    sw_systemconst_phys_ref_id = Column(
-        types.Integer, ForeignKey("sw_systemconst_phys_ref.rid", use_alter=True)
-    )
+    sw_systemconst_phys_ref_id = Column(types.Integer, ForeignKey("sw_systemconst_phys_ref.rid", use_alter=True))
     sw_systemconst_phys_ref = relationship(
         "SwSystemconstPhysRef",
         foreign_keys=[sw_systemconst_phys_ref_id],
@@ -11056,18 +9447,14 @@ class SwNumberOfAxisPoints(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_systemconst_coded_ref_id = Column(
-        types.Integer, ForeignKey("sw_systemconst_coded_ref.rid", use_alter=True)
-    )
+    sw_systemconst_coded_ref_id = Column(types.Integer, ForeignKey("sw_systemconst_coded_ref.rid", use_alter=True))
     sw_systemconst_coded_ref = relationship(
         "SwSystemconstCodedRef",
         foreign_keys=[sw_systemconst_coded_ref_id],
         uselist=True,
         cascade="all",
     )
-    sw_systemconst_phys_ref_id = Column(
-        types.Integer, ForeignKey("sw_systemconst_phys_ref.rid", use_alter=True)
-    )
+    sw_systemconst_phys_ref_id = Column(types.Integer, ForeignKey("sw_systemconst_phys_ref.rid", use_alter=True))
     sw_systemconst_phys_ref = relationship(
         "SwSystemconstPhysRef",
         foreign_keys=[sw_systemconst_phys_ref_id],
@@ -11092,9 +9479,7 @@ class SwGenericAxisParams(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_generic_axis_param_id = Column(
-        types.Integer, ForeignKey("sw_generic_axis_param.rid", use_alter=True)
-    )
+    sw_generic_axis_param_id = Column(types.Integer, ForeignKey("sw_generic_axis_param.rid", use_alter=True))
     sw_generic_axis_param = relationship(
         "SwGenericAxisParam",
         foreign_keys=[sw_generic_axis_param_id],
@@ -11134,12 +9519,8 @@ class SwValuesPhys(Base):
     v = relationship("V", foreign_keys=[v_id], uselist=True, cascade="all")
     vg_id = Column(types.Integer, ForeignKey("vg.rid", use_alter=True))
     vg = relationship("Vg", foreign_keys=[vg_id], uselist=True, cascade="all")
-    sw_instance_ref_id = Column(
-        types.Integer, ForeignKey("sw_instance_ref.rid", use_alter=True)
-    )
-    sw_instance_ref = relationship(
-        "SwInstanceRef", foreign_keys=[sw_instance_ref_id], uselist=True, cascade="all"
-    )
+    sw_instance_ref_id = Column(types.Integer, ForeignKey("sw_instance_ref.rid", use_alter=True))
+    sw_instance_ref = relationship("SwInstanceRef", foreign_keys=[sw_instance_ref_id], uselist=True, cascade="all")
 
 
 class SwValuesCoded(Base):
@@ -11173,12 +9554,8 @@ class SwValuesCoded(Base):
     v = relationship("V", foreign_keys=[v_id], uselist=True, cascade="all")
     vg_id = Column(types.Integer, ForeignKey("vg.rid", use_alter=True))
     vg = relationship("Vg", foreign_keys=[vg_id], uselist=True, cascade="all")
-    sw_instance_ref_id = Column(
-        types.Integer, ForeignKey("sw_instance_ref.rid", use_alter=True)
-    )
-    sw_instance_ref = relationship(
-        "SwInstanceRef", foreign_keys=[sw_instance_ref_id], uselist=True, cascade="all"
-    )
+    sw_instance_ref_id = Column(types.Integer, ForeignKey("sw_instance_ref.rid", use_alter=True))
+    sw_instance_ref = relationship("SwInstanceRef", foreign_keys=[sw_instance_ref_id], uselist=True, cascade="all")
 
 
 class SwGenericAxisParamTypeRef(Base):
@@ -11223,9 +9600,7 @@ class SwGenericAxisParam(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_generic_axis_param_type_ref_id = Column(
-        types.Integer, ForeignKey("sw_generic_axis_param_type_ref.rid", use_alter=True)
-    )
+    sw_generic_axis_param_type_ref_id = Column(types.Integer, ForeignKey("sw_generic_axis_param_type_ref.rid", use_alter=True))
     sw_generic_axis_param_type_ref = relationship(
         "SwGenericAxisParamTypeRef",
         foreign_keys=[sw_generic_axis_param_type_ref_id],
@@ -11254,18 +9629,14 @@ class Vf(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_systemconst_coded_ref_id = Column(
-        types.Integer, ForeignKey("sw_systemconst_coded_ref.rid", use_alter=True)
-    )
+    sw_systemconst_coded_ref_id = Column(types.Integer, ForeignKey("sw_systemconst_coded_ref.rid", use_alter=True))
     sw_systemconst_coded_ref = relationship(
         "SwSystemconstCodedRef",
         foreign_keys=[sw_systemconst_coded_ref_id],
         uselist=True,
         cascade="all",
     )
-    sw_systemconst_phys_ref_id = Column(
-        types.Integer, ForeignKey("sw_systemconst_phys_ref.rid", use_alter=True)
-    )
+    sw_systemconst_phys_ref_id = Column(types.Integer, ForeignKey("sw_systemconst_phys_ref.rid", use_alter=True))
     sw_systemconst_phys_ref = relationship(
         "SwSystemconstPhysRef",
         foreign_keys=[sw_systemconst_phys_ref_id],
@@ -11294,45 +9665,31 @@ class SwAxisGeneric(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_axis_type_ref_id = Column(
-        types.Integer, ForeignKey("sw_axis_type_ref.rid", use_alter=True)
-    )
+    sw_axis_type_ref_id = Column(types.Integer, ForeignKey("sw_axis_type_ref.rid", use_alter=True))
     sw_axis_type_ref = relationship(
         "SwAxisTypeRef",
         foreign_keys=[sw_axis_type_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_number_of_axis_points_id = Column(
-        types.Integer, ForeignKey("sw_number_of_axis_points.rid", use_alter=True)
-    )
+    sw_number_of_axis_points_id = Column(types.Integer, ForeignKey("sw_number_of_axis_points.rid", use_alter=True))
     sw_number_of_axis_points = relationship(
         "SwNumberOfAxisPoints",
         foreign_keys=[sw_number_of_axis_points_id],
         uselist=False,
         cascade="all",
     )
-    sw_generic_axis_params_id = Column(
-        types.Integer, ForeignKey("sw_generic_axis_params.rid", use_alter=True)
-    )
+    sw_generic_axis_params_id = Column(types.Integer, ForeignKey("sw_generic_axis_params.rid", use_alter=True))
     sw_generic_axis_params = relationship(
         "SwGenericAxisParams",
         foreign_keys=[sw_generic_axis_params_id],
         uselist=False,
         cascade="all",
     )
-    sw_values_phys_id = Column(
-        types.Integer, ForeignKey("sw_values_phys.rid", use_alter=True)
-    )
-    sw_values_phys = relationship(
-        "SwValuesPhys", foreign_keys=[sw_values_phys_id], uselist=False, cascade="all"
-    )
-    sw_values_coded_id = Column(
-        types.Integer, ForeignKey("sw_values_coded.rid", use_alter=True)
-    )
-    sw_values_coded = relationship(
-        "SwValuesCoded", foreign_keys=[sw_values_coded_id], uselist=False, cascade="all"
-    )
+    sw_values_phys_id = Column(types.Integer, ForeignKey("sw_values_phys.rid", use_alter=True))
+    sw_values_phys = relationship("SwValuesPhys", foreign_keys=[sw_values_phys_id], uselist=False, cascade="all")
+    sw_values_coded_id = Column(types.Integer, ForeignKey("sw_values_coded.rid", use_alter=True))
+    sw_values_coded = relationship("SwValuesCoded", foreign_keys=[sw_values_coded_id], uselist=False, cascade="all")
 
 
 class Vt(Base):
@@ -11421,12 +9778,8 @@ class Vg(Base):
     v = relationship("V", foreign_keys=[v_id], uselist=True, cascade="all")
     vg_id = Column(types.Integer, ForeignKey("vg.rid", use_alter=True))
     vg = relationship("Vg", foreign_keys=[vg_id], uselist=True, cascade="all")
-    sw_instance_ref_id = Column(
-        types.Integer, ForeignKey("sw_instance_ref.rid", use_alter=True)
-    )
-    sw_instance_ref = relationship(
-        "SwInstanceRef", foreign_keys=[sw_instance_ref_id], uselist=True, cascade="all"
-    )
+    sw_instance_ref_id = Column(types.Integer, ForeignKey("sw_instance_ref.rid", use_alter=True))
+    sw_instance_ref = relationship("SwInstanceRef", foreign_keys=[sw_instance_ref_id], uselist=True, cascade="all")
 
 
 class SwInstanceRef(Base):
@@ -11477,72 +9830,52 @@ class SwAxisIndividual(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variable_refs_id = Column(
-        types.Integer, ForeignKey("sw_variable_refs.rid", use_alter=True)
-    )
+    sw_variable_refs_id = Column(types.Integer, ForeignKey("sw_variable_refs.rid", use_alter=True))
     sw_variable_refs = relationship(
         "SwVariableRefs",
         foreign_keys=[sw_variable_refs_id],
         uselist=False,
         cascade="all",
     )
-    sw_compu_method_ref_id = Column(
-        types.Integer, ForeignKey("sw_compu_method_ref.rid", use_alter=True)
-    )
+    sw_compu_method_ref_id = Column(types.Integer, ForeignKey("sw_compu_method_ref.rid", use_alter=True))
     sw_compu_method_ref = relationship(
         "SwCompuMethodRef",
         foreign_keys=[sw_compu_method_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_unit_ref_id = Column(
-        types.Integer, ForeignKey("sw_unit_ref.rid", use_alter=True)
-    )
-    sw_unit_ref = relationship(
-        "SwUnitRef", foreign_keys=[sw_unit_ref_id], uselist=False, cascade="all"
-    )
-    sw_bit_representation_id = Column(
-        types.Integer, ForeignKey("sw_bit_representation.rid", use_alter=True)
-    )
+    sw_unit_ref_id = Column(types.Integer, ForeignKey("sw_unit_ref.rid", use_alter=True))
+    sw_unit_ref = relationship("SwUnitRef", foreign_keys=[sw_unit_ref_id], uselist=False, cascade="all")
+    sw_bit_representation_id = Column(types.Integer, ForeignKey("sw_bit_representation.rid", use_alter=True))
     sw_bit_representation = relationship(
         "SwBitRepresentation",
         foreign_keys=[sw_bit_representation_id],
         uselist=False,
         cascade="all",
     )
-    sw_max_axis_points_id = Column(
-        types.Integer, ForeignKey("sw_max_axis_points.rid", use_alter=True)
-    )
+    sw_max_axis_points_id = Column(types.Integer, ForeignKey("sw_max_axis_points.rid", use_alter=True))
     sw_max_axis_points = relationship(
         "SwMaxAxisPoints",
         foreign_keys=[sw_max_axis_points_id],
         uselist=False,
         cascade="all",
     )
-    sw_min_axis_points_id = Column(
-        types.Integer, ForeignKey("sw_min_axis_points.rid", use_alter=True)
-    )
+    sw_min_axis_points_id = Column(types.Integer, ForeignKey("sw_min_axis_points.rid", use_alter=True))
     sw_min_axis_points = relationship(
         "SwMinAxisPoints",
         foreign_keys=[sw_min_axis_points_id],
         uselist=False,
         cascade="all",
     )
-    sw_data_constr_ref_id = Column(
-        types.Integer, ForeignKey("sw_data_constr_ref.rid", use_alter=True)
-    )
+    sw_data_constr_ref_id = Column(types.Integer, ForeignKey("sw_data_constr_ref.rid", use_alter=True))
     sw_data_constr_ref = relationship(
         "SwDataConstrRef",
         foreign_keys=[sw_data_constr_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_axis_generic_id = Column(
-        types.Integer, ForeignKey("sw_axis_generic.rid", use_alter=True)
-    )
-    sw_axis_generic = relationship(
-        "SwAxisGeneric", foreign_keys=[sw_axis_generic_id], uselist=False, cascade="all"
-    )
+    sw_axis_generic_id = Column(types.Integer, ForeignKey("sw_axis_generic.rid", use_alter=True))
+    sw_axis_generic = relationship("SwAxisGeneric", foreign_keys=[sw_axis_generic_id], uselist=False, cascade="all")
 
 
 class SwDisplayFormat(Base):
@@ -11579,18 +9912,10 @@ class SwAxisGrouped(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_axis_index_id = Column(
-        types.Integer, ForeignKey("sw_axis_index.rid", use_alter=True)
-    )
-    sw_axis_index = relationship(
-        "SwAxisIndex", foreign_keys=[sw_axis_index_id], uselist=False, cascade="all"
-    )
-    sw_calprm_ref_id = Column(
-        types.Integer, ForeignKey("sw_calprm_ref.rid", use_alter=True)
-    )
-    sw_calprm_ref = relationship(
-        "SwCalprmRef", foreign_keys=[sw_calprm_ref_id], uselist=False, cascade="all"
-    )
+    sw_axis_index_id = Column(types.Integer, ForeignKey("sw_axis_index.rid", use_alter=True))
+    sw_axis_index = relationship("SwAxisIndex", foreign_keys=[sw_axis_index_id], uselist=False, cascade="all")
+    sw_calprm_ref_id = Column(types.Integer, ForeignKey("sw_calprm_ref.rid", use_alter=True))
+    sw_calprm_ref = relationship("SwCalprmRef", foreign_keys=[sw_calprm_ref_id], uselist=False, cascade="all")
 
 
 class SwCalprmAxis(Base):
@@ -11614,48 +9939,32 @@ class SwCalprmAxis(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_axis_index_id = Column(
-        types.Integer, ForeignKey("sw_axis_index.rid", use_alter=True)
-    )
-    sw_axis_index = relationship(
-        "SwAxisIndex", foreign_keys=[sw_axis_index_id], uselist=False, cascade="all"
-    )
-    sw_axis_individual_id = Column(
-        types.Integer, ForeignKey("sw_axis_individual.rid", use_alter=True)
-    )
+    sw_axis_index_id = Column(types.Integer, ForeignKey("sw_axis_index.rid", use_alter=True))
+    sw_axis_index = relationship("SwAxisIndex", foreign_keys=[sw_axis_index_id], uselist=False, cascade="all")
+    sw_axis_individual_id = Column(types.Integer, ForeignKey("sw_axis_individual.rid", use_alter=True))
     sw_axis_individual = relationship(
         "SwAxisIndividual",
         foreign_keys=[sw_axis_individual_id],
         uselist=False,
         cascade="all",
     )
-    sw_axis_grouped_id = Column(
-        types.Integer, ForeignKey("sw_axis_grouped.rid", use_alter=True)
-    )
-    sw_axis_grouped = relationship(
-        "SwAxisGrouped", foreign_keys=[sw_axis_grouped_id], uselist=False, cascade="all"
-    )
-    sw_calibration_access_id = Column(
-        types.Integer, ForeignKey("sw_calibration_access.rid", use_alter=True)
-    )
+    sw_axis_grouped_id = Column(types.Integer, ForeignKey("sw_axis_grouped.rid", use_alter=True))
+    sw_axis_grouped = relationship("SwAxisGrouped", foreign_keys=[sw_axis_grouped_id], uselist=False, cascade="all")
+    sw_calibration_access_id = Column(types.Integer, ForeignKey("sw_calibration_access.rid", use_alter=True))
     sw_calibration_access = relationship(
         "SwCalibrationAccess",
         foreign_keys=[sw_calibration_access_id],
         uselist=False,
         cascade="all",
     )
-    sw_display_format_id = Column(
-        types.Integer, ForeignKey("sw_display_format.rid", use_alter=True)
-    )
+    sw_display_format_id = Column(types.Integer, ForeignKey("sw_display_format.rid", use_alter=True))
     sw_display_format = relationship(
         "SwDisplayFormat",
         foreign_keys=[sw_display_format_id],
         uselist=False,
         cascade="all",
     )
-    sw_base_type_ref_id = Column(
-        types.Integer, ForeignKey("sw_base_type_ref.rid", use_alter=True)
-    )
+    sw_base_type_ref_id = Column(types.Integer, ForeignKey("sw_base_type_ref.rid", use_alter=True))
     sw_base_type_ref = relationship(
         "SwBaseTypeRef",
         foreign_keys=[sw_base_type_ref_id],
@@ -11707,15 +10016,9 @@ class SwCalprmPointer(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_template_ref_id = Column(
-        types.Integer, ForeignKey("sw_template_ref.rid", use_alter=True)
-    )
-    sw_template_ref = relationship(
-        "SwTemplateRef", foreign_keys=[sw_template_ref_id], uselist=False, cascade="all"
-    )
-    sw_class_attr_impl_ref_id = Column(
-        types.Integer, ForeignKey("sw_class_attr_impl_ref.rid", use_alter=True)
-    )
+    sw_template_ref_id = Column(types.Integer, ForeignKey("sw_template_ref.rid", use_alter=True))
+    sw_template_ref = relationship("SwTemplateRef", foreign_keys=[sw_template_ref_id], uselist=False, cascade="all")
+    sw_class_attr_impl_ref_id = Column(types.Integer, ForeignKey("sw_class_attr_impl_ref.rid", use_alter=True))
     sw_class_attr_impl_ref = relationship(
         "SwClassAttrImplRef",
         foreign_keys=[sw_class_attr_impl_ref_id],
@@ -11742,12 +10045,8 @@ class SwCalprmTarget(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variable_ref_id = Column(
-        types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True)
-    )
-    sw_variable_ref = relationship(
-        "SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=False, cascade="all"
-    )
+    sw_variable_ref_id = Column(types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True))
+    sw_variable_ref = relationship("SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=False, cascade="all")
 
 
 class SwCalprmMaxTextSize(Base):
@@ -11802,27 +10101,21 @@ class SwCalprmText(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_calprm_max_text_size_id = Column(
-        types.Integer, ForeignKey("sw_calprm_max_text_size.rid", use_alter=True)
-    )
+    sw_calprm_max_text_size_id = Column(types.Integer, ForeignKey("sw_calprm_max_text_size.rid", use_alter=True))
     sw_calprm_max_text_size = relationship(
         "SwCalprmMaxTextSize",
         foreign_keys=[sw_calprm_max_text_size_id],
         uselist=False,
         cascade="all",
     )
-    sw_base_type_ref_id = Column(
-        types.Integer, ForeignKey("sw_base_type_ref.rid", use_alter=True)
-    )
+    sw_base_type_ref_id = Column(types.Integer, ForeignKey("sw_base_type_ref.rid", use_alter=True))
     sw_base_type_ref = relationship(
         "SwBaseTypeRef",
         foreign_keys=[sw_base_type_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_fill_character_id = Column(
-        types.Integer, ForeignKey("sw_fill_character.rid", use_alter=True)
-    )
+    sw_fill_character_id = Column(types.Integer, ForeignKey("sw_fill_character.rid", use_alter=True))
     sw_fill_character = relationship(
         "SwFillCharacter",
         foreign_keys=[sw_fill_character_id],
@@ -11892,12 +10185,8 @@ class SwComparisonVariables(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variable_ref_id = Column(
-        types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True)
-    )
-    sw_variable_ref = relationship(
-        "SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=True, cascade="all"
-    )
+    sw_variable_ref_id = Column(types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True))
+    sw_variable_ref = relationship("SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=True, cascade="all")
 
 
 class SwDataDependencyFormula(Base):
@@ -11935,27 +10224,17 @@ class SwDataDependencyArgs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_systemconst_coded_ref_id = Column(
-        types.Integer, ForeignKey("sw_systemconst_coded_ref.rid", use_alter=True)
-    )
+    sw_systemconst_coded_ref_id = Column(types.Integer, ForeignKey("sw_systemconst_coded_ref.rid", use_alter=True))
     sw_systemconst_coded_ref = relationship(
         "SwSystemconstCodedRef",
         foreign_keys=[sw_systemconst_coded_ref_id],
         uselist=True,
         cascade="all",
     )
-    sw_calprm_ref_id = Column(
-        types.Integer, ForeignKey("sw_calprm_ref.rid", use_alter=True)
-    )
-    sw_calprm_ref = relationship(
-        "SwCalprmRef", foreign_keys=[sw_calprm_ref_id], uselist=True, cascade="all"
-    )
-    sw_variable_ref_id = Column(
-        types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True)
-    )
-    sw_variable_ref = relationship(
-        "SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=True, cascade="all"
-    )
+    sw_calprm_ref_id = Column(types.Integer, ForeignKey("sw_calprm_ref.rid", use_alter=True))
+    sw_calprm_ref = relationship("SwCalprmRef", foreign_keys=[sw_calprm_ref_id], uselist=True, cascade="all")
+    sw_variable_ref_id = Column(types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True))
+    sw_variable_ref = relationship("SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=True, cascade="all")
 
 
 class SwDataDependency(Base):
@@ -11978,18 +10257,14 @@ class SwDataDependency(Base):
     si = StdString()
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
-    sw_data_dependency_formula_id = Column(
-        types.Integer, ForeignKey("sw_data_dependency_formula.rid", use_alter=True)
-    )
+    sw_data_dependency_formula_id = Column(types.Integer, ForeignKey("sw_data_dependency_formula.rid", use_alter=True))
     sw_data_dependency_formula = relationship(
         "SwDataDependencyFormula",
         foreign_keys=[sw_data_dependency_formula_id],
         uselist=False,
         cascade="all",
     )
-    sw_data_dependency_args_id = Column(
-        types.Integer, ForeignKey("sw_data_dependency_args.rid", use_alter=True)
-    )
+    sw_data_dependency_args_id = Column(types.Integer, ForeignKey("sw_data_dependency_args.rid", use_alter=True))
     sw_data_dependency_args = relationship(
         "SwDataDependencyArgs",
         foreign_keys=[sw_data_dependency_args_id],
@@ -12014,12 +10289,8 @@ class SwHostVariable(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variable_ref_id = Column(
-        types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True)
-    )
-    sw_variable_ref = relationship(
-        "SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=False, cascade="all"
-    )
+    sw_variable_ref_id = Column(types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True))
+    sw_variable_ref = relationship("SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=False, cascade="all")
 
 
 class SwImplPolicy(Base):
@@ -12232,9 +10503,7 @@ class SwVcdCriterionRefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_vcd_criterion_ref_id = Column(
-        types.Integer, ForeignKey("sw_vcd_criterion_ref.rid", use_alter=True)
-    )
+    sw_vcd_criterion_ref_id = Column(types.Integer, ForeignKey("sw_vcd_criterion_ref.rid", use_alter=True))
     sw_vcd_criterion_ref = relationship(
         "SwVcdCriterionRef",
         foreign_keys=[sw_vcd_criterion_ref_id],
@@ -12292,273 +10561,191 @@ class SwDataDefProps(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    annotations_id = Column(
-        types.Integer, ForeignKey("annotations.rid", use_alter=True)
-    )
-    annotations = relationship(
-        "Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all"
-    )
-    sw_addr_method_ref_id = Column(
-        types.Integer, ForeignKey("sw_addr_method_ref.rid", use_alter=True)
-    )
+    annotations_id = Column(types.Integer, ForeignKey("annotations.rid", use_alter=True))
+    annotations = relationship("Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all")
+    sw_addr_method_ref_id = Column(types.Integer, ForeignKey("sw_addr_method_ref.rid", use_alter=True))
     sw_addr_method_ref = relationship(
         "SwAddrMethodRef",
         foreign_keys=[sw_addr_method_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_alias_name_id = Column(
-        types.Integer, ForeignKey("sw_alias_name.rid", use_alter=True)
-    )
-    sw_alias_name = relationship(
-        "SwAliasName", foreign_keys=[sw_alias_name_id], uselist=False, cascade="all"
-    )
-    sw_base_type_ref_id = Column(
-        types.Integer, ForeignKey("sw_base_type_ref.rid", use_alter=True)
-    )
+    sw_alias_name_id = Column(types.Integer, ForeignKey("sw_alias_name.rid", use_alter=True))
+    sw_alias_name = relationship("SwAliasName", foreign_keys=[sw_alias_name_id], uselist=False, cascade="all")
+    sw_base_type_ref_id = Column(types.Integer, ForeignKey("sw_base_type_ref.rid", use_alter=True))
     sw_base_type_ref = relationship(
         "SwBaseTypeRef",
         foreign_keys=[sw_base_type_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_bit_representation_id = Column(
-        types.Integer, ForeignKey("sw_bit_representation.rid", use_alter=True)
-    )
+    sw_bit_representation_id = Column(types.Integer, ForeignKey("sw_bit_representation.rid", use_alter=True))
     sw_bit_representation = relationship(
         "SwBitRepresentation",
         foreign_keys=[sw_bit_representation_id],
         uselist=False,
         cascade="all",
     )
-    sw_calibration_access_id = Column(
-        types.Integer, ForeignKey("sw_calibration_access.rid", use_alter=True)
-    )
+    sw_calibration_access_id = Column(types.Integer, ForeignKey("sw_calibration_access.rid", use_alter=True))
     sw_calibration_access = relationship(
         "SwCalibrationAccess",
         foreign_keys=[sw_calibration_access_id],
         uselist=False,
         cascade="all",
     )
-    sw_calprm_axis_set_id = Column(
-        types.Integer, ForeignKey("sw_calprm_axis_set.rid", use_alter=True)
-    )
+    sw_calprm_axis_set_id = Column(types.Integer, ForeignKey("sw_calprm_axis_set.rid", use_alter=True))
     sw_calprm_axis_set = relationship(
         "SwCalprmAxisSet",
         foreign_keys=[sw_calprm_axis_set_id],
         uselist=False,
         cascade="all",
     )
-    sw_calprm_no_effect_value_id = Column(
-        types.Integer, ForeignKey("sw_calprm_no_effect_value.rid", use_alter=True)
-    )
+    sw_calprm_no_effect_value_id = Column(types.Integer, ForeignKey("sw_calprm_no_effect_value.rid", use_alter=True))
     sw_calprm_no_effect_value = relationship(
         "SwCalprmNoEffectValue",
         foreign_keys=[sw_calprm_no_effect_value_id],
         uselist=False,
         cascade="all",
     )
-    sw_calprm_pointer_id = Column(
-        types.Integer, ForeignKey("sw_calprm_pointer.rid", use_alter=True)
-    )
+    sw_calprm_pointer_id = Column(types.Integer, ForeignKey("sw_calprm_pointer.rid", use_alter=True))
     sw_calprm_pointer = relationship(
         "SwCalprmPointer",
         foreign_keys=[sw_calprm_pointer_id],
         uselist=False,
         cascade="all",
     )
-    sw_calprm_target_id = Column(
-        types.Integer, ForeignKey("sw_calprm_target.rid", use_alter=True)
-    )
+    sw_calprm_target_id = Column(types.Integer, ForeignKey("sw_calprm_target.rid", use_alter=True))
     sw_calprm_target = relationship(
         "SwCalprmTarget",
         foreign_keys=[sw_calprm_target_id],
         uselist=False,
         cascade="all",
     )
-    sw_calprm_text_id = Column(
-        types.Integer, ForeignKey("sw_calprm_text.rid", use_alter=True)
-    )
-    sw_calprm_text = relationship(
-        "SwCalprmText", foreign_keys=[sw_calprm_text_id], uselist=False, cascade="all"
-    )
-    sw_calprm_value_axis_labels_id = Column(
-        types.Integer, ForeignKey("sw_calprm_value_axis_labels.rid", use_alter=True)
-    )
+    sw_calprm_text_id = Column(types.Integer, ForeignKey("sw_calprm_text.rid", use_alter=True))
+    sw_calprm_text = relationship("SwCalprmText", foreign_keys=[sw_calprm_text_id], uselist=False, cascade="all")
+    sw_calprm_value_axis_labels_id = Column(types.Integer, ForeignKey("sw_calprm_value_axis_labels.rid", use_alter=True))
     sw_calprm_value_axis_labels = relationship(
         "SwCalprmValueAxisLabels",
         foreign_keys=[sw_calprm_value_axis_labels_id],
         uselist=False,
         cascade="all",
     )
-    sw_code_syntax_ref_id = Column(
-        types.Integer, ForeignKey("sw_code_syntax_ref.rid", use_alter=True)
-    )
+    sw_code_syntax_ref_id = Column(types.Integer, ForeignKey("sw_code_syntax_ref.rid", use_alter=True))
     sw_code_syntax_ref = relationship(
         "SwCodeSyntaxRef",
         foreign_keys=[sw_code_syntax_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_comparison_variables_id = Column(
-        types.Integer, ForeignKey("sw_comparison_variables.rid", use_alter=True)
-    )
+    sw_comparison_variables_id = Column(types.Integer, ForeignKey("sw_comparison_variables.rid", use_alter=True))
     sw_comparison_variables = relationship(
         "SwComparisonVariables",
         foreign_keys=[sw_comparison_variables_id],
         uselist=False,
         cascade="all",
     )
-    sw_compu_method_ref_id = Column(
-        types.Integer, ForeignKey("sw_compu_method_ref.rid", use_alter=True)
-    )
+    sw_compu_method_ref_id = Column(types.Integer, ForeignKey("sw_compu_method_ref.rid", use_alter=True))
     sw_compu_method_ref = relationship(
         "SwCompuMethodRef",
         foreign_keys=[sw_compu_method_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_data_constr_ref_id = Column(
-        types.Integer, ForeignKey("sw_data_constr_ref.rid", use_alter=True)
-    )
+    sw_data_constr_ref_id = Column(types.Integer, ForeignKey("sw_data_constr_ref.rid", use_alter=True))
     sw_data_constr_ref = relationship(
         "SwDataConstrRef",
         foreign_keys=[sw_data_constr_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_data_dependency_id = Column(
-        types.Integer, ForeignKey("sw_data_dependency.rid", use_alter=True)
-    )
+    sw_data_dependency_id = Column(types.Integer, ForeignKey("sw_data_dependency.rid", use_alter=True))
     sw_data_dependency = relationship(
         "SwDataDependency",
         foreign_keys=[sw_data_dependency_id],
         uselist=False,
         cascade="all",
     )
-    sw_display_format_id = Column(
-        types.Integer, ForeignKey("sw_display_format.rid", use_alter=True)
-    )
+    sw_display_format_id = Column(types.Integer, ForeignKey("sw_display_format.rid", use_alter=True))
     sw_display_format = relationship(
         "SwDisplayFormat",
         foreign_keys=[sw_display_format_id],
         uselist=False,
         cascade="all",
     )
-    sw_host_variable_id = Column(
-        types.Integer, ForeignKey("sw_host_variable.rid", use_alter=True)
-    )
+    sw_host_variable_id = Column(types.Integer, ForeignKey("sw_host_variable.rid", use_alter=True))
     sw_host_variable = relationship(
         "SwHostVariable",
         foreign_keys=[sw_host_variable_id],
         uselist=False,
         cascade="all",
     )
-    sw_impl_policy_id = Column(
-        types.Integer, ForeignKey("sw_impl_policy.rid", use_alter=True)
-    )
-    sw_impl_policy = relationship(
-        "SwImplPolicy", foreign_keys=[sw_impl_policy_id], uselist=False, cascade="all"
-    )
-    sw_intended_resolution_id = Column(
-        types.Integer, ForeignKey("sw_intended_resolution.rid", use_alter=True)
-    )
+    sw_impl_policy_id = Column(types.Integer, ForeignKey("sw_impl_policy.rid", use_alter=True))
+    sw_impl_policy = relationship("SwImplPolicy", foreign_keys=[sw_impl_policy_id], uselist=False, cascade="all")
+    sw_intended_resolution_id = Column(types.Integer, ForeignKey("sw_intended_resolution.rid", use_alter=True))
     sw_intended_resolution = relationship(
         "SwIntendedResolution",
         foreign_keys=[sw_intended_resolution_id],
         uselist=False,
         cascade="all",
     )
-    sw_interpolation_method_id = Column(
-        types.Integer, ForeignKey("sw_interpolation_method.rid", use_alter=True)
-    )
+    sw_interpolation_method_id = Column(types.Integer, ForeignKey("sw_interpolation_method.rid", use_alter=True))
     sw_interpolation_method = relationship(
         "SwInterpolationMethod",
         foreign_keys=[sw_interpolation_method_id],
         uselist=False,
         cascade="all",
     )
-    sw_is_virtual_id = Column(
-        types.Integer, ForeignKey("sw_is_virtual.rid", use_alter=True)
-    )
-    sw_is_virtual = relationship(
-        "SwIsVirtual", foreign_keys=[sw_is_virtual_id], uselist=False, cascade="all"
-    )
-    sw_mc_base_type_ref_id = Column(
-        types.Integer, ForeignKey("sw_mc_base_type_ref.rid", use_alter=True)
-    )
+    sw_is_virtual_id = Column(types.Integer, ForeignKey("sw_is_virtual.rid", use_alter=True))
+    sw_is_virtual = relationship("SwIsVirtual", foreign_keys=[sw_is_virtual_id], uselist=False, cascade="all")
+    sw_mc_base_type_ref_id = Column(types.Integer, ForeignKey("sw_mc_base_type_ref.rid", use_alter=True))
     sw_mc_base_type_ref = relationship(
         "SwMcBaseTypeRef",
         foreign_keys=[sw_mc_base_type_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_record_layout_ref_id = Column(
-        types.Integer, ForeignKey("sw_record_layout_ref.rid", use_alter=True)
-    )
+    sw_record_layout_ref_id = Column(types.Integer, ForeignKey("sw_record_layout_ref.rid", use_alter=True))
     sw_record_layout_ref = relationship(
         "SwRecordLayoutRef",
         foreign_keys=[sw_record_layout_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_refresh_timing_id = Column(
-        types.Integer, ForeignKey("sw_refresh_timing.rid", use_alter=True)
-    )
+    sw_refresh_timing_id = Column(types.Integer, ForeignKey("sw_refresh_timing.rid", use_alter=True))
     sw_refresh_timing = relationship(
         "SwRefreshTiming",
         foreign_keys=[sw_refresh_timing_id],
         uselist=False,
         cascade="all",
     )
-    sw_task_ref_id = Column(
-        types.Integer, ForeignKey("sw_task_ref.rid", use_alter=True)
-    )
-    sw_task_ref = relationship(
-        "SwTaskRef", foreign_keys=[sw_task_ref_id], uselist=False, cascade="all"
-    )
-    sw_template_ref_id = Column(
-        types.Integer, ForeignKey("sw_template_ref.rid", use_alter=True)
-    )
-    sw_template_ref = relationship(
-        "SwTemplateRef", foreign_keys=[sw_template_ref_id], uselist=False, cascade="all"
-    )
-    sw_unit_ref_id = Column(
-        types.Integer, ForeignKey("sw_unit_ref.rid", use_alter=True)
-    )
-    sw_unit_ref = relationship(
-        "SwUnitRef", foreign_keys=[sw_unit_ref_id], uselist=False, cascade="all"
-    )
-    sw_variable_kind_id = Column(
-        types.Integer, ForeignKey("sw_variable_kind.rid", use_alter=True)
-    )
+    sw_task_ref_id = Column(types.Integer, ForeignKey("sw_task_ref.rid", use_alter=True))
+    sw_task_ref = relationship("SwTaskRef", foreign_keys=[sw_task_ref_id], uselist=False, cascade="all")
+    sw_template_ref_id = Column(types.Integer, ForeignKey("sw_template_ref.rid", use_alter=True))
+    sw_template_ref = relationship("SwTemplateRef", foreign_keys=[sw_template_ref_id], uselist=False, cascade="all")
+    sw_unit_ref_id = Column(types.Integer, ForeignKey("sw_unit_ref.rid", use_alter=True))
+    sw_unit_ref = relationship("SwUnitRef", foreign_keys=[sw_unit_ref_id], uselist=False, cascade="all")
+    sw_variable_kind_id = Column(types.Integer, ForeignKey("sw_variable_kind.rid", use_alter=True))
     sw_variable_kind = relationship(
         "SwVariableKind",
         foreign_keys=[sw_variable_kind_id],
         uselist=False,
         cascade="all",
     )
-    sw_var_init_value_id = Column(
-        types.Integer, ForeignKey("sw_var_init_value.rid", use_alter=True)
-    )
+    sw_var_init_value_id = Column(types.Integer, ForeignKey("sw_var_init_value.rid", use_alter=True))
     sw_var_init_value = relationship(
         "SwVarInitValue",
         foreign_keys=[sw_var_init_value_id],
         uselist=False,
         cascade="all",
     )
-    sw_var_not_avl_value_id = Column(
-        types.Integer, ForeignKey("sw_var_not_avl_value.rid", use_alter=True)
-    )
+    sw_var_not_avl_value_id = Column(types.Integer, ForeignKey("sw_var_not_avl_value.rid", use_alter=True))
     sw_var_not_avl_value = relationship(
         "SwVarNotAvlValue",
         foreign_keys=[sw_var_not_avl_value_id],
         uselist=False,
         cascade="all",
     )
-    sw_vcd_criterion_refs_id = Column(
-        types.Integer, ForeignKey("sw_vcd_criterion_refs.rid", use_alter=True)
-    )
+    sw_vcd_criterion_refs_id = Column(types.Integer, ForeignKey("sw_vcd_criterion_refs.rid", use_alter=True))
     sw_vcd_criterion_refs = relationship(
         "SwVcdCriterionRefs",
         foreign_keys=[sw_vcd_criterion_refs_id],
@@ -12566,9 +10753,7 @@ class SwDataDefProps(Base):
         cascade="all",
     )
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class SwTemplate(Base):
@@ -12597,26 +10782,16 @@ class SwTemplate(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_data_def_props_id = Column(
-        types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_data_def_props_id = Column(types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True))
     sw_data_def_props = relationship(
         "SwDataDefProps",
         foreign_keys=[sw_data_def_props_id],
@@ -12668,13 +10843,9 @@ class SwCalprms(Base):
     t = StdString()
     si = StdString()
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
     sw_calprm_id = Column(types.Integer, ForeignKey("sw_calprm.rid", use_alter=True))
-    sw_calprm = relationship(
-        "SwCalprm", foreign_keys=[sw_calprm_id], uselist=True, cascade="all"
-    )
+    sw_calprm = relationship("SwCalprm", foreign_keys=[sw_calprm_id], uselist=True, cascade="all")
 
 
 class SwArraysize(Base):
@@ -12737,54 +10908,30 @@ class SwVariable(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_arraysize_id = Column(
-        types.Integer, ForeignKey("sw_arraysize.rid", use_alter=True)
-    )
-    sw_arraysize = relationship(
-        "SwArraysize", foreign_keys=[sw_arraysize_id], uselist=False, cascade="all"
-    )
-    sw_data_def_props_id = Column(
-        types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_arraysize_id = Column(types.Integer, ForeignKey("sw_arraysize.rid", use_alter=True))
+    sw_arraysize = relationship("SwArraysize", foreign_keys=[sw_arraysize_id], uselist=False, cascade="all")
+    sw_data_def_props_id = Column(types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True))
     sw_data_def_props = relationship(
         "SwDataDefProps",
         foreign_keys=[sw_data_def_props_id],
         uselist=False,
         cascade="all",
     )
-    sw_variables_id = Column(
-        types.Integer, ForeignKey("sw_variables.rid", use_alter=True)
-    )
-    sw_variables = relationship(
-        "SwVariables", foreign_keys=[sw_variables_id], uselist=False, cascade="all"
-    )
-    annotations_id = Column(
-        types.Integer, ForeignKey("annotations.rid", use_alter=True)
-    )
-    annotations = relationship(
-        "Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all"
-    )
+    sw_variables_id = Column(types.Integer, ForeignKey("sw_variables.rid", use_alter=True))
+    sw_variables = relationship("SwVariables", foreign_keys=[sw_variables_id], uselist=False, cascade="all")
+    annotations_id = Column(types.Integer, ForeignKey("annotations.rid", use_alter=True))
+    annotations = relationship("Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all")
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class SwSystemconsts(Base):
@@ -12803,12 +10950,8 @@ class SwSystemconsts(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_systemconst_id = Column(
-        types.Integer, ForeignKey("sw_systemconst.rid", use_alter=True)
-    )
-    sw_systemconst = relationship(
-        "SwSystemconst", foreign_keys=[sw_systemconst_id], uselist=True, cascade="all"
-    )
+    sw_systemconst_id = Column(types.Integer, ForeignKey("sw_systemconst.rid", use_alter=True))
+    sw_systemconst = relationship("SwSystemconst", foreign_keys=[sw_systemconst_id], uselist=True, cascade="all")
 
 
 class SwCalprm(Base):
@@ -12843,32 +10986,18 @@ class SwCalprm(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_arraysize_id = Column(
-        types.Integer, ForeignKey("sw_arraysize.rid", use_alter=True)
-    )
-    sw_arraysize = relationship(
-        "SwArraysize", foreign_keys=[sw_arraysize_id], uselist=False, cascade="all"
-    )
-    sw_data_def_props_id = Column(
-        types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_arraysize_id = Column(types.Integer, ForeignKey("sw_arraysize.rid", use_alter=True))
+    sw_arraysize = relationship("SwArraysize", foreign_keys=[sw_arraysize_id], uselist=False, cascade="all")
+    sw_data_def_props_id = Column(types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True))
     sw_data_def_props = relationship(
         "SwDataDefProps",
         foreign_keys=[sw_data_def_props_id],
@@ -12876,19 +11005,11 @@ class SwCalprm(Base):
         cascade="all",
     )
     sw_calprms_id = Column(types.Integer, ForeignKey("sw_calprms.rid", use_alter=True))
-    sw_calprms = relationship(
-        "SwCalprms", foreign_keys=[sw_calprms_id], uselist=False, cascade="all"
-    )
-    annotations_id = Column(
-        types.Integer, ForeignKey("annotations.rid", use_alter=True)
-    )
-    annotations = relationship(
-        "Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all"
-    )
+    sw_calprms = relationship("SwCalprms", foreign_keys=[sw_calprms_id], uselist=False, cascade="all")
+    annotations_id = Column(types.Integer, ForeignKey("annotations.rid", use_alter=True))
+    annotations = relationship("Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all")
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class SwClassInstances(Base):
@@ -12907,9 +11028,7 @@ class SwClassInstances(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_class_instance_id = Column(
-        types.Integer, ForeignKey("sw_class_instance.rid", use_alter=True)
-    )
+    sw_class_instance_id = Column(types.Integer, ForeignKey("sw_class_instance.rid", use_alter=True))
     sw_class_instance = relationship(
         "SwClassInstance",
         foreign_keys=[sw_class_instance_id],
@@ -12946,38 +11065,20 @@ class SwSystemconst(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_values_phys_id = Column(
-        types.Integer, ForeignKey("sw_values_phys.rid", use_alter=True)
-    )
-    sw_values_phys = relationship(
-        "SwValuesPhys", foreign_keys=[sw_values_phys_id], uselist=False, cascade="all"
-    )
-    sw_values_coded_id = Column(
-        types.Integer, ForeignKey("sw_values_coded.rid", use_alter=True)
-    )
-    sw_values_coded = relationship(
-        "SwValuesCoded", foreign_keys=[sw_values_coded_id], uselist=False, cascade="all"
-    )
-    sw_data_def_props_id = Column(
-        types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_values_phys_id = Column(types.Integer, ForeignKey("sw_values_phys.rid", use_alter=True))
+    sw_values_phys = relationship("SwValuesPhys", foreign_keys=[sw_values_phys_id], uselist=False, cascade="all")
+    sw_values_coded_id = Column(types.Integer, ForeignKey("sw_values_coded.rid", use_alter=True))
+    sw_values_coded = relationship("SwValuesCoded", foreign_keys=[sw_values_coded_id], uselist=False, cascade="all")
+    sw_data_def_props_id = Column(types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True))
     sw_data_def_props = relationship(
         "SwDataDefProps",
         foreign_keys=[sw_data_def_props_id],
@@ -13004,15 +11105,9 @@ class SwCompuMethods(Base):
     t = StdString()
     si = StdString()
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_compu_method_id = Column(
-        types.Integer, ForeignKey("sw_compu_method.rid", use_alter=True)
-    )
-    sw_compu_method = relationship(
-        "SwCompuMethod", foreign_keys=[sw_compu_method_id], uselist=True, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_compu_method_id = Column(types.Integer, ForeignKey("sw_compu_method.rid", use_alter=True))
+    sw_compu_method = relationship("SwCompuMethod", foreign_keys=[sw_compu_method_id], uselist=True, cascade="all")
 
 
 class SwClassRef(Base):
@@ -13071,63 +11166,37 @@ class SwClassInstance(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_arraysize_id = Column(
-        types.Integer, ForeignKey("sw_arraysize.rid", use_alter=True)
-    )
-    sw_arraysize = relationship(
-        "SwArraysize", foreign_keys=[sw_arraysize_id], uselist=False, cascade="all"
-    )
-    sw_class_ref_id = Column(
-        types.Integer, ForeignKey("sw_class_ref.rid", use_alter=True)
-    )
-    sw_class_ref = relationship(
-        "SwClassRef", foreign_keys=[sw_class_ref_id], uselist=False, cascade="all"
-    )
-    sw_class_attr_impl_ref_id = Column(
-        types.Integer, ForeignKey("sw_class_attr_impl_ref.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_arraysize_id = Column(types.Integer, ForeignKey("sw_arraysize.rid", use_alter=True))
+    sw_arraysize = relationship("SwArraysize", foreign_keys=[sw_arraysize_id], uselist=False, cascade="all")
+    sw_class_ref_id = Column(types.Integer, ForeignKey("sw_class_ref.rid", use_alter=True))
+    sw_class_ref = relationship("SwClassRef", foreign_keys=[sw_class_ref_id], uselist=False, cascade="all")
+    sw_class_attr_impl_ref_id = Column(types.Integer, ForeignKey("sw_class_attr_impl_ref.rid", use_alter=True))
     sw_class_attr_impl_ref = relationship(
         "SwClassAttrImplRef",
         foreign_keys=[sw_class_attr_impl_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_data_def_props_id = Column(
-        types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True)
-    )
+    sw_data_def_props_id = Column(types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True))
     sw_data_def_props = relationship(
         "SwDataDefProps",
         foreign_keys=[sw_data_def_props_id],
         uselist=False,
         cascade="all",
     )
-    annotations_id = Column(
-        types.Integer, ForeignKey("annotations.rid", use_alter=True)
-    )
-    annotations = relationship(
-        "Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all"
-    )
+    annotations_id = Column(types.Integer, ForeignKey("annotations.rid", use_alter=True))
+    annotations = relationship("Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all")
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class SwAddrMethods(Base):
@@ -13148,15 +11217,9 @@ class SwAddrMethods(Base):
     t = StdString()
     si = StdString()
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_addr_method_id = Column(
-        types.Integer, ForeignKey("sw_addr_method.rid", use_alter=True)
-    )
-    sw_addr_method = relationship(
-        "SwAddrMethod", foreign_keys=[sw_addr_method_id], uselist=True, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_addr_method_id = Column(types.Integer, ForeignKey("sw_addr_method.rid", use_alter=True))
+    sw_addr_method = relationship("SwAddrMethod", foreign_keys=[sw_addr_method_id], uselist=True, cascade="all")
 
 
 class SwPhysConstrs1(Base):
@@ -13175,12 +11238,8 @@ class SwPhysConstrs1(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_scale_constr_id = Column(
-        types.Integer, ForeignKey("sw_scale_constr.rid", use_alter=True)
-    )
-    sw_scale_constr = relationship(
-        "SwScaleConstr", foreign_keys=[sw_scale_constr_id], uselist=True, cascade="all"
-    )
+    sw_scale_constr_id = Column(types.Integer, ForeignKey("sw_scale_constr.rid", use_alter=True))
+    sw_scale_constr = relationship("SwScaleConstr", foreign_keys=[sw_scale_constr_id], uselist=True, cascade="all")
 
 
 class SwInternalConstrs1(Base):
@@ -13199,12 +11258,8 @@ class SwInternalConstrs1(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_scale_constr_id = Column(
-        types.Integer, ForeignKey("sw_scale_constr.rid", use_alter=True)
-    )
-    sw_scale_constr = relationship(
-        "SwScaleConstr", foreign_keys=[sw_scale_constr_id], uselist=True, cascade="all"
-    )
+    sw_scale_constr_id = Column(types.Integer, ForeignKey("sw_scale_constr.rid", use_alter=True))
+    sw_scale_constr = relationship("SwScaleConstr", foreign_keys=[sw_scale_constr_id], uselist=True, cascade="all")
 
 
 class LowerLimit(Base):
@@ -13268,18 +11323,10 @@ class SwScaleConstr(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    lower_limit_id = Column(
-        types.Integer, ForeignKey("lower_limit.rid", use_alter=True)
-    )
-    lower_limit = relationship(
-        "LowerLimit", foreign_keys=[lower_limit_id], uselist=False, cascade="all"
-    )
-    upper_limit_id = Column(
-        types.Integer, ForeignKey("upper_limit.rid", use_alter=True)
-    )
-    upper_limit = relationship(
-        "UpperLimit", foreign_keys=[upper_limit_id], uselist=False, cascade="all"
-    )
+    lower_limit_id = Column(types.Integer, ForeignKey("lower_limit.rid", use_alter=True))
+    lower_limit = relationship("LowerLimit", foreign_keys=[lower_limit_id], uselist=False, cascade="all")
+    upper_limit_id = Column(types.Integer, ForeignKey("upper_limit.rid", use_alter=True))
+    upper_limit = relationship("UpperLimit", foreign_keys=[upper_limit_id], uselist=False, cascade="all")
 
 
 class SwCompuIdentity(Base):
@@ -13315,12 +11362,8 @@ class SwCompuScales(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_compu_scale_id = Column(
-        types.Integer, ForeignKey("sw_compu_scale.rid", use_alter=True)
-    )
-    sw_compu_scale = relationship(
-        "SwCompuScale", foreign_keys=[sw_compu_scale_id], uselist=True, cascade="all"
-    )
+    sw_compu_scale_id = Column(types.Integer, ForeignKey("sw_compu_scale.rid", use_alter=True))
+    sw_compu_scale = relationship("SwCompuScale", foreign_keys=[sw_compu_scale_id], uselist=True, cascade="all")
 
 
 class SwCompuDefaultValue(Base):
@@ -13357,15 +11400,9 @@ class SwCompuInternalToPhys(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_compu_scales_id = Column(
-        types.Integer, ForeignKey("sw_compu_scales.rid", use_alter=True)
-    )
-    sw_compu_scales = relationship(
-        "SwCompuScales", foreign_keys=[sw_compu_scales_id], uselist=False, cascade="all"
-    )
-    sw_compu_default_value_id = Column(
-        types.Integer, ForeignKey("sw_compu_default_value.rid", use_alter=True)
-    )
+    sw_compu_scales_id = Column(types.Integer, ForeignKey("sw_compu_scales.rid", use_alter=True))
+    sw_compu_scales = relationship("SwCompuScales", foreign_keys=[sw_compu_scales_id], uselist=False, cascade="all")
+    sw_compu_default_value_id = Column(types.Integer, ForeignKey("sw_compu_default_value.rid", use_alter=True))
     sw_compu_default_value = relationship(
         "SwCompuDefaultValue",
         foreign_keys=[sw_compu_default_value_id],
@@ -13535,18 +11572,14 @@ class SwCompuRationalCoeffs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_compu_numerator_id = Column(
-        types.Integer, ForeignKey("sw_compu_numerator.rid", use_alter=True)
-    )
+    sw_compu_numerator_id = Column(types.Integer, ForeignKey("sw_compu_numerator.rid", use_alter=True))
     sw_compu_numerator = relationship(
         "SwCompuNumerator",
         foreign_keys=[sw_compu_numerator_id],
         uselist=False,
         cascade="all",
     )
-    sw_compu_denominator_id = Column(
-        types.Integer, ForeignKey("sw_compu_denominator.rid", use_alter=True)
-    )
+    sw_compu_denominator_id = Column(types.Integer, ForeignKey("sw_compu_denominator.rid", use_alter=True))
     sw_compu_denominator = relationship(
         "SwCompuDenominator",
         foreign_keys=[sw_compu_denominator_id],
@@ -13574,18 +11607,14 @@ class SwCompuGenericMath(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_systemconst_coded_ref_id = Column(
-        types.Integer, ForeignKey("sw_systemconst_coded_ref.rid", use_alter=True)
-    )
+    sw_systemconst_coded_ref_id = Column(types.Integer, ForeignKey("sw_systemconst_coded_ref.rid", use_alter=True))
     sw_systemconst_coded_ref = relationship(
         "SwSystemconstCodedRef",
         foreign_keys=[sw_systemconst_coded_ref_id],
         uselist=True,
         cascade="all",
     )
-    sw_systemconst_phys_ref_id = Column(
-        types.Integer, ForeignKey("sw_systemconst_phys_ref.rid", use_alter=True)
-    )
+    sw_systemconst_phys_ref_id = Column(types.Integer, ForeignKey("sw_systemconst_phys_ref.rid", use_alter=True))
     sw_systemconst_phys_ref = relationship(
         "SwSystemconstPhysRef",
         foreign_keys=[sw_systemconst_phys_ref_id],
@@ -13618,62 +11647,38 @@ class SwCompuScale(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    c_identifier_id = Column(
-        types.Integer, ForeignKey("c_identifier.rid", use_alter=True)
-    )
-    c_identifier = relationship(
-        "CIdentifier", foreign_keys=[c_identifier_id], uselist=False, cascade="all"
-    )
+    c_identifier_id = Column(types.Integer, ForeignKey("c_identifier.rid", use_alter=True))
+    c_identifier = relationship("CIdentifier", foreign_keys=[c_identifier_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
-    lower_limit_id = Column(
-        types.Integer, ForeignKey("lower_limit.rid", use_alter=True)
-    )
-    lower_limit = relationship(
-        "LowerLimit", foreign_keys=[lower_limit_id], uselist=False, cascade="all"
-    )
-    upper_limit_id = Column(
-        types.Integer, ForeignKey("upper_limit.rid", use_alter=True)
-    )
-    upper_limit = relationship(
-        "UpperLimit", foreign_keys=[upper_limit_id], uselist=False, cascade="all"
-    )
-    sw_compu_inverse_value_id = Column(
-        types.Integer, ForeignKey("sw_compu_inverse_value.rid", use_alter=True)
-    )
+    lower_limit_id = Column(types.Integer, ForeignKey("lower_limit.rid", use_alter=True))
+    lower_limit = relationship("LowerLimit", foreign_keys=[lower_limit_id], uselist=False, cascade="all")
+    upper_limit_id = Column(types.Integer, ForeignKey("upper_limit.rid", use_alter=True))
+    upper_limit = relationship("UpperLimit", foreign_keys=[upper_limit_id], uselist=False, cascade="all")
+    sw_compu_inverse_value_id = Column(types.Integer, ForeignKey("sw_compu_inverse_value.rid", use_alter=True))
     sw_compu_inverse_value = relationship(
         "SwCompuInverseValue",
         foreign_keys=[sw_compu_inverse_value_id],
         uselist=False,
         cascade="all",
     )
-    sw_compu_const_id = Column(
-        types.Integer, ForeignKey("sw_compu_const.rid", use_alter=True)
-    )
-    sw_compu_const = relationship(
-        "SwCompuConst", foreign_keys=[sw_compu_const_id], uselist=False, cascade="all"
-    )
-    sw_compu_rational_coeffs_id = Column(
-        types.Integer, ForeignKey("sw_compu_rational_coeffs.rid", use_alter=True)
-    )
+    sw_compu_const_id = Column(types.Integer, ForeignKey("sw_compu_const.rid", use_alter=True))
+    sw_compu_const = relationship("SwCompuConst", foreign_keys=[sw_compu_const_id], uselist=False, cascade="all")
+    sw_compu_rational_coeffs_id = Column(types.Integer, ForeignKey("sw_compu_rational_coeffs.rid", use_alter=True))
     sw_compu_rational_coeffs = relationship(
         "SwCompuRationalCoeffs",
         foreign_keys=[sw_compu_rational_coeffs_id],
         uselist=False,
         cascade="all",
     )
-    sw_compu_program_code_id = Column(
-        types.Integer, ForeignKey("sw_compu_program_code.rid", use_alter=True)
-    )
+    sw_compu_program_code_id = Column(types.Integer, ForeignKey("sw_compu_program_code.rid", use_alter=True))
     sw_compu_program_code = relationship(
         "SwCompuProgramCode",
         foreign_keys=[sw_compu_program_code_id],
         uselist=False,
         cascade="all",
     )
-    sw_compu_generic_math_id = Column(
-        types.Integer, ForeignKey("sw_compu_generic_math.rid", use_alter=True)
-    )
+    sw_compu_generic_math_id = Column(types.Integer, ForeignKey("sw_compu_generic_math.rid", use_alter=True))
     sw_compu_generic_math = relationship(
         "SwCompuGenericMath",
         foreign_keys=[sw_compu_generic_math_id],
@@ -13699,15 +11704,9 @@ class SwCompuPhysToInternal(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_compu_scales_id = Column(
-        types.Integer, ForeignKey("sw_compu_scales.rid", use_alter=True)
-    )
-    sw_compu_scales = relationship(
-        "SwCompuScales", foreign_keys=[sw_compu_scales_id], uselist=False, cascade="all"
-    )
-    sw_compu_default_value_id = Column(
-        types.Integer, ForeignKey("sw_compu_default_value.rid", use_alter=True)
-    )
+    sw_compu_scales_id = Column(types.Integer, ForeignKey("sw_compu_scales.rid", use_alter=True))
+    sw_compu_scales = relationship("SwCompuScales", foreign_keys=[sw_compu_scales_id], uselist=False, cascade="all")
+    sw_compu_default_value_id = Column(types.Integer, ForeignKey("sw_compu_default_value.rid", use_alter=True))
     sw_compu_default_value = relationship(
         "SwCompuDefaultValue",
         foreign_keys=[sw_compu_default_value_id],
@@ -13749,86 +11748,60 @@ class SwCompuMethod(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_display_format_id = Column(
-        types.Integer, ForeignKey("sw_display_format.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_display_format_id = Column(types.Integer, ForeignKey("sw_display_format.rid", use_alter=True))
     sw_display_format = relationship(
         "SwDisplayFormat",
         foreign_keys=[sw_display_format_id],
         uselist=False,
         cascade="all",
     )
-    sw_unit_ref_id = Column(
-        types.Integer, ForeignKey("sw_unit_ref.rid", use_alter=True)
-    )
-    sw_unit_ref = relationship(
-        "SwUnitRef", foreign_keys=[sw_unit_ref_id], uselist=False, cascade="all"
-    )
-    sw_data_constr_ref_id = Column(
-        types.Integer, ForeignKey("sw_data_constr_ref.rid", use_alter=True)
-    )
+    sw_unit_ref_id = Column(types.Integer, ForeignKey("sw_unit_ref.rid", use_alter=True))
+    sw_unit_ref = relationship("SwUnitRef", foreign_keys=[sw_unit_ref_id], uselist=False, cascade="all")
+    sw_data_constr_ref_id = Column(types.Integer, ForeignKey("sw_data_constr_ref.rid", use_alter=True))
     sw_data_constr_ref = relationship(
         "SwDataConstrRef",
         foreign_keys=[sw_data_constr_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_phys_constrs_1_id = Column(
-        types.Integer, ForeignKey("sw_phys_constrs_1.rid", use_alter=True)
-    )
+    sw_phys_constrs_1_id = Column(types.Integer, ForeignKey("sw_phys_constrs_1.rid", use_alter=True))
     sw_phys_constrs_1 = relationship(
         "SwPhysConstrs1",
         foreign_keys=[sw_phys_constrs_1_id],
         uselist=False,
         cascade="all",
     )
-    sw_internal_constrs_1_id = Column(
-        types.Integer, ForeignKey("sw_internal_constrs_1.rid", use_alter=True)
-    )
+    sw_internal_constrs_1_id = Column(types.Integer, ForeignKey("sw_internal_constrs_1.rid", use_alter=True))
     sw_internal_constrs_1 = relationship(
         "SwInternalConstrs1",
         foreign_keys=[sw_internal_constrs_1_id],
         uselist=False,
         cascade="all",
     )
-    sw_compu_identity_id = Column(
-        types.Integer, ForeignKey("sw_compu_identity.rid", use_alter=True)
-    )
+    sw_compu_identity_id = Column(types.Integer, ForeignKey("sw_compu_identity.rid", use_alter=True))
     sw_compu_identity = relationship(
         "SwCompuIdentity",
         foreign_keys=[sw_compu_identity_id],
         uselist=False,
         cascade="all",
     )
-    sw_compu_phys_to_internal_id = Column(
-        types.Integer, ForeignKey("sw_compu_phys_to_internal.rid", use_alter=True)
-    )
+    sw_compu_phys_to_internal_id = Column(types.Integer, ForeignKey("sw_compu_phys_to_internal.rid", use_alter=True))
     sw_compu_phys_to_internal = relationship(
         "SwCompuPhysToInternal",
         foreign_keys=[sw_compu_phys_to_internal_id],
         uselist=False,
         cascade="all",
     )
-    sw_compu_internal_to_phys_id = Column(
-        types.Integer, ForeignKey("sw_compu_internal_to_phys.rid", use_alter=True)
-    )
+    sw_compu_internal_to_phys_id = Column(types.Integer, ForeignKey("sw_compu_internal_to_phys.rid", use_alter=True))
     sw_compu_internal_to_phys = relationship(
         "SwCompuInternalToPhys",
         foreign_keys=[sw_compu_internal_to_phys_id],
@@ -13855,12 +11828,8 @@ class SwRecordLayouts(Base):
     t = StdString()
     si = StdString()
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_record_layout_id = Column(
-        types.Integer, ForeignKey("sw_record_layout.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_record_layout_id = Column(types.Integer, ForeignKey("sw_record_layout.rid", use_alter=True))
     sw_record_layout = relationship(
         "SwRecordLayout",
         foreign_keys=[sw_record_layout_id],
@@ -13927,48 +11896,28 @@ class SwAddrMethodDesc(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True)
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
+    msr_query_topic_1_id = Column(types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True))
     msr_query_topic_1 = relationship(
         "MsrQueryTopic1",
         foreign_keys=[msr_query_topic_1_id],
@@ -13976,12 +11925,8 @@ class SwAddrMethodDesc(Base):
         cascade="all",
     )
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
-    msr_query_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True)
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
+    msr_query_chapter_id = Column(types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True))
     msr_query_chapter = relationship(
         "MsrQueryChapter",
         foreign_keys=[msr_query_chapter_id],
@@ -14017,35 +11962,23 @@ class SwAddrMethod(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_cpu_mem_seg_ref_id = Column(
-        types.Integer, ForeignKey("sw_cpu_mem_seg_ref.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_cpu_mem_seg_ref_id = Column(types.Integer, ForeignKey("sw_cpu_mem_seg_ref.rid", use_alter=True))
     sw_cpu_mem_seg_ref = relationship(
         "SwCpuMemSegRef",
         foreign_keys=[sw_cpu_mem_seg_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_addr_method_desc_id = Column(
-        types.Integer, ForeignKey("sw_addr_method_desc.rid", use_alter=True)
-    )
+    sw_addr_method_desc_id = Column(types.Integer, ForeignKey("sw_addr_method_desc.rid", use_alter=True))
     sw_addr_method_desc = relationship(
         "SwAddrMethodDesc",
         foreign_keys=[sw_addr_method_desc_id],
@@ -14072,15 +12005,9 @@ class SwCodeSyntaxes(Base):
     t = StdString()
     si = StdString()
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_code_syntax_id = Column(
-        types.Integer, ForeignKey("sw_code_syntax.rid", use_alter=True)
-    )
-    sw_code_syntax = relationship(
-        "SwCodeSyntax", foreign_keys=[sw_code_syntax_id], uselist=True, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_code_syntax_id = Column(types.Integer, ForeignKey("sw_code_syntax.rid", use_alter=True))
+    sw_code_syntax = relationship("SwCodeSyntax", foreign_keys=[sw_code_syntax_id], uselist=True, cascade="all")
 
 
 class SwRecordLayout(Base):
@@ -14109,26 +12036,16 @@ class SwRecordLayout(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_record_layout_group_id = Column(
-        types.Integer, ForeignKey("sw_record_layout_group.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_record_layout_group_id = Column(types.Integer, ForeignKey("sw_record_layout_group.rid", use_alter=True))
     sw_record_layout_group = relationship(
         "SwRecordLayoutGroup",
         foreign_keys=[sw_record_layout_group_id],
@@ -14267,90 +12184,70 @@ class SwRecordLayoutGroup(Base):
     si = StdString()
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
-    sw_record_layout_group_axis_id = Column(
-        types.Integer, ForeignKey("sw_record_layout_group_axis.rid", use_alter=True)
-    )
+    sw_record_layout_group_axis_id = Column(types.Integer, ForeignKey("sw_record_layout_group_axis.rid", use_alter=True))
     sw_record_layout_group_axis = relationship(
         "SwRecordLayoutGroupAxis",
         foreign_keys=[sw_record_layout_group_axis_id],
         uselist=False,
         cascade="all",
     )
-    sw_record_layout_group_index_id = Column(
-        types.Integer, ForeignKey("sw_record_layout_group_index.rid", use_alter=True)
-    )
+    sw_record_layout_group_index_id = Column(types.Integer, ForeignKey("sw_record_layout_group_index.rid", use_alter=True))
     sw_record_layout_group_index = relationship(
         "SwRecordLayoutGroupIndex",
         foreign_keys=[sw_record_layout_group_index_id],
         uselist=False,
         cascade="all",
     )
-    sw_generic_axis_param_type_ref_id = Column(
-        types.Integer, ForeignKey("sw_generic_axis_param_type_ref.rid", use_alter=True)
-    )
+    sw_generic_axis_param_type_ref_id = Column(types.Integer, ForeignKey("sw_generic_axis_param_type_ref.rid", use_alter=True))
     sw_generic_axis_param_type_ref = relationship(
         "SwGenericAxisParamTypeRef",
         foreign_keys=[sw_generic_axis_param_type_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_record_layout_group_from_id = Column(
-        types.Integer, ForeignKey("sw_record_layout_group_from.rid", use_alter=True)
-    )
+    sw_record_layout_group_from_id = Column(types.Integer, ForeignKey("sw_record_layout_group_from.rid", use_alter=True))
     sw_record_layout_group_from = relationship(
         "SwRecordLayoutGroupFrom",
         foreign_keys=[sw_record_layout_group_from_id],
         uselist=False,
         cascade="all",
     )
-    sw_record_layout_group_to_id = Column(
-        types.Integer, ForeignKey("sw_record_layout_group_to.rid", use_alter=True)
-    )
+    sw_record_layout_group_to_id = Column(types.Integer, ForeignKey("sw_record_layout_group_to.rid", use_alter=True))
     sw_record_layout_group_to = relationship(
         "SwRecordLayoutGroupTo",
         foreign_keys=[sw_record_layout_group_to_id],
         uselist=False,
         cascade="all",
     )
-    sw_record_layout_group_step_id = Column(
-        types.Integer, ForeignKey("sw_record_layout_group_step.rid", use_alter=True)
-    )
+    sw_record_layout_group_step_id = Column(types.Integer, ForeignKey("sw_record_layout_group_step.rid", use_alter=True))
     sw_record_layout_group_step = relationship(
         "SwRecordLayoutGroupStep",
         foreign_keys=[sw_record_layout_group_step_id],
         uselist=False,
         cascade="all",
     )
-    sw_record_layout_component_id = Column(
-        types.Integer, ForeignKey("sw_record_layout_component.rid", use_alter=True)
-    )
+    sw_record_layout_component_id = Column(types.Integer, ForeignKey("sw_record_layout_component.rid", use_alter=True))
     sw_record_layout_component = relationship(
         "SwRecordLayoutComponent",
         foreign_keys=[sw_record_layout_component_id],
         uselist=False,
         cascade="all",
     )
-    sw_record_layout_ref_id = Column(
-        types.Integer, ForeignKey("sw_record_layout_ref.rid", use_alter=True)
-    )
+    sw_record_layout_ref_id = Column(types.Integer, ForeignKey("sw_record_layout_ref.rid", use_alter=True))
     sw_record_layout_ref = relationship(
         "SwRecordLayoutRef",
         foreign_keys=[sw_record_layout_ref_id],
         uselist=True,
         cascade="all",
     )
-    sw_record_layout_v_id = Column(
-        types.Integer, ForeignKey("sw_record_layout_v.rid", use_alter=True)
-    )
+    sw_record_layout_v_id = Column(types.Integer, ForeignKey("sw_record_layout_v.rid", use_alter=True))
     sw_record_layout_v = relationship(
         "SwRecordLayoutV",
         foreign_keys=[sw_record_layout_v_id],
         uselist=True,
         cascade="all",
     )
-    sw_record_layout_group_id = Column(
-        types.Integer, ForeignKey("sw_record_layout_group.rid", use_alter=True)
-    )
+    sw_record_layout_group_id = Column(types.Integer, ForeignKey("sw_record_layout_group.rid", use_alter=True))
     sw_record_layout_group = relationship(
         "SwRecordLayoutGroup",
         foreign_keys=[sw_record_layout_group_id],
@@ -14452,63 +12349,49 @@ class SwRecordLayoutV(Base):
     si = StdString()
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
-    sw_base_type_ref_id = Column(
-        types.Integer, ForeignKey("sw_base_type_ref.rid", use_alter=True)
-    )
+    sw_base_type_ref_id = Column(types.Integer, ForeignKey("sw_base_type_ref.rid", use_alter=True))
     sw_base_type_ref = relationship(
         "SwBaseTypeRef",
         foreign_keys=[sw_base_type_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_record_layout_v_axis_id = Column(
-        types.Integer, ForeignKey("sw_record_layout_v_axis.rid", use_alter=True)
-    )
+    sw_record_layout_v_axis_id = Column(types.Integer, ForeignKey("sw_record_layout_v_axis.rid", use_alter=True))
     sw_record_layout_v_axis = relationship(
         "SwRecordLayoutVAxis",
         foreign_keys=[sw_record_layout_v_axis_id],
         uselist=False,
         cascade="all",
     )
-    sw_record_layout_v_prop_id = Column(
-        types.Integer, ForeignKey("sw_record_layout_v_prop.rid", use_alter=True)
-    )
+    sw_record_layout_v_prop_id = Column(types.Integer, ForeignKey("sw_record_layout_v_prop.rid", use_alter=True))
     sw_record_layout_v_prop = relationship(
         "SwRecordLayoutVProp",
         foreign_keys=[sw_record_layout_v_prop_id],
         uselist=False,
         cascade="all",
     )
-    sw_record_layout_v_index_id = Column(
-        types.Integer, ForeignKey("sw_record_layout_v_index.rid", use_alter=True)
-    )
+    sw_record_layout_v_index_id = Column(types.Integer, ForeignKey("sw_record_layout_v_index.rid", use_alter=True))
     sw_record_layout_v_index = relationship(
         "SwRecordLayoutVIndex",
         foreign_keys=[sw_record_layout_v_index_id],
         uselist=False,
         cascade="all",
     )
-    sw_generic_axis_param_type_ref_id = Column(
-        types.Integer, ForeignKey("sw_generic_axis_param_type_ref.rid", use_alter=True)
-    )
+    sw_generic_axis_param_type_ref_id = Column(types.Integer, ForeignKey("sw_generic_axis_param_type_ref.rid", use_alter=True))
     sw_generic_axis_param_type_ref = relationship(
         "SwGenericAxisParamTypeRef",
         foreign_keys=[sw_generic_axis_param_type_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_record_layout_v_fix_value_id = Column(
-        types.Integer, ForeignKey("sw_record_layout_v_fix_value.rid", use_alter=True)
-    )
+    sw_record_layout_v_fix_value_id = Column(types.Integer, ForeignKey("sw_record_layout_v_fix_value.rid", use_alter=True))
     sw_record_layout_v_fix_value = relationship(
         "SwRecordLayoutVFixValue",
         foreign_keys=[sw_record_layout_v_fix_value_id],
         uselist=False,
         cascade="all",
     )
-    sw_record_layout_ref_id = Column(
-        types.Integer, ForeignKey("sw_record_layout_ref.rid", use_alter=True)
-    )
+    sw_record_layout_ref_id = Column(types.Integer, ForeignKey("sw_record_layout_ref.rid", use_alter=True))
     sw_record_layout_ref = relationship(
         "SwRecordLayoutRef",
         foreign_keys=[sw_record_layout_ref_id],
@@ -14535,15 +12418,9 @@ class SwBaseTypes(Base):
     t = StdString()
     si = StdString()
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_base_type_id = Column(
-        types.Integer, ForeignKey("sw_base_type.rid", use_alter=True)
-    )
-    sw_base_type = relationship(
-        "SwBaseType", foreign_keys=[sw_base_type_id], uselist=True, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_base_type_id = Column(types.Integer, ForeignKey("sw_base_type.rid", use_alter=True))
+    sw_base_type = relationship("SwBaseType", foreign_keys=[sw_base_type_id], uselist=True, cascade="all")
 
 
 class SwCodeSyntaxDesc(Base):
@@ -14579,48 +12456,28 @@ class SwCodeSyntaxDesc(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True)
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
+    msr_query_topic_1_id = Column(types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True))
     msr_query_topic_1 = relationship(
         "MsrQueryTopic1",
         foreign_keys=[msr_query_topic_1_id],
@@ -14628,12 +12485,8 @@ class SwCodeSyntaxDesc(Base):
         cascade="all",
     )
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
-    msr_query_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True)
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
+    msr_query_chapter_id = Column(types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True))
     msr_query_chapter = relationship(
         "MsrQueryChapter",
         foreign_keys=[msr_query_chapter_id],
@@ -14668,26 +12521,16 @@ class SwCodeSyntax(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_code_syntax_desc_id = Column(
-        types.Integer, ForeignKey("sw_code_syntax_desc.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_code_syntax_desc_id = Column(types.Integer, ForeignKey("sw_code_syntax_desc.rid", use_alter=True))
     sw_code_syntax_desc = relationship(
         "SwCodeSyntaxDesc",
         foreign_keys=[sw_code_syntax_desc_id],
@@ -14714,15 +12557,9 @@ class SwDataConstrs(Base):
     t = StdString()
     si = StdString()
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_data_constr_id = Column(
-        types.Integer, ForeignKey("sw_data_constr.rid", use_alter=True)
-    )
-    sw_data_constr = relationship(
-        "SwDataConstr", foreign_keys=[sw_data_constr_id], uselist=True, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_data_constr_id = Column(types.Integer, ForeignKey("sw_data_constr.rid", use_alter=True))
+    sw_data_constr = relationship("SwDataConstr", foreign_keys=[sw_data_constr_id], uselist=True, cascade="all")
 
 
 class SwBaseTypeSize(Base):
@@ -14828,41 +12665,25 @@ class SwBaseType(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_base_type_size_id = Column(
-        types.Integer, ForeignKey("sw_base_type_size.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_base_type_size_id = Column(types.Integer, ForeignKey("sw_base_type_size.rid", use_alter=True))
     sw_base_type_size = relationship(
         "SwBaseTypeSize",
         foreign_keys=[sw_base_type_size_id],
         uselist=False,
         cascade="all",
     )
-    sw_coded_type_id = Column(
-        types.Integer, ForeignKey("sw_coded_type.rid", use_alter=True)
-    )
-    sw_coded_type = relationship(
-        "SwCodedType", foreign_keys=[sw_coded_type_id], uselist=False, cascade="all"
-    )
-    sw_mem_alignment_id = Column(
-        types.Integer, ForeignKey("sw_mem_alignment.rid", use_alter=True)
-    )
+    sw_coded_type_id = Column(types.Integer, ForeignKey("sw_coded_type.rid", use_alter=True))
+    sw_coded_type = relationship("SwCodedType", foreign_keys=[sw_coded_type_id], uselist=False, cascade="all")
+    sw_mem_alignment_id = Column(types.Integer, ForeignKey("sw_mem_alignment.rid", use_alter=True))
     sw_mem_alignment = relationship(
         "SwMemAlignment",
         foreign_keys=[sw_mem_alignment_id],
@@ -14870,12 +12691,8 @@ class SwBaseType(Base):
         cascade="all",
     )
     byte_order_id = Column(types.Integer, ForeignKey("byte_order.rid", use_alter=True))
-    byte_order = relationship(
-        "ByteOrder", foreign_keys=[byte_order_id], uselist=False, cascade="all"
-    )
-    sw_base_type_ref_id = Column(
-        types.Integer, ForeignKey("sw_base_type_ref.rid", use_alter=True)
-    )
+    byte_order = relationship("ByteOrder", foreign_keys=[byte_order_id], uselist=False, cascade="all")
+    sw_base_type_ref_id = Column(types.Integer, ForeignKey("sw_base_type_ref.rid", use_alter=True))
     sw_base_type_ref = relationship(
         "SwBaseTypeRef",
         foreign_keys=[sw_base_type_ref_id],
@@ -14902,15 +12719,9 @@ class SwAxisTypes(Base):
     t = StdString()
     si = StdString()
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_axis_type_id = Column(
-        types.Integer, ForeignKey("sw_axis_type.rid", use_alter=True)
-    )
-    sw_axis_type = relationship(
-        "SwAxisType", foreign_keys=[sw_axis_type_id], uselist=True, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_axis_type_id = Column(types.Integer, ForeignKey("sw_axis_type.rid", use_alter=True))
+    sw_axis_type = relationship("SwAxisType", foreign_keys=[sw_axis_type_id], uselist=True, cascade="all")
 
 
 class SwConstrObjects(Base):
@@ -14931,21 +12742,11 @@ class SwConstrObjects(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variable_ref_id = Column(
-        types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True)
-    )
-    sw_variable_ref = relationship(
-        "SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=True, cascade="all"
-    )
-    sw_calprm_ref_id = Column(
-        types.Integer, ForeignKey("sw_calprm_ref.rid", use_alter=True)
-    )
-    sw_calprm_ref = relationship(
-        "SwCalprmRef", foreign_keys=[sw_calprm_ref_id], uselist=True, cascade="all"
-    )
-    sw_compu_method_ref_id = Column(
-        types.Integer, ForeignKey("sw_compu_method_ref.rid", use_alter=True)
-    )
+    sw_variable_ref_id = Column(types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True))
+    sw_variable_ref = relationship("SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=True, cascade="all")
+    sw_calprm_ref_id = Column(types.Integer, ForeignKey("sw_calprm_ref.rid", use_alter=True))
+    sw_calprm_ref = relationship("SwCalprmRef", foreign_keys=[sw_calprm_ref_id], uselist=True, cascade="all")
+    sw_compu_method_ref_id = Column(types.Integer, ForeignKey("sw_compu_method_ref.rid", use_alter=True))
     sw_compu_method_ref = relationship(
         "SwCompuMethodRef",
         foreign_keys=[sw_compu_method_ref_id],
@@ -14981,35 +12782,23 @@ class SwDataConstr(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_constr_objects_id = Column(
-        types.Integer, ForeignKey("sw_constr_objects.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_constr_objects_id = Column(types.Integer, ForeignKey("sw_constr_objects.rid", use_alter=True))
     sw_constr_objects = relationship(
         "SwConstrObjects",
         foreign_keys=[sw_constr_objects_id],
         uselist=False,
         cascade="all",
     )
-    sw_data_constr_rule_id = Column(
-        types.Integer, ForeignKey("sw_data_constr_rule.rid", use_alter=True)
-    )
+    sw_data_constr_rule_id = Column(types.Integer, ForeignKey("sw_data_constr_rule.rid", use_alter=True))
     sw_data_constr_rule = relationship(
         "SwDataConstrRule",
         foreign_keys=[sw_data_constr_rule_id],
@@ -15068,12 +12857,8 @@ class SwScaleConstrs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_scale_constr_id = Column(
-        types.Integer, ForeignKey("sw_scale_constr.rid", use_alter=True)
-    )
-    sw_scale_constr = relationship(
-        "SwScaleConstr", foreign_keys=[sw_scale_constr_id], uselist=True, cascade="all"
-    )
+    sw_scale_constr_id = Column(types.Integer, ForeignKey("sw_scale_constr.rid", use_alter=True))
+    sw_scale_constr = relationship("SwScaleConstr", foreign_keys=[sw_scale_constr_id], uselist=True, cascade="all")
 
 
 class SwMaxDiff(Base):
@@ -15126,9 +12911,7 @@ class SwRelatedConstrs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_data_dependency_id = Column(
-        types.Integer, ForeignKey("sw_data_dependency.rid", use_alter=True)
-    )
+    sw_data_dependency_id = Column(types.Integer, ForeignKey("sw_data_dependency.rid", use_alter=True))
     sw_data_dependency = relationship(
         "SwDataDependency",
         foreign_keys=[sw_data_dependency_id],
@@ -15158,42 +12941,22 @@ class SwInternalConstrs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    lower_limit_id = Column(
-        types.Integer, ForeignKey("lower_limit.rid", use_alter=True)
-    )
-    lower_limit = relationship(
-        "LowerLimit", foreign_keys=[lower_limit_id], uselist=False, cascade="all"
-    )
-    upper_limit_id = Column(
-        types.Integer, ForeignKey("upper_limit.rid", use_alter=True)
-    )
-    upper_limit = relationship(
-        "UpperLimit", foreign_keys=[upper_limit_id], uselist=False, cascade="all"
-    )
-    sw_scale_constrs_id = Column(
-        types.Integer, ForeignKey("sw_scale_constrs.rid", use_alter=True)
-    )
+    lower_limit_id = Column(types.Integer, ForeignKey("lower_limit.rid", use_alter=True))
+    lower_limit = relationship("LowerLimit", foreign_keys=[lower_limit_id], uselist=False, cascade="all")
+    upper_limit_id = Column(types.Integer, ForeignKey("upper_limit.rid", use_alter=True))
+    upper_limit = relationship("UpperLimit", foreign_keys=[upper_limit_id], uselist=False, cascade="all")
+    sw_scale_constrs_id = Column(types.Integer, ForeignKey("sw_scale_constrs.rid", use_alter=True))
     sw_scale_constrs = relationship(
         "SwScaleConstrs",
         foreign_keys=[sw_scale_constrs_id],
         uselist=False,
         cascade="all",
     )
-    sw_max_diff_id = Column(
-        types.Integer, ForeignKey("sw_max_diff.rid", use_alter=True)
-    )
-    sw_max_diff = relationship(
-        "SwMaxDiff", foreign_keys=[sw_max_diff_id], uselist=False, cascade="all"
-    )
-    sw_monotony_id = Column(
-        types.Integer, ForeignKey("sw_monotony.rid", use_alter=True)
-    )
-    sw_monotony = relationship(
-        "SwMonotony", foreign_keys=[sw_monotony_id], uselist=False, cascade="all"
-    )
-    sw_related_constrs_id = Column(
-        types.Integer, ForeignKey("sw_related_constrs.rid", use_alter=True)
-    )
+    sw_max_diff_id = Column(types.Integer, ForeignKey("sw_max_diff.rid", use_alter=True))
+    sw_max_diff = relationship("SwMaxDiff", foreign_keys=[sw_max_diff_id], uselist=False, cascade="all")
+    sw_monotony_id = Column(types.Integer, ForeignKey("sw_monotony.rid", use_alter=True))
+    sw_monotony = relationship("SwMonotony", foreign_keys=[sw_monotony_id], uselist=False, cascade="all")
+    sw_related_constrs_id = Column(types.Integer, ForeignKey("sw_related_constrs.rid", use_alter=True))
     sw_related_constrs = relationship(
         "SwRelatedConstrs",
         foreign_keys=[sw_related_constrs_id],
@@ -15224,48 +12987,24 @@ class SwPhysConstrs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    lower_limit_id = Column(
-        types.Integer, ForeignKey("lower_limit.rid", use_alter=True)
-    )
-    lower_limit = relationship(
-        "LowerLimit", foreign_keys=[lower_limit_id], uselist=False, cascade="all"
-    )
-    upper_limit_id = Column(
-        types.Integer, ForeignKey("upper_limit.rid", use_alter=True)
-    )
-    upper_limit = relationship(
-        "UpperLimit", foreign_keys=[upper_limit_id], uselist=False, cascade="all"
-    )
-    sw_scale_constrs_id = Column(
-        types.Integer, ForeignKey("sw_scale_constrs.rid", use_alter=True)
-    )
+    lower_limit_id = Column(types.Integer, ForeignKey("lower_limit.rid", use_alter=True))
+    lower_limit = relationship("LowerLimit", foreign_keys=[lower_limit_id], uselist=False, cascade="all")
+    upper_limit_id = Column(types.Integer, ForeignKey("upper_limit.rid", use_alter=True))
+    upper_limit = relationship("UpperLimit", foreign_keys=[upper_limit_id], uselist=False, cascade="all")
+    sw_scale_constrs_id = Column(types.Integer, ForeignKey("sw_scale_constrs.rid", use_alter=True))
     sw_scale_constrs = relationship(
         "SwScaleConstrs",
         foreign_keys=[sw_scale_constrs_id],
         uselist=False,
         cascade="all",
     )
-    sw_unit_ref_id = Column(
-        types.Integer, ForeignKey("sw_unit_ref.rid", use_alter=True)
-    )
-    sw_unit_ref = relationship(
-        "SwUnitRef", foreign_keys=[sw_unit_ref_id], uselist=False, cascade="all"
-    )
-    sw_max_diff_id = Column(
-        types.Integer, ForeignKey("sw_max_diff.rid", use_alter=True)
-    )
-    sw_max_diff = relationship(
-        "SwMaxDiff", foreign_keys=[sw_max_diff_id], uselist=False, cascade="all"
-    )
-    sw_monotony_id = Column(
-        types.Integer, ForeignKey("sw_monotony.rid", use_alter=True)
-    )
-    sw_monotony = relationship(
-        "SwMonotony", foreign_keys=[sw_monotony_id], uselist=False, cascade="all"
-    )
-    sw_related_constrs_id = Column(
-        types.Integer, ForeignKey("sw_related_constrs.rid", use_alter=True)
-    )
+    sw_unit_ref_id = Column(types.Integer, ForeignKey("sw_unit_ref.rid", use_alter=True))
+    sw_unit_ref = relationship("SwUnitRef", foreign_keys=[sw_unit_ref_id], uselist=False, cascade="all")
+    sw_max_diff_id = Column(types.Integer, ForeignKey("sw_max_diff.rid", use_alter=True))
+    sw_max_diff = relationship("SwMaxDiff", foreign_keys=[sw_max_diff_id], uselist=False, cascade="all")
+    sw_monotony_id = Column(types.Integer, ForeignKey("sw_monotony.rid", use_alter=True))
+    sw_monotony = relationship("SwMonotony", foreign_keys=[sw_monotony_id], uselist=False, cascade="all")
+    sw_related_constrs_id = Column(types.Integer, ForeignKey("sw_related_constrs.rid", use_alter=True))
     sw_related_constrs = relationship(
         "SwRelatedConstrs",
         foreign_keys=[sw_related_constrs_id],
@@ -15293,27 +13032,13 @@ class SwDataConstrRule(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_constr_level_id = Column(
-        types.Integer, ForeignKey("sw_constr_level.rid", use_alter=True)
-    )
-    sw_constr_level = relationship(
-        "SwConstrLevel", foreign_keys=[sw_constr_level_id], uselist=False, cascade="all"
-    )
-    sw_max_gradient_id = Column(
-        types.Integer, ForeignKey("sw_max_gradient.rid", use_alter=True)
-    )
-    sw_max_gradient = relationship(
-        "SwMaxGradient", foreign_keys=[sw_max_gradient_id], uselist=False, cascade="all"
-    )
-    sw_phys_constrs_id = Column(
-        types.Integer, ForeignKey("sw_phys_constrs.rid", use_alter=True)
-    )
-    sw_phys_constrs = relationship(
-        "SwPhysConstrs", foreign_keys=[sw_phys_constrs_id], uselist=False, cascade="all"
-    )
-    sw_internal_constrs_id = Column(
-        types.Integer, ForeignKey("sw_internal_constrs.rid", use_alter=True)
-    )
+    sw_constr_level_id = Column(types.Integer, ForeignKey("sw_constr_level.rid", use_alter=True))
+    sw_constr_level = relationship("SwConstrLevel", foreign_keys=[sw_constr_level_id], uselist=False, cascade="all")
+    sw_max_gradient_id = Column(types.Integer, ForeignKey("sw_max_gradient.rid", use_alter=True))
+    sw_max_gradient = relationship("SwMaxGradient", foreign_keys=[sw_max_gradient_id], uselist=False, cascade="all")
+    sw_phys_constrs_id = Column(types.Integer, ForeignKey("sw_phys_constrs.rid", use_alter=True))
+    sw_phys_constrs = relationship("SwPhysConstrs", foreign_keys=[sw_phys_constrs_id], uselist=False, cascade="all")
+    sw_internal_constrs_id = Column(types.Integer, ForeignKey("sw_internal_constrs.rid", use_alter=True))
     sw_internal_constrs = relationship(
         "SwInternalConstrs",
         foreign_keys=[sw_internal_constrs_id],
@@ -15364,110 +13089,64 @@ class SwDataDictionarySpec(Base):
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     sw_units_id = Column(types.Integer, ForeignKey("sw_units.rid", use_alter=True))
-    sw_units = relationship(
-        "SwUnits", foreign_keys=[sw_units_id], uselist=False, cascade="all"
-    )
-    sw_templates_id = Column(
-        types.Integer, ForeignKey("sw_templates.rid", use_alter=True)
-    )
-    sw_templates = relationship(
-        "SwTemplates", foreign_keys=[sw_templates_id], uselist=False, cascade="all"
-    )
-    sw_variables_id = Column(
-        types.Integer, ForeignKey("sw_variables.rid", use_alter=True)
-    )
-    sw_variables = relationship(
-        "SwVariables", foreign_keys=[sw_variables_id], uselist=False, cascade="all"
-    )
+    sw_units = relationship("SwUnits", foreign_keys=[sw_units_id], uselist=False, cascade="all")
+    sw_templates_id = Column(types.Integer, ForeignKey("sw_templates.rid", use_alter=True))
+    sw_templates = relationship("SwTemplates", foreign_keys=[sw_templates_id], uselist=False, cascade="all")
+    sw_variables_id = Column(types.Integer, ForeignKey("sw_variables.rid", use_alter=True))
+    sw_variables = relationship("SwVariables", foreign_keys=[sw_variables_id], uselist=False, cascade="all")
     sw_calprms_id = Column(types.Integer, ForeignKey("sw_calprms.rid", use_alter=True))
-    sw_calprms = relationship(
-        "SwCalprms", foreign_keys=[sw_calprms_id], uselist=False, cascade="all"
-    )
-    sw_systemconsts_id = Column(
-        types.Integer, ForeignKey("sw_systemconsts.rid", use_alter=True)
-    )
+    sw_calprms = relationship("SwCalprms", foreign_keys=[sw_calprms_id], uselist=False, cascade="all")
+    sw_systemconsts_id = Column(types.Integer, ForeignKey("sw_systemconsts.rid", use_alter=True))
     sw_systemconsts = relationship(
         "SwSystemconsts",
         foreign_keys=[sw_systemconsts_id],
         uselist=False,
         cascade="all",
     )
-    sw_class_instances_id = Column(
-        types.Integer, ForeignKey("sw_class_instances.rid", use_alter=True)
-    )
+    sw_class_instances_id = Column(types.Integer, ForeignKey("sw_class_instances.rid", use_alter=True))
     sw_class_instances = relationship(
         "SwClassInstances",
         foreign_keys=[sw_class_instances_id],
         uselist=False,
         cascade="all",
     )
-    sw_compu_methods_id = Column(
-        types.Integer, ForeignKey("sw_compu_methods.rid", use_alter=True)
-    )
+    sw_compu_methods_id = Column(types.Integer, ForeignKey("sw_compu_methods.rid", use_alter=True))
     sw_compu_methods = relationship(
         "SwCompuMethods",
         foreign_keys=[sw_compu_methods_id],
         uselist=False,
         cascade="all",
     )
-    sw_addr_methods_id = Column(
-        types.Integer, ForeignKey("sw_addr_methods.rid", use_alter=True)
-    )
-    sw_addr_methods = relationship(
-        "SwAddrMethods", foreign_keys=[sw_addr_methods_id], uselist=False, cascade="all"
-    )
-    sw_record_layouts_id = Column(
-        types.Integer, ForeignKey("sw_record_layouts.rid", use_alter=True)
-    )
+    sw_addr_methods_id = Column(types.Integer, ForeignKey("sw_addr_methods.rid", use_alter=True))
+    sw_addr_methods = relationship("SwAddrMethods", foreign_keys=[sw_addr_methods_id], uselist=False, cascade="all")
+    sw_record_layouts_id = Column(types.Integer, ForeignKey("sw_record_layouts.rid", use_alter=True))
     sw_record_layouts = relationship(
         "SwRecordLayouts",
         foreign_keys=[sw_record_layouts_id],
         uselist=False,
         cascade="all",
     )
-    sw_code_syntaxes_id = Column(
-        types.Integer, ForeignKey("sw_code_syntaxes.rid", use_alter=True)
-    )
+    sw_code_syntaxes_id = Column(types.Integer, ForeignKey("sw_code_syntaxes.rid", use_alter=True))
     sw_code_syntaxes = relationship(
         "SwCodeSyntaxes",
         foreign_keys=[sw_code_syntaxes_id],
         uselist=False,
         cascade="all",
     )
-    sw_base_types_id = Column(
-        types.Integer, ForeignKey("sw_base_types.rid", use_alter=True)
-    )
-    sw_base_types = relationship(
-        "SwBaseTypes", foreign_keys=[sw_base_types_id], uselist=False, cascade="all"
-    )
-    sw_data_constrs_id = Column(
-        types.Integer, ForeignKey("sw_data_constrs.rid", use_alter=True)
-    )
-    sw_data_constrs = relationship(
-        "SwDataConstrs", foreign_keys=[sw_data_constrs_id], uselist=False, cascade="all"
-    )
-    sw_axis_types_id = Column(
-        types.Integer, ForeignKey("sw_axis_types.rid", use_alter=True)
-    )
-    sw_axis_types = relationship(
-        "SwAxisTypes", foreign_keys=[sw_axis_types_id], uselist=False, cascade="all"
-    )
+    sw_base_types_id = Column(types.Integer, ForeignKey("sw_base_types.rid", use_alter=True))
+    sw_base_types = relationship("SwBaseTypes", foreign_keys=[sw_base_types_id], uselist=False, cascade="all")
+    sw_data_constrs_id = Column(types.Integer, ForeignKey("sw_data_constrs.rid", use_alter=True))
+    sw_data_constrs = relationship("SwDataConstrs", foreign_keys=[sw_data_constrs_id], uselist=False, cascade="all")
+    sw_axis_types_id = Column(types.Integer, ForeignKey("sw_axis_types.rid", use_alter=True))
+    sw_axis_types = relationship("SwAxisTypes", foreign_keys=[sw_axis_types_id], uselist=False, cascade="all")
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class SwGenericAxisDesc(Base):
@@ -15496,29 +13175,17 @@ class SwGenericAxisDesc(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
 
@@ -15539,9 +13206,7 @@ class SwGenericAxisParamTypes(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_generic_axis_param_type_id = Column(
-        types.Integer, ForeignKey("sw_generic_axis_param_type.rid", use_alter=True)
-    )
+    sw_generic_axis_param_type_id = Column(types.Integer, ForeignKey("sw_generic_axis_param_type.rid", use_alter=True))
     sw_generic_axis_param_type = relationship(
         "SwGenericAxisParamType",
         foreign_keys=[sw_generic_axis_param_type_id],
@@ -15577,35 +13242,23 @@ class SwAxisType(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_generic_axis_desc_id = Column(
-        types.Integer, ForeignKey("sw_generic_axis_desc.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_generic_axis_desc_id = Column(types.Integer, ForeignKey("sw_generic_axis_desc.rid", use_alter=True))
     sw_generic_axis_desc = relationship(
         "SwGenericAxisDesc",
         foreign_keys=[sw_generic_axis_desc_id],
         uselist=False,
         cascade="all",
     )
-    sw_generic_axis_param_types_id = Column(
-        types.Integer, ForeignKey("sw_generic_axis_param_types.rid", use_alter=True)
-    )
+    sw_generic_axis_param_types_id = Column(types.Integer, ForeignKey("sw_generic_axis_param_types.rid", use_alter=True))
     sw_generic_axis_param_types = relationship(
         "SwGenericAxisParamTypes",
         foreign_keys=[sw_generic_axis_param_types_id],
@@ -15641,35 +13294,23 @@ class SwGenericAxisParamType(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_data_constr_ref_id = Column(
-        types.Integer, ForeignKey("sw_data_constr_ref.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_data_constr_ref_id = Column(types.Integer, ForeignKey("sw_data_constr_ref.rid", use_alter=True))
     sw_data_constr_ref = relationship(
         "SwDataConstrRef",
         foreign_keys=[sw_data_constr_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_generic_axis_param_type_id = Column(
-        types.Integer, ForeignKey("sw_generic_axis_param_type.rid", use_alter=True)
-    )
+    sw_generic_axis_param_type_id = Column(types.Integer, ForeignKey("sw_generic_axis_param_type.rid", use_alter=True))
     sw_generic_axis_param_type = relationship(
         "SwGenericAxisParamType",
         foreign_keys=[sw_generic_axis_param_type_id],
@@ -15707,18 +13348,10 @@ class SwInstanceSpec(Base):
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    sw_instance_tree_id = Column(
-        types.Integer, ForeignKey("sw_instance_tree.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    sw_instance_tree_id = Column(types.Integer, ForeignKey("sw_instance_tree.rid", use_alter=True))
     sw_instance_tree = relationship(
         "SwInstanceTree",
         foreign_keys=[sw_instance_tree_id],
@@ -15726,9 +13359,7 @@ class SwInstanceSpec(Base):
         cascade="all",
     )
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class SwRootFeatures(Base):
@@ -15747,12 +13378,8 @@ class SwRootFeatures(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_feature_ref_id = Column(
-        types.Integer, ForeignKey("sw_feature_ref.rid", use_alter=True)
-    )
-    sw_feature_ref = relationship(
-        "SwFeatureRef", foreign_keys=[sw_feature_ref_id], uselist=True, cascade="all"
-    )
+    sw_feature_ref_id = Column(types.Integer, ForeignKey("sw_feature_ref.rid", use_alter=True))
+    sw_feature_ref = relationship("SwFeatureRef", foreign_keys=[sw_feature_ref_id], uselist=True, cascade="all")
 
 
 class SwFeatureDef(Base):
@@ -15788,48 +13415,28 @@ class SwFeatureDef(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True)
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
+    msr_query_topic_1_id = Column(types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True))
     msr_query_topic_1 = relationship(
         "MsrQueryTopic1",
         foreign_keys=[msr_query_topic_1_id],
@@ -15837,12 +13444,8 @@ class SwFeatureDef(Base):
         cascade="all",
     )
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
-    msr_query_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True)
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
+    msr_query_chapter_id = Column(types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True))
     msr_query_chapter = relationship(
         "MsrQueryChapter",
         foreign_keys=[msr_query_chapter_id],
@@ -15884,48 +13487,28 @@ class SwFeatureDesc(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True)
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
+    msr_query_topic_1_id = Column(types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True))
     msr_query_topic_1 = relationship(
         "MsrQueryTopic1",
         foreign_keys=[msr_query_topic_1_id],
@@ -15933,12 +13516,8 @@ class SwFeatureDesc(Base):
         cascade="all",
     )
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
-    msr_query_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True)
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
+    msr_query_chapter_id = Column(types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True))
     msr_query_chapter = relationship(
         "MsrQueryChapter",
         foreign_keys=[msr_query_chapter_id],
@@ -15964,18 +13543,10 @@ class SwFulfils(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    function_ref_id = Column(
-        types.Integer, ForeignKey("function_ref.rid", use_alter=True)
-    )
-    function_ref = relationship(
-        "FunctionRef", foreign_keys=[function_ref_id], uselist=True, cascade="all"
-    )
-    requirement_ref_id = Column(
-        types.Integer, ForeignKey("requirement_ref.rid", use_alter=True)
-    )
-    requirement_ref = relationship(
-        "RequirementRef", foreign_keys=[requirement_ref_id], uselist=True, cascade="all"
-    )
+    function_ref_id = Column(types.Integer, ForeignKey("function_ref.rid", use_alter=True))
+    function_ref = relationship("FunctionRef", foreign_keys=[function_ref_id], uselist=True, cascade="all")
+    requirement_ref_id = Column(types.Integer, ForeignKey("requirement_ref.rid", use_alter=True))
+    requirement_ref = relationship("RequirementRef", foreign_keys=[requirement_ref_id], uselist=True, cascade="all")
 
 
 class SwClassMethods(Base):
@@ -15994,12 +13565,8 @@ class SwClassMethods(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_class_method_id = Column(
-        types.Integer, ForeignKey("sw_class_method.rid", use_alter=True)
-    )
-    sw_class_method = relationship(
-        "SwClassMethod", foreign_keys=[sw_class_method_id], uselist=True, cascade="all"
-    )
+    sw_class_method_id = Column(types.Integer, ForeignKey("sw_class_method.rid", use_alter=True))
+    sw_class_method = relationship("SwClassMethod", foreign_keys=[sw_class_method_id], uselist=True, cascade="all")
 
 
 class FunctionRef(Base):
@@ -16070,9 +13637,7 @@ class SwVariablePrototypes(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variable_prototype_id = Column(
-        types.Integer, ForeignKey("sw_variable_prototype.rid", use_alter=True)
-    )
+    sw_variable_prototype_id = Column(types.Integer, ForeignKey("sw_variable_prototype.rid", use_alter=True))
     sw_variable_prototype = relationship(
         "SwVariablePrototype",
         foreign_keys=[sw_variable_prototype_id],
@@ -16124,29 +13689,17 @@ class SwClassMethodReturn(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
 
@@ -16173,26 +13726,18 @@ class SwClassMethod(Base):
     si = StdString()
     label_id = Column(types.Integer, ForeignKey("label.rid", use_alter=True))
     label = relationship("Label", foreign_keys=[label_id], uselist=False, cascade="all")
-    short_label_id = Column(
-        types.Integer, ForeignKey("short_label.rid", use_alter=True)
-    )
-    short_label = relationship(
-        "ShortLabel", foreign_keys=[short_label_id], uselist=False, cascade="all"
-    )
+    short_label_id = Column(types.Integer, ForeignKey("short_label.rid", use_alter=True))
+    short_label = relationship("ShortLabel", foreign_keys=[short_label_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
-    sw_class_method_return_id = Column(
-        types.Integer, ForeignKey("sw_class_method_return.rid", use_alter=True)
-    )
+    sw_class_method_return_id = Column(types.Integer, ForeignKey("sw_class_method_return.rid", use_alter=True))
     sw_class_method_return = relationship(
         "SwClassMethodReturn",
         foreign_keys=[sw_class_method_return_id],
         uselist=False,
         cascade="all",
     )
-    sw_class_method_arg_id = Column(
-        types.Integer, ForeignKey("sw_class_method_arg.rid", use_alter=True)
-    )
+    sw_class_method_arg_id = Column(types.Integer, ForeignKey("sw_class_method_arg.rid", use_alter=True))
     sw_class_method_arg = relationship(
         "SwClassMethodArg",
         foreign_keys=[sw_class_method_arg_id],
@@ -16221,16 +13766,10 @@ class SwClassMethodArg(Base):
     si = StdString()
     label_id = Column(types.Integer, ForeignKey("label.rid", use_alter=True))
     label = relationship("Label", foreign_keys=[label_id], uselist=False, cascade="all")
-    short_label_id = Column(
-        types.Integer, ForeignKey("short_label.rid", use_alter=True)
-    )
-    short_label = relationship(
-        "ShortLabel", foreign_keys=[short_label_id], uselist=False, cascade="all"
-    )
+    short_label_id = Column(types.Integer, ForeignKey("short_label.rid", use_alter=True))
+    short_label = relationship("ShortLabel", foreign_keys=[short_label_id], uselist=False, cascade="all")
     remark_id = Column(types.Integer, ForeignKey("remark.rid", use_alter=True))
-    remark = relationship(
-        "Remark", foreign_keys=[remark_id], uselist=False, cascade="all"
-    )
+    remark = relationship("Remark", foreign_keys=[remark_id], uselist=False, cascade="all")
 
 
 class SwClassAttrImpls(Base):
@@ -16249,9 +13788,7 @@ class SwClassAttrImpls(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_class_attr_impl_id = Column(
-        types.Integer, ForeignKey("sw_class_attr_impl.rid", use_alter=True)
-    )
+    sw_class_attr_impl_id = Column(types.Integer, ForeignKey("sw_class_attr_impl.rid", use_alter=True))
     sw_class_attr_impl = relationship(
         "SwClassAttrImpl",
         foreign_keys=[sw_class_attr_impl_id],
@@ -16276,9 +13813,7 @@ class SwCalprmPrototypes(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_calprm_prototype_id = Column(
-        types.Integer, ForeignKey("sw_calprm_prototype.rid", use_alter=True)
-    )
+    sw_calprm_prototype_id = Column(types.Integer, ForeignKey("sw_calprm_prototype.rid", use_alter=True))
     sw_calprm_prototype = relationship(
         "SwCalprmPrototype",
         foreign_keys=[sw_calprm_prototype_id],
@@ -16304,18 +13839,14 @@ class SwSyscond(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_systemconst_coded_ref_id = Column(
-        types.Integer, ForeignKey("sw_systemconst_coded_ref.rid", use_alter=True)
-    )
+    sw_systemconst_coded_ref_id = Column(types.Integer, ForeignKey("sw_systemconst_coded_ref.rid", use_alter=True))
     sw_systemconst_coded_ref = relationship(
         "SwSystemconstCodedRef",
         foreign_keys=[sw_systemconst_coded_ref_id],
         uselist=True,
         cascade="all",
     )
-    sw_systemconst_phys_ref_id = Column(
-        types.Integer, ForeignKey("sw_systemconst_phys_ref.rid", use_alter=True)
-    )
+    sw_systemconst_phys_ref_id = Column(types.Integer, ForeignKey("sw_systemconst_phys_ref.rid", use_alter=True))
     sw_systemconst_phys_ref = relationship(
         "SwSystemconstPhysRef",
         foreign_keys=[sw_systemconst_phys_ref_id],
@@ -16354,49 +13885,25 @@ class SwVariablePrototype(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_arraysize_id = Column(
-        types.Integer, ForeignKey("sw_arraysize.rid", use_alter=True)
-    )
-    sw_arraysize = relationship(
-        "SwArraysize", foreign_keys=[sw_arraysize_id], uselist=False, cascade="all"
-    )
-    sw_unit_ref_id = Column(
-        types.Integer, ForeignKey("sw_unit_ref.rid", use_alter=True)
-    )
-    sw_unit_ref = relationship(
-        "SwUnitRef", foreign_keys=[sw_unit_ref_id], uselist=False, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_arraysize_id = Column(types.Integer, ForeignKey("sw_arraysize.rid", use_alter=True))
+    sw_arraysize = relationship("SwArraysize", foreign_keys=[sw_arraysize_id], uselist=False, cascade="all")
+    sw_unit_ref_id = Column(types.Integer, ForeignKey("sw_unit_ref.rid", use_alter=True))
+    sw_unit_ref = relationship("SwUnitRef", foreign_keys=[sw_unit_ref_id], uselist=False, cascade="all")
     sw_syscond_id = Column(types.Integer, ForeignKey("sw_syscond.rid", use_alter=True))
-    sw_syscond = relationship(
-        "SwSyscond", foreign_keys=[sw_syscond_id], uselist=False, cascade="all"
-    )
-    annotations_id = Column(
-        types.Integer, ForeignKey("annotations.rid", use_alter=True)
-    )
-    annotations = relationship(
-        "Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all"
-    )
+    sw_syscond = relationship("SwSyscond", foreign_keys=[sw_syscond_id], uselist=False, cascade="all")
+    annotations_id = Column(types.Integer, ForeignKey("annotations.rid", use_alter=True))
+    annotations = relationship("Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all")
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class SwClassPrototypes(Base):
@@ -16415,9 +13922,7 @@ class SwClassPrototypes(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_class_prototype_id = Column(
-        types.Integer, ForeignKey("sw_class_prototype.rid", use_alter=True)
-    )
+    sw_class_prototype_id = Column(types.Integer, ForeignKey("sw_class_prototype.rid", use_alter=True))
     sw_class_prototype = relationship(
         "SwClassPrototype",
         foreign_keys=[sw_class_prototype_id],
@@ -16455,43 +13960,23 @@ class SwCalprmPrototype(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_arraysize_id = Column(
-        types.Integer, ForeignKey("sw_arraysize.rid", use_alter=True)
-    )
-    sw_arraysize = relationship(
-        "SwArraysize", foreign_keys=[sw_arraysize_id], uselist=False, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_arraysize_id = Column(types.Integer, ForeignKey("sw_arraysize.rid", use_alter=True))
+    sw_arraysize = relationship("SwArraysize", foreign_keys=[sw_arraysize_id], uselist=False, cascade="all")
     sw_syscond_id = Column(types.Integer, ForeignKey("sw_syscond.rid", use_alter=True))
-    sw_syscond = relationship(
-        "SwSyscond", foreign_keys=[sw_syscond_id], uselist=False, cascade="all"
-    )
-    annotations_id = Column(
-        types.Integer, ForeignKey("annotations.rid", use_alter=True)
-    )
-    annotations = relationship(
-        "Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all"
-    )
+    sw_syscond = relationship("SwSyscond", foreign_keys=[sw_syscond_id], uselist=False, cascade="all")
+    annotations_id = Column(types.Integer, ForeignKey("annotations.rid", use_alter=True))
+    annotations = relationship("Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all")
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class SwClassAttr(Base):
@@ -16512,27 +13997,21 @@ class SwClassAttr(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variable_prototypes_id = Column(
-        types.Integer, ForeignKey("sw_variable_prototypes.rid", use_alter=True)
-    )
+    sw_variable_prototypes_id = Column(types.Integer, ForeignKey("sw_variable_prototypes.rid", use_alter=True))
     sw_variable_prototypes = relationship(
         "SwVariablePrototypes",
         foreign_keys=[sw_variable_prototypes_id],
         uselist=False,
         cascade="all",
     )
-    sw_calprm_prototypes_id = Column(
-        types.Integer, ForeignKey("sw_calprm_prototypes.rid", use_alter=True)
-    )
+    sw_calprm_prototypes_id = Column(types.Integer, ForeignKey("sw_calprm_prototypes.rid", use_alter=True))
     sw_calprm_prototypes = relationship(
         "SwCalprmPrototypes",
         foreign_keys=[sw_calprm_prototypes_id],
         uselist=False,
         cascade="all",
     )
-    sw_class_prototypes_id = Column(
-        types.Integer, ForeignKey("sw_class_prototypes.rid", use_alter=True)
-    )
+    sw_class_prototypes_id = Column(types.Integer, ForeignKey("sw_class_prototypes.rid", use_alter=True))
     sw_class_prototypes = relationship(
         "SwClassPrototypes",
         foreign_keys=[sw_class_prototypes_id],
@@ -16571,49 +14050,25 @@ class SwClassPrototype(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_class_ref_id = Column(
-        types.Integer, ForeignKey("sw_class_ref.rid", use_alter=True)
-    )
-    sw_class_ref = relationship(
-        "SwClassRef", foreign_keys=[sw_class_ref_id], uselist=False, cascade="all"
-    )
-    sw_arraysize_id = Column(
-        types.Integer, ForeignKey("sw_arraysize.rid", use_alter=True)
-    )
-    sw_arraysize = relationship(
-        "SwArraysize", foreign_keys=[sw_arraysize_id], uselist=False, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_class_ref_id = Column(types.Integer, ForeignKey("sw_class_ref.rid", use_alter=True))
+    sw_class_ref = relationship("SwClassRef", foreign_keys=[sw_class_ref_id], uselist=False, cascade="all")
+    sw_arraysize_id = Column(types.Integer, ForeignKey("sw_arraysize.rid", use_alter=True))
+    sw_arraysize = relationship("SwArraysize", foreign_keys=[sw_arraysize_id], uselist=False, cascade="all")
     sw_syscond_id = Column(types.Integer, ForeignKey("sw_syscond.rid", use_alter=True))
-    sw_syscond = relationship(
-        "SwSyscond", foreign_keys=[sw_syscond_id], uselist=False, cascade="all"
-    )
-    annotations_id = Column(
-        types.Integer, ForeignKey("annotations.rid", use_alter=True)
-    )
-    annotations = relationship(
-        "Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all"
-    )
+    sw_syscond = relationship("SwSyscond", foreign_keys=[sw_syscond_id], uselist=False, cascade="all")
+    annotations_id = Column(types.Integer, ForeignKey("annotations.rid", use_alter=True))
+    annotations = relationship("Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all")
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class SwVariablesRead(Base):
@@ -16633,15 +14088,9 @@ class SwVariablesRead(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variable_ref_id = Column(
-        types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True)
-    )
-    sw_variable_ref = relationship(
-        "SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=True, cascade="all"
-    )
-    sw_variable_ref_syscond_id = Column(
-        types.Integer, ForeignKey("sw_variable_ref_syscond.rid", use_alter=True)
-    )
+    sw_variable_ref_id = Column(types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True))
+    sw_variable_ref = relationship("SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=True, cascade="all")
+    sw_variable_ref_syscond_id = Column(types.Integer, ForeignKey("sw_variable_ref_syscond.rid", use_alter=True))
     sw_variable_ref_syscond = relationship(
         "SwVariableRefSyscond",
         foreign_keys=[sw_variable_ref_syscond_id],
@@ -16666,9 +14115,7 @@ class SwVariableImpls(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variable_impl_id = Column(
-        types.Integer, ForeignKey("sw_variable_impl.rid", use_alter=True)
-    )
+    sw_variable_impl_id = Column(types.Integer, ForeignKey("sw_variable_impl.rid", use_alter=True))
     sw_variable_impl = relationship(
         "SwVariableImpl",
         foreign_keys=[sw_variable_impl_id],
@@ -16693,12 +14140,8 @@ class SwCalprmImpls(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_calprm_impl_id = Column(
-        types.Integer, ForeignKey("sw_calprm_impl.rid", use_alter=True)
-    )
-    sw_calprm_impl = relationship(
-        "SwCalprmImpl", foreign_keys=[sw_calprm_impl_id], uselist=True, cascade="all"
-    )
+    sw_calprm_impl_id = Column(types.Integer, ForeignKey("sw_calprm_impl.rid", use_alter=True))
+    sw_calprm_impl = relationship("SwCalprmImpl", foreign_keys=[sw_calprm_impl_id], uselist=True, cascade="all")
 
 
 class SwVariablePrototypeRef(Base):
@@ -16743,18 +14186,14 @@ class SwVariableImpl(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variable_prototype_ref_id = Column(
-        types.Integer, ForeignKey("sw_variable_prototype_ref.rid", use_alter=True)
-    )
+    sw_variable_prototype_ref_id = Column(types.Integer, ForeignKey("sw_variable_prototype_ref.rid", use_alter=True))
     sw_variable_prototype_ref = relationship(
         "SwVariablePrototypeRef",
         foreign_keys=[sw_variable_prototype_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_data_def_props_id = Column(
-        types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True)
-    )
+    sw_data_def_props_id = Column(types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True))
     sw_data_def_props = relationship(
         "SwDataDefProps",
         foreign_keys=[sw_data_def_props_id],
@@ -16779,12 +14218,8 @@ class SwClassImpls(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_class_impl_id = Column(
-        types.Integer, ForeignKey("sw_class_impl.rid", use_alter=True)
-    )
-    sw_class_impl = relationship(
-        "SwClassImpl", foreign_keys=[sw_class_impl_id], uselist=True, cascade="all"
-    )
+    sw_class_impl_id = Column(types.Integer, ForeignKey("sw_class_impl.rid", use_alter=True))
+    sw_class_impl = relationship("SwClassImpl", foreign_keys=[sw_class_impl_id], uselist=True, cascade="all")
 
 
 class SwCalprmPrototypeRef(Base):
@@ -16829,18 +14264,14 @@ class SwCalprmImpl(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_calprm_prototype_ref_id = Column(
-        types.Integer, ForeignKey("sw_calprm_prototype_ref.rid", use_alter=True)
-    )
+    sw_calprm_prototype_ref_id = Column(types.Integer, ForeignKey("sw_calprm_prototype_ref.rid", use_alter=True))
     sw_calprm_prototype_ref = relationship(
         "SwCalprmPrototypeRef",
         foreign_keys=[sw_calprm_prototype_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_data_def_props_id = Column(
-        types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True)
-    )
+    sw_data_def_props_id = Column(types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True))
     sw_data_def_props = relationship(
         "SwDataDefProps",
         foreign_keys=[sw_data_def_props_id],
@@ -16878,53 +14309,33 @@ class SwClassAttrImpl(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_data_def_props_id = Column(
-        types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_data_def_props_id = Column(types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True))
     sw_data_def_props = relationship(
         "SwDataDefProps",
         foreign_keys=[sw_data_def_props_id],
         uselist=False,
         cascade="all",
     )
-    sw_variable_impls_id = Column(
-        types.Integer, ForeignKey("sw_variable_impls.rid", use_alter=True)
-    )
+    sw_variable_impls_id = Column(types.Integer, ForeignKey("sw_variable_impls.rid", use_alter=True))
     sw_variable_impls = relationship(
         "SwVariableImpls",
         foreign_keys=[sw_variable_impls_id],
         uselist=False,
         cascade="all",
     )
-    sw_calprm_impls_id = Column(
-        types.Integer, ForeignKey("sw_calprm_impls.rid", use_alter=True)
-    )
-    sw_calprm_impls = relationship(
-        "SwCalprmImpls", foreign_keys=[sw_calprm_impls_id], uselist=False, cascade="all"
-    )
-    sw_class_impls_id = Column(
-        types.Integer, ForeignKey("sw_class_impls.rid", use_alter=True)
-    )
-    sw_class_impls = relationship(
-        "SwClassImpls", foreign_keys=[sw_class_impls_id], uselist=False, cascade="all"
-    )
+    sw_calprm_impls_id = Column(types.Integer, ForeignKey("sw_calprm_impls.rid", use_alter=True))
+    sw_calprm_impls = relationship("SwCalprmImpls", foreign_keys=[sw_calprm_impls_id], uselist=False, cascade="all")
+    sw_class_impls_id = Column(types.Integer, ForeignKey("sw_class_impls.rid", use_alter=True))
+    sw_class_impls = relationship("SwClassImpls", foreign_keys=[sw_class_impls_id], uselist=False, cascade="all")
 
 
 class SwClassPrototypeRef(Base):
@@ -16969,18 +14380,14 @@ class SwClassImpl(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_class_prototype_ref_id = Column(
-        types.Integer, ForeignKey("sw_class_prototype_ref.rid", use_alter=True)
-    )
+    sw_class_prototype_ref_id = Column(types.Integer, ForeignKey("sw_class_prototype_ref.rid", use_alter=True))
     sw_class_prototype_ref = relationship(
         "SwClassPrototypeRef",
         foreign_keys=[sw_class_prototype_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_class_attr_impl_ref_id = Column(
-        types.Integer, ForeignKey("sw_class_attr_impl_ref.rid", use_alter=True)
-    )
+    sw_class_attr_impl_ref_id = Column(types.Integer, ForeignKey("sw_class_attr_impl_ref.rid", use_alter=True))
     sw_class_attr_impl_ref = relationship(
         "SwClassAttrImplRef",
         foreign_keys=[sw_class_attr_impl_ref_id],
@@ -17006,15 +14413,9 @@ class SwFeatureExportCalprms(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_calprm_ref_id = Column(
-        types.Integer, ForeignKey("sw_calprm_ref.rid", use_alter=True)
-    )
-    sw_calprm_ref = relationship(
-        "SwCalprmRef", foreign_keys=[sw_calprm_ref_id], uselist=True, cascade="all"
-    )
-    sw_calprm_ref_syscond_id = Column(
-        types.Integer, ForeignKey("sw_calprm_ref_syscond.rid", use_alter=True)
-    )
+    sw_calprm_ref_id = Column(types.Integer, ForeignKey("sw_calprm_ref.rid", use_alter=True))
+    sw_calprm_ref = relationship("SwCalprmRef", foreign_keys=[sw_calprm_ref_id], uselist=True, cascade="all")
+    sw_calprm_ref_syscond_id = Column(types.Integer, ForeignKey("sw_calprm_ref_syscond.rid", use_alter=True))
     sw_calprm_ref_syscond = relationship(
         "SwCalprmRefSyscond",
         foreign_keys=[sw_calprm_ref_syscond_id],
@@ -17040,15 +14441,9 @@ class SwVariablesWrite(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variable_ref_id = Column(
-        types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True)
-    )
-    sw_variable_ref = relationship(
-        "SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=True, cascade="all"
-    )
-    sw_variable_ref_syscond_id = Column(
-        types.Integer, ForeignKey("sw_variable_ref_syscond.rid", use_alter=True)
-    )
+    sw_variable_ref_id = Column(types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True))
+    sw_variable_ref = relationship("SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=True, cascade="all")
+    sw_variable_ref_syscond_id = Column(types.Integer, ForeignKey("sw_variable_ref_syscond.rid", use_alter=True))
     sw_variable_ref_syscond = relationship(
         "SwVariableRefSyscond",
         foreign_keys=[sw_variable_ref_syscond_id],
@@ -17074,15 +14469,9 @@ class SwVariablesReadWrite(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variable_ref_id = Column(
-        types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True)
-    )
-    sw_variable_ref = relationship(
-        "SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=True, cascade="all"
-    )
-    sw_variable_ref_syscond_id = Column(
-        types.Integer, ForeignKey("sw_variable_ref_syscond.rid", use_alter=True)
-    )
+    sw_variable_ref_id = Column(types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True))
+    sw_variable_ref = relationship("SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=True, cascade="all")
+    sw_variable_ref_syscond_id = Column(types.Integer, ForeignKey("sw_variable_ref_syscond.rid", use_alter=True))
     sw_variable_ref_syscond = relationship(
         "SwVariableRefSyscond",
         foreign_keys=[sw_variable_ref_syscond_id],
@@ -17108,16 +14497,10 @@ class SwVariableRefSyscond(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variable_ref_id = Column(
-        types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True)
-    )
-    sw_variable_ref = relationship(
-        "SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=False, cascade="all"
-    )
+    sw_variable_ref_id = Column(types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True))
+    sw_variable_ref = relationship("SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=False, cascade="all")
     sw_syscond_id = Column(types.Integer, ForeignKey("sw_syscond.rid", use_alter=True))
-    sw_syscond = relationship(
-        "SwSyscond", foreign_keys=[sw_syscond_id], uselist=False, cascade="all"
-    )
+    sw_syscond = relationship("SwSyscond", foreign_keys=[sw_syscond_id], uselist=False, cascade="all")
 
 
 class SwFeatureExportVariables(Base):
@@ -17138,27 +14521,21 @@ class SwFeatureExportVariables(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variables_read_id = Column(
-        types.Integer, ForeignKey("sw_variables_read.rid", use_alter=True)
-    )
+    sw_variables_read_id = Column(types.Integer, ForeignKey("sw_variables_read.rid", use_alter=True))
     sw_variables_read = relationship(
         "SwVariablesRead",
         foreign_keys=[sw_variables_read_id],
         uselist=False,
         cascade="all",
     )
-    sw_variables_write_id = Column(
-        types.Integer, ForeignKey("sw_variables_write.rid", use_alter=True)
-    )
+    sw_variables_write_id = Column(types.Integer, ForeignKey("sw_variables_write.rid", use_alter=True))
     sw_variables_write = relationship(
         "SwVariablesWrite",
         foreign_keys=[sw_variables_write_id],
         uselist=False,
         cascade="all",
     )
-    sw_variables_read_write_id = Column(
-        types.Integer, ForeignKey("sw_variables_read_write.rid", use_alter=True)
-    )
+    sw_variables_read_write_id = Column(types.Integer, ForeignKey("sw_variables_read_write.rid", use_alter=True))
     sw_variables_read_write = relationship(
         "SwVariablesReadWrite",
         foreign_keys=[sw_variables_read_write_id],
@@ -17185,27 +14562,21 @@ class SwFeatureImportVariables(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variables_read_id = Column(
-        types.Integer, ForeignKey("sw_variables_read.rid", use_alter=True)
-    )
+    sw_variables_read_id = Column(types.Integer, ForeignKey("sw_variables_read.rid", use_alter=True))
     sw_variables_read = relationship(
         "SwVariablesRead",
         foreign_keys=[sw_variables_read_id],
         uselist=False,
         cascade="all",
     )
-    sw_variables_write_id = Column(
-        types.Integer, ForeignKey("sw_variables_write.rid", use_alter=True)
-    )
+    sw_variables_write_id = Column(types.Integer, ForeignKey("sw_variables_write.rid", use_alter=True))
     sw_variables_write = relationship(
         "SwVariablesWrite",
         foreign_keys=[sw_variables_write_id],
         uselist=False,
         cascade="all",
     )
-    sw_variables_read_write_id = Column(
-        types.Integer, ForeignKey("sw_variables_read_write.rid", use_alter=True)
-    )
+    sw_variables_read_write_id = Column(types.Integer, ForeignKey("sw_variables_read_write.rid", use_alter=True))
     sw_variables_read_write = relationship(
         "SwVariablesReadWrite",
         foreign_keys=[sw_variables_read_write_id],
@@ -17230,9 +14601,7 @@ class SwFeatureLocalVariables(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variables_read_write_id = Column(
-        types.Integer, ForeignKey("sw_variables_read_write.rid", use_alter=True)
-    )
+    sw_variables_read_write_id = Column(types.Integer, ForeignKey("sw_variables_read_write.rid", use_alter=True))
     sw_variables_read_write = relationship(
         "SwVariablesReadWrite",
         foreign_keys=[sw_variables_read_write_id],
@@ -17257,12 +14626,8 @@ class SwFeatureModelOnlyVariables(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variable_ref_id = Column(
-        types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True)
-    )
-    sw_variable_ref = relationship(
-        "SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=True, cascade="all"
-    )
+    sw_variable_ref_id = Column(types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True))
+    sw_variable_ref = relationship("SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=True, cascade="all")
 
 
 class SwFeatureVariables(Base):
@@ -17284,36 +14649,28 @@ class SwFeatureVariables(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_feature_export_variables_id = Column(
-        types.Integer, ForeignKey("sw_feature_export_variables.rid", use_alter=True)
-    )
+    sw_feature_export_variables_id = Column(types.Integer, ForeignKey("sw_feature_export_variables.rid", use_alter=True))
     sw_feature_export_variables = relationship(
         "SwFeatureExportVariables",
         foreign_keys=[sw_feature_export_variables_id],
         uselist=False,
         cascade="all",
     )
-    sw_feature_import_variables_id = Column(
-        types.Integer, ForeignKey("sw_feature_import_variables.rid", use_alter=True)
-    )
+    sw_feature_import_variables_id = Column(types.Integer, ForeignKey("sw_feature_import_variables.rid", use_alter=True))
     sw_feature_import_variables = relationship(
         "SwFeatureImportVariables",
         foreign_keys=[sw_feature_import_variables_id],
         uselist=False,
         cascade="all",
     )
-    sw_feature_local_variables_id = Column(
-        types.Integer, ForeignKey("sw_feature_local_variables.rid", use_alter=True)
-    )
+    sw_feature_local_variables_id = Column(types.Integer, ForeignKey("sw_feature_local_variables.rid", use_alter=True))
     sw_feature_local_variables = relationship(
         "SwFeatureLocalVariables",
         foreign_keys=[sw_feature_local_variables_id],
         uselist=False,
         cascade="all",
     )
-    sw_feature_model_only_variables_id = Column(
-        types.Integer, ForeignKey("sw_feature_model_only_variables.rid", use_alter=True)
-    )
+    sw_feature_model_only_variables_id = Column(types.Integer, ForeignKey("sw_feature_model_only_variables.rid", use_alter=True))
     sw_feature_model_only_variables = relationship(
         "SwFeatureModelOnlyVariables",
         foreign_keys=[sw_feature_model_only_variables_id],
@@ -17339,18 +14696,14 @@ class SwFeatureExportClassInstances(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_class_instance_ref_id = Column(
-        types.Integer, ForeignKey("sw_class_instance_ref.rid", use_alter=True)
-    )
+    sw_class_instance_ref_id = Column(types.Integer, ForeignKey("sw_class_instance_ref.rid", use_alter=True))
     sw_class_instance_ref = relationship(
         "SwClassInstanceRef",
         foreign_keys=[sw_class_instance_ref_id],
         uselist=True,
         cascade="all",
     )
-    sw_instance_ref_syscond_id = Column(
-        types.Integer, ForeignKey("sw_instance_ref_syscond.rid", use_alter=True)
-    )
+    sw_instance_ref_syscond_id = Column(types.Integer, ForeignKey("sw_instance_ref_syscond.rid", use_alter=True))
     sw_instance_ref_syscond = relationship(
         "SwInstanceRefSyscond",
         foreign_keys=[sw_instance_ref_syscond_id],
@@ -17376,15 +14729,9 @@ class SwFeatureImportCalprms(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_calprm_ref_id = Column(
-        types.Integer, ForeignKey("sw_calprm_ref.rid", use_alter=True)
-    )
-    sw_calprm_ref = relationship(
-        "SwCalprmRef", foreign_keys=[sw_calprm_ref_id], uselist=True, cascade="all"
-    )
-    sw_calprm_ref_syscond_id = Column(
-        types.Integer, ForeignKey("sw_calprm_ref_syscond.rid", use_alter=True)
-    )
+    sw_calprm_ref_id = Column(types.Integer, ForeignKey("sw_calprm_ref.rid", use_alter=True))
+    sw_calprm_ref = relationship("SwCalprmRef", foreign_keys=[sw_calprm_ref_id], uselist=True, cascade="all")
+    sw_calprm_ref_syscond_id = Column(types.Integer, ForeignKey("sw_calprm_ref_syscond.rid", use_alter=True))
     sw_calprm_ref_syscond = relationship(
         "SwCalprmRefSyscond",
         foreign_keys=[sw_calprm_ref_syscond_id],
@@ -17410,16 +14757,10 @@ class SwCalprmRefSyscond(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_calprm_ref_id = Column(
-        types.Integer, ForeignKey("sw_calprm_ref.rid", use_alter=True)
-    )
-    sw_calprm_ref = relationship(
-        "SwCalprmRef", foreign_keys=[sw_calprm_ref_id], uselist=False, cascade="all"
-    )
+    sw_calprm_ref_id = Column(types.Integer, ForeignKey("sw_calprm_ref.rid", use_alter=True))
+    sw_calprm_ref = relationship("SwCalprmRef", foreign_keys=[sw_calprm_ref_id], uselist=False, cascade="all")
     sw_syscond_id = Column(types.Integer, ForeignKey("sw_syscond.rid", use_alter=True))
-    sw_syscond = relationship(
-        "SwSyscond", foreign_keys=[sw_syscond_id], uselist=False, cascade="all"
-    )
+    sw_syscond = relationship("SwSyscond", foreign_keys=[sw_syscond_id], uselist=False, cascade="all")
 
 
 class SwFeatureLocalParams(Base):
@@ -17439,15 +14780,9 @@ class SwFeatureLocalParams(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_calprm_ref_id = Column(
-        types.Integer, ForeignKey("sw_calprm_ref.rid", use_alter=True)
-    )
-    sw_calprm_ref = relationship(
-        "SwCalprmRef", foreign_keys=[sw_calprm_ref_id], uselist=True, cascade="all"
-    )
-    sw_calprm_ref_syscond_id = Column(
-        types.Integer, ForeignKey("sw_calprm_ref_syscond.rid", use_alter=True)
-    )
+    sw_calprm_ref_id = Column(types.Integer, ForeignKey("sw_calprm_ref.rid", use_alter=True))
+    sw_calprm_ref = relationship("SwCalprmRef", foreign_keys=[sw_calprm_ref_id], uselist=True, cascade="all")
+    sw_calprm_ref_syscond_id = Column(types.Integer, ForeignKey("sw_calprm_ref_syscond.rid", use_alter=True))
     sw_calprm_ref_syscond = relationship(
         "SwCalprmRefSyscond",
         foreign_keys=[sw_calprm_ref_syscond_id],
@@ -17474,27 +14809,21 @@ class SwFeatureParams(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_feature_export_calprms_id = Column(
-        types.Integer, ForeignKey("sw_feature_export_calprms.rid", use_alter=True)
-    )
+    sw_feature_export_calprms_id = Column(types.Integer, ForeignKey("sw_feature_export_calprms.rid", use_alter=True))
     sw_feature_export_calprms = relationship(
         "SwFeatureExportCalprms",
         foreign_keys=[sw_feature_export_calprms_id],
         uselist=False,
         cascade="all",
     )
-    sw_feature_import_calprms_id = Column(
-        types.Integer, ForeignKey("sw_feature_import_calprms.rid", use_alter=True)
-    )
+    sw_feature_import_calprms_id = Column(types.Integer, ForeignKey("sw_feature_import_calprms.rid", use_alter=True))
     sw_feature_import_calprms = relationship(
         "SwFeatureImportCalprms",
         foreign_keys=[sw_feature_import_calprms_id],
         uselist=False,
         cascade="all",
     )
-    sw_feature_local_params_id = Column(
-        types.Integer, ForeignKey("sw_feature_local_params.rid", use_alter=True)
-    )
+    sw_feature_local_params_id = Column(types.Integer, ForeignKey("sw_feature_local_params.rid", use_alter=True))
     sw_feature_local_params = relationship(
         "SwFeatureLocalParams",
         foreign_keys=[sw_feature_local_params_id],
@@ -17536,48 +14865,28 @@ class SwTestDesc(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True)
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
+    msr_query_topic_1_id = Column(types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True))
     msr_query_topic_1 = relationship(
         "MsrQueryTopic1",
         foreign_keys=[msr_query_topic_1_id],
@@ -17585,12 +14894,8 @@ class SwTestDesc(Base):
         cascade="all",
     )
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
-    msr_query_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True)
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
+    msr_query_chapter_id = Column(types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True))
     msr_query_chapter = relationship(
         "MsrQueryChapter",
         foreign_keys=[msr_query_chapter_id],
@@ -17616,18 +14921,14 @@ class SwFeatureImportClassInstances(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_class_instance_ref_id = Column(
-        types.Integer, ForeignKey("sw_class_instance_ref.rid", use_alter=True)
-    )
+    sw_class_instance_ref_id = Column(types.Integer, ForeignKey("sw_class_instance_ref.rid", use_alter=True))
     sw_class_instance_ref = relationship(
         "SwClassInstanceRef",
         foreign_keys=[sw_class_instance_ref_id],
         uselist=True,
         cascade="all",
     )
-    sw_instance_ref_syscond_id = Column(
-        types.Integer, ForeignKey("sw_instance_ref_syscond.rid", use_alter=True)
-    )
+    sw_instance_ref_syscond_id = Column(types.Integer, ForeignKey("sw_instance_ref_syscond.rid", use_alter=True))
     sw_instance_ref_syscond = relationship(
         "SwInstanceRefSyscond",
         foreign_keys=[sw_instance_ref_syscond_id],
@@ -17678,9 +14979,7 @@ class SwInstanceRefSyscond(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_class_instance_ref_id = Column(
-        types.Integer, ForeignKey("sw_class_instance_ref.rid", use_alter=True)
-    )
+    sw_class_instance_ref_id = Column(types.Integer, ForeignKey("sw_class_instance_ref.rid", use_alter=True))
     sw_class_instance_ref = relationship(
         "SwClassInstanceRef",
         foreign_keys=[sw_class_instance_ref_id],
@@ -17688,9 +14987,7 @@ class SwInstanceRefSyscond(Base):
         cascade="all",
     )
     sw_syscond_id = Column(types.Integer, ForeignKey("sw_syscond.rid", use_alter=True))
-    sw_syscond = relationship(
-        "SwSyscond", foreign_keys=[sw_syscond_id], uselist=False, cascade="all"
-    )
+    sw_syscond = relationship("SwSyscond", foreign_keys=[sw_syscond_id], uselist=False, cascade="all")
 
 
 class SwFeatureLocalClassInstances(Base):
@@ -17710,18 +15007,14 @@ class SwFeatureLocalClassInstances(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_class_instance_ref_id = Column(
-        types.Integer, ForeignKey("sw_class_instance_ref.rid", use_alter=True)
-    )
+    sw_class_instance_ref_id = Column(types.Integer, ForeignKey("sw_class_instance_ref.rid", use_alter=True))
     sw_class_instance_ref = relationship(
         "SwClassInstanceRef",
         foreign_keys=[sw_class_instance_ref_id],
         uselist=True,
         cascade="all",
     )
-    sw_instance_ref_syscond_id = Column(
-        types.Integer, ForeignKey("sw_instance_ref_syscond.rid", use_alter=True)
-    )
+    sw_instance_ref_syscond_id = Column(types.Integer, ForeignKey("sw_instance_ref_syscond.rid", use_alter=True))
     sw_instance_ref_syscond = relationship(
         "SwInstanceRefSyscond",
         foreign_keys=[sw_instance_ref_syscond_id],
@@ -17813,48 +15106,28 @@ class SwApplicationNotes(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True)
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
+    msr_query_topic_1_id = Column(types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True))
     msr_query_topic_1 = relationship(
         "MsrQueryTopic1",
         foreign_keys=[msr_query_topic_1_id],
@@ -17862,12 +15135,8 @@ class SwApplicationNotes(Base):
         cascade="all",
     )
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
-    msr_query_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True)
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
+    msr_query_chapter_id = Column(types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True))
     msr_query_chapter = relationship(
         "MsrQueryChapter",
         foreign_keys=[msr_query_chapter_id],
@@ -17909,48 +15178,28 @@ class SwMaintenanceNotes(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True)
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
+    msr_query_topic_1_id = Column(types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True))
     msr_query_topic_1 = relationship(
         "MsrQueryTopic1",
         foreign_keys=[msr_query_topic_1_id],
@@ -17958,12 +15207,8 @@ class SwMaintenanceNotes(Base):
         cascade="all",
     )
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
-    msr_query_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True)
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
+    msr_query_chapter_id = Column(types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True))
     msr_query_chapter = relationship(
         "MsrQueryChapter",
         foreign_keys=[msr_query_chapter_id],
@@ -18005,48 +15250,28 @@ class SwCarbDoc(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True)
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
+    msr_query_topic_1_id = Column(types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True))
     msr_query_topic_1 = relationship(
         "MsrQueryTopic1",
         foreign_keys=[msr_query_topic_1_id],
@@ -18054,12 +15279,8 @@ class SwCarbDoc(Base):
         cascade="all",
     )
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
-    msr_query_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True)
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
+    msr_query_chapter_id = Column(types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True))
     msr_query_chapter = relationship(
         "MsrQueryChapter",
         foreign_keys=[msr_query_chapter_id],
@@ -18111,139 +15332,87 @@ class SwClass(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_feature_def_id = Column(
-        types.Integer, ForeignKey("sw_feature_def.rid", use_alter=True)
-    )
-    sw_feature_def = relationship(
-        "SwFeatureDef", foreign_keys=[sw_feature_def_id], uselist=False, cascade="all"
-    )
-    sw_feature_desc_id = Column(
-        types.Integer, ForeignKey("sw_feature_desc.rid", use_alter=True)
-    )
-    sw_feature_desc = relationship(
-        "SwFeatureDesc", foreign_keys=[sw_feature_desc_id], uselist=False, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_feature_def_id = Column(types.Integer, ForeignKey("sw_feature_def.rid", use_alter=True))
+    sw_feature_def = relationship("SwFeatureDef", foreign_keys=[sw_feature_def_id], uselist=False, cascade="all")
+    sw_feature_desc_id = Column(types.Integer, ForeignKey("sw_feature_desc.rid", use_alter=True))
+    sw_feature_desc = relationship("SwFeatureDesc", foreign_keys=[sw_feature_desc_id], uselist=False, cascade="all")
     sw_fulfils_id = Column(types.Integer, ForeignKey("sw_fulfils.rid", use_alter=True))
-    sw_fulfils = relationship(
-        "SwFulfils", foreign_keys=[sw_fulfils_id], uselist=False, cascade="all"
-    )
-    sw_class_methods_id = Column(
-        types.Integer, ForeignKey("sw_class_methods.rid", use_alter=True)
-    )
+    sw_fulfils = relationship("SwFulfils", foreign_keys=[sw_fulfils_id], uselist=False, cascade="all")
+    sw_class_methods_id = Column(types.Integer, ForeignKey("sw_class_methods.rid", use_alter=True))
     sw_class_methods = relationship(
         "SwClassMethods",
         foreign_keys=[sw_class_methods_id],
         uselist=False,
         cascade="all",
     )
-    sw_class_attr_id = Column(
-        types.Integer, ForeignKey("sw_class_attr.rid", use_alter=True)
-    )
-    sw_class_attr = relationship(
-        "SwClassAttr", foreign_keys=[sw_class_attr_id], uselist=False, cascade="all"
-    )
-    sw_class_attr_impls_id = Column(
-        types.Integer, ForeignKey("sw_class_attr_impls.rid", use_alter=True)
-    )
+    sw_class_attr_id = Column(types.Integer, ForeignKey("sw_class_attr.rid", use_alter=True))
+    sw_class_attr = relationship("SwClassAttr", foreign_keys=[sw_class_attr_id], uselist=False, cascade="all")
+    sw_class_attr_impls_id = Column(types.Integer, ForeignKey("sw_class_attr_impls.rid", use_alter=True))
     sw_class_attr_impls = relationship(
         "SwClassAttrImpls",
         foreign_keys=[sw_class_attr_impls_id],
         uselist=False,
         cascade="all",
     )
-    sw_data_def_props_id = Column(
-        types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True)
-    )
+    sw_data_def_props_id = Column(types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True))
     sw_data_def_props = relationship(
         "SwDataDefProps",
         foreign_keys=[sw_data_def_props_id],
         uselist=False,
         cascade="all",
     )
-    sw_feature_variables_id = Column(
-        types.Integer, ForeignKey("sw_feature_variables.rid", use_alter=True)
-    )
+    sw_feature_variables_id = Column(types.Integer, ForeignKey("sw_feature_variables.rid", use_alter=True))
     sw_feature_variables = relationship(
         "SwFeatureVariables",
         foreign_keys=[sw_feature_variables_id],
         uselist=False,
         cascade="all",
     )
-    sw_feature_params_id = Column(
-        types.Integer, ForeignKey("sw_feature_params.rid", use_alter=True)
-    )
+    sw_feature_params_id = Column(types.Integer, ForeignKey("sw_feature_params.rid", use_alter=True))
     sw_feature_params = relationship(
         "SwFeatureParams",
         foreign_keys=[sw_feature_params_id],
         uselist=False,
         cascade="all",
     )
-    sw_feature_class_instances_id = Column(
-        types.Integer, ForeignKey("sw_feature_class_instances.rid", use_alter=True)
-    )
+    sw_feature_class_instances_id = Column(types.Integer, ForeignKey("sw_feature_class_instances.rid", use_alter=True))
     sw_feature_class_instances = relationship(
         "SwFeatureClassInstances",
         foreign_keys=[sw_feature_class_instances_id],
         uselist=False,
         cascade="all",
     )
-    sw_test_desc_id = Column(
-        types.Integer, ForeignKey("sw_test_desc.rid", use_alter=True)
-    )
-    sw_test_desc = relationship(
-        "SwTestDesc", foreign_keys=[sw_test_desc_id], uselist=False, cascade="all"
-    )
-    sw_application_notes_id = Column(
-        types.Integer, ForeignKey("sw_application_notes.rid", use_alter=True)
-    )
+    sw_test_desc_id = Column(types.Integer, ForeignKey("sw_test_desc.rid", use_alter=True))
+    sw_test_desc = relationship("SwTestDesc", foreign_keys=[sw_test_desc_id], uselist=False, cascade="all")
+    sw_application_notes_id = Column(types.Integer, ForeignKey("sw_application_notes.rid", use_alter=True))
     sw_application_notes = relationship(
         "SwApplicationNotes",
         foreign_keys=[sw_application_notes_id],
         uselist=False,
         cascade="all",
     )
-    sw_maintenance_notes_id = Column(
-        types.Integer, ForeignKey("sw_maintenance_notes.rid", use_alter=True)
-    )
+    sw_maintenance_notes_id = Column(types.Integer, ForeignKey("sw_maintenance_notes.rid", use_alter=True))
     sw_maintenance_notes = relationship(
         "SwMaintenanceNotes",
         foreign_keys=[sw_maintenance_notes_id],
         uselist=False,
         cascade="all",
     )
-    sw_carb_doc_id = Column(
-        types.Integer, ForeignKey("sw_carb_doc.rid", use_alter=True)
-    )
-    sw_carb_doc = relationship(
-        "SwCarbDoc", foreign_keys=[sw_carb_doc_id], uselist=False, cascade="all"
-    )
-    annotations_id = Column(
-        types.Integer, ForeignKey("annotations.rid", use_alter=True)
-    )
-    annotations = relationship(
-        "Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all"
-    )
+    sw_carb_doc_id = Column(types.Integer, ForeignKey("sw_carb_doc.rid", use_alter=True))
+    sw_carb_doc = relationship("SwCarbDoc", foreign_keys=[sw_carb_doc_id], uselist=False, cascade="all")
+    annotations_id = Column(types.Integer, ForeignKey("annotations.rid", use_alter=True))
+    annotations = relationship("Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all")
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class SwFeatureDesignData(Base):
@@ -18265,36 +15434,28 @@ class SwFeatureDesignData(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variables_read_id = Column(
-        types.Integer, ForeignKey("sw_variables_read.rid", use_alter=True)
-    )
+    sw_variables_read_id = Column(types.Integer, ForeignKey("sw_variables_read.rid", use_alter=True))
     sw_variables_read = relationship(
         "SwVariablesRead",
         foreign_keys=[sw_variables_read_id],
         uselist=False,
         cascade="all",
     )
-    sw_variables_write_id = Column(
-        types.Integer, ForeignKey("sw_variables_write.rid", use_alter=True)
-    )
+    sw_variables_write_id = Column(types.Integer, ForeignKey("sw_variables_write.rid", use_alter=True))
     sw_variables_write = relationship(
         "SwVariablesWrite",
         foreign_keys=[sw_variables_write_id],
         uselist=False,
         cascade="all",
     )
-    sw_variables_read_write_id = Column(
-        types.Integer, ForeignKey("sw_variables_read_write.rid", use_alter=True)
-    )
+    sw_variables_read_write_id = Column(types.Integer, ForeignKey("sw_variables_read_write.rid", use_alter=True))
     sw_variables_read_write = relationship(
         "SwVariablesReadWrite",
         foreign_keys=[sw_variables_read_write_id],
         uselist=False,
         cascade="all",
     )
-    sw_feature_local_params_id = Column(
-        types.Integer, ForeignKey("sw_feature_local_params.rid", use_alter=True)
-    )
+    sw_feature_local_params_id = Column(types.Integer, ForeignKey("sw_feature_local_params.rid", use_alter=True))
     sw_feature_local_params = relationship(
         "SwFeatureLocalParams",
         foreign_keys=[sw_feature_local_params_id],
@@ -18319,12 +15480,8 @@ class SwEffectFlows(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_effect_flow_id = Column(
-        types.Integer, ForeignKey("sw_effect_flow.rid", use_alter=True)
-    )
-    sw_effect_flow = relationship(
-        "SwEffectFlow", foreign_keys=[sw_effect_flow_id], uselist=True, cascade="all"
-    )
+    sw_effect_flow_id = Column(types.Integer, ForeignKey("sw_effect_flow.rid", use_alter=True))
+    sw_effect_flow = relationship("SwEffectFlow", foreign_keys=[sw_effect_flow_id], uselist=True, cascade="all")
 
 
 class SwSystemconstRefs(Base):
@@ -18343,9 +15500,7 @@ class SwSystemconstRefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_systemconst_ref_id = Column(
-        types.Integer, ForeignKey("sw_systemconst_ref.rid", use_alter=True)
-    )
+    sw_systemconst_ref_id = Column(types.Integer, ForeignKey("sw_systemconst_ref.rid", use_alter=True))
     sw_systemconst_ref = relationship(
         "SwSystemconstRef",
         foreign_keys=[sw_systemconst_ref_id],
@@ -18371,15 +15526,9 @@ class SwEffectFlow(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variable_ref_id = Column(
-        types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True)
-    )
-    sw_variable_ref = relationship(
-        "SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=False, cascade="all"
-    )
-    sw_effecting_variable_id = Column(
-        types.Integer, ForeignKey("sw_effecting_variable.rid", use_alter=True)
-    )
+    sw_variable_ref_id = Column(types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True))
+    sw_variable_ref = relationship("SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=False, cascade="all")
+    sw_effecting_variable_id = Column(types.Integer, ForeignKey("sw_effecting_variable.rid", use_alter=True))
     sw_effecting_variable = relationship(
         "SwEffectingVariable",
         foreign_keys=[sw_effecting_variable_id],
@@ -18405,16 +15554,10 @@ class SwEffectingVariable(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_variable_ref_id = Column(
-        types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True)
-    )
-    sw_variable_ref = relationship(
-        "SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=False, cascade="all"
-    )
+    sw_variable_ref_id = Column(types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True))
+    sw_variable_ref = relationship("SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=False, cascade="all")
     sw_effect_id = Column(types.Integer, ForeignKey("sw_effect.rid", use_alter=True))
-    sw_effect = relationship(
-        "SwEffect", foreign_keys=[sw_effect_id], uselist=True, cascade="all"
-    )
+    sw_effect = relationship("SwEffect", foreign_keys=[sw_effect_id], uselist=True, cascade="all")
 
 
 class SwEffect(Base):
@@ -18452,12 +15595,8 @@ class SwFeatureDecomposition(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_subcomponent_id = Column(
-        types.Integer, ForeignKey("sw_subcomponent.rid", use_alter=True)
-    )
-    sw_subcomponent = relationship(
-        "SwSubcomponent", foreign_keys=[sw_subcomponent_id], uselist=True, cascade="all"
-    )
+    sw_subcomponent_id = Column(types.Integer, ForeignKey("sw_subcomponent.rid", use_alter=True))
+    sw_subcomponent = relationship("SwSubcomponent", foreign_keys=[sw_subcomponent_id], uselist=True, cascade="all")
 
 
 class SwSystemconstRef(Base):
@@ -18529,148 +15668,94 @@ class SwFeature(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_feature_def_id = Column(
-        types.Integer, ForeignKey("sw_feature_def.rid", use_alter=True)
-    )
-    sw_feature_def = relationship(
-        "SwFeatureDef", foreign_keys=[sw_feature_def_id], uselist=False, cascade="all"
-    )
-    sw_feature_desc_id = Column(
-        types.Integer, ForeignKey("sw_feature_desc.rid", use_alter=True)
-    )
-    sw_feature_desc = relationship(
-        "SwFeatureDesc", foreign_keys=[sw_feature_desc_id], uselist=False, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_feature_def_id = Column(types.Integer, ForeignKey("sw_feature_def.rid", use_alter=True))
+    sw_feature_def = relationship("SwFeatureDef", foreign_keys=[sw_feature_def_id], uselist=False, cascade="all")
+    sw_feature_desc_id = Column(types.Integer, ForeignKey("sw_feature_desc.rid", use_alter=True))
+    sw_feature_desc = relationship("SwFeatureDesc", foreign_keys=[sw_feature_desc_id], uselist=False, cascade="all")
     sw_fulfils_id = Column(types.Integer, ForeignKey("sw_fulfils.rid", use_alter=True))
-    sw_fulfils = relationship(
-        "SwFulfils", foreign_keys=[sw_fulfils_id], uselist=False, cascade="all"
-    )
-    sw_feature_design_data_id = Column(
-        types.Integer, ForeignKey("sw_feature_design_data.rid", use_alter=True)
-    )
+    sw_fulfils = relationship("SwFulfils", foreign_keys=[sw_fulfils_id], uselist=False, cascade="all")
+    sw_feature_design_data_id = Column(types.Integer, ForeignKey("sw_feature_design_data.rid", use_alter=True))
     sw_feature_design_data = relationship(
         "SwFeatureDesignData",
         foreign_keys=[sw_feature_design_data_id],
         uselist=False,
         cascade="all",
     )
-    sw_effect_flows_id = Column(
-        types.Integer, ForeignKey("sw_effect_flows.rid", use_alter=True)
-    )
-    sw_effect_flows = relationship(
-        "SwEffectFlows", foreign_keys=[sw_effect_flows_id], uselist=False, cascade="all"
-    )
-    sw_feature_variables_id = Column(
-        types.Integer, ForeignKey("sw_feature_variables.rid", use_alter=True)
-    )
+    sw_effect_flows_id = Column(types.Integer, ForeignKey("sw_effect_flows.rid", use_alter=True))
+    sw_effect_flows = relationship("SwEffectFlows", foreign_keys=[sw_effect_flows_id], uselist=False, cascade="all")
+    sw_feature_variables_id = Column(types.Integer, ForeignKey("sw_feature_variables.rid", use_alter=True))
     sw_feature_variables = relationship(
         "SwFeatureVariables",
         foreign_keys=[sw_feature_variables_id],
         uselist=False,
         cascade="all",
     )
-    sw_feature_params_id = Column(
-        types.Integer, ForeignKey("sw_feature_params.rid", use_alter=True)
-    )
+    sw_feature_params_id = Column(types.Integer, ForeignKey("sw_feature_params.rid", use_alter=True))
     sw_feature_params = relationship(
         "SwFeatureParams",
         foreign_keys=[sw_feature_params_id],
         uselist=False,
         cascade="all",
     )
-    sw_feature_class_instances_id = Column(
-        types.Integer, ForeignKey("sw_feature_class_instances.rid", use_alter=True)
-    )
+    sw_feature_class_instances_id = Column(types.Integer, ForeignKey("sw_feature_class_instances.rid", use_alter=True))
     sw_feature_class_instances = relationship(
         "SwFeatureClassInstances",
         foreign_keys=[sw_feature_class_instances_id],
         uselist=False,
         cascade="all",
     )
-    sw_systemconst_refs_id = Column(
-        types.Integer, ForeignKey("sw_systemconst_refs.rid", use_alter=True)
-    )
+    sw_systemconst_refs_id = Column(types.Integer, ForeignKey("sw_systemconst_refs.rid", use_alter=True))
     sw_systemconst_refs = relationship(
         "SwSystemconstRefs",
         foreign_keys=[sw_systemconst_refs_id],
         uselist=False,
         cascade="all",
     )
-    sw_data_dictionary_spec_id = Column(
-        types.Integer, ForeignKey("sw_data_dictionary_spec.rid", use_alter=True)
-    )
+    sw_data_dictionary_spec_id = Column(types.Integer, ForeignKey("sw_data_dictionary_spec.rid", use_alter=True))
     sw_data_dictionary_spec = relationship(
         "SwDataDictionarySpec",
         foreign_keys=[sw_data_dictionary_spec_id],
         uselist=False,
         cascade="all",
     )
-    sw_test_desc_id = Column(
-        types.Integer, ForeignKey("sw_test_desc.rid", use_alter=True)
-    )
-    sw_test_desc = relationship(
-        "SwTestDesc", foreign_keys=[sw_test_desc_id], uselist=False, cascade="all"
-    )
-    sw_application_notes_id = Column(
-        types.Integer, ForeignKey("sw_application_notes.rid", use_alter=True)
-    )
+    sw_test_desc_id = Column(types.Integer, ForeignKey("sw_test_desc.rid", use_alter=True))
+    sw_test_desc = relationship("SwTestDesc", foreign_keys=[sw_test_desc_id], uselist=False, cascade="all")
+    sw_application_notes_id = Column(types.Integer, ForeignKey("sw_application_notes.rid", use_alter=True))
     sw_application_notes = relationship(
         "SwApplicationNotes",
         foreign_keys=[sw_application_notes_id],
         uselist=False,
         cascade="all",
     )
-    sw_maintenance_notes_id = Column(
-        types.Integer, ForeignKey("sw_maintenance_notes.rid", use_alter=True)
-    )
+    sw_maintenance_notes_id = Column(types.Integer, ForeignKey("sw_maintenance_notes.rid", use_alter=True))
     sw_maintenance_notes = relationship(
         "SwMaintenanceNotes",
         foreign_keys=[sw_maintenance_notes_id],
         uselist=False,
         cascade="all",
     )
-    sw_carb_doc_id = Column(
-        types.Integer, ForeignKey("sw_carb_doc.rid", use_alter=True)
-    )
-    sw_carb_doc = relationship(
-        "SwCarbDoc", foreign_keys=[sw_carb_doc_id], uselist=False, cascade="all"
-    )
-    sw_feature_decomposition_id = Column(
-        types.Integer, ForeignKey("sw_feature_decomposition.rid", use_alter=True)
-    )
+    sw_carb_doc_id = Column(types.Integer, ForeignKey("sw_carb_doc.rid", use_alter=True))
+    sw_carb_doc = relationship("SwCarbDoc", foreign_keys=[sw_carb_doc_id], uselist=False, cascade="all")
+    sw_feature_decomposition_id = Column(types.Integer, ForeignKey("sw_feature_decomposition.rid", use_alter=True))
     sw_feature_decomposition = relationship(
         "SwFeatureDecomposition",
         foreign_keys=[sw_feature_decomposition_id],
         uselist=False,
         cascade="all",
     )
-    annotations_id = Column(
-        types.Integer, ForeignKey("annotations.rid", use_alter=True)
-    )
-    annotations = relationship(
-        "Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all"
-    )
+    annotations_id = Column(types.Integer, ForeignKey("annotations.rid", use_alter=True))
+    annotations = relationship("Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all")
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class SwFeatureRef(Base):
@@ -18715,9 +15800,7 @@ class SwProcesses(Base):
     t = StdString()
     si = StdString()
     sw_process_id = Column(types.Integer, ForeignKey("sw_process.rid", use_alter=True))
-    sw_process = relationship(
-        "SwProcess", foreign_keys=[sw_process_id], uselist=True, cascade="all"
-    )
+    sw_process = relationship("SwProcess", foreign_keys=[sw_process_id], uselist=True, cascade="all")
 
 
 class SwSubcomponent(Base):
@@ -18737,18 +15820,10 @@ class SwSubcomponent(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_feature_ref_id = Column(
-        types.Integer, ForeignKey("sw_feature_ref.rid", use_alter=True)
-    )
-    sw_feature_ref = relationship(
-        "SwFeatureRef", foreign_keys=[sw_feature_ref_id], uselist=False, cascade="all"
-    )
-    sw_processes_id = Column(
-        types.Integer, ForeignKey("sw_processes.rid", use_alter=True)
-    )
-    sw_processes = relationship(
-        "SwProcesses", foreign_keys=[sw_processes_id], uselist=False, cascade="all"
-    )
+    sw_feature_ref_id = Column(types.Integer, ForeignKey("sw_feature_ref.rid", use_alter=True))
+    sw_feature_ref = relationship("SwFeatureRef", foreign_keys=[sw_feature_ref_id], uselist=False, cascade="all")
+    sw_processes_id = Column(types.Integer, ForeignKey("sw_processes.rid", use_alter=True))
+    sw_processes = relationship("SwProcesses", foreign_keys=[sw_processes_id], uselist=False, cascade="all")
 
 
 class SwProcess(Base):
@@ -18772,18 +15847,10 @@ class SwProcess(Base):
     si = StdString()
     label_id = Column(types.Integer, ForeignKey("label.rid", use_alter=True))
     label = relationship("Label", foreign_keys=[label_id], uselist=False, cascade="all")
-    short_label_id = Column(
-        types.Integer, ForeignKey("short_label.rid", use_alter=True)
-    )
-    short_label = relationship(
-        "ShortLabel", foreign_keys=[short_label_id], uselist=False, cascade="all"
-    )
-    sw_task_ref_id = Column(
-        types.Integer, ForeignKey("sw_task_ref.rid", use_alter=True)
-    )
-    sw_task_ref = relationship(
-        "SwTaskRef", foreign_keys=[sw_task_ref_id], uselist=False, cascade="all"
-    )
+    short_label_id = Column(types.Integer, ForeignKey("short_label.rid", use_alter=True))
+    short_label = relationship("ShortLabel", foreign_keys=[short_label_id], uselist=False, cascade="all")
+    sw_task_ref_id = Column(types.Integer, ForeignKey("sw_task_ref.rid", use_alter=True))
+    sw_task_ref = relationship("SwTaskRef", foreign_keys=[sw_task_ref_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
 
@@ -18818,24 +15885,12 @@ class SwComponentSpec(Base):
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    sw_components_id = Column(
-        types.Integer, ForeignKey("sw_components.rid", use_alter=True)
-    )
-    sw_components = relationship(
-        "SwComponents", foreign_keys=[sw_components_id], uselist=False, cascade="all"
-    )
-    sw_root_features_id = Column(
-        types.Integer, ForeignKey("sw_root_features.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    sw_components_id = Column(types.Integer, ForeignKey("sw_components.rid", use_alter=True))
+    sw_components = relationship("SwComponents", foreign_keys=[sw_components_id], uselist=False, cascade="all")
+    sw_root_features_id = Column(types.Integer, ForeignKey("sw_root_features.rid", use_alter=True))
     sw_root_features = relationship(
         "SwRootFeatures",
         foreign_keys=[sw_root_features_id],
@@ -18843,9 +15898,7 @@ class SwComponentSpec(Base):
         cascade="all",
     )
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class SwCollections(Base):
@@ -18864,12 +15917,8 @@ class SwCollections(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_collection_id = Column(
-        types.Integer, ForeignKey("sw_collection.rid", use_alter=True)
-    )
-    sw_collection = relationship(
-        "SwCollection", foreign_keys=[sw_collection_id], uselist=True, cascade="all"
-    )
+    sw_collection_id = Column(types.Integer, ForeignKey("sw_collection.rid", use_alter=True))
+    sw_collection = relationship("SwCollection", foreign_keys=[sw_collection_id], uselist=True, cascade="all")
 
 
 class DisplayName(Base):
@@ -19001,9 +16050,7 @@ class SwCsCollections(Base):
     t = StdString()
     ti = StdString()
     _view = StdString()
-    sw_cs_collection_id = Column(
-        types.Integer, ForeignKey("sw_cs_collection.rid", use_alter=True)
-    )
+    sw_cs_collection_id = Column(types.Integer, ForeignKey("sw_cs_collection.rid", use_alter=True))
     sw_cs_collection = relationship(
         "SwCsCollection",
         foreign_keys=[sw_cs_collection_id],
@@ -19055,15 +16102,9 @@ class SwCsHistory(Base):
     t = StdString()
     si = StdString()
     cs_entry_id = Column(types.Integer, ForeignKey("cs_entry.rid", use_alter=True))
-    cs_entry = relationship(
-        "CsEntry", foreign_keys=[cs_entry_id], uselist=True, cascade="all"
-    )
-    sw_cs_entry_id = Column(
-        types.Integer, ForeignKey("sw_cs_entry.rid", use_alter=True)
-    )
-    sw_cs_entry = relationship(
-        "SwCsEntry", foreign_keys=[sw_cs_entry_id], uselist=True, cascade="all"
-    )
+    cs_entry = relationship("CsEntry", foreign_keys=[cs_entry_id], uselist=True, cascade="all")
+    sw_cs_entry_id = Column(types.Integer, ForeignKey("sw_cs_entry.rid", use_alter=True))
+    sw_cs_entry = relationship("SwCsEntry", foreign_keys=[sw_cs_entry_id], uselist=True, cascade="all")
 
 
 class Csus(Base):
@@ -19285,9 +16326,7 @@ class SwVcdCriterionValues(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_vcd_criterion_value_id = Column(
-        types.Integer, ForeignKey("sw_vcd_criterion_value.rid", use_alter=True)
-    )
+    sw_vcd_criterion_value_id = Column(types.Integer, ForeignKey("sw_vcd_criterion_value.rid", use_alter=True))
     sw_vcd_criterion_value = relationship(
         "SwVcdCriterionValue",
         foreign_keys=[sw_vcd_criterion_value_id],
@@ -19313,9 +16352,7 @@ class SwVcdCriterionValue(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_vcd_criterion_ref_id = Column(
-        types.Integer, ForeignKey("sw_vcd_criterion_ref.rid", use_alter=True)
-    )
+    sw_vcd_criterion_ref_id = Column(types.Integer, ForeignKey("sw_vcd_criterion_ref.rid", use_alter=True))
     sw_vcd_criterion_ref = relationship(
         "SwVcdCriterionRef",
         foreign_keys=[sw_vcd_criterion_ref_id],
@@ -19381,33 +16418,19 @@ class SwValueCont(Base):
     t = StdString()
     ti = StdString()
     _view = StdString()
-    unit_display_name_id = Column(
-        types.Integer, ForeignKey("unit_display_name.rid", use_alter=True)
-    )
+    unit_display_name_id = Column(types.Integer, ForeignKey("unit_display_name.rid", use_alter=True))
     unit_display_name = relationship(
         "UnitDisplayName",
         foreign_keys=[unit_display_name_id],
         uselist=False,
         cascade="all",
     )
-    sw_arraysize_id = Column(
-        types.Integer, ForeignKey("sw_arraysize.rid", use_alter=True)
-    )
-    sw_arraysize = relationship(
-        "SwArraysize", foreign_keys=[sw_arraysize_id], uselist=False, cascade="all"
-    )
-    sw_values_phys_id = Column(
-        types.Integer, ForeignKey("sw_values_phys.rid", use_alter=True)
-    )
-    sw_values_phys = relationship(
-        "SwValuesPhys", foreign_keys=[sw_values_phys_id], uselist=False, cascade="all"
-    )
-    sw_values_coded_id = Column(
-        types.Integer, ForeignKey("sw_values_coded.rid", use_alter=True)
-    )
-    sw_values_coded = relationship(
-        "SwValuesCoded", foreign_keys=[sw_values_coded_id], uselist=False, cascade="all"
-    )
+    sw_arraysize_id = Column(types.Integer, ForeignKey("sw_arraysize.rid", use_alter=True))
+    sw_arraysize = relationship("SwArraysize", foreign_keys=[sw_arraysize_id], uselist=False, cascade="all")
+    sw_values_phys_id = Column(types.Integer, ForeignKey("sw_values_phys.rid", use_alter=True))
+    sw_values_phys = relationship("SwValuesPhys", foreign_keys=[sw_values_phys_id], uselist=False, cascade="all")
+    sw_values_coded_id = Column(types.Integer, ForeignKey("sw_values_coded.rid", use_alter=True))
+    sw_values_coded = relationship("SwValuesCoded", foreign_keys=[sw_values_coded_id], uselist=False, cascade="all")
 
 
 class SwModelLink(Base):
@@ -19474,12 +16497,8 @@ class SwAxisConts(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_axis_cont_id = Column(
-        types.Integer, ForeignKey("sw_axis_cont.rid", use_alter=True)
-    )
-    sw_axis_cont = relationship(
-        "SwAxisCont", foreign_keys=[sw_axis_cont_id], uselist=True, cascade="all"
-    )
+    sw_axis_cont_id = Column(types.Integer, ForeignKey("sw_axis_cont.rid", use_alter=True))
+    sw_axis_cont = relationship("SwAxisCont", foreign_keys=[sw_axis_cont_id], uselist=True, cascade="all")
 
 
 class SwInstancePropsVariants(Base):
@@ -19498,9 +16517,7 @@ class SwInstancePropsVariants(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_instance_props_variant_id = Column(
-        types.Integer, ForeignKey("sw_instance_props_variant.rid", use_alter=True)
-    )
+    sw_instance_props_variant_id = Column(types.Integer, ForeignKey("sw_instance_props_variant.rid", use_alter=True))
     sw_instance_props_variant = relationship(
         "SwInstancePropsVariant",
         foreign_keys=[sw_instance_props_variant_id],
@@ -19532,9 +16549,7 @@ class SwCsFlags(Base):
     ti = StdString()
     _view = StdString()
     sw_cs_flag_id = Column(types.Integer, ForeignKey("sw_cs_flag.rid", use_alter=True))
-    sw_cs_flag = relationship(
-        "SwCsFlag", foreign_keys=[sw_cs_flag_id], uselist=True, cascade="all"
-    )
+    sw_cs_flag = relationship("SwCsFlag", foreign_keys=[sw_cs_flag_id], uselist=True, cascade="all")
 
 
 class SwAddrInfos(Base):
@@ -19553,12 +16568,8 @@ class SwAddrInfos(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_addr_info_id = Column(
-        types.Integer, ForeignKey("sw_addr_info.rid", use_alter=True)
-    )
-    sw_addr_info = relationship(
-        "SwAddrInfo", foreign_keys=[sw_addr_info_id], uselist=True, cascade="all"
-    )
+    sw_addr_info_id = Column(types.Integer, ForeignKey("sw_addr_info.rid", use_alter=True))
+    sw_addr_info = relationship("SwAddrInfo", foreign_keys=[sw_addr_info_id], uselist=True, cascade="all")
 
 
 class SwBaseAddr(Base):
@@ -19755,68 +16766,48 @@ class SwCsEntry(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_cs_state_id = Column(
-        types.Integer, ForeignKey("sw_cs_state.rid", use_alter=True)
-    )
-    sw_cs_state = relationship(
-        "SwCsState", foreign_keys=[sw_cs_state_id], uselist=False, cascade="all"
-    )
+    sw_cs_state_id = Column(types.Integer, ForeignKey("sw_cs_state.rid", use_alter=True))
+    sw_cs_state = relationship("SwCsState", foreign_keys=[sw_cs_state_id], uselist=False, cascade="all")
     state_id = Column(types.Integer, ForeignKey("state.rid", use_alter=True))
     state = relationship("State", foreign_keys=[state_id], uselist=False, cascade="all")
-    sw_cs_context_id = Column(
-        types.Integer, ForeignKey("sw_cs_context.rid", use_alter=True)
-    )
-    sw_cs_context = relationship(
-        "SwCsContext", foreign_keys=[sw_cs_context_id], uselist=False, cascade="all"
-    )
-    sw_cs_project_info_id = Column(
-        types.Integer, ForeignKey("sw_cs_project_info.rid", use_alter=True)
-    )
+    sw_cs_context_id = Column(types.Integer, ForeignKey("sw_cs_context.rid", use_alter=True))
+    sw_cs_context = relationship("SwCsContext", foreign_keys=[sw_cs_context_id], uselist=False, cascade="all")
+    sw_cs_project_info_id = Column(types.Integer, ForeignKey("sw_cs_project_info.rid", use_alter=True))
     sw_cs_project_info = relationship(
         "SwCsProjectInfo",
         foreign_keys=[sw_cs_project_info_id],
         uselist=False,
         cascade="all",
     )
-    sw_cs_target_variant_id = Column(
-        types.Integer, ForeignKey("sw_cs_target_variant.rid", use_alter=True)
-    )
+    sw_cs_target_variant_id = Column(types.Integer, ForeignKey("sw_cs_target_variant.rid", use_alter=True))
     sw_cs_target_variant = relationship(
         "SwCsTargetVariant",
         foreign_keys=[sw_cs_target_variant_id],
         uselist=False,
         cascade="all",
     )
-    sw_cs_test_object_id = Column(
-        types.Integer, ForeignKey("sw_cs_test_object.rid", use_alter=True)
-    )
+    sw_cs_test_object_id = Column(types.Integer, ForeignKey("sw_cs_test_object.rid", use_alter=True))
     sw_cs_test_object = relationship(
         "SwCsTestObject",
         foreign_keys=[sw_cs_test_object_id],
         uselist=False,
         cascade="all",
     )
-    sw_cs_program_identifier_id = Column(
-        types.Integer, ForeignKey("sw_cs_program_identifier.rid", use_alter=True)
-    )
+    sw_cs_program_identifier_id = Column(types.Integer, ForeignKey("sw_cs_program_identifier.rid", use_alter=True))
     sw_cs_program_identifier = relationship(
         "SwCsProgramIdentifier",
         foreign_keys=[sw_cs_program_identifier_id],
         uselist=False,
         cascade="all",
     )
-    sw_cs_data_identifier_id = Column(
-        types.Integer, ForeignKey("sw_cs_data_identifier.rid", use_alter=True)
-    )
+    sw_cs_data_identifier_id = Column(types.Integer, ForeignKey("sw_cs_data_identifier.rid", use_alter=True))
     sw_cs_data_identifier = relationship(
         "SwCsDataIdentifier",
         foreign_keys=[sw_cs_data_identifier_id],
         uselist=False,
         cascade="all",
     )
-    sw_cs_performed_by_id = Column(
-        types.Integer, ForeignKey("sw_cs_performed_by.rid", use_alter=True)
-    )
+    sw_cs_performed_by_id = Column(types.Integer, ForeignKey("sw_cs_performed_by.rid", use_alter=True))
     sw_cs_performed_by = relationship(
         "SwCsPerformedBy",
         foreign_keys=[sw_cs_performed_by_id],
@@ -19838,19 +16829,13 @@ class SwCsEntry(Base):
     csdi_id = Column(types.Integer, ForeignKey("csdi.rid", use_alter=True))
     csdi = relationship("Csdi", foreign_keys=[csdi_id], uselist=False, cascade="all")
     remark_id = Column(types.Integer, ForeignKey("remark.rid", use_alter=True))
-    remark = relationship(
-        "Remark", foreign_keys=[remark_id], uselist=False, cascade="all"
-    )
+    remark = relationship("Remark", foreign_keys=[remark_id], uselist=False, cascade="all")
     date_id = Column(types.Integer, ForeignKey("date.rid", use_alter=True))
     date = relationship("Date", foreign_keys=[date_id], uselist=False, cascade="all")
     sd_id = Column(types.Integer, ForeignKey("sd.rid", use_alter=True))
     sd = relationship("Sd", foreign_keys=[sd_id], uselist=True, cascade="all")
-    sw_cs_field_id = Column(
-        types.Integer, ForeignKey("sw_cs_field.rid", use_alter=True)
-    )
-    sw_cs_field = relationship(
-        "SwCsField", foreign_keys=[sw_cs_field_id], uselist=True, cascade="all"
-    )
+    sw_cs_field_id = Column(types.Integer, ForeignKey("sw_cs_field.rid", use_alter=True))
+    sw_cs_field = relationship("SwCsField", foreign_keys=[sw_cs_field_id], uselist=True, cascade="all")
 
 
 class CsEntry(Base):
@@ -19904,9 +16889,7 @@ class CsEntry(Base):
     csdi_id = Column(types.Integer, ForeignKey("csdi.rid", use_alter=True))
     csdi = relationship("Csdi", foreign_keys=[csdi_id], uselist=False, cascade="all")
     remark_id = Column(types.Integer, ForeignKey("remark.rid", use_alter=True))
-    remark = relationship(
-        "Remark", foreign_keys=[remark_id], uselist=False, cascade="all"
-    )
+    remark = relationship("Remark", foreign_keys=[remark_id], uselist=False, cascade="all")
     sd_id = Column(types.Integer, ForeignKey("sd.rid", use_alter=True))
     sd = relationship("Sd", foreign_keys=[sd_id], uselist=True, cascade="all")
 
@@ -19938,9 +16921,7 @@ class SwCsFlag(Base):
     si = StdString()
     _view = StdString()
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     flag_id = Column(types.Integer, ForeignKey("flag.rid", use_alter=True))
     flag = relationship("Flag", foreign_keys=[flag_id], uselist=False, cascade="all")
     csus_id = Column(types.Integer, ForeignKey("csus.rid", use_alter=True))
@@ -19948,9 +16929,7 @@ class SwCsFlag(Base):
     date_id = Column(types.Integer, ForeignKey("date.rid", use_alter=True))
     date = relationship("Date", foreign_keys=[date_id], uselist=False, cascade="all")
     remark_id = Column(types.Integer, ForeignKey("remark.rid", use_alter=True))
-    remark = relationship(
-        "Remark", foreign_keys=[remark_id], uselist=False, cascade="all"
-    )
+    remark = relationship("Remark", foreign_keys=[remark_id], uselist=False, cascade="all")
 
 
 class SwMcInstanceInterfaces(Base):
@@ -19969,9 +16948,7 @@ class SwMcInstanceInterfaces(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_mc_instance_interface_id = Column(
-        types.Integer, ForeignKey("sw_mc_instance_interface.rid", use_alter=True)
-    )
+    sw_mc_instance_interface_id = Column(types.Integer, ForeignKey("sw_mc_instance_interface.rid", use_alter=True))
     sw_mc_instance_interface = relationship(
         "SwMcInstanceInterface",
         foreign_keys=[sw_mc_instance_interface_id],
@@ -20016,30 +16993,18 @@ class SwAddrInfo(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_cpu_mem_seg_ref_id = Column(
-        types.Integer, ForeignKey("sw_cpu_mem_seg_ref.rid", use_alter=True)
-    )
+    sw_cpu_mem_seg_ref_id = Column(types.Integer, ForeignKey("sw_cpu_mem_seg_ref.rid", use_alter=True))
     sw_cpu_mem_seg_ref = relationship(
         "SwCpuMemSegRef",
         foreign_keys=[sw_cpu_mem_seg_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_base_addr_id = Column(
-        types.Integer, ForeignKey("sw_base_addr.rid", use_alter=True)
-    )
-    sw_base_addr = relationship(
-        "SwBaseAddr", foreign_keys=[sw_base_addr_id], uselist=False, cascade="all"
-    )
-    sw_addr_offset_id = Column(
-        types.Integer, ForeignKey("sw_addr_offset.rid", use_alter=True)
-    )
-    sw_addr_offset = relationship(
-        "SwAddrOffset", foreign_keys=[sw_addr_offset_id], uselist=False, cascade="all"
-    )
-    sw_sizeof_instance_id = Column(
-        types.Integer, ForeignKey("sw_sizeof_instance.rid", use_alter=True)
-    )
+    sw_base_addr_id = Column(types.Integer, ForeignKey("sw_base_addr.rid", use_alter=True))
+    sw_base_addr = relationship("SwBaseAddr", foreign_keys=[sw_base_addr_id], uselist=False, cascade="all")
+    sw_addr_offset_id = Column(types.Integer, ForeignKey("sw_addr_offset.rid", use_alter=True))
+    sw_addr_offset = relationship("SwAddrOffset", foreign_keys=[sw_addr_offset_id], uselist=False, cascade="all")
+    sw_sizeof_instance_id = Column(types.Integer, ForeignKey("sw_sizeof_instance.rid", use_alter=True))
     sw_sizeof_instance = relationship(
         "SwSizeofInstance",
         foreign_keys=[sw_sizeof_instance_id],
@@ -20085,86 +17050,40 @@ class SwInstance(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
-    sw_array_index_id = Column(
-        types.Integer, ForeignKey("sw_array_index.rid", use_alter=True)
-    )
-    sw_array_index = relationship(
-        "SwArrayIndex", foreign_keys=[sw_array_index_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
+    sw_array_index_id = Column(types.Integer, ForeignKey("sw_array_index.rid", use_alter=True))
+    sw_array_index = relationship("SwArrayIndex", foreign_keys=[sw_array_index_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
-    display_name_id = Column(
-        types.Integer, ForeignKey("display_name.rid", use_alter=True)
-    )
-    display_name = relationship(
-        "DisplayName", foreign_keys=[display_name_id], uselist=False, cascade="all"
-    )
-    sw_value_cont_id = Column(
-        types.Integer, ForeignKey("sw_value_cont.rid", use_alter=True)
-    )
-    sw_value_cont = relationship(
-        "SwValueCont", foreign_keys=[sw_value_cont_id], uselist=False, cascade="all"
-    )
-    sw_axis_conts_id = Column(
-        types.Integer, ForeignKey("sw_axis_conts.rid", use_alter=True)
-    )
-    sw_axis_conts = relationship(
-        "SwAxisConts", foreign_keys=[sw_axis_conts_id], uselist=False, cascade="all"
-    )
-    sw_model_link_id = Column(
-        types.Integer, ForeignKey("sw_model_link.rid", use_alter=True)
-    )
-    sw_model_link = relationship(
-        "SwModelLink", foreign_keys=[sw_model_link_id], uselist=False, cascade="all"
-    )
-    sw_cs_flags_id = Column(
-        types.Integer, ForeignKey("sw_cs_flags.rid", use_alter=True)
-    )
-    sw_cs_flags = relationship(
-        "SwCsFlags", foreign_keys=[sw_cs_flags_id], uselist=False, cascade="all"
-    )
-    sw_cs_history_id = Column(
-        types.Integer, ForeignKey("sw_cs_history.rid", use_alter=True)
-    )
-    sw_cs_history = relationship(
-        "SwCsHistory", foreign_keys=[sw_cs_history_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
+    display_name_id = Column(types.Integer, ForeignKey("display_name.rid", use_alter=True))
+    display_name = relationship("DisplayName", foreign_keys=[display_name_id], uselist=False, cascade="all")
+    sw_value_cont_id = Column(types.Integer, ForeignKey("sw_value_cont.rid", use_alter=True))
+    sw_value_cont = relationship("SwValueCont", foreign_keys=[sw_value_cont_id], uselist=False, cascade="all")
+    sw_axis_conts_id = Column(types.Integer, ForeignKey("sw_axis_conts.rid", use_alter=True))
+    sw_axis_conts = relationship("SwAxisConts", foreign_keys=[sw_axis_conts_id], uselist=False, cascade="all")
+    sw_model_link_id = Column(types.Integer, ForeignKey("sw_model_link.rid", use_alter=True))
+    sw_model_link = relationship("SwModelLink", foreign_keys=[sw_model_link_id], uselist=False, cascade="all")
+    sw_cs_flags_id = Column(types.Integer, ForeignKey("sw_cs_flags.rid", use_alter=True))
+    sw_cs_flags = relationship("SwCsFlags", foreign_keys=[sw_cs_flags_id], uselist=False, cascade="all")
+    sw_cs_history_id = Column(types.Integer, ForeignKey("sw_cs_history.rid", use_alter=True))
+    sw_cs_history = relationship("SwCsHistory", foreign_keys=[sw_cs_history_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_feature_ref_id = Column(
-        types.Integer, ForeignKey("sw_feature_ref.rid", use_alter=True)
-    )
-    sw_feature_ref = relationship(
-        "SwFeatureRef", foreign_keys=[sw_feature_ref_id], uselist=False, cascade="all"
-    )
-    sw_instance_props_variants_id = Column(
-        types.Integer, ForeignKey("sw_instance_props_variants.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_feature_ref_id = Column(types.Integer, ForeignKey("sw_feature_ref.rid", use_alter=True))
+    sw_feature_ref = relationship("SwFeatureRef", foreign_keys=[sw_feature_ref_id], uselist=False, cascade="all")
+    sw_instance_props_variants_id = Column(types.Integer, ForeignKey("sw_instance_props_variants.rid", use_alter=True))
     sw_instance_props_variants = relationship(
         "SwInstancePropsVariants",
         foreign_keys=[sw_instance_props_variants_id],
         uselist=False,
         cascade="all",
     )
-    sw_instance_id = Column(
-        types.Integer, ForeignKey("sw_instance.rid", use_alter=True)
-    )
-    sw_instance = relationship(
-        "SwInstance", foreign_keys=[sw_instance_id], uselist=True, cascade="all"
-    )
+    sw_instance_id = Column(types.Integer, ForeignKey("sw_instance.rid", use_alter=True))
+    sw_instance = relationship("SwInstance", foreign_keys=[sw_instance_id], uselist=True, cascade="all")
 
 
 class SwValuesCodedHex(Base):
@@ -20198,12 +17117,8 @@ class SwValuesCodedHex(Base):
     v = relationship("V", foreign_keys=[v_id], uselist=True, cascade="all")
     vg_id = Column(types.Integer, ForeignKey("vg.rid", use_alter=True))
     vg = relationship("Vg", foreign_keys=[vg_id], uselist=True, cascade="all")
-    sw_instance_ref_id = Column(
-        types.Integer, ForeignKey("sw_instance_ref.rid", use_alter=True)
-    )
-    sw_instance_ref = relationship(
-        "SwInstanceRef", foreign_keys=[sw_instance_ref_id], uselist=True, cascade="all"
-    )
+    sw_instance_ref_id = Column(types.Integer, ForeignKey("sw_instance_ref.rid", use_alter=True))
+    sw_instance_ref = relationship("SwInstanceRef", foreign_keys=[sw_instance_ref_id], uselist=True, cascade="all")
 
 
 class SwAxisCont(Base):
@@ -20231,42 +17146,22 @@ class SwAxisCont(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_unit_ref_id = Column(
-        types.Integer, ForeignKey("sw_unit_ref.rid", use_alter=True)
-    )
-    sw_unit_ref = relationship(
-        "SwUnitRef", foreign_keys=[sw_unit_ref_id], uselist=False, cascade="all"
-    )
-    unit_display_name_id = Column(
-        types.Integer, ForeignKey("unit_display_name.rid", use_alter=True)
-    )
+    sw_unit_ref_id = Column(types.Integer, ForeignKey("sw_unit_ref.rid", use_alter=True))
+    sw_unit_ref = relationship("SwUnitRef", foreign_keys=[sw_unit_ref_id], uselist=False, cascade="all")
+    unit_display_name_id = Column(types.Integer, ForeignKey("unit_display_name.rid", use_alter=True))
     unit_display_name = relationship(
         "UnitDisplayName",
         foreign_keys=[unit_display_name_id],
         uselist=False,
         cascade="all",
     )
-    sw_axis_index_id = Column(
-        types.Integer, ForeignKey("sw_axis_index.rid", use_alter=True)
-    )
-    sw_axis_index = relationship(
-        "SwAxisIndex", foreign_keys=[sw_axis_index_id], uselist=False, cascade="all"
-    )
-    sw_values_phys_id = Column(
-        types.Integer, ForeignKey("sw_values_phys.rid", use_alter=True)
-    )
-    sw_values_phys = relationship(
-        "SwValuesPhys", foreign_keys=[sw_values_phys_id], uselist=False, cascade="all"
-    )
-    sw_values_coded_id = Column(
-        types.Integer, ForeignKey("sw_values_coded.rid", use_alter=True)
-    )
-    sw_values_coded = relationship(
-        "SwValuesCoded", foreign_keys=[sw_values_coded_id], uselist=False, cascade="all"
-    )
-    sw_values_coded_hex_id = Column(
-        types.Integer, ForeignKey("sw_values_coded_hex.rid", use_alter=True)
-    )
+    sw_axis_index_id = Column(types.Integer, ForeignKey("sw_axis_index.rid", use_alter=True))
+    sw_axis_index = relationship("SwAxisIndex", foreign_keys=[sw_axis_index_id], uselist=False, cascade="all")
+    sw_values_phys_id = Column(types.Integer, ForeignKey("sw_values_phys.rid", use_alter=True))
+    sw_values_phys = relationship("SwValuesPhys", foreign_keys=[sw_values_phys_id], uselist=False, cascade="all")
+    sw_values_coded_id = Column(types.Integer, ForeignKey("sw_values_coded.rid", use_alter=True))
+    sw_values_coded = relationship("SwValuesCoded", foreign_keys=[sw_values_coded_id], uselist=False, cascade="all")
+    sw_values_coded_hex_id = Column(types.Integer, ForeignKey("sw_values_coded_hex.rid", use_alter=True))
     sw_values_coded_hex = relationship(
         "SwValuesCodedHex",
         foreign_keys=[sw_values_coded_hex_id],
@@ -20274,24 +17169,12 @@ class SwAxisCont(Base):
         cascade="all",
     )
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
-    sw_arraysize_id = Column(
-        types.Integer, ForeignKey("sw_arraysize.rid", use_alter=True)
-    )
-    sw_arraysize = relationship(
-        "SwArraysize", foreign_keys=[sw_arraysize_id], uselist=False, cascade="all"
-    )
-    sw_instance_ref_id = Column(
-        types.Integer, ForeignKey("sw_instance_ref.rid", use_alter=True)
-    )
-    sw_instance_ref = relationship(
-        "SwInstanceRef", foreign_keys=[sw_instance_ref_id], uselist=False, cascade="all"
-    )
-    sw_values_generic_id = Column(
-        types.Integer, ForeignKey("sw_values_generic.rid", use_alter=True)
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
+    sw_arraysize_id = Column(types.Integer, ForeignKey("sw_arraysize.rid", use_alter=True))
+    sw_arraysize = relationship("SwArraysize", foreign_keys=[sw_arraysize_id], uselist=False, cascade="all")
+    sw_instance_ref_id = Column(types.Integer, ForeignKey("sw_instance_ref.rid", use_alter=True))
+    sw_instance_ref = relationship("SwInstanceRef", foreign_keys=[sw_instance_ref_id], uselist=False, cascade="all")
+    sw_values_generic_id = Column(types.Integer, ForeignKey("sw_values_generic.rid", use_alter=True))
     sw_values_generic = relationship(
         "SwValuesGeneric",
         foreign_keys=[sw_values_generic_id],
@@ -20333,12 +17216,8 @@ class SwValuesGeneric(Base):
     v = relationship("V", foreign_keys=[v_id], uselist=True, cascade="all")
     vg_id = Column(types.Integer, ForeignKey("vg.rid", use_alter=True))
     vg = relationship("Vg", foreign_keys=[vg_id], uselist=True, cascade="all")
-    sw_instance_ref_id = Column(
-        types.Integer, ForeignKey("sw_instance_ref.rid", use_alter=True)
-    )
-    sw_instance_ref = relationship(
-        "SwInstanceRef", foreign_keys=[sw_instance_ref_id], uselist=True, cascade="all"
-    )
+    sw_instance_ref_id = Column(types.Integer, ForeignKey("sw_instance_ref.rid", use_alter=True))
+    sw_instance_ref = relationship("SwInstanceRef", foreign_keys=[sw_instance_ref_id], uselist=True, cascade="all")
 
 
 class SwInstancePropsVariant(Base):
@@ -20368,74 +17247,42 @@ class SwInstancePropsVariant(Base):
     t = StdString()
     si = StdString()
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
-    sw_vcd_criterion_values_id = Column(
-        types.Integer, ForeignKey("sw_vcd_criterion_values.rid", use_alter=True)
-    )
+    sw_vcd_criterion_values_id = Column(types.Integer, ForeignKey("sw_vcd_criterion_values.rid", use_alter=True))
     sw_vcd_criterion_values = relationship(
         "SwVcdCriterionValues",
         foreign_keys=[sw_vcd_criterion_values_id],
         uselist=False,
         cascade="all",
     )
-    sw_value_cont_id = Column(
-        types.Integer, ForeignKey("sw_value_cont.rid", use_alter=True)
-    )
-    sw_value_cont = relationship(
-        "SwValueCont", foreign_keys=[sw_value_cont_id], uselist=False, cascade="all"
-    )
-    sw_cs_flags_id = Column(
-        types.Integer, ForeignKey("sw_cs_flags.rid", use_alter=True)
-    )
-    sw_cs_flags = relationship(
-        "SwCsFlags", foreign_keys=[sw_cs_flags_id], uselist=False, cascade="all"
-    )
-    sw_addr_infos_id = Column(
-        types.Integer, ForeignKey("sw_addr_infos.rid", use_alter=True)
-    )
-    sw_addr_infos = relationship(
-        "SwAddrInfos", foreign_keys=[sw_addr_infos_id], uselist=False, cascade="all"
-    )
-    sw_axis_conts_id = Column(
-        types.Integer, ForeignKey("sw_axis_conts.rid", use_alter=True)
-    )
-    sw_axis_conts = relationship(
-        "SwAxisConts", foreign_keys=[sw_axis_conts_id], uselist=False, cascade="all"
-    )
-    sw_data_def_props_id = Column(
-        types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True)
-    )
+    sw_value_cont_id = Column(types.Integer, ForeignKey("sw_value_cont.rid", use_alter=True))
+    sw_value_cont = relationship("SwValueCont", foreign_keys=[sw_value_cont_id], uselist=False, cascade="all")
+    sw_cs_flags_id = Column(types.Integer, ForeignKey("sw_cs_flags.rid", use_alter=True))
+    sw_cs_flags = relationship("SwCsFlags", foreign_keys=[sw_cs_flags_id], uselist=False, cascade="all")
+    sw_addr_infos_id = Column(types.Integer, ForeignKey("sw_addr_infos.rid", use_alter=True))
+    sw_addr_infos = relationship("SwAddrInfos", foreign_keys=[sw_addr_infos_id], uselist=False, cascade="all")
+    sw_axis_conts_id = Column(types.Integer, ForeignKey("sw_axis_conts.rid", use_alter=True))
+    sw_axis_conts = relationship("SwAxisConts", foreign_keys=[sw_axis_conts_id], uselist=False, cascade="all")
+    sw_data_def_props_id = Column(types.Integer, ForeignKey("sw_data_def_props.rid", use_alter=True))
     sw_data_def_props = relationship(
         "SwDataDefProps",
         foreign_keys=[sw_data_def_props_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_instance_interfaces_id = Column(
-        types.Integer, ForeignKey("sw_mc_instance_interfaces.rid", use_alter=True)
-    )
+    sw_mc_instance_interfaces_id = Column(types.Integer, ForeignKey("sw_mc_instance_interfaces.rid", use_alter=True))
     sw_mc_instance_interfaces = relationship(
         "SwMcInstanceInterfaces",
         foreign_keys=[sw_mc_instance_interfaces_id],
         uselist=False,
         cascade="all",
     )
-    sw_cs_history_id = Column(
-        types.Integer, ForeignKey("sw_cs_history.rid", use_alter=True)
-    )
-    sw_cs_history = relationship(
-        "SwCsHistory", foreign_keys=[sw_cs_history_id], uselist=False, cascade="all"
-    )
-    annotations_id = Column(
-        types.Integer, ForeignKey("annotations.rid", use_alter=True)
-    )
-    annotations = relationship(
-        "Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all"
-    )
+    sw_cs_history_id = Column(types.Integer, ForeignKey("sw_cs_history.rid", use_alter=True))
+    sw_cs_history = relationship("SwCsHistory", foreign_keys=[sw_cs_history_id], uselist=False, cascade="all")
+    annotations_id = Column(types.Integer, ForeignKey("annotations.rid", use_alter=True))
+    annotations = relationship("Annotations", foreign_keys=[annotations_id], uselist=False, cascade="all")
 
 
 class SwMcInterfaceRef(Base):
@@ -20504,9 +17351,7 @@ class SwMcInterfaceAvlSources(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_mc_interface_source_ref_id = Column(
-        types.Integer, ForeignKey("sw_mc_interface_source_ref.rid", use_alter=True)
-    )
+    sw_mc_interface_source_ref_id = Column(types.Integer, ForeignKey("sw_mc_interface_source_ref.rid", use_alter=True))
     sw_mc_interface_source_ref = relationship(
         "SwMcInterfaceSourceRef",
         foreign_keys=[sw_mc_interface_source_ref_id],
@@ -20531,9 +17376,7 @@ class SwMcInterfaceDefaultSource(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_mc_interface_source_ref_id = Column(
-        types.Integer, ForeignKey("sw_mc_interface_source_ref.rid", use_alter=True)
-    )
+    sw_mc_interface_source_ref_id = Column(types.Integer, ForeignKey("sw_mc_interface_source_ref.rid", use_alter=True))
     sw_mc_interface_source_ref = relationship(
         "SwMcInterfaceSourceRef",
         foreign_keys=[sw_mc_interface_source_ref_id],
@@ -20609,9 +17452,7 @@ class SwMcAddrMappings(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_mc_addr_mapping_id = Column(
-        types.Integer, ForeignKey("sw_mc_addr_mapping.rid", use_alter=True)
-    )
+    sw_mc_addr_mapping_id = Column(types.Integer, ForeignKey("sw_mc_addr_mapping.rid", use_alter=True))
     sw_mc_addr_mapping = relationship(
         "SwMcAddrMapping",
         foreign_keys=[sw_mc_addr_mapping_id],
@@ -20642,63 +17483,49 @@ class SwMcInstanceInterface(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_mc_interface_ref_id = Column(
-        types.Integer, ForeignKey("sw_mc_interface_ref.rid", use_alter=True)
-    )
+    sw_mc_interface_ref_id = Column(types.Integer, ForeignKey("sw_mc_interface_ref.rid", use_alter=True))
     sw_mc_interface_ref = relationship(
         "SwMcInterfaceRef",
         foreign_keys=[sw_mc_interface_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_interface_default_source_id = Column(
-        types.Integer, ForeignKey("sw_mc_interface_default_source.rid", use_alter=True)
-    )
+    sw_mc_interface_default_source_id = Column(types.Integer, ForeignKey("sw_mc_interface_default_source.rid", use_alter=True))
     sw_mc_interface_default_source = relationship(
         "SwMcInterfaceDefaultSource",
         foreign_keys=[sw_mc_interface_default_source_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_interface_avl_sources_id = Column(
-        types.Integer, ForeignKey("sw_mc_interface_avl_sources.rid", use_alter=True)
-    )
+    sw_mc_interface_avl_sources_id = Column(types.Integer, ForeignKey("sw_mc_interface_avl_sources.rid", use_alter=True))
     sw_mc_interface_avl_sources = relationship(
         "SwMcInterfaceAvlSources",
         foreign_keys=[sw_mc_interface_avl_sources_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_kp_blob_conts_id = Column(
-        types.Integer, ForeignKey("sw_mc_kp_blob_conts.rid", use_alter=True)
-    )
+    sw_mc_kp_blob_conts_id = Column(types.Integer, ForeignKey("sw_mc_kp_blob_conts.rid", use_alter=True))
     sw_mc_kp_blob_conts = relationship(
         "SwMcKpBlobConts",
         foreign_keys=[sw_mc_kp_blob_conts_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_dp_blob_conts_id = Column(
-        types.Integer, ForeignKey("sw_mc_dp_blob_conts.rid", use_alter=True)
-    )
+    sw_mc_dp_blob_conts_id = Column(types.Integer, ForeignKey("sw_mc_dp_blob_conts.rid", use_alter=True))
     sw_mc_dp_blob_conts = relationship(
         "SwMcDpBlobConts",
         foreign_keys=[sw_mc_dp_blob_conts_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_pa_blob_conts_id = Column(
-        types.Integer, ForeignKey("sw_mc_pa_blob_conts.rid", use_alter=True)
-    )
+    sw_mc_pa_blob_conts_id = Column(types.Integer, ForeignKey("sw_mc_pa_blob_conts.rid", use_alter=True))
     sw_mc_pa_blob_conts = relationship(
         "SwMcPaBlobConts",
         foreign_keys=[sw_mc_pa_blob_conts_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_addr_mappings_id = Column(
-        types.Integer, ForeignKey("sw_mc_addr_mappings.rid", use_alter=True)
-    )
+    sw_mc_addr_mappings_id = Column(types.Integer, ForeignKey("sw_mc_addr_mappings.rid", use_alter=True))
     sw_mc_addr_mappings = relationship(
         "SwMcAddrMappings",
         foreign_keys=[sw_mc_addr_mappings_id],
@@ -20776,27 +17603,21 @@ class SwMcAddrMapping(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_mc_original_addr_id = Column(
-        types.Integer, ForeignKey("sw_mc_original_addr.rid", use_alter=True)
-    )
+    sw_mc_original_addr_id = Column(types.Integer, ForeignKey("sw_mc_original_addr.rid", use_alter=True))
     sw_mc_original_addr = relationship(
         "SwMcOriginalAddr",
         foreign_keys=[sw_mc_original_addr_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_mapped_addr_id = Column(
-        types.Integer, ForeignKey("sw_mc_mapped_addr.rid", use_alter=True)
-    )
+    sw_mc_mapped_addr_id = Column(types.Integer, ForeignKey("sw_mc_mapped_addr.rid", use_alter=True))
     sw_mc_mapped_addr = relationship(
         "SwMcMappedAddr",
         foreign_keys=[sw_mc_mapped_addr_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_addr_mapped_size_id = Column(
-        types.Integer, ForeignKey("sw_mc_addr_mapped_size.rid", use_alter=True)
-    )
+    sw_mc_addr_mapped_size_id = Column(types.Integer, ForeignKey("sw_mc_addr_mapped_size.rid", use_alter=True))
     sw_mc_addr_mapped_size = relationship(
         "SwMcAddrMappedSize",
         foreign_keys=[sw_mc_addr_mapped_size_id],
@@ -20821,12 +17642,8 @@ class SwUserGroups(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_user_group_id = Column(
-        types.Integer, ForeignKey("sw_user_group.rid", use_alter=True)
-    )
-    sw_user_group = relationship(
-        "SwUserGroup", foreign_keys=[sw_user_group_id], uselist=True, cascade="all"
-    )
+    sw_user_group_id = Column(types.Integer, ForeignKey("sw_user_group.rid", use_alter=True))
+    sw_user_group = relationship("SwUserGroup", foreign_keys=[sw_user_group_id], uselist=True, cascade="all")
 
 
 class SwCollectionSpec(Base):
@@ -20858,25 +17675,13 @@ class SwCollectionSpec(Base):
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    sw_collections_id = Column(
-        types.Integer, ForeignKey("sw_collections.rid", use_alter=True)
-    )
-    sw_collections = relationship(
-        "SwCollections", foreign_keys=[sw_collections_id], uselist=False, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    sw_collections_id = Column(types.Integer, ForeignKey("sw_collections.rid", use_alter=True))
+    sw_collections = relationship("SwCollections", foreign_keys=[sw_collections_id], uselist=False, cascade="all")
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class SwCollectionRules(Base):
@@ -20895,9 +17700,7 @@ class SwCollectionRules(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_collection_rule_id = Column(
-        types.Integer, ForeignKey("sw_collection_rule.rid", use_alter=True)
-    )
+    sw_collection_rule_id = Column(types.Integer, ForeignKey("sw_collection_rule.rid", use_alter=True))
     sw_collection_rule = relationship(
         "SwCollectionRule",
         foreign_keys=[sw_collection_rule_id],
@@ -20922,9 +17725,7 @@ class SwCollectionRefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_collection_ref_id = Column(
-        types.Integer, ForeignKey("sw_collection_ref.rid", use_alter=True)
-    )
+    sw_collection_ref_id = Column(types.Integer, ForeignKey("sw_collection_ref.rid", use_alter=True))
     sw_collection_ref = relationship(
         "SwCollectionRef",
         foreign_keys=[sw_collection_ref_id],
@@ -20949,9 +17750,7 @@ class SwCollectionRegexps(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_collection_regexp_id = Column(
-        types.Integer, ForeignKey("sw_collection_regexp.rid", use_alter=True)
-    )
+    sw_collection_regexp_id = Column(types.Integer, ForeignKey("sw_collection_regexp.rid", use_alter=True))
     sw_collection_regexp = relationship(
         "SwCollectionRegexp",
         foreign_keys=[sw_collection_regexp_id],
@@ -20976,9 +17775,7 @@ class SwCollectionWildcards(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_collection_wildcard_id = Column(
-        types.Integer, ForeignKey("sw_collection_wildcard.rid", use_alter=True)
-    )
+    sw_collection_wildcard_id = Column(types.Integer, ForeignKey("sw_collection_wildcard.rid", use_alter=True))
     sw_collection_wildcard = relationship(
         "SwCollectionWildcard",
         foreign_keys=[sw_collection_wildcard_id],
@@ -21020,9 +17817,7 @@ class SwCollectionScripts(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_collection_script_id = Column(
-        types.Integer, ForeignKey("sw_collection_script.rid", use_alter=True)
-    )
+    sw_collection_script_id = Column(types.Integer, ForeignKey("sw_collection_script.rid", use_alter=True))
     sw_collection_script = relationship(
         "SwCollectionScript",
         foreign_keys=[sw_collection_script_id],
@@ -21090,27 +17885,21 @@ class SwCollectionRule(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_collection_regexps_id = Column(
-        types.Integer, ForeignKey("sw_collection_regexps.rid", use_alter=True)
-    )
+    sw_collection_regexps_id = Column(types.Integer, ForeignKey("sw_collection_regexps.rid", use_alter=True))
     sw_collection_regexps = relationship(
         "SwCollectionRegexps",
         foreign_keys=[sw_collection_regexps_id],
         uselist=False,
         cascade="all",
     )
-    sw_collection_wildcards_id = Column(
-        types.Integer, ForeignKey("sw_collection_wildcards.rid", use_alter=True)
-    )
+    sw_collection_wildcards_id = Column(types.Integer, ForeignKey("sw_collection_wildcards.rid", use_alter=True))
     sw_collection_wildcards = relationship(
         "SwCollectionWildcards",
         foreign_keys=[sw_collection_wildcards_id],
         uselist=False,
         cascade="all",
     )
-    sw_collection_scripts_id = Column(
-        types.Integer, ForeignKey("sw_collection_scripts.rid", use_alter=True)
-    )
+    sw_collection_scripts_id = Column(types.Integer, ForeignKey("sw_collection_scripts.rid", use_alter=True))
     sw_collection_scripts = relationship(
         "SwCollectionScripts",
         foreign_keys=[sw_collection_scripts_id],
@@ -21154,12 +17943,8 @@ class SwFeatureRefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_feature_ref_id = Column(
-        types.Integer, ForeignKey("sw_feature_ref.rid", use_alter=True)
-    )
-    sw_feature_ref = relationship(
-        "SwFeatureRef", foreign_keys=[sw_feature_ref_id], uselist=True, cascade="all"
-    )
+    sw_feature_ref_id = Column(types.Integer, ForeignKey("sw_feature_ref.rid", use_alter=True))
+    sw_feature_ref = relationship("SwFeatureRef", foreign_keys=[sw_feature_ref_id], uselist=True, cascade="all")
 
 
 class SwCsCollection(Base):
@@ -21189,34 +17974,20 @@ class SwCsCollection(Base):
     ti = StdString()
     _view = StdString()
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
-    sw_feature_ref_id = Column(
-        types.Integer, ForeignKey("sw_feature_ref.rid", use_alter=True)
-    )
-    sw_feature_ref = relationship(
-        "SwFeatureRef", foreign_keys=[sw_feature_ref_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
+    sw_feature_ref_id = Column(types.Integer, ForeignKey("sw_feature_ref.rid", use_alter=True))
+    sw_feature_ref = relationship("SwFeatureRef", foreign_keys=[sw_feature_ref_id], uselist=False, cascade="all")
     revision_id = Column(types.Integer, ForeignKey("revision.rid", use_alter=True))
-    revision = relationship(
-        "Revision", foreign_keys=[revision_id], uselist=False, cascade="all"
-    )
-    sw_collection_ref_id = Column(
-        types.Integer, ForeignKey("sw_collection_ref.rid", use_alter=True)
-    )
+    revision = relationship("Revision", foreign_keys=[revision_id], uselist=False, cascade="all")
+    sw_collection_ref_id = Column(types.Integer, ForeignKey("sw_collection_ref.rid", use_alter=True))
     sw_collection_ref = relationship(
         "SwCollectionRef",
         foreign_keys=[sw_collection_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_cs_history_id = Column(
-        types.Integer, ForeignKey("sw_cs_history.rid", use_alter=True)
-    )
-    sw_cs_history = relationship(
-        "SwCsHistory", foreign_keys=[sw_cs_history_id], uselist=False, cascade="all"
-    )
+    sw_cs_history_id = Column(types.Integer, ForeignKey("sw_cs_history.rid", use_alter=True))
+    sw_cs_history = relationship("SwCsHistory", foreign_keys=[sw_cs_history_id], uselist=False, cascade="all")
 
 
 class SwUnitRefs(Base):
@@ -21235,12 +18006,8 @@ class SwUnitRefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_unit_ref_id = Column(
-        types.Integer, ForeignKey("sw_unit_ref.rid", use_alter=True)
-    )
-    sw_unit_ref = relationship(
-        "SwUnitRef", foreign_keys=[sw_unit_ref_id], uselist=True, cascade="all"
-    )
+    sw_unit_ref_id = Column(types.Integer, ForeignKey("sw_unit_ref.rid", use_alter=True))
+    sw_unit_ref = relationship("SwUnitRef", foreign_keys=[sw_unit_ref_id], uselist=True, cascade="all")
 
 
 class SwCalprmRefs(Base):
@@ -21259,12 +18026,8 @@ class SwCalprmRefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_calprm_ref_id = Column(
-        types.Integer, ForeignKey("sw_calprm_ref.rid", use_alter=True)
-    )
-    sw_calprm_ref = relationship(
-        "SwCalprmRef", foreign_keys=[sw_calprm_ref_id], uselist=True, cascade="all"
-    )
+    sw_calprm_ref_id = Column(types.Integer, ForeignKey("sw_calprm_ref.rid", use_alter=True))
+    sw_calprm_ref = relationship("SwCalprmRef", foreign_keys=[sw_calprm_ref_id], uselist=True, cascade="all")
 
 
 class SwInstanceRefs(Base):
@@ -21283,12 +18046,8 @@ class SwInstanceRefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_instance_ref_id = Column(
-        types.Integer, ForeignKey("sw_instance_ref.rid", use_alter=True)
-    )
-    sw_instance_ref = relationship(
-        "SwInstanceRef", foreign_keys=[sw_instance_ref_id], uselist=True, cascade="all"
-    )
+    sw_instance_ref_id = Column(types.Integer, ForeignKey("sw_instance_ref.rid", use_alter=True))
+    sw_instance_ref = relationship("SwInstanceRef", foreign_keys=[sw_instance_ref_id], uselist=True, cascade="all")
 
 
 class SwClassInstanceRefs(Base):
@@ -21307,9 +18066,7 @@ class SwClassInstanceRefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_class_instance_ref_id = Column(
-        types.Integer, ForeignKey("sw_class_instance_ref.rid", use_alter=True)
-    )
+    sw_class_instance_ref_id = Column(types.Integer, ForeignKey("sw_class_instance_ref.rid", use_alter=True))
     sw_class_instance_ref = relationship(
         "SwClassInstanceRef",
         foreign_keys=[sw_class_instance_ref_id],
@@ -21334,9 +18091,7 @@ class SwCompuMethodRefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_compu_method_ref_id = Column(
-        types.Integer, ForeignKey("sw_compu_method_ref.rid", use_alter=True)
-    )
+    sw_compu_method_ref_id = Column(types.Integer, ForeignKey("sw_compu_method_ref.rid", use_alter=True))
     sw_compu_method_ref = relationship(
         "SwCompuMethodRef",
         foreign_keys=[sw_compu_method_ref_id],
@@ -21361,9 +18116,7 @@ class SwAddrMethodRefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_addr_method_ref_id = Column(
-        types.Integer, ForeignKey("sw_addr_method_ref.rid", use_alter=True)
-    )
+    sw_addr_method_ref_id = Column(types.Integer, ForeignKey("sw_addr_method_ref.rid", use_alter=True))
     sw_addr_method_ref = relationship(
         "SwAddrMethodRef",
         foreign_keys=[sw_addr_method_ref_id],
@@ -21388,9 +18141,7 @@ class SwRecordLayoutRefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_record_layout_ref_id = Column(
-        types.Integer, ForeignKey("sw_record_layout_ref.rid", use_alter=True)
-    )
+    sw_record_layout_ref_id = Column(types.Integer, ForeignKey("sw_record_layout_ref.rid", use_alter=True))
     sw_record_layout_ref = relationship(
         "SwRecordLayoutRef",
         foreign_keys=[sw_record_layout_ref_id],
@@ -21415,9 +18166,7 @@ class SwCodeSyntaxRefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_code_syntax_ref_id = Column(
-        types.Integer, ForeignKey("sw_code_syntax_ref.rid", use_alter=True)
-    )
+    sw_code_syntax_ref_id = Column(types.Integer, ForeignKey("sw_code_syntax_ref.rid", use_alter=True))
     sw_code_syntax_ref = relationship(
         "SwCodeSyntaxRef",
         foreign_keys=[sw_code_syntax_ref_id],
@@ -21442,12 +18191,8 @@ class SwBaseTypeRefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_base_type_ref_id = Column(
-        types.Integer, ForeignKey("sw_base_type_ref.rid", use_alter=True)
-    )
-    sw_base_type_ref = relationship(
-        "SwBaseTypeRef", foreign_keys=[sw_base_type_ref_id], uselist=True, cascade="all"
-    )
+    sw_base_type_ref_id = Column(types.Integer, ForeignKey("sw_base_type_ref.rid", use_alter=True))
+    sw_base_type_ref = relationship("SwBaseTypeRef", foreign_keys=[sw_base_type_ref_id], uselist=True, cascade="all")
 
 
 class SwDataConstrRefs(Base):
@@ -21466,9 +18211,7 @@ class SwDataConstrRefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_data_constr_ref_id = Column(
-        types.Integer, ForeignKey("sw_data_constr_ref.rid", use_alter=True)
-    )
+    sw_data_constr_ref_id = Column(types.Integer, ForeignKey("sw_data_constr_ref.rid", use_alter=True))
     sw_data_constr_ref = relationship(
         "SwDataConstrRef",
         foreign_keys=[sw_data_constr_ref_id],
@@ -21493,12 +18236,8 @@ class SwAxisTypeRefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_axis_type_ref_id = Column(
-        types.Integer, ForeignKey("sw_axis_type_ref.rid", use_alter=True)
-    )
-    sw_axis_type_ref = relationship(
-        "SwAxisTypeRef", foreign_keys=[sw_axis_type_ref_id], uselist=True, cascade="all"
-    )
+    sw_axis_type_ref_id = Column(types.Integer, ForeignKey("sw_axis_type_ref.rid", use_alter=True))
+    sw_axis_type_ref = relationship("SwAxisTypeRef", foreign_keys=[sw_axis_type_ref_id], uselist=True, cascade="all")
 
 
 class SwCollectionCont(Base):
@@ -21530,117 +18269,83 @@ class SwCollectionCont(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_feature_refs_id = Column(
-        types.Integer, ForeignKey("sw_feature_refs.rid", use_alter=True)
-    )
-    sw_feature_refs = relationship(
-        "SwFeatureRefs", foreign_keys=[sw_feature_refs_id], uselist=False, cascade="all"
-    )
-    sw_unit_refs_id = Column(
-        types.Integer, ForeignKey("sw_unit_refs.rid", use_alter=True)
-    )
-    sw_unit_refs = relationship(
-        "SwUnitRefs", foreign_keys=[sw_unit_refs_id], uselist=False, cascade="all"
-    )
-    sw_variable_refs_id = Column(
-        types.Integer, ForeignKey("sw_variable_refs.rid", use_alter=True)
-    )
+    sw_feature_refs_id = Column(types.Integer, ForeignKey("sw_feature_refs.rid", use_alter=True))
+    sw_feature_refs = relationship("SwFeatureRefs", foreign_keys=[sw_feature_refs_id], uselist=False, cascade="all")
+    sw_unit_refs_id = Column(types.Integer, ForeignKey("sw_unit_refs.rid", use_alter=True))
+    sw_unit_refs = relationship("SwUnitRefs", foreign_keys=[sw_unit_refs_id], uselist=False, cascade="all")
+    sw_variable_refs_id = Column(types.Integer, ForeignKey("sw_variable_refs.rid", use_alter=True))
     sw_variable_refs = relationship(
         "SwVariableRefs",
         foreign_keys=[sw_variable_refs_id],
         uselist=False,
         cascade="all",
     )
-    sw_calprm_refs_id = Column(
-        types.Integer, ForeignKey("sw_calprm_refs.rid", use_alter=True)
-    )
-    sw_calprm_refs = relationship(
-        "SwCalprmRefs", foreign_keys=[sw_calprm_refs_id], uselist=False, cascade="all"
-    )
-    sw_instance_refs_id = Column(
-        types.Integer, ForeignKey("sw_instance_refs.rid", use_alter=True)
-    )
+    sw_calprm_refs_id = Column(types.Integer, ForeignKey("sw_calprm_refs.rid", use_alter=True))
+    sw_calprm_refs = relationship("SwCalprmRefs", foreign_keys=[sw_calprm_refs_id], uselist=False, cascade="all")
+    sw_instance_refs_id = Column(types.Integer, ForeignKey("sw_instance_refs.rid", use_alter=True))
     sw_instance_refs = relationship(
         "SwInstanceRefs",
         foreign_keys=[sw_instance_refs_id],
         uselist=False,
         cascade="all",
     )
-    sw_class_instance_refs_id = Column(
-        types.Integer, ForeignKey("sw_class_instance_refs.rid", use_alter=True)
-    )
+    sw_class_instance_refs_id = Column(types.Integer, ForeignKey("sw_class_instance_refs.rid", use_alter=True))
     sw_class_instance_refs = relationship(
         "SwClassInstanceRefs",
         foreign_keys=[sw_class_instance_refs_id],
         uselist=False,
         cascade="all",
     )
-    sw_compu_method_refs_id = Column(
-        types.Integer, ForeignKey("sw_compu_method_refs.rid", use_alter=True)
-    )
+    sw_compu_method_refs_id = Column(types.Integer, ForeignKey("sw_compu_method_refs.rid", use_alter=True))
     sw_compu_method_refs = relationship(
         "SwCompuMethodRefs",
         foreign_keys=[sw_compu_method_refs_id],
         uselist=False,
         cascade="all",
     )
-    sw_addr_method_refs_id = Column(
-        types.Integer, ForeignKey("sw_addr_method_refs.rid", use_alter=True)
-    )
+    sw_addr_method_refs_id = Column(types.Integer, ForeignKey("sw_addr_method_refs.rid", use_alter=True))
     sw_addr_method_refs = relationship(
         "SwAddrMethodRefs",
         foreign_keys=[sw_addr_method_refs_id],
         uselist=False,
         cascade="all",
     )
-    sw_record_layout_refs_id = Column(
-        types.Integer, ForeignKey("sw_record_layout_refs.rid", use_alter=True)
-    )
+    sw_record_layout_refs_id = Column(types.Integer, ForeignKey("sw_record_layout_refs.rid", use_alter=True))
     sw_record_layout_refs = relationship(
         "SwRecordLayoutRefs",
         foreign_keys=[sw_record_layout_refs_id],
         uselist=False,
         cascade="all",
     )
-    sw_code_syntax_refs_id = Column(
-        types.Integer, ForeignKey("sw_code_syntax_refs.rid", use_alter=True)
-    )
+    sw_code_syntax_refs_id = Column(types.Integer, ForeignKey("sw_code_syntax_refs.rid", use_alter=True))
     sw_code_syntax_refs = relationship(
         "SwCodeSyntaxRefs",
         foreign_keys=[sw_code_syntax_refs_id],
         uselist=False,
         cascade="all",
     )
-    sw_base_type_refs_id = Column(
-        types.Integer, ForeignKey("sw_base_type_refs.rid", use_alter=True)
-    )
+    sw_base_type_refs_id = Column(types.Integer, ForeignKey("sw_base_type_refs.rid", use_alter=True))
     sw_base_type_refs = relationship(
         "SwBaseTypeRefs",
         foreign_keys=[sw_base_type_refs_id],
         uselist=False,
         cascade="all",
     )
-    sw_systemconst_refs_id = Column(
-        types.Integer, ForeignKey("sw_systemconst_refs.rid", use_alter=True)
-    )
+    sw_systemconst_refs_id = Column(types.Integer, ForeignKey("sw_systemconst_refs.rid", use_alter=True))
     sw_systemconst_refs = relationship(
         "SwSystemconstRefs",
         foreign_keys=[sw_systemconst_refs_id],
         uselist=False,
         cascade="all",
     )
-    sw_data_constr_refs_id = Column(
-        types.Integer, ForeignKey("sw_data_constr_refs.rid", use_alter=True)
-    )
+    sw_data_constr_refs_id = Column(types.Integer, ForeignKey("sw_data_constr_refs.rid", use_alter=True))
     sw_data_constr_refs = relationship(
         "SwDataConstrRefs",
         foreign_keys=[sw_data_constr_refs_id],
         uselist=False,
         cascade="all",
     )
-    sw_axis_type_refs_id = Column(
-        types.Integer, ForeignKey("sw_axis_type_refs.rid", use_alter=True)
-    )
+    sw_axis_type_refs_id = Column(types.Integer, ForeignKey("sw_axis_type_refs.rid", use_alter=True))
     sw_axis_type_refs = relationship(
         "SwAxisTypeRefs",
         foreign_keys=[sw_axis_type_refs_id],
@@ -21683,48 +18388,32 @@ class SwCollection(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
     annotation_id = Column(types.Integer, ForeignKey("annotation.rid", use_alter=True))
-    annotation = relationship(
-        "Annotation", foreign_keys=[annotation_id], uselist=False, cascade="all"
-    )
-    sw_collection_rules_id = Column(
-        types.Integer, ForeignKey("sw_collection_rules.rid", use_alter=True)
-    )
+    annotation = relationship("Annotation", foreign_keys=[annotation_id], uselist=False, cascade="all")
+    sw_collection_rules_id = Column(types.Integer, ForeignKey("sw_collection_rules.rid", use_alter=True))
     sw_collection_rules = relationship(
         "SwCollectionRules",
         foreign_keys=[sw_collection_rules_id],
         uselist=False,
         cascade="all",
     )
-    sw_collection_refs_id = Column(
-        types.Integer, ForeignKey("sw_collection_refs.rid", use_alter=True)
-    )
+    sw_collection_refs_id = Column(types.Integer, ForeignKey("sw_collection_refs.rid", use_alter=True))
     sw_collection_refs = relationship(
         "SwCollectionRefs",
         foreign_keys=[sw_collection_refs_id],
         uselist=False,
         cascade="all",
     )
-    sw_collection_cont_id = Column(
-        types.Integer, ForeignKey("sw_collection_cont.rid", use_alter=True)
-    )
+    sw_collection_cont_id = Column(types.Integer, ForeignKey("sw_collection_cont.rid", use_alter=True))
     sw_collection_cont = relationship(
         "SwCollectionCont",
         foreign_keys=[sw_collection_cont_id],
@@ -21749,9 +18438,7 @@ class SwCpuStandardRecordLayout(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_record_layout_ref_id = Column(
-        types.Integer, ForeignKey("sw_record_layout_ref.rid", use_alter=True)
-    )
+    sw_record_layout_ref_id = Column(types.Integer, ForeignKey("sw_record_layout_ref.rid", use_alter=True))
     sw_record_layout_ref = relationship(
         "SwRecordLayoutRef",
         foreign_keys=[sw_record_layout_ref_id],
@@ -21776,9 +18463,7 @@ class SwUserAccessCases(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_user_access_case_id = Column(
-        types.Integer, ForeignKey("sw_user_access_case.rid", use_alter=True)
-    )
+    sw_user_access_case_id = Column(types.Integer, ForeignKey("sw_user_access_case.rid", use_alter=True))
     sw_user_access_case = relationship(
         "SwUserAccessCase",
         foreign_keys=[sw_user_access_case_id],
@@ -21803,12 +18488,8 @@ class SystemUsers(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    system_user_id = Column(
-        types.Integer, ForeignKey("system_user.rid", use_alter=True)
-    )
-    system_user = relationship(
-        "SystemUser", foreign_keys=[system_user_id], uselist=True, cascade="all"
-    )
+    system_user_id = Column(types.Integer, ForeignKey("system_user.rid", use_alter=True))
+    system_user = relationship("SystemUser", foreign_keys=[system_user_id], uselist=True, cascade="all")
 
 
 class SwUserGroupRefs(Base):
@@ -21827,9 +18508,7 @@ class SwUserGroupRefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_user_group_ref_id = Column(
-        types.Integer, ForeignKey("sw_user_group_ref.rid", use_alter=True)
-    )
+    sw_user_group_ref_id = Column(types.Integer, ForeignKey("sw_user_group_ref.rid", use_alter=True))
     sw_user_group_ref = relationship(
         "SwUserGroupRef",
         foreign_keys=[sw_user_group_ref_id],
@@ -21883,41 +18562,25 @@ class SwUserGroup(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    team_member_refs_id = Column(
-        types.Integer, ForeignKey("team_member_refs.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    team_member_refs_id = Column(types.Integer, ForeignKey("team_member_refs.rid", use_alter=True))
     team_member_refs = relationship(
         "TeamMemberRefs",
         foreign_keys=[team_member_refs_id],
         uselist=False,
         cascade="all",
     )
-    system_users_id = Column(
-        types.Integer, ForeignKey("system_users.rid", use_alter=True)
-    )
-    system_users = relationship(
-        "SystemUsers", foreign_keys=[system_users_id], uselist=False, cascade="all"
-    )
-    sw_user_group_refs_id = Column(
-        types.Integer, ForeignKey("sw_user_group_refs.rid", use_alter=True)
-    )
+    system_users_id = Column(types.Integer, ForeignKey("system_users.rid", use_alter=True))
+    system_users = relationship("SystemUsers", foreign_keys=[system_users_id], uselist=False, cascade="all")
+    sw_user_group_refs_id = Column(types.Integer, ForeignKey("sw_user_group_refs.rid", use_alter=True))
     sw_user_group_refs = relationship(
         "SwUserGroupRefs",
         foreign_keys=[sw_user_group_refs_id],
@@ -21967,12 +18630,8 @@ class SwUserAccessDefintions(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_access_def_id = Column(
-        types.Integer, ForeignKey("sw_access_def.rid", use_alter=True)
-    )
-    sw_access_def = relationship(
-        "SwAccessDef", foreign_keys=[sw_access_def_id], uselist=True, cascade="all"
-    )
+    sw_access_def_id = Column(types.Integer, ForeignKey("sw_access_def.rid", use_alter=True))
+    sw_access_def = relationship("SwAccessDef", foreign_keys=[sw_access_def_id], uselist=True, cascade="all")
 
 
 class SwUserAccessCaseRefs(Base):
@@ -21991,9 +18650,7 @@ class SwUserAccessCaseRefs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_user_access_case_ref_id = Column(
-        types.Integer, ForeignKey("sw_user_access_case_ref.rid", use_alter=True)
-    )
+    sw_user_access_case_ref_id = Column(types.Integer, ForeignKey("sw_user_access_case_ref.rid", use_alter=True))
     sw_user_access_case_ref = relationship(
         "SwUserAccessCaseRef",
         foreign_keys=[sw_user_access_case_ref_id],
@@ -22028,26 +18685,16 @@ class SwUserAccessCase(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_user_access_case_refs_id = Column(
-        types.Integer, ForeignKey("sw_user_access_case_refs.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_user_access_case_refs_id = Column(types.Integer, ForeignKey("sw_user_access_case_refs.rid", use_alter=True))
     sw_user_access_case_refs = relationship(
         "SwUserAccessCaseRefs",
         foreign_keys=[sw_user_access_case_refs_id],
@@ -22112,33 +18759,19 @@ class SwUserRightSpec(Base):
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    sw_user_groups_id = Column(
-        types.Integer, ForeignKey("sw_user_groups.rid", use_alter=True)
-    )
-    sw_user_groups = relationship(
-        "SwUserGroups", foreign_keys=[sw_user_groups_id], uselist=False, cascade="all"
-    )
-    sw_user_access_cases_id = Column(
-        types.Integer, ForeignKey("sw_user_access_cases.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    sw_user_groups_id = Column(types.Integer, ForeignKey("sw_user_groups.rid", use_alter=True))
+    sw_user_groups = relationship("SwUserGroups", foreign_keys=[sw_user_groups_id], uselist=False, cascade="all")
+    sw_user_access_cases_id = Column(types.Integer, ForeignKey("sw_user_access_cases.rid", use_alter=True))
     sw_user_access_cases = relationship(
         "SwUserAccessCases",
         foreign_keys=[sw_user_access_cases_id],
         uselist=False,
         cascade="all",
     )
-    sw_user_access_defintions_id = Column(
-        types.Integer, ForeignKey("sw_user_access_defintions.rid", use_alter=True)
-    )
+    sw_user_access_defintions_id = Column(types.Integer, ForeignKey("sw_user_access_defintions.rid", use_alter=True))
     sw_user_access_defintions = relationship(
         "SwUserAccessDefintions",
         foreign_keys=[sw_user_access_defintions_id],
@@ -22146,9 +18779,7 @@ class SwUserRightSpec(Base):
         cascade="all",
     )
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class SwAccessDef(Base):
@@ -22169,27 +18800,21 @@ class SwAccessDef(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_user_group_ref_id = Column(
-        types.Integer, ForeignKey("sw_user_group_ref.rid", use_alter=True)
-    )
+    sw_user_group_ref_id = Column(types.Integer, ForeignKey("sw_user_group_ref.rid", use_alter=True))
     sw_user_group_ref = relationship(
         "SwUserGroupRef",
         foreign_keys=[sw_user_group_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_user_access_case_ref_id = Column(
-        types.Integer, ForeignKey("sw_user_access_case_ref.rid", use_alter=True)
-    )
+    sw_user_access_case_ref_id = Column(types.Integer, ForeignKey("sw_user_access_case_ref.rid", use_alter=True))
     sw_user_access_case_ref = relationship(
         "SwUserAccessCaseRef",
         foreign_keys=[sw_user_access_case_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_collection_ref_id = Column(
-        types.Integer, ForeignKey("sw_collection_ref.rid", use_alter=True)
-    )
+    sw_collection_ref_id = Column(types.Integer, ForeignKey("sw_collection_ref.rid", use_alter=True))
     sw_collection_ref = relationship(
         "SwCollectionRef",
         foreign_keys=[sw_collection_ref_id],
@@ -22214,9 +18839,7 @@ class SwCalibrationMethods(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_calibration_method_id = Column(
-        types.Integer, ForeignKey("sw_calibration_method.rid", use_alter=True)
-    )
+    sw_calibration_method_id = Column(types.Integer, ForeignKey("sw_calibration_method.rid", use_alter=True))
     sw_calibration_method = relationship(
         "SwCalibrationMethod",
         foreign_keys=[sw_calibration_method_id],
@@ -22241,12 +18864,8 @@ class SwCpuMemSegs(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_cpu_mem_seg_id = Column(
-        types.Integer, ForeignKey("sw_cpu_mem_seg.rid", use_alter=True)
-    )
-    sw_cpu_mem_seg = relationship(
-        "SwCpuMemSeg", foreign_keys=[sw_cpu_mem_seg_id], uselist=True, cascade="all"
-    )
+    sw_cpu_mem_seg_id = Column(types.Integer, ForeignKey("sw_cpu_mem_seg.rid", use_alter=True))
+    sw_cpu_mem_seg = relationship("SwCpuMemSeg", foreign_keys=[sw_cpu_mem_seg_id], uselist=True, cascade="all")
 
 
 class SwCpuEpk(Base):
@@ -22367,12 +18986,8 @@ class SwMemOffsets(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_mem_offset_id = Column(
-        types.Integer, ForeignKey("sw_mem_offset.rid", use_alter=True)
-    )
-    sw_mem_offset = relationship(
-        "SwMemOffset", foreign_keys=[sw_mem_offset_id], uselist=True, cascade="all"
-    )
+    sw_mem_offset_id = Column(types.Integer, ForeignKey("sw_mem_offset.rid", use_alter=True))
+    sw_mem_offset = relationship("SwMemOffset", foreign_keys=[sw_mem_offset_id], uselist=True, cascade="all")
 
 
 class SwCpuMemSeg(Base):
@@ -22407,68 +19022,38 @@ class SwCpuMemSeg(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_mem_program_type_id = Column(
-        types.Integer, ForeignKey("sw_mem_program_type.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_mem_program_type_id = Column(types.Integer, ForeignKey("sw_mem_program_type.rid", use_alter=True))
     sw_mem_program_type = relationship(
         "SwMemProgramType",
         foreign_keys=[sw_mem_program_type_id],
         uselist=False,
         cascade="all",
     )
-    sw_mem_type_id = Column(
-        types.Integer, ForeignKey("sw_mem_type.rid", use_alter=True)
-    )
-    sw_mem_type = relationship(
-        "SwMemType", foreign_keys=[sw_mem_type_id], uselist=False, cascade="all"
-    )
-    sw_mem_attr_id = Column(
-        types.Integer, ForeignKey("sw_mem_attr.rid", use_alter=True)
-    )
-    sw_mem_attr = relationship(
-        "SwMemAttr", foreign_keys=[sw_mem_attr_id], uselist=False, cascade="all"
-    )
-    sw_mem_base_addr_id = Column(
-        types.Integer, ForeignKey("sw_mem_base_addr.rid", use_alter=True)
-    )
+    sw_mem_type_id = Column(types.Integer, ForeignKey("sw_mem_type.rid", use_alter=True))
+    sw_mem_type = relationship("SwMemType", foreign_keys=[sw_mem_type_id], uselist=False, cascade="all")
+    sw_mem_attr_id = Column(types.Integer, ForeignKey("sw_mem_attr.rid", use_alter=True))
+    sw_mem_attr = relationship("SwMemAttr", foreign_keys=[sw_mem_attr_id], uselist=False, cascade="all")
+    sw_mem_base_addr_id = Column(types.Integer, ForeignKey("sw_mem_base_addr.rid", use_alter=True))
     sw_mem_base_addr = relationship(
         "SwMemBaseAddr",
         foreign_keys=[sw_mem_base_addr_id],
         uselist=False,
         cascade="all",
     )
-    sw_mem_size_id = Column(
-        types.Integer, ForeignKey("sw_mem_size.rid", use_alter=True)
-    )
-    sw_mem_size = relationship(
-        "SwMemSize", foreign_keys=[sw_mem_size_id], uselist=False, cascade="all"
-    )
-    sw_mem_offsets_id = Column(
-        types.Integer, ForeignKey("sw_mem_offsets.rid", use_alter=True)
-    )
-    sw_mem_offsets = relationship(
-        "SwMemOffsets", foreign_keys=[sw_mem_offsets_id], uselist=False, cascade="all"
-    )
-    sw_mc_instance_interfaces_id = Column(
-        types.Integer, ForeignKey("sw_mc_instance_interfaces.rid", use_alter=True)
-    )
+    sw_mem_size_id = Column(types.Integer, ForeignKey("sw_mem_size.rid", use_alter=True))
+    sw_mem_size = relationship("SwMemSize", foreign_keys=[sw_mem_size_id], uselist=False, cascade="all")
+    sw_mem_offsets_id = Column(types.Integer, ForeignKey("sw_mem_offsets.rid", use_alter=True))
+    sw_mem_offsets = relationship("SwMemOffsets", foreign_keys=[sw_mem_offsets_id], uselist=False, cascade="all")
+    sw_mc_instance_interfaces_id = Column(types.Integer, ForeignKey("sw_mc_instance_interfaces.rid", use_alter=True))
     sw_mc_instance_interfaces = relationship(
         "SwMcInstanceInterfaces",
         foreign_keys=[sw_mc_instance_interfaces_id],
@@ -22510,12 +19095,8 @@ class SwCpuAddrEpk(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_addr_info_id = Column(
-        types.Integer, ForeignKey("sw_addr_info.rid", use_alter=True)
-    )
-    sw_addr_info = relationship(
-        "SwAddrInfo", foreign_keys=[sw_addr_info_id], uselist=False, cascade="all"
-    )
+    sw_addr_info_id = Column(types.Integer, ForeignKey("sw_addr_info.rid", use_alter=True))
+    sw_addr_info = relationship("SwAddrInfo", foreign_keys=[sw_addr_info_id], uselist=False, cascade="all")
 
 
 class SwCpuType(Base):
@@ -22607,80 +19188,48 @@ class SwCpuSpec(Base):
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     byte_order_id = Column(types.Integer, ForeignKey("byte_order.rid", use_alter=True))
-    byte_order = relationship(
-        "ByteOrder", foreign_keys=[byte_order_id], uselist=False, cascade="all"
-    )
-    sw_base_type_size_id = Column(
-        types.Integer, ForeignKey("sw_base_type_size.rid", use_alter=True)
-    )
+    byte_order = relationship("ByteOrder", foreign_keys=[byte_order_id], uselist=False, cascade="all")
+    sw_base_type_size_id = Column(types.Integer, ForeignKey("sw_base_type_size.rid", use_alter=True))
     sw_base_type_size = relationship(
         "SwBaseTypeSize",
         foreign_keys=[sw_base_type_size_id],
         uselist=False,
         cascade="all",
     )
-    sw_mem_alignment_id = Column(
-        types.Integer, ForeignKey("sw_mem_alignment.rid", use_alter=True)
-    )
+    sw_mem_alignment_id = Column(types.Integer, ForeignKey("sw_mem_alignment.rid", use_alter=True))
     sw_mem_alignment = relationship(
         "SwMemAlignment",
         foreign_keys=[sw_mem_alignment_id],
         uselist=False,
         cascade="all",
     )
-    sw_cpu_standard_record_layout_id = Column(
-        types.Integer, ForeignKey("sw_cpu_standard_record_layout.rid", use_alter=True)
-    )
+    sw_cpu_standard_record_layout_id = Column(types.Integer, ForeignKey("sw_cpu_standard_record_layout.rid", use_alter=True))
     sw_cpu_standard_record_layout = relationship(
         "SwCpuStandardRecordLayout",
         foreign_keys=[sw_cpu_standard_record_layout_id],
         uselist=False,
         cascade="all",
     )
-    sw_cpu_mem_segs_id = Column(
-        types.Integer, ForeignKey("sw_cpu_mem_segs.rid", use_alter=True)
-    )
-    sw_cpu_mem_segs = relationship(
-        "SwCpuMemSegs", foreign_keys=[sw_cpu_mem_segs_id], uselist=False, cascade="all"
-    )
+    sw_cpu_mem_segs_id = Column(types.Integer, ForeignKey("sw_cpu_mem_segs.rid", use_alter=True))
+    sw_cpu_mem_segs = relationship("SwCpuMemSegs", foreign_keys=[sw_cpu_mem_segs_id], uselist=False, cascade="all")
     sw_cpu_epk_id = Column(types.Integer, ForeignKey("sw_cpu_epk.rid", use_alter=True))
-    sw_cpu_epk = relationship(
-        "SwCpuEpk", foreign_keys=[sw_cpu_epk_id], uselist=False, cascade="all"
-    )
-    sw_cpu_addr_epk_id = Column(
-        types.Integer, ForeignKey("sw_cpu_addr_epk.rid", use_alter=True)
-    )
-    sw_cpu_addr_epk = relationship(
-        "SwCpuAddrEpk", foreign_keys=[sw_cpu_addr_epk_id], uselist=False, cascade="all"
-    )
-    sw_cpu_type_id = Column(
-        types.Integer, ForeignKey("sw_cpu_type.rid", use_alter=True)
-    )
-    sw_cpu_type = relationship(
-        "SwCpuType", foreign_keys=[sw_cpu_type_id], uselist=False, cascade="all"
-    )
-    sw_cpu_calibration_offset_id = Column(
-        types.Integer, ForeignKey("sw_cpu_calibration_offset.rid", use_alter=True)
-    )
+    sw_cpu_epk = relationship("SwCpuEpk", foreign_keys=[sw_cpu_epk_id], uselist=False, cascade="all")
+    sw_cpu_addr_epk_id = Column(types.Integer, ForeignKey("sw_cpu_addr_epk.rid", use_alter=True))
+    sw_cpu_addr_epk = relationship("SwCpuAddrEpk", foreign_keys=[sw_cpu_addr_epk_id], uselist=False, cascade="all")
+    sw_cpu_type_id = Column(types.Integer, ForeignKey("sw_cpu_type.rid", use_alter=True))
+    sw_cpu_type = relationship("SwCpuType", foreign_keys=[sw_cpu_type_id], uselist=False, cascade="all")
+    sw_cpu_calibration_offset_id = Column(types.Integer, ForeignKey("sw_cpu_calibration_offset.rid", use_alter=True))
     sw_cpu_calibration_offset = relationship(
         "SwCpuCalibrationOffset",
         foreign_keys=[sw_cpu_calibration_offset_id],
         uselist=False,
         cascade="all",
     )
-    sw_cpu_number_of_interfaces_id = Column(
-        types.Integer, ForeignKey("sw_cpu_number_of_interfaces.rid", use_alter=True)
-    )
+    sw_cpu_number_of_interfaces_id = Column(types.Integer, ForeignKey("sw_cpu_number_of_interfaces.rid", use_alter=True))
     sw_cpu_number_of_interfaces = relationship(
         "SwCpuNumberOfInterfaces",
         foreign_keys=[sw_cpu_number_of_interfaces_id],
@@ -22688,9 +19237,7 @@ class SwCpuSpec(Base):
         cascade="all",
     )
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class SwVcdCriteria(Base):
@@ -22709,9 +19256,7 @@ class SwVcdCriteria(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_vcd_criterion_id = Column(
-        types.Integer, ForeignKey("sw_vcd_criterion.rid", use_alter=True)
-    )
+    sw_vcd_criterion_id = Column(types.Integer, ForeignKey("sw_vcd_criterion.rid", use_alter=True))
     sw_vcd_criterion = relationship(
         "SwVcdCriterion",
         foreign_keys=[sw_vcd_criterion_id],
@@ -22749,18 +19294,10 @@ class SwCalibrationMethodSpec(Base):
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    sw_calibration_methods_id = Column(
-        types.Integer, ForeignKey("sw_calibration_methods.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    sw_calibration_methods_id = Column(types.Integer, ForeignKey("sw_calibration_methods.rid", use_alter=True))
     sw_calibration_methods = relationship(
         "SwCalibrationMethods",
         foreign_keys=[sw_calibration_methods_id],
@@ -22768,9 +19305,7 @@ class SwCalibrationMethodSpec(Base):
         cascade="all",
     )
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class SwCalibrationMethodVersions(Base):
@@ -22789,9 +19324,7 @@ class SwCalibrationMethodVersions(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_calibration_method_version_id = Column(
-        types.Integer, ForeignKey("sw_calibration_method_version.rid", use_alter=True)
-    )
+    sw_calibration_method_version_id = Column(types.Integer, ForeignKey("sw_calibration_method_version.rid", use_alter=True))
     sw_calibration_method_version = relationship(
         "SwCalibrationMethodVersion",
         foreign_keys=[sw_calibration_method_version_id],
@@ -22827,26 +19360,16 @@ class SwCalibrationMethod(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_calibration_method_versions_id = Column(
-        types.Integer, ForeignKey("sw_calibration_method_versions.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_calibration_method_versions_id = Column(types.Integer, ForeignKey("sw_calibration_method_versions.rid", use_alter=True))
     sw_calibration_method_versions = relationship(
         "SwCalibrationMethodVersions",
         foreign_keys=[sw_calibration_method_versions_id],
@@ -22854,9 +19377,7 @@ class SwCalibrationMethod(Base):
         cascade="all",
     )
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class SwCalibrationHandle(Base):
@@ -22898,9 +19419,7 @@ class SwCalibrationMethodVersion(Base):
     si = StdString()
     label_id = Column(types.Integer, ForeignKey("label.rid", use_alter=True))
     label = relationship("Label", foreign_keys=[label_id], uselist=False, cascade="all")
-    sw_calibration_handle_id = Column(
-        types.Integer, ForeignKey("sw_calibration_handle.rid", use_alter=True)
-    )
+    sw_calibration_handle_id = Column(types.Integer, ForeignKey("sw_calibration_handle.rid", use_alter=True))
     sw_calibration_handle = relationship(
         "SwCalibrationHandle",
         foreign_keys=[sw_calibration_handle_id],
@@ -22938,25 +19457,13 @@ class SwVcdSpec(Base):
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    sw_vcd_criteria_id = Column(
-        types.Integer, ForeignKey("sw_vcd_criteria.rid", use_alter=True)
-    )
-    sw_vcd_criteria = relationship(
-        "SwVcdCriteria", foreign_keys=[sw_vcd_criteria_id], uselist=False, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    sw_vcd_criteria_id = Column(types.Integer, ForeignKey("sw_vcd_criteria.rid", use_alter=True))
+    sw_vcd_criteria = relationship("SwVcdCriteria", foreign_keys=[sw_vcd_criteria_id], uselist=False, cascade="all")
     add_info_id = Column(types.Integer, ForeignKey("add_info.rid", use_alter=True))
-    add_info = relationship(
-        "AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all"
-    )
+    add_info = relationship("AddInfo", foreign_keys=[add_info_id], uselist=False, cascade="all")
 
 
 class SwSystem(Base):
@@ -23007,114 +19514,74 @@ class SwSystem(Base):
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    sw_architecture_id = Column(
-        types.Integer, ForeignKey("sw_architecture.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    sw_architecture_id = Column(types.Integer, ForeignKey("sw_architecture.rid", use_alter=True))
     sw_architecture = relationship(
         "SwArchitecture",
         foreign_keys=[sw_architecture_id],
         uselist=False,
         cascade="all",
     )
-    sw_test_spec_id = Column(
-        types.Integer, ForeignKey("sw_test_spec.rid", use_alter=True)
-    )
-    sw_test_spec = relationship(
-        "SwTestSpec", foreign_keys=[sw_test_spec_id], uselist=False, cascade="all"
-    )
-    sw_data_dictionary_spec_id = Column(
-        types.Integer, ForeignKey("sw_data_dictionary_spec.rid", use_alter=True)
-    )
+    sw_test_spec_id = Column(types.Integer, ForeignKey("sw_test_spec.rid", use_alter=True))
+    sw_test_spec = relationship("SwTestSpec", foreign_keys=[sw_test_spec_id], uselist=False, cascade="all")
+    sw_data_dictionary_spec_id = Column(types.Integer, ForeignKey("sw_data_dictionary_spec.rid", use_alter=True))
     sw_data_dictionary_spec = relationship(
         "SwDataDictionarySpec",
         foreign_keys=[sw_data_dictionary_spec_id],
         uselist=False,
         cascade="all",
     )
-    sw_component_spec_id = Column(
-        types.Integer, ForeignKey("sw_component_spec.rid", use_alter=True)
-    )
+    sw_component_spec_id = Column(types.Integer, ForeignKey("sw_component_spec.rid", use_alter=True))
     sw_component_spec = relationship(
         "SwComponentSpec",
         foreign_keys=[sw_component_spec_id],
         uselist=False,
         cascade="all",
     )
-    sw_instance_spec_id = Column(
-        types.Integer, ForeignKey("sw_instance_spec.rid", use_alter=True)
-    )
+    sw_instance_spec_id = Column(types.Integer, ForeignKey("sw_instance_spec.rid", use_alter=True))
     sw_instance_spec = relationship(
         "SwInstanceSpec",
         foreign_keys=[sw_instance_spec_id],
         uselist=False,
         cascade="all",
     )
-    sw_collection_spec_id = Column(
-        types.Integer, ForeignKey("sw_collection_spec.rid", use_alter=True)
-    )
+    sw_collection_spec_id = Column(types.Integer, ForeignKey("sw_collection_spec.rid", use_alter=True))
     sw_collection_spec = relationship(
         "SwCollectionSpec",
         foreign_keys=[sw_collection_spec_id],
         uselist=False,
         cascade="all",
     )
-    sw_user_right_spec_id = Column(
-        types.Integer, ForeignKey("sw_user_right_spec.rid", use_alter=True)
-    )
+    sw_user_right_spec_id = Column(types.Integer, ForeignKey("sw_user_right_spec.rid", use_alter=True))
     sw_user_right_spec = relationship(
         "SwUserRightSpec",
         foreign_keys=[sw_user_right_spec_id],
         uselist=False,
         cascade="all",
     )
-    sw_cpu_spec_id = Column(
-        types.Integer, ForeignKey("sw_cpu_spec.rid", use_alter=True)
-    )
-    sw_cpu_spec = relationship(
-        "SwCpuSpec", foreign_keys=[sw_cpu_spec_id], uselist=False, cascade="all"
-    )
-    sw_calibration_method_spec_id = Column(
-        types.Integer, ForeignKey("sw_calibration_method_spec.rid", use_alter=True)
-    )
+    sw_cpu_spec_id = Column(types.Integer, ForeignKey("sw_cpu_spec.rid", use_alter=True))
+    sw_cpu_spec = relationship("SwCpuSpec", foreign_keys=[sw_cpu_spec_id], uselist=False, cascade="all")
+    sw_calibration_method_spec_id = Column(types.Integer, ForeignKey("sw_calibration_method_spec.rid", use_alter=True))
     sw_calibration_method_spec = relationship(
         "SwCalibrationMethodSpec",
         foreign_keys=[sw_calibration_method_spec_id],
         uselist=False,
         cascade="all",
     )
-    sw_vcd_spec_id = Column(
-        types.Integer, ForeignKey("sw_vcd_spec.rid", use_alter=True)
-    )
-    sw_vcd_spec = relationship(
-        "SwVcdSpec", foreign_keys=[sw_vcd_spec_id], uselist=False, cascade="all"
-    )
+    sw_vcd_spec_id = Column(types.Integer, ForeignKey("sw_vcd_spec.rid", use_alter=True))
+    sw_vcd_spec = relationship("SwVcdSpec", foreign_keys=[sw_vcd_spec_id], uselist=False, cascade="all")
     add_spec_id = Column(types.Integer, ForeignKey("add_spec.rid", use_alter=True))
-    add_spec = relationship(
-        "AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all"
-    )
+    add_spec = relationship("AddSpec", foreign_keys=[add_spec_id], uselist=False, cascade="all")
 
 
 class SwVcdCriterionPossibleValues(Base):
@@ -23166,35 +19633,19 @@ class SwVcdCriterion(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_calprm_ref_id = Column(
-        types.Integer, ForeignKey("sw_calprm_ref.rid", use_alter=True)
-    )
-    sw_calprm_ref = relationship(
-        "SwCalprmRef", foreign_keys=[sw_calprm_ref_id], uselist=False, cascade="all"
-    )
-    sw_variable_ref_id = Column(
-        types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True)
-    )
-    sw_variable_ref = relationship(
-        "SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=False, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_calprm_ref_id = Column(types.Integer, ForeignKey("sw_calprm_ref.rid", use_alter=True))
+    sw_calprm_ref = relationship("SwCalprmRef", foreign_keys=[sw_calprm_ref_id], uselist=False, cascade="all")
+    sw_variable_ref_id = Column(types.Integer, ForeignKey("sw_variable_ref.rid", use_alter=True))
+    sw_variable_ref = relationship("SwVariableRef", foreign_keys=[sw_variable_ref_id], uselist=False, cascade="all")
     sw_vcd_criterion_possible_values_id = Column(
         types.Integer,
         ForeignKey("sw_vcd_criterion_possible_values.rid", use_alter=True),
@@ -23205,9 +19656,7 @@ class SwVcdCriterion(Base):
         uselist=False,
         cascade="all",
     )
-    sw_compu_method_ref_id = Column(
-        types.Integer, ForeignKey("sw_compu_method_ref.rid", use_alter=True)
-    )
+    sw_compu_method_ref_id = Column(types.Integer, ForeignKey("sw_compu_method_ref.rid", use_alter=True))
     sw_compu_method_ref = relationship(
         "SwCompuMethodRef",
         foreign_keys=[sw_compu_method_ref_id],
@@ -23243,20 +19692,12 @@ class SwGlossary(Base):
     tbd = relationship("Tbd", foreign_keys=[tbd_id], uselist=False, cascade="all")
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=False, cascade="all")
 
 
 class SwMcBaseTypes(Base):
@@ -23275,12 +19716,8 @@ class SwMcBaseTypes(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_mc_base_type_id = Column(
-        types.Integer, ForeignKey("sw_mc_base_type.rid", use_alter=True)
-    )
-    sw_mc_base_type = relationship(
-        "SwMcBaseType", foreign_keys=[sw_mc_base_type_id], uselist=True, cascade="all"
-    )
+    sw_mc_base_type_id = Column(types.Integer, ForeignKey("sw_mc_base_type.rid", use_alter=True))
+    sw_mc_base_type = relationship("SwMcBaseType", foreign_keys=[sw_mc_base_type_id], uselist=True, cascade="all")
 
 
 class SwMcTpBlobLayout(Base):
@@ -23388,45 +19825,35 @@ class SwMcBlobLayouts(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_mc_tp_blob_layout_id = Column(
-        types.Integer, ForeignKey("sw_mc_tp_blob_layout.rid", use_alter=True)
-    )
+    sw_mc_tp_blob_layout_id = Column(types.Integer, ForeignKey("sw_mc_tp_blob_layout.rid", use_alter=True))
     sw_mc_tp_blob_layout = relationship(
         "SwMcTpBlobLayout",
         foreign_keys=[sw_mc_tp_blob_layout_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_qp_blob_layout_id = Column(
-        types.Integer, ForeignKey("sw_mc_qp_blob_layout.rid", use_alter=True)
-    )
+    sw_mc_qp_blob_layout_id = Column(types.Integer, ForeignKey("sw_mc_qp_blob_layout.rid", use_alter=True))
     sw_mc_qp_blob_layout = relationship(
         "SwMcQpBlobLayout",
         foreign_keys=[sw_mc_qp_blob_layout_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_kp_blob_layout_id = Column(
-        types.Integer, ForeignKey("sw_mc_kp_blob_layout.rid", use_alter=True)
-    )
+    sw_mc_kp_blob_layout_id = Column(types.Integer, ForeignKey("sw_mc_kp_blob_layout.rid", use_alter=True))
     sw_mc_kp_blob_layout = relationship(
         "SwMcKpBlobLayout",
         foreign_keys=[sw_mc_kp_blob_layout_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_dp_blob_layout_id = Column(
-        types.Integer, ForeignKey("sw_mc_dp_blob_layout.rid", use_alter=True)
-    )
+    sw_mc_dp_blob_layout_id = Column(types.Integer, ForeignKey("sw_mc_dp_blob_layout.rid", use_alter=True))
     sw_mc_dp_blob_layout = relationship(
         "SwMcDpBlobLayout",
         foreign_keys=[sw_mc_dp_blob_layout_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_pa_blob_layout_id = Column(
-        types.Integer, ForeignKey("sw_mc_pa_blob_layout.rid", use_alter=True)
-    )
+    sw_mc_pa_blob_layout_id = Column(types.Integer, ForeignKey("sw_mc_pa_blob_layout.rid", use_alter=True))
     sw_mc_pa_blob_layout = relationship(
         "SwMcPaBlobLayout",
         foreign_keys=[sw_mc_pa_blob_layout_id],
@@ -23461,26 +19888,16 @@ class SwMcInterface(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_mc_blob_layouts_id = Column(
-        types.Integer, ForeignKey("sw_mc_blob_layouts.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_mc_blob_layouts_id = Column(types.Integer, ForeignKey("sw_mc_blob_layouts.rid", use_alter=True))
     sw_mc_blob_layouts = relationship(
         "SwMcBlobLayouts",
         foreign_keys=[sw_mc_blob_layouts_id],
@@ -23505,9 +19922,7 @@ class SwMcInterfaceImpls(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_mc_interface_impl_id = Column(
-        types.Integer, ForeignKey("sw_mc_interface_impl.rid", use_alter=True)
-    )
+    sw_mc_interface_impl_id = Column(types.Integer, ForeignKey("sw_mc_interface_impl.rid", use_alter=True))
     sw_mc_interface_impl = relationship(
         "SwMcInterfaceImpl",
         foreign_keys=[sw_mc_interface_impl_id],
@@ -23546,41 +19961,25 @@ class SwMcBaseType(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_base_type_size_id = Column(
-        types.Integer, ForeignKey("sw_base_type_size.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_base_type_size_id = Column(types.Integer, ForeignKey("sw_base_type_size.rid", use_alter=True))
     sw_base_type_size = relationship(
         "SwBaseTypeSize",
         foreign_keys=[sw_base_type_size_id],
         uselist=False,
         cascade="all",
     )
-    sw_coded_type_id = Column(
-        types.Integer, ForeignKey("sw_coded_type.rid", use_alter=True)
-    )
-    sw_coded_type = relationship(
-        "SwCodedType", foreign_keys=[sw_coded_type_id], uselist=False, cascade="all"
-    )
-    sw_mem_alignment_id = Column(
-        types.Integer, ForeignKey("sw_mem_alignment.rid", use_alter=True)
-    )
+    sw_coded_type_id = Column(types.Integer, ForeignKey("sw_coded_type.rid", use_alter=True))
+    sw_coded_type = relationship("SwCodedType", foreign_keys=[sw_coded_type_id], uselist=False, cascade="all")
+    sw_mem_alignment_id = Column(types.Integer, ForeignKey("sw_mem_alignment.rid", use_alter=True))
     sw_mem_alignment = relationship(
         "SwMemAlignment",
         foreign_keys=[sw_mem_alignment_id],
@@ -23588,12 +19987,8 @@ class SwMcBaseType(Base):
         cascade="all",
     )
     byte_order_id = Column(types.Integer, ForeignKey("byte_order.rid", use_alter=True))
-    byte_order = relationship(
-        "ByteOrder", foreign_keys=[byte_order_id], uselist=False, cascade="all"
-    )
-    sw_base_type_ref_id = Column(
-        types.Integer, ForeignKey("sw_base_type_ref.rid", use_alter=True)
-    )
+    byte_order = relationship("ByteOrder", foreign_keys=[byte_order_id], uselist=False, cascade="all")
+    sw_base_type_ref_id = Column(types.Integer, ForeignKey("sw_base_type_ref.rid", use_alter=True))
     sw_base_type_ref = relationship(
         "SwBaseTypeRef",
         foreign_keys=[sw_base_type_ref_id],
@@ -23632,36 +20027,24 @@ class SwMcCommunicationSpec(Base):
     tbr_id = Column(types.Integer, ForeignKey("tbr.rid", use_alter=True))
     tbr = relationship("Tbr", foreign_keys=[tbr_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    sw_mc_interface_spec_id = Column(
-        types.Integer, ForeignKey("sw_mc_interface_spec.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    sw_mc_interface_spec_id = Column(types.Integer, ForeignKey("sw_mc_interface_spec.rid", use_alter=True))
     sw_mc_interface_spec = relationship(
         "SwMcInterfaceSpec",
         foreign_keys=[sw_mc_interface_spec_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_base_types_id = Column(
-        types.Integer, ForeignKey("sw_mc_base_types.rid", use_alter=True)
-    )
+    sw_mc_base_types_id = Column(types.Integer, ForeignKey("sw_mc_base_types.rid", use_alter=True))
     sw_mc_base_types = relationship(
         "SwMcBaseTypes",
         foreign_keys=[sw_mc_base_types_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_interface_impls_id = Column(
-        types.Integer, ForeignKey("sw_mc_interface_impls.rid", use_alter=True)
-    )
+    sw_mc_interface_impls_id = Column(types.Integer, ForeignKey("sw_mc_interface_impls.rid", use_alter=True))
     sw_mc_interface_impls = relationship(
         "SwMcInterfaceImpls",
         foreign_keys=[sw_mc_interface_impls_id],
@@ -23703,9 +20086,7 @@ class SwMcGenericInterfaces(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_mc_generic_interface_id = Column(
-        types.Integer, ForeignKey("sw_mc_generic_interface.rid", use_alter=True)
-    )
+    sw_mc_generic_interface_id = Column(types.Integer, ForeignKey("sw_mc_generic_interface.rid", use_alter=True))
     sw_mc_generic_interface = relationship(
         "SwMcGenericInterface",
         foreign_keys=[sw_mc_generic_interface_id],
@@ -23730,12 +20111,8 @@ class SwMcBlobEcuDeposit(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_instance_ref_id = Column(
-        types.Integer, ForeignKey("sw_instance_ref.rid", use_alter=True)
-    )
-    sw_instance_ref = relationship(
-        "SwInstanceRef", foreign_keys=[sw_instance_ref_id], uselist=False, cascade="all"
-    )
+    sw_instance_ref_id = Column(types.Integer, ForeignKey("sw_instance_ref.rid", use_alter=True))
+    sw_instance_ref = relationship("SwInstanceRef", foreign_keys=[sw_instance_ref_id], uselist=False, cascade="all")
 
 
 class SwMcTpBlobConts(Base):
@@ -23755,18 +20132,14 @@ class SwMcTpBlobConts(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_mc_blob_value_id = Column(
-        types.Integer, ForeignKey("sw_mc_blob_value.rid", use_alter=True)
-    )
+    sw_mc_blob_value_id = Column(types.Integer, ForeignKey("sw_mc_blob_value.rid", use_alter=True))
     sw_mc_blob_value = relationship(
         "SwMcBlobValue",
         foreign_keys=[sw_mc_blob_value_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_blob_ecu_deposit_id = Column(
-        types.Integer, ForeignKey("sw_mc_blob_ecu_deposit.rid", use_alter=True)
-    )
+    sw_mc_blob_ecu_deposit_id = Column(types.Integer, ForeignKey("sw_mc_blob_ecu_deposit.rid", use_alter=True))
     sw_mc_blob_ecu_deposit = relationship(
         "SwMcBlobEcuDeposit",
         foreign_keys=[sw_mc_blob_ecu_deposit_id],
@@ -23791,9 +20164,7 @@ class SwMcInterfaceSources(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_mc_interface_source_id = Column(
-        types.Integer, ForeignKey("sw_mc_interface_source.rid", use_alter=True)
-    )
+    sw_mc_interface_source_id = Column(types.Integer, ForeignKey("sw_mc_interface_source.rid", use_alter=True))
     sw_mc_interface_source = relationship(
         "SwMcInterfaceSource",
         foreign_keys=[sw_mc_interface_source_id],
@@ -23827,53 +20198,39 @@ class SwMcGenericInterface(Base):
     si = StdString()
     label_id = Column(types.Integer, ForeignKey("label.rid", use_alter=True))
     label = relationship("Label", foreign_keys=[label_id], uselist=False, cascade="all")
-    short_label_id = Column(
-        types.Integer, ForeignKey("short_label.rid", use_alter=True)
-    )
-    short_label = relationship(
-        "ShortLabel", foreign_keys=[short_label_id], uselist=False, cascade="all"
-    )
+    short_label_id = Column(types.Integer, ForeignKey("short_label.rid", use_alter=True))
+    short_label = relationship("ShortLabel", foreign_keys=[short_label_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
-    sw_mc_interface_default_source_id = Column(
-        types.Integer, ForeignKey("sw_mc_interface_default_source.rid", use_alter=True)
-    )
+    sw_mc_interface_default_source_id = Column(types.Integer, ForeignKey("sw_mc_interface_default_source.rid", use_alter=True))
     sw_mc_interface_default_source = relationship(
         "SwMcInterfaceDefaultSource",
         foreign_keys=[sw_mc_interface_default_source_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_interface_avl_sources_id = Column(
-        types.Integer, ForeignKey("sw_mc_interface_avl_sources.rid", use_alter=True)
-    )
+    sw_mc_interface_avl_sources_id = Column(types.Integer, ForeignKey("sw_mc_interface_avl_sources.rid", use_alter=True))
     sw_mc_interface_avl_sources = relationship(
         "SwMcInterfaceAvlSources",
         foreign_keys=[sw_mc_interface_avl_sources_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_kp_blob_conts_id = Column(
-        types.Integer, ForeignKey("sw_mc_kp_blob_conts.rid", use_alter=True)
-    )
+    sw_mc_kp_blob_conts_id = Column(types.Integer, ForeignKey("sw_mc_kp_blob_conts.rid", use_alter=True))
     sw_mc_kp_blob_conts = relationship(
         "SwMcKpBlobConts",
         foreign_keys=[sw_mc_kp_blob_conts_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_dp_blob_conts_id = Column(
-        types.Integer, ForeignKey("sw_mc_dp_blob_conts.rid", use_alter=True)
-    )
+    sw_mc_dp_blob_conts_id = Column(types.Integer, ForeignKey("sw_mc_dp_blob_conts.rid", use_alter=True))
     sw_mc_dp_blob_conts = relationship(
         "SwMcDpBlobConts",
         foreign_keys=[sw_mc_dp_blob_conts_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_pa_blob_conts_id = Column(
-        types.Integer, ForeignKey("sw_mc_pa_blob_conts.rid", use_alter=True)
-    )
+    sw_mc_pa_blob_conts_id = Column(types.Integer, ForeignKey("sw_mc_pa_blob_conts.rid", use_alter=True))
     sw_mc_pa_blob_conts = relationship(
         "SwMcPaBlobConts",
         foreign_keys=[sw_mc_pa_blob_conts_id],
@@ -23898,12 +20255,8 @@ class SwMcFrames(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_mc_frame_id = Column(
-        types.Integer, ForeignKey("sw_mc_frame.rid", use_alter=True)
-    )
-    sw_mc_frame = relationship(
-        "SwMcFrame", foreign_keys=[sw_mc_frame_id], uselist=True, cascade="all"
-    )
+    sw_mc_frame_id = Column(types.Integer, ForeignKey("sw_mc_frame.rid", use_alter=True))
+    sw_mc_frame = relationship("SwMcFrame", foreign_keys=[sw_mc_frame_id], uselist=True, cascade="all")
 
 
 class SwMcQpBlobConts(Base):
@@ -23923,18 +20276,14 @@ class SwMcQpBlobConts(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sw_mc_blob_value_id = Column(
-        types.Integer, ForeignKey("sw_mc_blob_value.rid", use_alter=True)
-    )
+    sw_mc_blob_value_id = Column(types.Integer, ForeignKey("sw_mc_blob_value.rid", use_alter=True))
     sw_mc_blob_value = relationship(
         "SwMcBlobValue",
         foreign_keys=[sw_mc_blob_value_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_blob_ecu_deposit_id = Column(
-        types.Integer, ForeignKey("sw_mc_blob_ecu_deposit.rid", use_alter=True)
-    )
+    sw_mc_blob_ecu_deposit_id = Column(types.Integer, ForeignKey("sw_mc_blob_ecu_deposit.rid", use_alter=True))
     sw_mc_blob_ecu_deposit = relationship(
         "SwMcBlobEcuDeposit",
         foreign_keys=[sw_mc_blob_ecu_deposit_id],
@@ -23970,35 +20319,23 @@ class SwMcInterfaceSource(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_refresh_timing_id = Column(
-        types.Integer, ForeignKey("sw_refresh_timing.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_refresh_timing_id = Column(types.Integer, ForeignKey("sw_refresh_timing.rid", use_alter=True))
     sw_refresh_timing = relationship(
         "SwRefreshTiming",
         foreign_keys=[sw_refresh_timing_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_qp_blob_conts_id = Column(
-        types.Integer, ForeignKey("sw_mc_qp_blob_conts.rid", use_alter=True)
-    )
+    sw_mc_qp_blob_conts_id = Column(types.Integer, ForeignKey("sw_mc_qp_blob_conts.rid", use_alter=True))
     sw_mc_qp_blob_conts = relationship(
         "SwMcQpBlobConts",
         foreign_keys=[sw_mc_qp_blob_conts_id],
@@ -24029,51 +20366,37 @@ class SwMcInterfaceImpl(Base):
     t = StdString()
     si = StdString()
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_mc_interface_ref_id = Column(
-        types.Integer, ForeignKey("sw_mc_interface_ref.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_mc_interface_ref_id = Column(types.Integer, ForeignKey("sw_mc_interface_ref.rid", use_alter=True))
     sw_mc_interface_ref = relationship(
         "SwMcInterfaceRef",
         foreign_keys=[sw_mc_interface_ref_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_tp_blob_conts_id = Column(
-        types.Integer, ForeignKey("sw_mc_tp_blob_conts.rid", use_alter=True)
-    )
+    sw_mc_tp_blob_conts_id = Column(types.Integer, ForeignKey("sw_mc_tp_blob_conts.rid", use_alter=True))
     sw_mc_tp_blob_conts = relationship(
         "SwMcTpBlobConts",
         foreign_keys=[sw_mc_tp_blob_conts_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_generic_interfaces_id = Column(
-        types.Integer, ForeignKey("sw_mc_generic_interfaces.rid", use_alter=True)
-    )
+    sw_mc_generic_interfaces_id = Column(types.Integer, ForeignKey("sw_mc_generic_interfaces.rid", use_alter=True))
     sw_mc_generic_interfaces = relationship(
         "SwMcGenericInterfaces",
         foreign_keys=[sw_mc_generic_interfaces_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_interface_sources_id = Column(
-        types.Integer, ForeignKey("sw_mc_interface_sources.rid", use_alter=True)
-    )
+    sw_mc_interface_sources_id = Column(types.Integer, ForeignKey("sw_mc_interface_sources.rid", use_alter=True))
     sw_mc_interface_sources = relationship(
         "SwMcInterfaceSources",
         foreign_keys=[sw_mc_interface_sources_id],
         uselist=False,
         cascade="all",
     )
-    sw_mc_frames_id = Column(
-        types.Integer, ForeignKey("sw_mc_frames.rid", use_alter=True)
-    )
-    sw_mc_frames = relationship(
-        "SwMcFrames", foreign_keys=[sw_mc_frames_id], uselist=False, cascade="all"
-    )
+    sw_mc_frames_id = Column(types.Integer, ForeignKey("sw_mc_frames.rid", use_alter=True))
+    sw_mc_frames = relationship("SwMcFrames", foreign_keys=[sw_mc_frames_id], uselist=False, cascade="all")
 
 
 class SwMcFrame(Base):
@@ -24103,35 +20426,23 @@ class SwMcFrame(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_refresh_timing_id = Column(
-        types.Integer, ForeignKey("sw_refresh_timing.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_refresh_timing_id = Column(types.Integer, ForeignKey("sw_refresh_timing.rid", use_alter=True))
     sw_refresh_timing = relationship(
         "SwRefreshTiming",
         foreign_keys=[sw_refresh_timing_id],
         uselist=False,
         cascade="all",
     )
-    sw_variable_refs_id = Column(
-        types.Integer, ForeignKey("sw_variable_refs.rid", use_alter=True)
-    )
+    sw_variable_refs_id = Column(types.Integer, ForeignKey("sw_variable_refs.rid", use_alter=True))
     sw_variable_refs = relationship(
         "SwVariableRefs",
         foreign_keys=[sw_variable_refs_id],
@@ -24193,48 +20504,28 @@ class MsrProcessingLog(Base):
     p_id = Column(types.Integer, ForeignKey("p.rid", use_alter=True))
     p = relationship("P", foreign_keys=[p_id], uselist=True, cascade="all")
     verbatim_id = Column(types.Integer, ForeignKey("verbatim.rid", use_alter=True))
-    verbatim = relationship(
-        "Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all"
-    )
+    verbatim = relationship("Verbatim", foreign_keys=[verbatim_id], uselist=True, cascade="all")
     figure_id = Column(types.Integer, ForeignKey("figure.rid", use_alter=True))
-    figure = relationship(
-        "Figure", foreign_keys=[figure_id], uselist=True, cascade="all"
-    )
+    figure = relationship("Figure", foreign_keys=[figure_id], uselist=True, cascade="all")
     formula_id = Column(types.Integer, ForeignKey("formula.rid", use_alter=True))
-    formula = relationship(
-        "Formula", foreign_keys=[formula_id], uselist=True, cascade="all"
-    )
+    formula = relationship("Formula", foreign_keys=[formula_id], uselist=True, cascade="all")
     list_id = Column(types.Integer, ForeignKey("list.rid", use_alter=True))
     _list = relationship("List", foreign_keys=[list_id], uselist=True, cascade="all")
     def_list_id = Column(types.Integer, ForeignKey("def_list.rid", use_alter=True))
-    def_list = relationship(
-        "DefList", foreign_keys=[def_list_id], uselist=True, cascade="all"
-    )
-    labeled_list_id = Column(
-        types.Integer, ForeignKey("labeled_list.rid", use_alter=True)
-    )
-    labeled_list = relationship(
-        "LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all"
-    )
+    def_list = relationship("DefList", foreign_keys=[def_list_id], uselist=True, cascade="all")
+    labeled_list_id = Column(types.Integer, ForeignKey("labeled_list.rid", use_alter=True))
+    labeled_list = relationship("LabeledList", foreign_keys=[labeled_list_id], uselist=True, cascade="all")
     note_id = Column(types.Integer, ForeignKey("note.rid", use_alter=True))
     note = relationship("Note", foreign_keys=[note_id], uselist=True, cascade="all")
     table_id = Column(types.Integer, ForeignKey("table.rid", use_alter=True))
     table = relationship("Table", foreign_keys=[table_id], uselist=True, cascade="all")
     prms_id = Column(types.Integer, ForeignKey("prms.rid", use_alter=True))
     prms = relationship("Prms", foreign_keys=[prms_id], uselist=True, cascade="all")
-    msr_query_p_1_id = Column(
-        types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True)
-    )
-    msr_query_p_1 = relationship(
-        "MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all"
-    )
+    msr_query_p_1_id = Column(types.Integer, ForeignKey("msr_query_p_1.rid", use_alter=True))
+    msr_query_p_1 = relationship("MsrQueryP1", foreign_keys=[msr_query_p_1_id], uselist=True, cascade="all")
     topic_1_id = Column(types.Integer, ForeignKey("topic_1.rid", use_alter=True))
-    topic_1 = relationship(
-        "Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all"
-    )
-    msr_query_topic_1_id = Column(
-        types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True)
-    )
+    topic_1 = relationship("Topic1", foreign_keys=[topic_1_id], uselist=True, cascade="all")
+    msr_query_topic_1_id = Column(types.Integer, ForeignKey("msr_query_topic_1.rid", use_alter=True))
     msr_query_topic_1 = relationship(
         "MsrQueryTopic1",
         foreign_keys=[msr_query_topic_1_id],
@@ -24242,12 +20533,8 @@ class MsrProcessingLog(Base):
         cascade="all",
     )
     chapter_id = Column(types.Integer, ForeignKey("chapter.rid", use_alter=True))
-    chapter = relationship(
-        "Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all"
-    )
-    msr_query_chapter_id = Column(
-        types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True)
-    )
+    chapter = relationship("Chapter", foreign_keys=[chapter_id], uselist=True, cascade="all")
+    msr_query_chapter_id = Column(types.Integer, ForeignKey("msr_query_chapter.rid", use_alter=True))
     msr_query_chapter = relationship(
         "MsrQueryChapter",
         foreign_keys=[msr_query_chapter_id],
@@ -24279,13 +20566,9 @@ class SdgCaption(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
 
@@ -24312,20 +20595,14 @@ class Sdg(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    sdg_caption_id = Column(
-        types.Integer, ForeignKey("sdg_caption.rid", use_alter=True)
-    )
-    sdg_caption = relationship(
-        "SdgCaption", foreign_keys=[sdg_caption_id], uselist=False, cascade="all"
-    )
+    sdg_caption_id = Column(types.Integer, ForeignKey("sdg_caption.rid", use_alter=True))
+    sdg_caption = relationship("SdgCaption", foreign_keys=[sdg_caption_id], uselist=False, cascade="all")
     sd_id = Column(types.Integer, ForeignKey("sd.rid", use_alter=True))
     sd = relationship("Sd", foreign_keys=[sd_id], uselist=True, cascade="all")
     sdg_id = Column(types.Integer, ForeignKey("sdg.rid", use_alter=True))
     sdg = relationship("Sdg", foreign_keys=[sdg_id], uselist=True, cascade="all")
     ncoi_1_id = Column(types.Integer, ForeignKey("ncoi_1.rid", use_alter=True))
-    ncoi_1 = relationship(
-        "Ncoi1", foreign_keys=[ncoi_1_id], uselist=True, cascade="all"
-    )
+    ncoi_1 = relationship("Ncoi1", foreign_keys=[ncoi_1_id], uselist=True, cascade="all")
     xref_id = Column(types.Integer, ForeignKey("xref.rid", use_alter=True))
     xref = relationship("Xref", foreign_keys=[xref_id], uselist=True, cascade="all")
 
@@ -24378,16 +20655,10 @@ class SwInstanceTreeOrigin(Base):
     t = StdString()
     ti = StdString()
     _view = StdString()
-    symbolic_file_id = Column(
-        types.Integer, ForeignKey("symbolic_file.rid", use_alter=True)
-    )
-    symbolic_file = relationship(
-        "SymbolicFile", foreign_keys=[symbolic_file_id], uselist=False, cascade="all"
-    )
+    symbolic_file_id = Column(types.Integer, ForeignKey("symbolic_file.rid", use_alter=True))
+    symbolic_file = relationship("SymbolicFile", foreign_keys=[symbolic_file_id], uselist=False, cascade="all")
     data_file_id = Column(types.Integer, ForeignKey("data_file.rid", use_alter=True))
-    data_file = relationship(
-        "DataFile", foreign_keys=[data_file_id], uselist=False, cascade="all"
-    )
+    data_file = relationship("DataFile", foreign_keys=[data_file_id], uselist=False, cascade="all")
 
 
 class SwInstanceTree(Base):
@@ -24423,31 +20694,21 @@ class SwInstanceTree(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     desc_id = Column(types.Integer, ForeignKey("desc.rid", use_alter=True))
     _desc = relationship("Desc", foreign_keys=[desc_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
-    sw_instance_tree_origin_id = Column(
-        types.Integer, ForeignKey("sw_instance_tree_origin.rid", use_alter=True)
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
+    sw_instance_tree_origin_id = Column(types.Integer, ForeignKey("sw_instance_tree_origin.rid", use_alter=True))
     sw_instance_tree_origin = relationship(
         "SwInstanceTreeOrigin",
         foreign_keys=[sw_instance_tree_origin_id],
         uselist=False,
         cascade="all",
     )
-    sw_cs_collections_id = Column(
-        types.Integer, ForeignKey("sw_cs_collections.rid", use_alter=True)
-    )
+    sw_cs_collections_id = Column(types.Integer, ForeignKey("sw_cs_collections.rid", use_alter=True))
     sw_cs_collections = relationship(
         "SwCsCollections",
         foreign_keys=[sw_cs_collections_id],
@@ -24455,36 +20716,20 @@ class SwInstanceTree(Base):
         cascade="all",
     )
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    sw_cs_history_id = Column(
-        types.Integer, ForeignKey("sw_cs_history.rid", use_alter=True)
-    )
-    sw_cs_history = relationship(
-        "SwCsHistory", foreign_keys=[sw_cs_history_id], uselist=False, cascade="all"
-    )
-    sw_vcd_criterion_values_id = Column(
-        types.Integer, ForeignKey("sw_vcd_criterion_values.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    sw_cs_history_id = Column(types.Integer, ForeignKey("sw_cs_history.rid", use_alter=True))
+    sw_cs_history = relationship("SwCsHistory", foreign_keys=[sw_cs_history_id], uselist=False, cascade="all")
+    sw_vcd_criterion_values_id = Column(types.Integer, ForeignKey("sw_vcd_criterion_values.rid", use_alter=True))
     sw_vcd_criterion_values = relationship(
         "SwVcdCriterionValues",
         foreign_keys=[sw_vcd_criterion_values_id],
         uselist=False,
         cascade="all",
     )
-    sw_feature_ref_id = Column(
-        types.Integer, ForeignKey("sw_feature_ref.rid", use_alter=True)
-    )
-    sw_feature_ref = relationship(
-        "SwFeatureRef", foreign_keys=[sw_feature_ref_id], uselist=False, cascade="all"
-    )
-    sw_instance_id = Column(
-        types.Integer, ForeignKey("sw_instance.rid", use_alter=True)
-    )
-    sw_instance = relationship(
-        "SwInstance", foreign_keys=[sw_instance_id], uselist=True, cascade="all"
-    )
+    sw_feature_ref_id = Column(types.Integer, ForeignKey("sw_feature_ref.rid", use_alter=True))
+    sw_feature_ref = relationship("SwFeatureRef", foreign_keys=[sw_feature_ref_id], uselist=False, cascade="all")
+    sw_instance_id = Column(types.Integer, ForeignKey("sw_instance.rid", use_alter=True))
+    sw_instance = relationship("SwInstance", foreign_keys=[sw_instance_id], uselist=True, cascade="all")
 
 
 class Sd(Base):
@@ -24522,12 +20767,8 @@ class MatchingDcis(Base):
     s = StdString()
     t = StdString()
     si = StdString()
-    matching_dci_id = Column(
-        types.Integer, ForeignKey("matching_dci.rid", use_alter=True)
-    )
-    matching_dci = relationship(
-        "MatchingDci", foreign_keys=[matching_dci_id], uselist=True, cascade="all"
-    )
+    matching_dci_id = Column(types.Integer, ForeignKey("matching_dci.rid", use_alter=True))
+    matching_dci = relationship("MatchingDci", foreign_keys=[matching_dci_id], uselist=True, cascade="all")
 
 
 class Locs(Base):
@@ -24547,9 +20788,7 @@ class Locs(Base):
     t = StdString()
     si = StdString()
     nameloc_id = Column(types.Integer, ForeignKey("nameloc.rid", use_alter=True))
-    nameloc = relationship(
-        "Nameloc", foreign_keys=[nameloc_id], uselist=True, cascade="all"
-    )
+    nameloc = relationship("Nameloc", foreign_keys=[nameloc_id], uselist=True, cascade="all")
 
 
 class MatchingDci(Base):
@@ -24573,18 +20812,12 @@ class MatchingDci(Base):
     si = StdString()
     label_id = Column(types.Integer, ForeignKey("label.rid", use_alter=True))
     label = relationship("Label", foreign_keys=[label_id], uselist=False, cascade="all")
-    short_label_id = Column(
-        types.Integer, ForeignKey("short_label.rid", use_alter=True)
-    )
-    short_label = relationship(
-        "ShortLabel", foreign_keys=[short_label_id], uselist=False, cascade="all"
-    )
+    short_label_id = Column(types.Integer, ForeignKey("short_label.rid", use_alter=True))
+    short_label = relationship("ShortLabel", foreign_keys=[short_label_id], uselist=False, cascade="all")
     url_id = Column(types.Integer, ForeignKey("url.rid", use_alter=True))
     url = relationship("Url", foreign_keys=[url_id], uselist=False, cascade="all")
     remark_id = Column(types.Integer, ForeignKey("remark.rid", use_alter=True))
-    remark = relationship(
-        "Remark", foreign_keys=[remark_id], uselist=False, cascade="all"
-    )
+    remark = relationship("Remark", foreign_keys=[remark_id], uselist=False, cascade="all")
 
 
 class Msrsw(Base):
@@ -24624,32 +20857,16 @@ class Msrsw(Base):
     t = StdString()
     si = StdString()
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     category_id = Column(types.Integer, ForeignKey("category.rid", use_alter=True))
-    category = relationship(
-        "Category", foreign_keys=[category_id], uselist=False, cascade="all"
-    )
-    project_data_id = Column(
-        types.Integer, ForeignKey("project_data.rid", use_alter=True)
-    )
-    project_data = relationship(
-        "ProjectData", foreign_keys=[project_data_id], uselist=False, cascade="all"
-    )
+    category = relationship("Category", foreign_keys=[category_id], uselist=False, cascade="all")
+    project_data_id = Column(types.Integer, ForeignKey("project_data.rid", use_alter=True))
+    project_data = relationship("ProjectData", foreign_keys=[project_data_id], uselist=False, cascade="all")
     admin_data_id = Column(types.Integer, ForeignKey("admin_data.rid", use_alter=True))
-    admin_data = relationship(
-        "AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all"
-    )
-    introduction_id = Column(
-        types.Integer, ForeignKey("introduction.rid", use_alter=True)
-    )
-    introduction = relationship(
-        "Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all"
-    )
-    general_requirements_id = Column(
-        types.Integer, ForeignKey("general_requirements.rid", use_alter=True)
-    )
+    admin_data = relationship("AdminData", foreign_keys=[admin_data_id], uselist=False, cascade="all")
+    introduction_id = Column(types.Integer, ForeignKey("introduction.rid", use_alter=True))
+    introduction = relationship("Introduction", foreign_keys=[introduction_id], uselist=False, cascade="all")
+    general_requirements_id = Column(types.Integer, ForeignKey("general_requirements.rid", use_alter=True))
     general_requirements = relationship(
         "GeneralRequirements",
         foreign_keys=[general_requirements_id],
@@ -24657,45 +20874,27 @@ class Msrsw(Base):
         cascade="all",
     )
     sw_systems_id = Column(types.Integer, ForeignKey("sw_systems.rid", use_alter=True))
-    sw_systems = relationship(
-        "SwSystems", foreign_keys=[sw_systems_id], uselist=False, cascade="all"
-    )
-    sw_mc_communication_spec_id = Column(
-        types.Integer, ForeignKey("sw_mc_communication_spec.rid", use_alter=True)
-    )
+    sw_systems = relationship("SwSystems", foreign_keys=[sw_systems_id], uselist=False, cascade="all")
+    sw_mc_communication_spec_id = Column(types.Integer, ForeignKey("sw_mc_communication_spec.rid", use_alter=True))
     sw_mc_communication_spec = relationship(
         "SwMcCommunicationSpec",
         foreign_keys=[sw_mc_communication_spec_id],
         uselist=False,
         cascade="all",
     )
-    sw_glossary_id = Column(
-        types.Integer, ForeignKey("sw_glossary.rid", use_alter=True)
-    )
-    sw_glossary = relationship(
-        "SwGlossary", foreign_keys=[sw_glossary_id], uselist=False, cascade="all"
-    )
-    special_data_id = Column(
-        types.Integer, ForeignKey("special_data.rid", use_alter=True)
-    )
-    special_data = relationship(
-        "SpecialData", foreign_keys=[special_data_id], uselist=False, cascade="all"
-    )
-    msr_processing_log_id = Column(
-        types.Integer, ForeignKey("msr_processing_log.rid", use_alter=True)
-    )
+    sw_glossary_id = Column(types.Integer, ForeignKey("sw_glossary.rid", use_alter=True))
+    sw_glossary = relationship("SwGlossary", foreign_keys=[sw_glossary_id], uselist=False, cascade="all")
+    special_data_id = Column(types.Integer, ForeignKey("special_data.rid", use_alter=True))
+    special_data = relationship("SpecialData", foreign_keys=[special_data_id], uselist=False, cascade="all")
+    msr_processing_log_id = Column(types.Integer, ForeignKey("msr_processing_log.rid", use_alter=True))
     msr_processing_log = relationship(
         "MsrProcessingLog",
         foreign_keys=[msr_processing_log_id],
         uselist=False,
         cascade="all",
     )
-    matching_dcis_id = Column(
-        types.Integer, ForeignKey("matching_dcis.rid", use_alter=True)
-    )
-    matching_dcis = relationship(
-        "MatchingDcis", foreign_keys=[matching_dcis_id], uselist=False, cascade="all"
-    )
+    matching_dcis_id = Column(types.Integer, ForeignKey("matching_dcis.rid", use_alter=True))
+    matching_dcis = relationship("MatchingDcis", foreign_keys=[matching_dcis_id], uselist=False, cascade="all")
     locs_id = Column(types.Integer, ForeignKey("locs.rid", use_alter=True))
     locs = relationship("Locs", foreign_keys=[locs_id], uselist=False, cascade="all")
 
@@ -24753,17 +20952,11 @@ class Nameloc(Base):
     t = StdString()
     si = StdString()
     long_name_id = Column(types.Integer, ForeignKey("long_name.rid", use_alter=True))
-    long_name = relationship(
-        "LongName", foreign_keys=[long_name_id], uselist=False, cascade="all"
-    )
+    long_name = relationship("LongName", foreign_keys=[long_name_id], uselist=False, cascade="all")
     short_name_id = Column(types.Integer, ForeignKey("short_name.rid", use_alter=True))
-    short_name = relationship(
-        "ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all"
-    )
+    short_name = relationship("ShortName", foreign_keys=[short_name_id], uselist=False, cascade="all")
     nmlist_id = Column(types.Integer, ForeignKey("nmlist.rid", use_alter=True))
-    nmlist = relationship(
-        "Nmlist", foreign_keys=[nmlist_id], uselist=False, cascade="all"
-    )
+    nmlist = relationship("Nmlist", foreign_keys=[nmlist_id], uselist=False, cascade="all")
 
 
 #
@@ -24777,9 +20970,9 @@ class Nameloc(Base):
 @dataclass
 class ElementMap:
     klass: Base
-    attributes: typing.Dict[str, str] = field(default_factory=dict)
-    enums: typing.Dict[str, typing.List[str]] = field(default_factory=dict)
-    elements: typing.Dict[str, str] = field(default_factory=dict)
+    attributes: dict[str, str] = field(default_factory=dict)
+    enums: dict[str, list[str]] = field(default_factory=dict)
+    elements: dict[str, str] = field(default_factory=dict)
     terminal: bool = False
 
 
@@ -25440,9 +21633,7 @@ class MSRSWDatabase:
         self._engine = create_engine(
             f"sqlite:///{self.dbname}",
             echo=debug,
-            connect_args={
-                "detect_types": sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
-            },
+            connect_args={"detect_types": sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES},
             native_datetime=True,
         )
 
@@ -25493,9 +21684,7 @@ class Parser:
 
     ATTR = re.compile(r"(\{.*?\})?(.*)", re.DOTALL)
 
-    def __init__(
-        self, file_name: str, db: MSRSWDatabase, root_elem: str = ROOT_ELEMENT
-    ):
+    def __init__(self, file_name: str, db: MSRSWDatabase, root_elem: str = ROOT_ELEMENT):
         self.validator = create_validator("cdf_v2.0.0.sl.dtd")
         self.schema_version = 0
         self.variant = "MSRSW"
@@ -25538,11 +21727,9 @@ class Parser:
             res.append(self.parse(child))
         if res:
             res = sorted(res, key=lambda c: c.__class__.__name__)
-            for key, items in itertools.groupby(
-                res, key=lambda c: c.__class__.__name__
-            ):
+            for key, items in itertools.groupby(res, key=lambda c: c.__class__.__name__):
                 items = list(items)
-                if key == 'Comment':
+                if key == "Comment":
                     pass
                 else:
                     axx = getattr(obj, obj.ELEMENTS[key])

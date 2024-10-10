@@ -33,6 +33,7 @@ from collections import defaultdict
 from functools import lru_cache
 from io import FileIO
 
+
 _KEYS = frozenset(["dtds", "templates"])
 
 _DATA_FILES = defaultdict(dict)

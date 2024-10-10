@@ -40,7 +40,9 @@ from asamint.utils.xml import create_elem, xml_comment
 class CDFCreator(msrsw.MSRMixIn, CalibrationData):
     """ """
 
-    DOCTYPE = """<!DOCTYPE MSRSW PUBLIC "-//ASAM//DTD CALIBRATION DATA FORMAT:V2.0.0:LAI:IAI:XML:CDF200.XSD//EN" "cdf_v2.0.0.sl.dtd">"""
+    DOCTYPE = (
+        """<!DOCTYPE MSRSW PUBLIC "-//ASAM//DTD CALIBRATION DATA FORMAT:V2.0.0:LAI:IAI:XML:CDF200.XSD//EN" "cdf_v2.0.0.sl.dtd">"""
+    )
     DTD = get_dtd("cdf_v2.0.0.sl")
     EXTENSION = ".cdfx"
 
@@ -62,9 +64,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         instance_tree = create_elem(instance_spec, "SW-INSTANCE-TREE")
         self.sub_trees["SW-INSTANCE-TREE"] = instance_tree
         create_elem(instance_tree, "SHORT-NAME", text="STD")
-        create_elem(
-            instance_tree, "CATEGORY", text="NO_VCD"
-        )  # or VCD, variant-coding f.parameters.
+        create_elem(instance_tree, "CATEGORY", text="NO_VCD")  # or VCD, variant-coding f.parameters.
         instance_tree_origin = create_elem(instance_tree, "SW-INSTANCE-TREE-ORIGIN")
         create_elem(
             instance_tree_origin,
@@ -85,11 +85,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         instance_tree = self.sub_trees["SW-INSTANCE-TREE"]
         collections = create_elem(instance_tree, "SW-CS-COLLECTIONS")
         functions = self.query(model.Function).all()
-        functions = [
-            f
-            for f in functions
-            if f.def_characteristic and f.def_characteristic.identifier != []
-        ]
+        functions = [f for f in functions if f.def_characteristic and f.def_characteristic.identifier != []]
         for f in functions:
             self.cs_collection(f.name, "FEATURE", collections)
         groups = self.query(model.Group).all()
@@ -165,13 +161,9 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
             for axis in inst.axes:
                 category = axis.category
                 if category == "STD_AXIS":
-                    self.add_axis(
-                        axis_conts, axis.converted_values, "STD_AXIS", axis.unit
-                    )
+                    self.add_axis(axis_conts, axis.converted_values, "STD_AXIS", axis.unit)
                 elif category == "FIX_AXIS":
-                    self.add_axis(
-                        axis_conts, axis.converted_values, "FIX_AXIS", axis.unit
-                    )
+                    self.add_axis(axis_conts, axis.converted_values, "FIX_AXIS", axis.unit)
                 elif category == "COM_AXIS":
                     axis_cont = create_elem(axis_conts, "SW-AXIS-CONT")
                     create_elem(axis_cont, "CATEGORY", "COM_AXIS")
@@ -275,9 +267,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
             for elem in values:
                 self.output_value_array(elem, create_elem(value_group, "VG"))
 
-    def value_blk(
-        self, name, descr, values, unit="", displayIdentifier=None, feature_ref=None
-    ):
+    def value_blk(self, name, descr, values, unit="", displayIdentifier=None, feature_ref=None):
         """ """
         cont = self.no_axis_container(
             name=name,
@@ -291,9 +281,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         values_cont = create_elem(cont, "SW-VALUES-PHYS")
         self.output_value_array(values, values_cont)
 
-    def sw_instance(
-        self, name, descr, category, displayIdentifier=None, feature_ref=None
-    ):
+    def sw_instance(self, name, descr, category, displayIdentifier=None, feature_ref=None):
         instance_tree = self.sub_trees["SW-INSTANCE-TREE"]
         instance = create_elem(instance_tree, "SW-INSTANCE")
         create_elem(instance, "SHORT-NAME", text=name)
@@ -308,9 +296,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         variant = create_elem(variants, "SW-INSTANCE-PROPS-VARIANT")
         return variant
 
-    def no_axis_container(
-        self, name, descr, category, unit="", displayIdentifier=None, feature_ref=None
-    ):
+    def no_axis_container(self, name, descr, category, unit="", displayIdentifier=None, feature_ref=None):
         variant = self.sw_instance(
             name,
             descr,

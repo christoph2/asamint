@@ -32,22 +32,14 @@ def main():
     try:
         ep = ElfParser(args.elf_file)
     except Exception as e:
-        print(
-            f"\n'{args.elf_file}' is not valid ELF file. Raised exception: '{repr(e)}'."
-        )
+        print(f"\n'{args.elf_file}' is not valid ELF file. Raised exception: '{repr(e)}'.")
         exit(1)
-    for section_name, syms in ep.symbols.fetch(
-        sections="calflash_signature", name_pattern="epk", types_str="object"
-    ).items():
+    for section_name, syms in ep.symbols.fetch(sections="calflash_signature", name_pattern="epk", types_str="object").items():
         if not syms:
             print("Sorry, no EPK found.")
         else:
             epk = syms[0]
-            print(
-                "Found EPROM Kennung @0x{:08x} '{}' [{} bytes].".format(
-                    epk.st_value, "", epk.st_size
-                )
-            )
+            print("Found EPROM Kennung @0x{:08x} '{}' [{} bytes].".format(epk.st_value, "", epk.st_size))
             print(ep.sections.get(section_name))
             break
 
