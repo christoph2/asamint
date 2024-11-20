@@ -6,7 +6,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2021 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2021-2024 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -28,7 +28,7 @@ __copyright__ = """
 """
 
 import pya2l.model as model
-from lxml import etree
+from lxml import etree  # nosec
 
 import asamint.msrsw as msrsw
 from asamint.calibration import CalibrationData
@@ -43,7 +43,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
     DOCTYPE = (
         """<!DOCTYPE MSRSW PUBLIC "-//ASAM//DTD CALIBRATION DATA FORMAT:V2.0.0:LAI:IAI:XML:CDF200.XSD//EN" "cdf_v2.0.0.sl.dtd">"""
     )
-    DTD = get_dtd("cdf_v2.0.0.sl")
+    # DTD = get_dtd("cdf_v2.0.0.sl")    # TODO: check!!!
     EXTENSION = ".cdfx"
 
     def on_init(self, project_config, experiment_config, *args, **kws):

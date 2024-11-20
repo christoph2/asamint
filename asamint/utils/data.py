@@ -29,9 +29,14 @@ __copyright__ = """
 __author__ = "Christoph Schueler"
 
 import importlib.resources
+import sys
 from collections import defaultdict
 from functools import lru_cache
 from io import FileIO
+from pathlib import Path
+
+
+pyver = sys.version_info
 
 
 _KEYS = frozenset(["dtds", "templates"])
@@ -80,3 +85,31 @@ def get_dtd(name: str) -> FileIO:
         return FileIO()
     else:
         return FileIO(DTDs[name])
+
+
+if pyver.major == 3 and pyver.minor <= 9:
+    from typing import Optional, Union
+
+    import pkg_resources
+
+    def read_resource_file(package: str, file_name: str, binary: bool = False) -> Optional[Union[str, bytes]]:
+        pth = Path(pkg_resources.resource_filename(package, file_name))
+        if binary:
+            return pth.read_bytes()
+        else:
+            return pth.read_text()
+
+else:
+    import importlib.resources
+
+    def read_resource_file(package: str, file_name: str, binary: bool = False) -> str | bytes | None:
+        st0 = Path(file_name).parts[-1]
+        file_name = str(Path(file_name).parent).replace("/", ".").replace("\\", ".")
+        for item in importlib.resources.files(f"{package}.{file_name}").iterdir():
+            st1 = item.parts[-1]
+            if st0 == st1:
+                if binary:
+                    return item.read_bytes()
+                else:
+                    return item.read_text()
+        return None

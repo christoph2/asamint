@@ -3,7 +3,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020-2022 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2020-2024 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -28,7 +28,7 @@ __author__ = "Christoph Schueler"
 
 import numpy as np
 from asammdf import MDF, Signal
-from lxml.etree import Element, tostring
+from lxml.etree import Element, tostring  # nosec
 from pya2l.api import inspect
 
 from asamint.asam import AsamBaseType

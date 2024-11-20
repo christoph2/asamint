@@ -6,7 +6,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2021 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2021-2024 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -32,11 +32,9 @@ import hashlib
 import math
 import os
 import pathlib
-import pkgutil
 import re
 import time
 from datetime import datetime
-from io import StringIO
 
 import numpy as np
 from babel import default_locale
@@ -47,7 +45,7 @@ SINGLE_BITS = frozenset([2**b for b in range(64 + 1)])
 
 
 def sha1_digest(x: str) -> str:
-    return hashlib.sha1(x.encode("utf8")).hexdigest()
+    return hashlib.sha1(x.encode("utf8")).hexdigest()  # nosec
 
 
 def replace_non_c_char(s: str) -> str:

@@ -6,7 +6,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2021 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2021-2024 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -35,7 +35,7 @@ from pprint import pprint
 
 import numpy as np
 import pya2l.model as model
-from lxml import etree
+from lxml import etree  # nosec
 
 from asamint.utils import slicer
 from asamint.utils.xml import create_elem

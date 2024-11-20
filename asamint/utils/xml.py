@@ -31,8 +31,8 @@ from decimal import Decimal as D
 from decimal import InvalidOperation
 from typing import Optional, Union
 
-from lxml import etree
-from lxml.etree import Comment, SubElement, _Comment, _ProcessingInstruction
+from lxml import etree  # nosec
+from lxml.etree import Comment, SubElement, _Comment, _ProcessingInstruction  # nosec
 
 from asamint.utils.data import get_dtd
 
@@ -50,7 +50,7 @@ def create_elem(parent, name: str, text: str = None, attrib: dict = None):
     return elem
 
 
-def xml_comment(parent, text: str):
+def xml_comment(parent, text: str) -> None:
     """Add XML comment to an element."""
     parent.append(Comment(text))
 
@@ -66,11 +66,10 @@ def as_numeric(element):
 
 def create_validator(file_name: str) -> Optional[Union[etree.DTD, etree.XMLSchema]]:
     content = get_dtd(file_name)
-    print("VA", content)
     if file_name.lower().endswith(".dtd"):
         return etree.DTD(file=content)
     elif file_name.lower().endswith(".xsd"):
-        return etree.XMLSchema(file=content)
+        return etree.XMLSchema(file=content, attribute_defaults=True)
     else:
         return None
 
@@ -79,7 +78,7 @@ class XMLTraversor:
     """Visitable XML tree."""
 
     def __init__(self, file_name):
-        self.doc = etree.parse(file_name)
+        self.doc = etree.parse(file_name)  # nosec
         self.doc_root = self.doc.getroot()
 
     @property

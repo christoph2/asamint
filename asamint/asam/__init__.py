@@ -85,7 +85,7 @@ class AsamBaseType:
     }
 
     def __init__(self, project_config=None, experiment_config=None, *args, **kws):
-        self.project_config = Configuration(AsamBaseType.PROJECT_PARAMETER_MAP or {}, project_config or {})
+        self.project_config = (AsamBaseType.PROJECT_PARAMETER_MAP or {}, project_config or {})
         self.experiment_config = Configuration(AsamBaseType.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
         self.a2l_dynamic = self.project_config.get("A2L_DYNAMIC")
         if not self.a2l_dynamic:

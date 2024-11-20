@@ -28,6 +28,7 @@ __copyright__ = """
 """
 
 import pkgutil
+import sys
 
 import pya2l.model as model
 
@@ -35,10 +36,16 @@ from asamint.calibration import CalibrationData
 from asamint.damos.dcm_listener import Dcm20Listener
 from asamint.logger import Logger
 from asamint.parserlib import ParserWrapper
-from asamint.templates import renderTemplateFromText
+from asamint.utils.templates import do_template_from_text
 
 
 # parser = ParserWrapper("dcm20", "konservierung", Dcm20Listener, debug = True)
+pyver = sys.version_info
+
+if pyver.major == 3 and pyver.minor <= 9:
+    import pkg_resources
+else:
+    import importlib.resources
 
 
 class DCMCreator(CalibrationData):
@@ -59,7 +66,7 @@ class DCMCreator(CalibrationData):
             "experiment": self.experiment_config,
         }
 
-        res = renderTemplateFromText(self.TEMPLATE, namespace, formatExceptions=False, encoding="latin-1")
+        res = do_template_from_text(self.TEMPLATE, namespace, formatExceptions=False, encoding="latin-1")
         file_name = self.generate_filename(self.EXTENSION)
         self.logger.info(f"Saving tree to {file_name}")
         with open(f"{file_name}", "w") as of:

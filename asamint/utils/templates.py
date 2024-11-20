@@ -3,7 +3,7 @@
 __copyright__ = """
     pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2009-2019 by Christoph Schueler <github.com/Christoph2,
+   (C) 2009-2024 by Christoph Schueler <github.com/Christoph2,
                                         cpu12.gems@googlemail.com>
 
    All Rights Reserved
@@ -34,42 +34,39 @@ from io import StringIO
 
 from mako import exceptions
 from mako.runtime import Context
-from mako.template import Template
+from mako.template import Template  # nosec
 
 
 # from csstuff import strings
 
 
-def indentText(text: str, leftmargin: int = 0):
-    return "\n".join(
-        [
-            (
-                "%s%s"
-                % (
-                    (" " * leftmargin),
-                    line,
-                )
-                if line
-                else ""
-            )
-            for line in text.splitlines()
-        ]
-    )
+def indent_text(text: str, left_margin: int = 0) -> str:
+    """
+    Indents the given text with the specified left margin.
+
+    Args:
+        text (str): The input text.
+        left_margin (int, optional): The left margin. Defaults to 0.
+
+    Returns:
+        str: The indented text.
+    """
+    return "\n".join([f"{' ' * left_margin}{line}" if line else "" for line in text.splitlines()])
 
 
-def doTemplate(
-    tmpl,
-    namespace=None,
-    leftMargin=0,
-    rightMargin=80,
-    formatExceptions=True,
-    encoding="utf-8",
-):
+def do_template(
+    tmpl: str,
+    namespace: str | None = None,
+    leftMargin: int = 0,
+    rightMargin: int = 80,
+    formatExceptions: bool = True,
+    encoding: str = "utf-8",
+) -> str:
     namespace = namespace or {}
     buf = StringIO()
     ctx = Context(buf, **namespace)
     try:
-        tobj = Template(filename=tmpl, output_encoding=encoding, format_exceptions=formatExceptions)  # , imports ='re'
+        tobj = Template(filename=tmpl, output_encoding=encoding, format_exceptions=formatExceptions)  # nosec
         tobj.render_context(ctx)
     except Exception:
         print(exceptions.text_error_template().render())
@@ -78,25 +75,25 @@ def doTemplate(
     return buf.getvalue()
 
 
-def doTemplateFromText(
-    tmpl,
-    namespace=None,
-    leftMargin=0,
-    rightMargin=80,
-    formatExceptions=True,
-    encoding="utf-8",
-):
+def do_template_from_text(
+    tmpl: str,
+    namespace: str = None,
+    leftMargin: int = 0,
+    rightMargin: int = 80,
+    formatExceptions: bool = True,
+    encoding: str = "utf-8",
+) -> str:
     namespace = namespace or {}
     buf = StringIO()
     ctx = Context(buf, **namespace)
     try:
-        tobj = Template(text=tmpl, output_encoding=encoding, format_exceptions=formatExceptions)  # , imports ='re'
+        tobj = Template(text=tmpl, output_encoding=encoding, format_exceptions=formatExceptions)  # nosec
         tobj.render_context(ctx)
     except Exception:
         print(exceptions.text_error_template().render())
         return None
-    return indentText(buf.getvalue(), leftMargin)  # , rightMargin)
+    return indent_text(buf.getvalue(), leftMargin)  # , rightMargin)
 
 
-def callDef(template, definition, *args, **kwargs):
+def call_def(template, definition, *args, **kwargs):
     return template.get_def(definition).render(*args, **kwargs)
