@@ -35,6 +35,7 @@ import pathlib
 import re
 import time
 from datetime import datetime
+from typing import Any
 
 import numpy as np
 from babel import default_locale
@@ -161,3 +162,13 @@ def current_datetime(locale=None):
 def chunks(arr, size):
     """Split an array-like in `size` sub-arrays."""
     return [arr[i : i + size] for i in range(0, len(arr), size)]
+
+
+def flatten(values: list[Any]) -> list[Any]:
+    result = []
+    for v in values:
+        if isinstance(v, (list, tuple)):
+            result.extend(flatten(v))
+        else:
+            result.append(v)
+    return result

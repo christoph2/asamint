@@ -49,6 +49,9 @@ class BaseListener(antlr4.ParseTreeListener):
     def getTerminal(self, attr):
         return attr().getText() if attr() else ""
 
+    def getText(self, attr):
+        return getattr(attr, "text") or ""
+
     def getNT(self, attr):
         return attr.value if attr else None
 
@@ -189,7 +192,7 @@ class Dcm20Listener(BaseListener):
 
     def exitKennlinie(self, ctx):
         ctx.value = {
-            "category": ctx.cat.text,
+            "category": self.getText(ctx.cat),
             "name": self.getNT(ctx.n),
             "anzahl_x": self.getNT(ctx.ax),
             "info": self.getNT(ctx.info),
@@ -201,7 +204,7 @@ class Dcm20Listener(BaseListener):
 
     def exitKennfeld(self, ctx):
         ctx.value = {
-            "category": ctx.cat.text,
+            "category": self.getText(ctx.cat),
             "name": self.getNT(ctx.n),
             "anzahl_x": self.getNT(ctx.ax),
             "anzahl_y": self.getNT(ctx.ay),
@@ -210,7 +213,7 @@ class Dcm20Listener(BaseListener):
             "einheit_y": self.getNT(ctx.ey),
             "einheit_w": self.getNT(ctx.ew),
             "sst_liste_x": self.getList(ctx.sst),
-            "kf_zeile_liste": self.getList(ctx.kf),
+            "kf_zeile_liste": ctx.kf.value,
         }
 
     def exitGruppenstuetzstellen(self, ctx):
