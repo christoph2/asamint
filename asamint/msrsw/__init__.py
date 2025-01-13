@@ -57,7 +57,7 @@ class MSRMixIn:
         print("validating...", file_name)
         # self.validate()
         file_name = self.generate_filename(self.EXTENSION)
-        file_name = os.path.join(self.sub_dir("parameters"), file_name)
+        file_name = self.sub_dir("parameters") / file_name
         self.logger.info(f"Saving tree to {file_name}")
         with open(file_name, "wb") as of:
             of.write(

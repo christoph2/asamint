@@ -31,6 +31,7 @@ __author__ = "Christoph Schueler"
 import os
 from dataclasses import dataclass, field
 from enum import IntEnum
+from pathlib import Path
 
 import pya2l.model as model
 from pya2l import DB
@@ -200,8 +201,8 @@ class AsamBaseType:
         # self.project_config.update(project_config)
         # self.experiment_config.update(experiment_config)
 
-    def sub_dir(self, name):
-        return self.SUB_DIRS.get(name)
+    def sub_dir(self, name) -> Path:
+        return Path(self.SUB_DIRS.get(name))
 
     def generate_filename(self, extension, extra=None):
         """Automatically generate filename from configuration plus timestamp."""

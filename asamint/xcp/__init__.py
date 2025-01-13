@@ -6,7 +6,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020-2021 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2020-2025 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -28,21 +28,12 @@ __copyright__ = """
 """
 
 import functools
-import os
 import time
-from collections import defaultdict, namedtuple
-from pprint import pprint
+from collections import namedtuple
 
 import pya2l.model as model
 from objutils import Image, Section, dump, load
-from pya2l.api.inspect import (
-    AxisPts,
-    Characteristic,
-    Function,
-    Group,
-    ModCommon,
-    ModPar,
-)
+from pya2l.api.inspect import AxisPts, Characteristic, Group
 
 from asamint.asam import TYPE_SIZES, AsamBaseType
 from asamint.cdf import CDFCreator
@@ -157,7 +148,7 @@ class CalibrationData(AsamBaseType):
         img = Image(sections=sections, join=False)
         if save_to_file:
             file_name = "CalParams{}.{}".format(current_timestamp(), "hex" if hexfile_type == "ihex" else "srec")
-            file_name = os.path.join(self.sub_dir("hexfiles"), file_name)
+            file_name = self.sub_dir("hexfiles") / file_name
             with open(f"{file_name}", "wb") as outf:
                 dump(hexfile_type, outf, img, row_length=32)
             self.logger.info(f"CalParams written to {file_name}")

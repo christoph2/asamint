@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """The setup script."""
-import os
 from glob import glob
+from pathlib import Path
 
 from setuptools import find_packages, setup
 
@@ -13,7 +13,7 @@ with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
 
-with open(os.path.join("asamint", "version.py")) as f:
+with open(Path("asamint") / "version.py") as f:
     for line in f:
         if line.startswith("__version__"):
             version = line.split("=")[-1].strip().strip('"')

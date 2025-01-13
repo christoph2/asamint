@@ -603,7 +603,7 @@ class CalibrationData(AsamBaseType):
         calibration_log = klasses.dump_characteristics(self._parameters)
 
         file_name = self.generate_filename(".json")
-        file_name = os.path.join(self.sub_dir("logs"), file_name)
+        file_name = self.sub_dir("logs") / file_name
         self.logger.info(f"Writing calibration log to {file_name!r}")
         with open(file_name, "wb") as of:
             of.write(calibration_log)
@@ -722,7 +722,7 @@ class CalibrationData(AsamBaseType):
             mem = xcp_master.pull(size)
             sections.append(Section(start_address=addr, data=mem))
         file_name = f'CalRAM{current_timestamp()}_P{page}.{"hex" if file_type == "ihex" else "srec"}'
-        file_name = os.path.join(self.sub_dir("hexfiles"), file_name)
+        file_name = self.sub_dir("hexfiles") / file_name
         img = Image(sections=sections, join=False)
         with open(f"{file_name}", "wb") as outf:
             dump(file_type, outf, img, row_length=32)
@@ -806,7 +806,7 @@ class CalibrationData(AsamBaseType):
         img = Image(sections=sections, join=True)
         if save_to_file:
             file_name = f'CalParams{current_timestamp()}.{"hex" if hexfile_type == "ihex" else "srec"}'
-            file_name = os.path.join(self.sub_dir("hexfiles"), file_name)
+            file_name = self.sub_dir("hexfiles") / file_name
             with open(f"{file_name}", "wb") as outf:
                 dump(hexfile_type, outf, img, row_length=32)
             self.logger.info(f"CalParams written to {file_name}")
