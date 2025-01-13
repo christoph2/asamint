@@ -600,7 +600,13 @@ class CalibrationData(AsamBaseType):
         except Exception as e:
             print(e)
 
-        print(klasses.dump_characteristics(self._parameters))
+        calibration_log = klasses.dump_characteristics(self._parameters)
+
+        file_name = self.generate_filename(".json")
+        file_name = os.path.join(self.sub_dir("logs"), file_name)
+        self.logger.info(f"Writing calibration log to {file_name!r}")
+        with open(file_name, "wb") as of:
+            of.write(calibration_log)
 
     def check_epk_xcp(self, xcp_master):
         """Compare EPK (EPROM Kennung) from A2L with EPK from ECU.

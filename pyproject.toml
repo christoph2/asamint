@@ -143,3 +143,23 @@ exclude = '''
 	| asamint/damos/parsers/
 )/
 '''
+
+[tool.cibuildwheel]
+build-verbosity = 3
+#test-command = "pytest {package}/tests"
+
+build = "cp3{10,11,12,13}-*"
+skip = ["*-manylinux_i686", "*-musllinux_x86_64", "*-musllinux_i686"]
+build-frontend = "build"
+
+[tool.cibuildwheel.macos]
+archs = ["x86_64", "universal2", "arm64"]
+
+[tool.cibuildwheel.windows]
+archs = ["AMD64"]	# , "ARM64"
+
+[tool.cibuildwheel.linux]
+# archs = ["auto", "aarch64"]
+archs = ["x86_64", "aarch64"]
+# before-all = "yum install -y libffi openssl openssl-devel gcc libpython3-dev"
+manylinux-x86_64-image = "manylinux_2_28"

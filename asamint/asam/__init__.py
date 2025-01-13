@@ -143,6 +143,7 @@ class AsamBaseType:
         "measurements": "measurements",
         "parameters": "parameters",
         "hexfiles": "hexfiles",
+        "logs": "logs",
     }
 
     def __init__(self, project_config=None, experiment_config=None, *args, **kws):
@@ -177,6 +178,7 @@ class AsamBaseType:
             "measurements",
             "parameters",
             "hexfiles",
+            "logs",
         ]
         for dir_name in SUB_DIRS:
             if not os.access(dir_name, os.F_OK):
