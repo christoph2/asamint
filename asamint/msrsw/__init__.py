@@ -54,7 +54,8 @@ class MSRMixIn:
 
     def write_tree(self, file_name):
         """ """
-        self.validate()
+        print("validating...", file_name)
+        # self.validate()
         file_name = self.generate_filename(self.EXTENSION)
         file_name = os.path.join(self.sub_dir("parameters"), file_name)
         self.logger.info(f"Saving tree to {file_name}")

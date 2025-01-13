@@ -5,17 +5,17 @@ from asamint.utils import current_datetime
 **  DAMOS DCM format 2.0
 **  Created by asamint/DCMCreator
 **  Creation date: ${current_datetime()}
-%if "AUTHOR" in project:
-**  Author: ${project["AUTHOR"]}
+%if "AUTHOR" in dataset:
+**  Author: ${dataset["AUTHOR"]}
 %endif
-%if "COMPANY" in project:
-**  Company: ${project["COMPANY"]}
+%if "COMPANY" in dataset:
+**  Company: ${dataset["COMPANY"]}
 %endif
-%if "DEPARTMENT" in project:
-**  Department: ${project["DEPARTMENT"]}
+%if "DEPARTMENT" in dataset:
+**  Department: ${dataset["DEPARTMENT"]}
 %endif
-%if "PROJECT" in project:
-**  Project: ${project["PROJECT"]}
+%if "dataset" in dataset:
+**  dataset: ${dataset["dataset"]}
 %endif
 %if "SUBJECT" in experiment:
 **  Experiment: ${experiment["SUBJECT"]}

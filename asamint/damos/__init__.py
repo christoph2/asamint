@@ -6,7 +6,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2020-2025 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -27,32 +27,16 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
-import pkgutil
-import sys
-
-import pya2l.model as model
-
 from asamint.calibration import CalibrationData
-from asamint.damos.dcm_listener import Dcm20Listener
-from asamint.logger import Logger
-from asamint.parserlib import ParserWrapper
+from asamint.utils.data import read_resource_file
 from asamint.utils.templates import do_template_from_text
-
-
-# parser = ParserWrapper("dcm20", "konservierung", Dcm20Listener, debug = True)
-pyver = sys.version_info
-
-if pyver.major == 3 and pyver.minor <= 9:
-    import pkg_resources
-else:
-    import importlib.resources
 
 
 class DCMCreator(CalibrationData):
     """ """
 
     EXTENSION = ".dcm"
-    TEMPLATE = pkgutil.get_data("asamint", "data/templates/dcm.tmpl")
+    TEMPLATE = read_resource_file("asamint", "data/templates/dcm.tmpl", binary=False)
 
     def on_init(self, project_config, experiment_config, *args, **kws):
         super().on_init(project_config, experiment_config, *args, **kws)
@@ -62,7 +46,7 @@ class DCMCreator(CalibrationData):
 
         namespace = {
             "params": self._parameters,
-            "project": self.project_config,
+            "dataset": self.project_config,
             "experiment": self.experiment_config,
         }
 

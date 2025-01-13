@@ -6,7 +6,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2021-2022 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2021-2025 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -40,11 +40,14 @@ from objutils import Image, Section, dump, load
 from pya2l import DB
 from pya2l.api.inspect import AxisPts, Characteristic, CompuMethod, ModCommon, ModPar
 from pya2l.functions import fix_axis_par, fix_axis_par_dist
+from pyxcp.cpp_ext.cpp_ext import McObject
+from pyxcp.daq_stim.optimize import make_continuous_blocks
 
-# from asamint.calibration import model as cmod
-import asamint.model.calibration
 from asamint.asam import TYPE_SIZES, AsamBaseType, ByteOrder, get_section_reader
 from asamint.logger import Logger
+
+# from asamint.calibration import model as cmod
+from asamint.model.calibration import klasses
 from asamint.utils import SINGLE_BITS, current_timestamp, ffs
 
 
@@ -119,14 +122,14 @@ class Calibration:
         """To the actual update of parameters (write to HEX file / XCP)."""
         pass
 
-    def load_ascii(self, characteristic_name: str) -> asamint.model.calibration.Ascii:
+    def load_ascii(self, characteristic_name: str) -> klasses.Ascii:
         characteristic = self.get_characteristic(characteristic_name, "ASCII", False)
         if characteristic.matrixDim:
             length = characteristic.matrixDim["x"]
         else:
             length = characteristic.number
         value = self.image.read_string(characteristic.address, length=length)
-        return asamint.model.calibration.Ascii(
+        return klasses.Ascii(
             name=characteristic.name,
             comment=characteristic.longIdentifier,
             category="ASCII",
@@ -155,7 +158,7 @@ class Calibration:
         self.image.write_string(characteristic.address, length=length, value=value)
         return Status.OK
 
-    def load_value_block(self, characteristic_name: str) -> asamint.model.calibration.ValueBlock:
+    def load_value_block(self, characteristic_name: str) -> klasses.ValueBlock:
         characteristic = self.get_characteristic(characteristic_name, "VAL_BLK", False)
         reader = get_section_reader("UBYTE", 0)
         raw_values = self.image.read_ndarray(
@@ -167,7 +170,7 @@ class Calibration:
             bit_mask=characteristic.bitMask,
         )
         converted_values = self.int_to_physical(characteristic, raw_values)
-        return asamint.model.calibration.ValueBlock(
+        return klasses.ValueBlock(
             name=characteristic.name,
             comment=characteristic.longIdentifier,
             category="VAL_BLK",
@@ -195,7 +198,7 @@ class Calibration:
         self.image.write_ndarray(addr=characteristic.address, array=values, order=characteristic.fnc_np_order)
         return Status.OK
 
-    def load_value(self, characteristic_name: str) -> asamint.model.calibration.Value:
+    def load_value(self, characteristic_name: str) -> klasses.Value:
         characteristic = self.get_characteristic(characteristic_name, "VALUE", False)
 
         # CALIBRATION_ACCESS
@@ -223,7 +226,7 @@ class Calibration:
             category = "TEXT"
         if characteristic.dependentCharacteristic:
             category = "DEPENDENT_VALUE"
-        return asamint.model.calibration.Value(
+        return klasses.Value(
             name=characteristic.name,
             comment=characteristic.longIdentifier,
             category=category,
@@ -332,7 +335,7 @@ class Calibration:
                 reversed_storage = False
         converted_values = self.int_to_physical(axis_pts, raw_values)
         unit = axis_pts.compuMethod.refUnit
-        return asamint.model.calibration.AxisPts(
+        return klasses.AxisPts(
             name=axis_pts.name,
             comment=axis_pts.longIdentifier,
             category=category,
@@ -546,7 +549,7 @@ class CalibrationData(AsamBaseType):
     """
 
     def on_init(self, project_config, experiment_config, *args, **kws):
-        self.loadConfig(project_config, experiment_config)
+        # self.loadConfig(project_config, experiment_config)
         self.a2l_epk = self.epk_from_a2l()
         if self.a2l_epk is None:
             self.logger.info("A2L doesn't contains an EPK.")
@@ -568,13 +571,36 @@ class CalibrationData(AsamBaseType):
         }
 
     def load_hex(self):
+        # try:
         self._load_axis_pts()
-        self._load_values()
-        self._load_asciis()
-        self._load_value_blocks()
-        self._load_curves()
+        # except Exception as e:
+        #    print(e)
+        try:
+            self._load_values()
+        except Exception as e:
+            print(e)
+        try:
+            self._load_asciis()
+        except Exception as e:
+            print(e)
+        try:
+            self._load_value_blocks()
+        except Exception as e:
+            print(e)
+        try:
+            self._load_curves()
+        except Exception as e:
+            print(e)
+        # try:
         self._load_maps()
-        self._load_cubes()
+        # except Exception as e:
+        #    print(e)
+        try:
+            self._load_cubes()
+        except Exception as e:
+            print(e)
+
+        print(klasses.dump_characteristics(self._parameters))
 
     def check_epk_xcp(self, xcp_master):
         """Compare EPK (EPROM Kennung) from A2L with EPK from ECU.
@@ -634,10 +660,12 @@ class CalibrationData(AsamBaseType):
             self.logger.info("Using image from XCP slave")
         else:
             if not hexfile:
-                hexfile = self.project_config.get("MASTER_HEXFILE")
-                hexfile_type = self.project_config.get("MASTER_HEXFILE_TYPE")
+                hexfile = self.config.general.master_hexfile
+                hexfile_type = self.config.general.master_hexfile_type
             with open(f"{hexfile}", "rb") as inf:
+                self.logger.info(f"Start loading {hexfile}...")
                 image = load(hexfile_type, inf)
+                self.logger.info("done.")
             image.file_name = hexfile
             self.logger.info(f"Using image from HEX file '{hexfile}'")
         if not image:
@@ -645,7 +673,7 @@ class CalibrationData(AsamBaseType):
         else:
             self._image = image
         self.load_hex()
-        self.save()
+        # self.save()
 
     def upload_calram(self, xcp_master, file_type: str = "ihex"):
         """Tansfer RAM segments from ECU to MCS.
@@ -778,7 +806,8 @@ class CalibrationData(AsamBaseType):
             self.logger.info(f"CalParams written to {file_name}")
         return img
 
-    def _load_asciis(self):
+    def _load_asciis(self) -> None:
+        self.logger.info("ASCIIs")
         for characteristic in self.characteristics("ASCII"):
             self.logger.debug(f"Processing ASCII '{characteristic.name}' @0x{characteristic.address:08x}")
             if characteristic.matrixDim:
@@ -786,7 +815,7 @@ class CalibrationData(AsamBaseType):
             else:
                 length = characteristic.number
             value = self.image.read_string(characteristic.address, length=length)
-            self._parameters["ASCII"][characteristic.name] = asamint.model.calibration.Ascii(
+            self._parameters["ASCII"][characteristic.name] = klasses.Ascii(
                 name=characteristic.name,
                 comment=characteristic.longIdentifier,
                 category="ASCII",
@@ -795,7 +824,8 @@ class CalibrationData(AsamBaseType):
                 length=length,
             )
 
-    def _load_value_blocks(self):
+    def _load_value_blocks(self) -> None:
+        self.logger.info("VAL_BLKs")
         for characteristic in self.characteristics("VAL_BLK"):
             self.logger.debug(f"Processing VAL_BLK '{characteristic.name}' @0x{characteristic.address:08x}")
             reader = get_section_reader(characteristic.fnc_asam_dtype, self.byte_order(characteristic))
@@ -808,7 +838,7 @@ class CalibrationData(AsamBaseType):
                 bit_mask=characteristic.bitMask,
             )
             converted_values = self.int_to_physical(characteristic, raw_values)
-            self._parameters["VAL_BLK"][characteristic.name] = asamint.model.calibration.ValueBlock(
+            self._parameters["VAL_BLK"][characteristic.name] = klasses.ValueBlock(
                 name=characteristic.name,
                 comment=characteristic.longIdentifier,
                 category="VAL_BLK",
@@ -819,11 +849,13 @@ class CalibrationData(AsamBaseType):
                 unit=characteristic.physUnit,
             )
 
-    def _load_values(self):
+    def _load_values(self) -> None:
+        self.logger.info("VALUEs")
         for characteristic in self.characteristics("VALUE"):
             self.logger.debug(f"Processing VALUE '{characteristic.name}' @0x{characteristic.address:08x}")
             # CALIBRATION_ACCESS
             # READ_ONLY
+            raw_value = 0
             fnc_asam_dtype = characteristic.fnc_asam_dtype
             reader = get_section_reader(fnc_asam_dtype, self.byte_order(characteristic))
             if characteristic.bitMask:
@@ -831,7 +863,10 @@ class CalibrationData(AsamBaseType):
                 raw_value >>= ffs(characteristic.bitMask)  # Right-shift to get rid of trailing zeros (s. ASAM 2-MC spec).
                 is_bool = True if characteristic.bitMask in SINGLE_BITS else False
             else:
-                raw_value = self.image.read_numeric(characteristic.address, reader)
+                try:
+                    raw_value = self.image.read_numeric(characteristic.address, reader)
+                except Exception as e:
+                    self.logger.error(f"{characteristic.name}: {e!r}")
                 is_bool = False
             if characteristic.physUnit is None and characteristic._conversionRef != "NO_COMPU_METHOD":
                 unit = characteristic.compuMethod.unit
@@ -848,7 +883,7 @@ class CalibrationData(AsamBaseType):
                 category = "TEXT"
             if characteristic.dependentCharacteristic:
                 category = "DEPENDENT_VALUE"
-            self._parameters["VALUE"][characteristic.name] = asamint.model.calibration.Value(
+            self._parameters["VALUE"][characteristic.name] = klasses.Value(
                 name=characteristic.name,
                 comment=characteristic.longIdentifier,
                 category=category,
@@ -858,10 +893,10 @@ class CalibrationData(AsamBaseType):
                 unit=unit,
             )
 
-    def _load_axis_pts(self):
+    def _load_axis_pts(self) -> None:
+        self.logger.info("AXIS_PTSs")
         for item in self.axis_points():
             ap = AxisPts.get(self.session, item.name)
-            # mem_size = ap.total_allocated_memory
             self.logger.debug(f"Processing AXIS_PTS '{ap.name}' @0x{ap.address:08x}")
             rl_values = self.read_record_layout_values(ap, "x")
             self.record_layout_correct_offsets(ap)
@@ -914,7 +949,11 @@ class CalibrationData(AsamBaseType):
                     reversed_storage = False
             converted_values = self.int_to_physical(ap, raw_values)
             unit = ap.compuMethod.refUnit
-            self._parameters["AXIS_PTS"][ap.name] = asamint.model.calibration.AxisPts(
+
+            # pts = klasses.AxisPts()
+            # print(pts)
+
+            self._parameters["AXIS_PTS"][ap.name] = klasses.AxisPts(
                 name=ap.name,
                 comment=ap.longIdentifier,
                 category=category,
@@ -926,15 +965,20 @@ class CalibrationData(AsamBaseType):
                 reversed_storage=reversed_storage,
             )
 
-    def _load_curves(self):
+    def _load_curves(self) -> None:
+        self.logger.info("CURVEs")
         self._load_curves_and_maps("CURVE", 1)
 
-    def _load_maps(self):
+    def _load_maps(self) -> None:
+        self.logger.info("MAPs")
         self._load_curves_and_maps("MAP", 2)
 
     def _load_cubes(self):
+        self.logger.info("CUBOIDs")
         self._load_curves_and_maps("CUBOID", 3)
+        self.logger.info("CUBE_4s")
         self._load_curves_and_maps("CUBE_4", 4)
+        self.logger.info("CUBE_5s")
         self._load_curves_and_maps("CUBE_5", 5)
 
     def _order_curves(self, curves):
@@ -1062,7 +1106,7 @@ class CalibrationData(AsamBaseType):
                 if reversed_storage:
                     flipper.append(axis_idx)
                 axes.append(
-                    asamint.model.calibration.AxisContainer(
+                    klasses.AxisContainer(
                         category=axis_attribute,
                         unit=axis_unit,
                         reversed_storage=reversed_storage,
@@ -1087,7 +1131,7 @@ class CalibrationData(AsamBaseType):
             if flipper:
                 raw_values = np.flip(raw_values, axis=flipper)
             converted_values = chr_cm.int_to_physical(raw_values)
-            klass = asamint.model.calibration.get_calibration_class(category)
+            klass = klasses.get_calibration_class(category)
             self._parameters[f"{category}"][characteristic.name] = klass(
                 name=characteristic.name,
                 comment=characteristic.longIdentifier,

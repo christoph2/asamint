@@ -6,7 +6,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2021-2024 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2021-2025 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -29,8 +29,8 @@ __copyright__ = """
 __author__ = "Christoph Schueler"
 
 import hashlib
+import itertools
 import math
-import os
 import pathlib
 import re
 import time
@@ -112,18 +112,6 @@ def generate_filename(project_config, experiment_config, extension, extra=None):
         return f"{project}_{subject}{current_timestamp()}.{extension}"
 
 
-def cond_create_directories():
-    """ """
-    SUB_DIRS = [
-        "measurements",
-        "parameters",
-        "hexfiles",
-    ]  # Directory names could be configurable.
-    for d in SUB_DIRS:
-        if not os.access(d, os.F_OK):
-            os.mkdir(d)
-
-
 def recursive_dict(element):
     return element.tag, dict(map(recursive_dict, element)) or element.text
 
@@ -172,3 +160,8 @@ def flatten(values: list[Any]) -> list[Any]:
         else:
             result.append(v)
     return result
+
+
+def partition(pred, iterable):
+    t1, t2 = itertools.tee(iterable)
+    return filter(pred, t2), itertools.filterfalse(pred, t1)

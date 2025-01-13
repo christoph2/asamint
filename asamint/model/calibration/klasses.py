@@ -5,7 +5,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2020-2025 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -26,63 +26,66 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
+import json
+from dataclasses import asdict, dataclass, field, is_dataclass
+from typing import Union
 
+import numpy as np
+
+
+class JSONEncoder(json.JSONEncoder):
+    """JSON serializer for the following dataclasses."""
+
+    def default(self, o):
+        if is_dataclass(o):
+            return asdict(o)
+        elif isinstance(o, np.ndarray):
+            return o.tolist()
+        return super().default(o)
+
+
+def dump_characteristics(chs):
+    """JSON representation of characteristic values."""
+    return json.dumps(chs, cls=JSONEncoder, indent=4, separators=(",", ": "))
+
+
+@dataclass
 class BaseCharacteristic:
     """ """
 
-    PROPERTIES = ("name", "comment", "category", "displayIdentifier")
-
-    def __init__(self, **kws):
-        for obj in (BaseCharacteristic, self):
-            for k in obj.PROPERTIES:
-                v = kws.pop(k)
-                setattr(self, k, v)
-
-    def __str__(self):
-        result = []
-        result.append(f"{self.__class__.__name__}(")
-        result.append("".join(f"{k} = '{v}', " for k, v in self._props(BaseCharacteristic)))
-        result.append("".join(f"{k} = '{v}', " for k, v in self._props(self)))
-        result.append(")")
-        return "".join(result)
-
-    def _props(self, obj):
-        result = []
-        for k in obj.PROPERTIES:
-            value = getattr(self, k)
-            result.append(
-                (
-                    k,
-                    value,
-                )
-            )
-        return result
-
-    __repr__ = __str__
+    name: str
+    comment: str
+    category: str
+    displayIdentifier: str
 
 
+@dataclass
 class NDimContainer(BaseCharacteristic):
     """ """
 
-    PROPERTIES = ("raw_values", "converted_values", "fnc_unit", "axes")
+    raw_values: list[Union[int, float]]
+    converted_values: list[Union[int, float]]
+    fnc_unit: str
+    axes: list
 
 
+@dataclass
 class Ascii(BaseCharacteristic):
     """ """
 
-    PROPERTIES = ("length", "value")
+    length: int
+    value: str
 
 
+@dataclass
 class AxisPts(BaseCharacteristic):
     """ """
 
-    PROPERTIES = (
-        "raw_values",
-        "converted_values",
-        "paired",
-        "unit",
-        "reversed_storage",
-    )
+    raw_values: list[Union[int, float]]
+    converted_values: list[Union[int, float]]
+    paired: bool
+    unit: str
+    reversed_storage: bool
 
     @property
     def axis_points_raw(self):
@@ -113,80 +116,61 @@ class AxisPts(BaseCharacteristic):
             return None
 
 
+@dataclass
 class Cube4(NDimContainer):
     """ """
 
 
+@dataclass
 class Cube5(NDimContainer):
     """ """
 
 
+@dataclass
 class Cuboid(NDimContainer):
     """ """
 
 
+@dataclass
 class Curve(NDimContainer):
     """ """
 
 
+@dataclass
 class Map(NDimContainer):
     """ """
 
 
+@dataclass
 class Value(BaseCharacteristic):
     """ """
 
-    PROPERTIES = ("raw_value", "converted_value", "unit")
+    raw_value: Union[int, float]
+    converted_value: Union[int, float]
+    unit: str
 
 
+@dataclass
 class ValueBlock(BaseCharacteristic):
     """ """
 
-    PROPERTIES = ("raw_values", "converted_values", "shape", "unit")
+    raw_values: list[Union[int, float]]
+    converted_values: list[Union[int, float]]
+    shape: list[int]
+    unit: str
 
 
+@dataclass
 class AxisContainer:
     """ """
 
-    def __init__(
-        self,
-        category: str,
-        unit: str,
-        raw_values,
-        converted_values,
-        reversed_storage=False,
-        axis_pts_ref=None,
-        curve_axis_ref=None,
-    ):
-        self.category = category
-        self.unit = unit
-        self.raw_values = raw_values
-        self.converted_values = converted_values
-        self.reversed_storage = reversed_storage
-        self.axis_pts_ref = axis_pts_ref
-        self.curve_axis_ref = curve_axis_ref
-
-    def __str__(self):
-        return """
-AxisContainer {{
-    category            = "{}";
-    unit                = "{}";
-    reversed_storage    = {};
-    raw_values          = {};
-    converted_values    = {};
-    axis_pts_ref        = {};
-    curve_axis_ref      = {};
-}}""".format(
-            self.category,
-            self.unit,
-            self.reversed_storage,
-            self.raw_values,
-            self.converted_values,
-            self.axis_pts_ref,
-            self.curve_axis_ref,
-        )
-
-    __repr__ = __str__
+    category: str
+    unit: str
+    raw_values: list[Union[int, float]]
+    converted_values: list[Union[int, float]]
+    reversed_storage: bool = field(default=False)
+    axis_pts_ref: Union[str, None] = field(default=None)
+    curve_axis_ref: Union[str, None] = field(default=None)
 
 
 def get_calibration_class(name: str):

@@ -911,7 +911,7 @@ class HasMsrQueryTexts:
         cls.msr_query_texts = association_proxy(
             "msr_query_text_association",
             "msr_query_texts",
-            creator=lambda msrquerytexts: assoc_cls(msr_query_texts=msr_query_texts),
+            creator=lambda msr_query_texts: assoc_cls(msr_query_texts=msr_query_texts),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -1172,7 +1172,7 @@ class HasXrefTargets:
         cls.xref_targets = association_proxy(
             "xref_target_association",
             "xref_targets",
-            creator=lambda xreftargets: assoc_cls(xref_targets=xref_targets),
+            creator=lambda xref_targets: assoc_cls(xref_targets=xref_targets),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -1688,7 +1688,7 @@ class HasDefLists:
         cls.def_lists = association_proxy(
             "def_list_association",
             "def_lists",
-            creator=lambda deflists: assoc_cls(def_lists=def_lists),
+            creator=lambda def_lists: assoc_cls(def_lists=def_lists),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -1760,7 +1760,7 @@ class HasLabeledLists:
         cls.labeled_lists = association_proxy(
             "labeled_list_association",
             "labeled_lists",
-            creator=lambda labeledlists: assoc_cls(labeled_lists=labeled_lists),
+            creator=lambda labeled_lists: assoc_cls(labeled_lists=labeled_lists),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -1836,7 +1836,7 @@ class HasMsrQueryChapters:
         cls.msr_query_chapters = association_proxy(
             "msr_query_chapter_association",
             "msr_query_chapters",
-            creator=lambda msrquerychapters: assoc_cls(msr_query_chapters=msr_query_chapters),
+            creator=lambda msr_query_chapters: assoc_cls(msr_query_chapters=msr_query_chapters),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -2008,7 +2008,7 @@ class HasMsrQueryP2s:
         cls.msr_query_p_2s = association_proxy(
             "msr_query_p_2_association",
             "msr_query_p_2s",
-            creator=lambda msrqueryp2s: assoc_cls(msr_query_p_2s=msr_query_p_2s),
+            creator=lambda msr_query_p_2s: assoc_cls(msr_query_p_2s=msr_query_p_2s),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -2183,7 +2183,7 @@ class HasMsrQueryTopic2s:
         cls.msr_query_topic_2s = association_proxy(
             "msr_query_topic_2_association",
             "msr_query_topic_2s",
-            creator=lambda msrquerytopic2s: assoc_cls(msr_query_topic_2s=msr_query_topic_2s),
+            creator=lambda msr_query_topic_2s: assoc_cls(msr_query_topic_2s=msr_query_topic_2s),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -2259,7 +2259,7 @@ class HasPrmChars:
         cls.prm_chars = association_proxy(
             "prm_char_association",
             "prm_chars",
-            creator=lambda prmchars: assoc_cls(prm_chars=prm_chars),
+            creator=lambda prm_chars: assoc_cls(prm_chars=prm_chars),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -2515,7 +2515,7 @@ class HasMsrQueryP1s:
         cls.msr_query_p_1s = association_proxy(
             "msr_query_p_1_association",
             "msr_query_p_1s",
-            creator=lambda msrqueryp1s: assoc_cls(msr_query_p_1s=msr_query_p_1s),
+            creator=lambda msr_query_p_1s: assoc_cls(msr_query_p_1s=msr_query_p_1s),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -2591,7 +2591,7 @@ class HasTopic1s:
         cls.topic_1s = association_proxy(
             "topic_1_association",
             "topic_1s",
-            creator=lambda topic1s: assoc_cls(topic_1s=topic_1s),
+            creator=lambda topic_1s: assoc_cls(topic_1s=topic_1s),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -2719,7 +2719,7 @@ class HasMsrQueryTopic1s:
         cls.msr_query_topic_1s = association_proxy(
             "msr_query_topic_1_association",
             "msr_query_topic_1s",
-            creator=lambda msrquerytopic1s: assoc_cls(msr_query_topic_1s=msr_query_topic_1s),
+            creator=lambda msr_query_topic_1s: assoc_cls(msr_query_topic_1s=msr_query_topic_1s),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -2950,7 +2950,7 @@ class HasTopic2s:
         cls.topic_2s = association_proxy(
             "topic_2_association",
             "topic_2s",
-            creator=lambda topic2s: assoc_cls(topic_2s=topic_2s),
+            creator=lambda topic_2s: assoc_cls(topic_2s=topic_2s),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -3310,7 +3310,7 @@ class HasSwVariableRefs:
         cls.sw_variable_refs = association_proxy(
             "sw_variable_ref_association",
             "sw_variable_refs",
-            creator=lambda swvariablerefs: assoc_cls(sw_variable_refs=sw_variable_refs),
+            creator=lambda sw_variable_refs: assoc_cls(sw_variable_refs=sw_variable_refs),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -3381,7 +3381,7 @@ class HasSwSystemconstCodedRefs:
         cls.sw_systemconst_coded_refs = association_proxy(
             "sw_systemconst_coded_ref_association",
             "sw_systemconst_coded_refs",
-            creator=lambda swsystemconstcodedrefs: assoc_cls(sw_systemconst_coded_refs=sw_systemconst_coded_refs),
+            creator=lambda sw_systemconst_coded_refs: assoc_cls(sw_systemconst_coded_refs=sw_systemconst_coded_refs),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -3452,7 +3452,7 @@ class HasSwSystemconstPhysRefs:
         cls.sw_systemconst_phys_refs = association_proxy(
             "sw_systemconst_phys_ref_association",
             "sw_systemconst_phys_refs",
-            creator=lambda swsystemconstphysrefs: assoc_cls(sw_systemconst_phys_refs=sw_systemconst_phys_refs),
+            creator=lambda sw_systemconst_phys_refs: assoc_cls(sw_systemconst_phys_refs=sw_systemconst_phys_refs),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -3783,7 +3783,7 @@ class HasSwInstanceRefs:
         cls.sw_instance_refs = association_proxy(
             "sw_instance_ref_association",
             "sw_instance_refs",
-            creator=lambda swinstancerefs: assoc_cls(sw_instance_refs=sw_instance_refs),
+            creator=lambda sw_instance_refs: assoc_cls(sw_instance_refs=sw_instance_refs),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -3940,7 +3940,7 @@ class HasSwCalprmRefs:
         cls.sw_calprm_refs = association_proxy(
             "sw_calprm_ref_association",
             "sw_calprm_refs",
-            creator=lambda swcalprmrefs: assoc_cls(sw_calprm_refs=sw_calprm_refs),
+            creator=lambda sw_calprm_refs: assoc_cls(sw_calprm_refs=sw_calprm_refs),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4011,7 +4011,7 @@ class HasSwScaleConstrs:
         cls.sw_scale_constrs = association_proxy(
             "sw_scale_constr_association",
             "sw_scale_constrs",
-            creator=lambda swscaleconstrs: assoc_cls(sw_scale_constrs=sw_scale_constrs),
+            creator=lambda sw_scale_constrs: assoc_cls(sw_scale_constrs=sw_scale_constrs),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4082,7 +4082,7 @@ class HasSwRecordLayoutRefs:
         cls.sw_record_layout_refs = association_proxy(
             "sw_record_layout_ref_association",
             "sw_record_layout_refs",
-            creator=lambda swrecordlayoutrefs: assoc_cls(sw_record_layout_refs=sw_record_layout_refs),
+            creator=lambda sw_record_layout_refs: assoc_cls(sw_record_layout_refs=sw_record_layout_refs),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4153,7 +4153,7 @@ class HasSwRecordLayoutGroups:
         cls.sw_record_layout_groups = association_proxy(
             "sw_record_layout_group_association",
             "sw_record_layout_groups",
-            creator=lambda swrecordlayoutgroups: assoc_cls(sw_record_layout_groups=sw_record_layout_groups),
+            creator=lambda sw_record_layout_groups: assoc_cls(sw_record_layout_groups=sw_record_layout_groups),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4261,7 +4261,7 @@ class HasSwCompuMethodRefs:
         cls.sw_compu_method_refs = association_proxy(
             "sw_compu_method_ref_association",
             "sw_compu_method_refs",
-            creator=lambda swcompumethodrefs: assoc_cls(sw_compu_method_refs=sw_compu_method_refs),
+            creator=lambda sw_compu_method_refs: assoc_cls(sw_compu_method_refs=sw_compu_method_refs),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4332,7 +4332,7 @@ class HasSwGenericAxisParams:
         cls.sw_generic_axis_params = association_proxy(
             "sw_generic_axis_param_association",
             "sw_generic_axis_params",
-            creator=lambda swgenericaxisparams: assoc_cls(sw_generic_axis_params=sw_generic_axis_params),
+            creator=lambda sw_generic_axis_params: assoc_cls(sw_generic_axis_params=sw_generic_axis_params),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4408,7 +4408,7 @@ class HasSwVariableRefSysconds:
         cls.sw_variable_ref_sysconds = association_proxy(
             "sw_variable_ref_syscond_association",
             "sw_variable_ref_sysconds",
-            creator=lambda swvariablerefsysconds: assoc_cls(sw_variable_ref_sysconds=sw_variable_ref_sysconds),
+            creator=lambda sw_variable_ref_sysconds: assoc_cls(sw_variable_ref_sysconds=sw_variable_ref_sysconds),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4479,7 +4479,7 @@ class HasSwCalprmRefSysconds:
         cls.sw_calprm_ref_sysconds = association_proxy(
             "sw_calprm_ref_syscond_association",
             "sw_calprm_ref_sysconds",
-            creator=lambda swcalprmrefsysconds: assoc_cls(sw_calprm_ref_sysconds=sw_calprm_ref_sysconds),
+            creator=lambda sw_calprm_ref_sysconds: assoc_cls(sw_calprm_ref_sysconds=sw_calprm_ref_sysconds),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4550,7 +4550,7 @@ class HasSwClassInstanceRefs:
         cls.sw_class_instance_refs = association_proxy(
             "sw_class_instance_ref_association",
             "sw_class_instance_refs",
-            creator=lambda swclassinstancerefs: assoc_cls(sw_class_instance_refs=sw_class_instance_refs),
+            creator=lambda sw_class_instance_refs: assoc_cls(sw_class_instance_refs=sw_class_instance_refs),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4621,7 +4621,7 @@ class HasSwInstanceRefSysconds:
         cls.sw_instance_ref_sysconds = association_proxy(
             "sw_instance_ref_syscond_association",
             "sw_instance_ref_sysconds",
-            creator=lambda swinstancerefsysconds: assoc_cls(sw_instance_ref_sysconds=sw_instance_ref_sysconds),
+            creator=lambda sw_instance_ref_sysconds: assoc_cls(sw_instance_ref_sysconds=sw_instance_ref_sysconds),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4692,7 +4692,7 @@ class HasSwFeatureRefs:
         cls.sw_feature_refs = association_proxy(
             "sw_feature_ref_association",
             "sw_feature_refs",
-            creator=lambda swfeaturerefs: assoc_cls(sw_feature_refs=sw_feature_refs),
+            creator=lambda sw_feature_refs: assoc_cls(sw_feature_refs=sw_feature_refs),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4763,7 +4763,7 @@ class HasSwInstances:
         cls.sw_instances = association_proxy(
             "sw_instance_association",
             "sw_instances",
-            creator=lambda swinstances: assoc_cls(sw_instances=sw_instances),
+            creator=lambda sw_instances: assoc_cls(sw_instances=sw_instances),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 

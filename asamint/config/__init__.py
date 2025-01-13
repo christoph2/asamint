@@ -3,7 +3,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2024 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2024-2025 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -25,31 +25,19 @@ __copyright__ = """
 """
 
 import io
-import json
 import logging
 import sys
 import typing
 from pathlib import Path
 
+from pyxcp import config as pyxcp_config
 from rich.logging import RichHandler
 from rich.prompt import Confirm
-from traitlets import (
-    Any,
-    Bool,
-    Callable,
-    Dict,
-    Enum,
-    Float,
-    Integer,
-    List,
-    TraitError,
-    Unicode,
-    Union,
-)
-from traitlets.config import Application, Instance, SingletonConfigurable, default
+from traitlets import Bool, Dict, Enum, List, Unicode
+from traitlets.config import Application, Configurable, Instance, default
 
 
-class General(SingletonConfigurable):
+class General(Configurable):
     """ """
 
     author = Unicode(default_value="", help="Author of the project").tag(config=True)
@@ -118,11 +106,20 @@ class ProfileApp(Application):
             self.subapp.start()
 
 
+class XCP(Configurable):
+    classes = List([pyxcp_config.General, pyxcp_config.Transport])
+
+    def __init__(self, **kws):
+        super().__init__(**kws)
+        self.general = pyxcp_config.General(config=self.config, parent=self)
+        self.transport = pyxcp_config.Transport(parent=self)
+
+
 class Asamint(Application):
     description = "ASAMInt application"
     config_file = Unicode(default_value="asamint_conf.py", help="base name of config file").tag(config=True)
 
-    classes = List([General])
+    classes = List([General, XCP])
 
     subcommands = dict(
         profile=(
@@ -166,8 +163,9 @@ class Asamint(Application):
 
     def _read_configuration(self, file_name: str, emit_warning: bool = True) -> None:
         self.read_configuration_file(file_name, emit_warning)
-        self.general = General.instance(config=self.config, parent=self)
-        # self.transport = Transport.instance(parent=self)
+        self.general = General(config=self.config, parent=self)
+        self.xcp = XCP(config=self.config, parent=self)
+        print("RC", self.xcp)
 
     def read_configuration_file(self, file_name: str, emit_warning: bool = True):
         self.legacy_config: bool = False
@@ -219,8 +217,10 @@ class Asamint(Application):
         if hasattr(klass, "classes"):
             kkk = klass.classes
             if hasattr(kkk, "default"):
-                if class_names[-1] not in ("Asamint"):
-                    sub_classes.extend(kkk.default())
+                # print("\tKLASS:", klass, kkk.default())
+                sub_classes.extend(kkk.default())
+                # if class_names[-1] not in ("Asamint"):
+                #    sub_classes.extend(kkk.default())
         for name, tr in klass.class_own_traits().items():
             md = tr.metadata
             if md.get("config"):

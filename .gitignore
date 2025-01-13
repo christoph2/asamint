@@ -149,3 +149,5 @@ static
 /.idea/.gitignore
 /.idea/asamint.iml
 /asamint/data/dtds/cdf.json
+
+.codegpt

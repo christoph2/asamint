@@ -5,7 +5,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020-2021 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2020-2025 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -27,7 +27,6 @@ __copyright__ = """
 """
 
 from decimal import Decimal as D
-from pprint import pprint
 
 import antlr4
 
@@ -96,8 +95,13 @@ class BaseListener(antlr4.ParseTreeListener):
 
 class Dcm20Listener(BaseListener):
     def exitKonservierung(self, ctx):
-        ctx.value = {"kopf": self.getNT(ctx.kopf), "rumpf": self.getNT(ctx.rumpf)}
-        pprint(ctx.value)
+        ctx.value = {"kopf": self.getNT(ctx.kopf), "rumpf": self.getNT(ctx.rumpf), "version": ctx.version.value}
+
+    def exitFile_format(self, ctx):
+        if ctx.version is None:
+            ctx.value = {}
+        else:
+            ctx.value = float(ctx.version.text)
 
     def exitKons_kopf(self, ctx):
         ctx.value = {
@@ -185,6 +189,7 @@ class Dcm20Listener(BaseListener):
         ctx.value = {
             "name": self.getNT(ctx.n),
             "anzahl_x": self.getNT(ctx.ax),
+            "anzahl_y": self.getNT(ctx.ay) or 0,
             "info": self.getNT(ctx.info),
             "einheit_w": self.getNT(ctx.ew),
             "werteliste_kwb": self.getList(ctx.w),

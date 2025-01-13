@@ -1,19 +1,71 @@
 #!/usr/bin/env python
 
 import binascii
-import json
 import typing
+from copy import deepcopy
+from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
-from pprint import pprint
+from decimal import Decimal
 
-from asamint.calibration.msrsw_db import (
-    Msrsw,
-    MSRSWDatabase,
-    SwInstance,
-    SwInstanceSpec,
-)
+from asamint.calibration.msrsw_db import MSRSWDatabase, SwInstance, SwInstanceSpec
 from asamint.msrsw import elements
+from asamint.msrsw.elements import VG, VT, Instance
+from asamint.utils import slicer
+
+
+def array_values(values, flatten: bool = False):
+    result = []
+    for v in values:
+        if isinstance(v, VG):
+            if flatten:
+                result.extend(array_values(v.values, flatten))
+            else:
+                result.append(array_values(v.values, flatten))
+        else:
+            result.append(v.value)
+    return result
+
+
+def scalar_value(values):
+    value = values[0].value
+    if isinstance(values[0], VT):
+        value = f"'{value}'"
+    return value
+
+
+def axis_formatter(values):
+    if all(isinstance(v, str) for v in values):
+        return "   ".join([f"'{v}'" for v in values])
+    else:
+        return "   ".join([f"{v:8.3f}" for v in values])
+
+
+def dump_array(values, level: int = 1, brackets=False) -> str:
+    result = []
+    for value in values:
+        if isinstance(value, list):
+            result.extend(["   " * level, "[" if brackets else ""])
+            result.extend(dump_array(value, level + 1))
+            if brackets:
+                result.append("]\n")
+            else:
+                result.append("\n")
+        else:
+            if isinstance(value, (int, float, Decimal)):
+                result.append(f"{value:8.3f}")
+            else:
+                result.append(f"'{value:20s}'")
+    return "".join(result)
+
+
+def reshape(arr, dim: tuple[int]):
+    if not dim:
+        return arr
+    tmp = deepcopy(arr)
+    for sl in dim:
+        tmp = slicer(tmp, sl)
+    tmp = tmp[0]
+    return tmp
 
 
 def convert_timestamp(ts: str, fmt: str = "%Y-%m-%dT%H:%M:%S") -> datetime:  # "%Y-%m-%d %H:%M:%S"
@@ -30,6 +82,34 @@ def get_content(attr: typing.Any, default: typing.Any | None = None, converter: 
     return value
 
 
+@dataclass
+class ValueContainer:
+    unit_display_name: str
+    array_size: tuple[int]
+    values: list[typing.Any]
+
+
+@dataclass
+class AxisContainer:
+    category: str
+    unit_display_name: str
+    array_size: tuple[int]
+    instance_ref: str
+    values: list[typing.Any]
+
+
+@dataclass
+class CalibrationParameter:
+    short_name: str
+    display_name: str
+    category: str
+    long_name: str
+    feature_ref: str
+    model_link: str
+    axes: elements.AxisContainer
+    values: ValueContainer
+
+
 class CdfWalker:
 
     def __init__(self, db_name: str) -> None:
@@ -39,7 +119,7 @@ class CdfWalker:
     def on_instance(self, instance: elements.Instance) -> None:
         raise NotImplementedError("CdfWalker::on_instance() must be overriten")
 
-    def on_header(self, shortname: str, a2l_file: str, hex_file: str, variants: bool):
+    def on_header(self, shortname: str, a2l_file: str, hex_file: str, references: list, variants: bool):
         raise NotImplementedError("CdfWalker::on_header() must be overriten")
 
     def do_shortname(self, sn):
@@ -200,7 +280,12 @@ class CdfWalker:
                 values = self.do_sw_values_phys(item.sw_values_phys)
                 array_size = self.do_array_size(item.sw_arraysize)
                 instance_ref = self.do_instance_ref(item.sw_instance_ref)
-                result.append(elements.AxisContainer(category, unit_display_name, array_size, values, instance_ref))
+                # print("\tAX:", cont.category.value, cont.unit_display_name, cont.array_size.dimensions, cont.instance_ref.name, walker.axis_formatter(walker.array_values(cont.values))
+                result.append(
+                    AxisContainer(
+                        category.value, unit_display_name.value, array_size, instance_ref, array_values(values, flatten=True)
+                    )
+                )
         return result
 
     def do_sw_cs_history(self, history):
@@ -233,6 +318,16 @@ class CdfWalker:
                 result.append(elements.CriterionValue(ref, vt))
         return result
 
+    def do_sw_cs_collection(self, collections):
+        sw_collection = []
+        if collections is not None and collections.sw_cs_collection:
+            for coll in collections.sw_cs_collection:
+                if coll.category.content == "FEATURE":
+                    sw_collection.append(elements.A2LFunction(coll.sw_feature_ref.content))  # A2L FUNCTION
+                elif coll.category.content == "COLLECTION":
+                    sw_collection.append(elements.A2LGroup(coll.sw_collection_ref.content))  # A2L GROUP
+        return sw_collection
+
     def do_sw_instance_props_variants(self, variants):
         result = []
         if variants is not None:
@@ -246,14 +341,40 @@ class CdfWalker:
         return result
 
     def do_instance(self, inst):
-        shortname = self.do_shortname(inst.short_name)
-        longname = self.do_longname(inst.short_name)
-        displayname = self.do_displayname(inst.display_name)
-        category = self.do_category(inst.category)
-        feature_ref = self.do_feature_ref(inst.sw_feature_ref)
-        model_link = self.do_sw_model_link(inst.sw_model_link)
+
+        shortname = self.do_shortname(inst.short_name).value
+        longname = self.do_longname(inst.short_name).value
+        displayname = self.do_displayname(inst.display_name).value
+        category = self.do_category(inst.category).value
+        feature_ref = self.do_feature_ref(inst.sw_feature_ref).name
+        model_link = self.do_sw_model_link(inst.sw_model_link).value
+
         value_container = self.do_value_cont(inst.sw_value_cont)
         axis_containers = self.do_axis_conts(inst.sw_axis_conts)
+
+        # TODO: conversion routines, e.g. '', or "" around strings, FORMATs, and the like, if A2L is available.
+        array_size = value_container.array_size.dimensions
+        match category:
+            case "VALUE" | "DEPENDENT_VALUE" | "BOOLEAN" | "ASCII":
+                values = scalar_value(value_container.values)
+            case "COM_AXIS" | "CURVE_AXIS" | "RES_AXIS" | "CURVE":
+                values = array_values(value_container.values, flatten=True)
+            case "VAL_BLK" | "MAP" | "CUBOID" | "CUBE_4" | "CUBE_5":
+                if array_size:
+                    values = array_values(value_container.values, flatten=True)
+                    values = reshape(values, array_size)
+                else:
+                    values = array_values(value_container.values, flatten=False)
+            case "BLOB":
+                values = array_values(value_container.values, flatten=True)
+            case _:
+                raise ValueError(category)
+
+        vc = ValueContainer(value_container.unit_display_name.value or "", array_size, values)
+
+        cp = CalibrationParameter(shortname, displayname, category, longname, feature_ref, model_link, axis_containers, vc)
+        # print("\tCP:", cp)
+
         history = self.do_sw_cs_history(inst.sw_cs_history)
         array_index = self.do_array_index(inst.sw_array_index)
         flags = self.do_sw_cs_flags(inst.sw_cs_flags)
@@ -268,7 +389,7 @@ class CdfWalker:
             displayname,
             category,
             feature_ref,
-            value_container,
+            vc,
             axis_containers,
             history,
             flags,
@@ -276,7 +397,7 @@ class CdfWalker:
             variants,
             children,
         )
-        return inst
+        return cp
 
     def run(self):
         spec = self.session.query(SwInstanceSpec).first()
@@ -291,14 +412,9 @@ class CdfWalker:
         else:
             a2l_file = None
             hex_file = None
-        self.on_header(shortname.value, a2l_file, hex_file, category.value == "VCD")
-        sw_collection = []
-        if collections is not None and collections.sw_cs_collection:
-            for coll in collections.sw_cs_collection:
-                if coll.category.content == "FEATURE":
-                    sw_collection.append(elements.A2LFunction(coll.sw_feature_ref.content))  # A2L FUNCTION
-                elif coll.category.content == "COLLECTION":
-                    sw_collection.append(elements.A2LGroup(coll.sw_collection_ref.content))  # A2L GROUP
 
+        sw_collection = self.do_sw_cs_collection(collections)
+
+        self.on_header(shortname.value, a2l_file, hex_file, sw_collection, category.value == "VCD")
         for inst in self.session.query(SwInstance).all():
             self.on_instance(self.do_instance(inst))

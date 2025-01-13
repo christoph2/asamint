@@ -6,7 +6,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2021-2024 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2021-2025 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -27,13 +27,13 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
+import numpy as np
 import pya2l.model as model
 from lxml import etree  # nosec
 
 import asamint.msrsw as msrsw
 from asamint.calibration import CalibrationData
 from asamint.utils import add_suffix_to_path
-from asamint.utils.data import get_dtd
 from asamint.utils.xml import create_elem, xml_comment
 
 
@@ -48,7 +48,6 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
 
     def on_init(self, project_config, experiment_config, *args, **kws):
         super().on_init(project_config, experiment_config, *args, **kws)
-        self.loadConfig(project_config, experiment_config)
 
     def save(self):
         self.root = self._toplevel_boilerplate()
@@ -58,6 +57,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         self.write_tree("CDF20demo")
 
     def _toplevel_boilerplate(self):
+        print(f"A2L: {self.a2l_file}")
         root = self.msrsw_header("CDF20", "CDF")
         sw_system = self.sub_trees["SW-SYSTEM"]
         instance_spec = create_elem(sw_system, "SW-INSTANCE-SPEC")
@@ -69,17 +69,20 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         create_elem(
             instance_tree_origin,
             "SYMBOLIC-FILE",
-            add_suffix_to_path(self.project_config.get("A2L_FILE"), ".a2l"),
+            add_suffix_to_path(self.a2l_file, ".a2l"),
         )
         data_file_name = self.image.file_name
         if data_file_name:
             create_elem(instance_tree_origin, "DATA-FILE", data_file_name)
         return root
 
-    def cs_collection(self, name, category, tree):
+    def cs_collection(self, name: str, category: str, tree, is_group: bool):
         collection = create_elem(tree, "SW-CS-COLLECTION")
         create_elem(collection, "CATEGORY", text=category)
-        create_elem(collection, "SW-COLLECTION-REF", text=name)
+        if is_group:
+            create_elem(collection, "SW-COLLECTION-REF", text=name)
+        else:
+            create_elem(collection, "SW-FEATURE-REF", text=name)
 
     def cs_collections(self):
         instance_tree = self.sub_trees["SW-INSTANCE-TREE"]
@@ -87,10 +90,10 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         functions = self.query(model.Function).all()
         functions = [f for f in functions if f.def_characteristic and f.def_characteristic.identifier != []]
         for f in functions:
-            self.cs_collection(f.name, "FEATURE", collections)
+            self.cs_collection(f.name, "FEATURE", collections, False)
         groups = self.query(model.Group).all()
         for g in groups:
-            self.cs_collection(g.groupName, "COLLECTION", collections)
+            self.cs_collection(g.groupName, "COLLECTION", collections, True)
 
     def instances(self):
         instance_tree = self.sub_trees["SW-INSTANCE-TREE"]
@@ -256,6 +259,9 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
             feature_ref=feature_ref,
         )
         vph = create_elem(value_cont, "SW-VALUES-PHYS")
+        if not isinstance(fnc_values, np.ndarray):
+            fnc_values = np.array(fnc_values)
+            print(f"obj {fnc_values} is not `numpy`.")
         self.output_value_array(fnc_values, vph)
         return axis_conts
 

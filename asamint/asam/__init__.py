@@ -5,7 +5,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020-2023 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2020-2025 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -28,16 +28,77 @@ __copyright__ = """
 __author__ = "Christoph Schueler"
 
 
+import os
+from dataclasses import dataclass, field
 from enum import IntEnum
-from logging import getLogger
 
 import pya2l.model as model
 from pya2l import DB
-from pya2l.api.inspect import Measurement, ModCommon, ModPar
+from pya2l.api.inspect import Group, Measurement, ModCommon, ModPar
 from sqlalchemy import func, or_
 
 from asamint.config import get_application
-from asamint.utils import cond_create_directories, current_timestamp
+from asamint.utils import current_timestamp, partition
+
+
+def create_xcp_master():
+    from pyxcp.master import Master
+
+    from asamint.config import get_application
+
+    app = get_application()
+    xcp_config = app.xcp
+    master = Master(
+        xcp_config.transport.layer, config=xcp_config  # policy=policy, transport_layer_interface=transport_layer_interface
+    )
+    return master
+
+
+@dataclass
+class Group:
+    name: str
+    sub_groups: list[Group] = field(default_factory=list)
+
+
+class Directory:
+    """Maintains A2L FUNCTION and  GROUP hierachy."""
+
+    def __init__(self, session):
+        self.session = session
+        self.group_by_rid = {}
+        self.group_by_name = {}
+        self.function_by_rid = {}
+        self.function_by_name = {}
+        self.group_treee = []
+
+        gr = self.session.query(model.Group).all()
+        for g in gr:
+            self.group_by_rid[g.rid] = g
+            self.group_by_name[g.groupName] = g
+        fc = self.session.query(model.Function).all()
+        for f in fc:
+            self.function_by_rid[f.rid] = f
+            self.function_by_name[f.name] = f
+            # print(f)
+        # print("=" * 80)
+        root_groups, gr = partition(lambda g: g.root is not None, gr)
+
+        if root_groups:
+            # print("ROOT")
+            for g in root_groups:
+                self.group_treee.append(Group(g.groupName))
+                # print(g, g.sub_group.identifier)   # 'groupLongIdentifier', 'groupName'
+
+            # print("*** NON-ROOT")
+            # for g in gr:
+            #    print(g, g.sub_group)   # 'groupLongIdentifier', 'groupName'
+        else:
+            pass
+            # print("*** NO ROOT GROUPS")
+        # print("KRUPS", self.group_treee)
+
+    def create_sub_tree(self):
+        pass
 
 
 class AsamBaseType:
@@ -85,20 +146,42 @@ class AsamBaseType:
     }
 
     def __init__(self, project_config=None, experiment_config=None, *args, **kws):
-        self.project_config = (AsamBaseType.PROJECT_PARAMETER_MAP or {}, project_config or {})
-        self.experiment_config = Configuration(AsamBaseType.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
-        self.a2l_dynamic = self.project_config.get("A2L_DYNAMIC")
+        self.config = get_application()
+        self.logger = self.config.log
+
+        self.shortname = self.config.general.shortname
+        self.a2l_encoding = self.config.general.a2l_encoding
+        self.a2l_dynamic = self.config.general.a2l_dynamic
+        self.a2l_file = self.config.general.a2l_file
+
+        self.xcp_master = create_xcp_master()
+
         if not self.a2l_dynamic:
             self.open_create_session(
-                self.project_config.get("A2L_FILE"),
-                encoding=self.project_config.get("A2L_ENCODING"),
+                self.a2l_file,
+                encoding=self.a2l_encoding,
             )
-        cond_create_directories()
-        self.logger = getLogger(self.__class__.__name__)
-        self.logger.setLevel(self.project_config.get("LOGLEVEL"))
+
+        self.cond_create_directories()
+
         self.mod_common = ModCommon.get(self.session)
         self.mod_par = ModPar.get(self.session) if ModPar.exists(self.session) else None
+
+        self.directory = Directory(self.session)
         self.on_init(project_config, experiment_config, *args, **kws)
+
+    def cond_create_directories(self) -> None:
+        """ """
+        SUB_DIRS = [
+            "experiments",
+            "measurements",
+            "parameters",
+            "hexfiles",
+        ]
+        for dir_name in SUB_DIRS:
+            if not os.access(dir_name, os.F_OK):
+                self.logger.info(f"Creating directory {dir_name!r}")
+                os.mkdir(dir_name)
 
     def open_create_session(self, a2l_file, encoding="latin-1"):
         if not hasattr(AsamBaseType, "_session_obj"):
@@ -110,18 +193,18 @@ class AsamBaseType:
 
     def loadConfig(self, project_config, experiment_config):
         """Load configuration data."""
-        project_config = Configuration(self.__class__.PROJECT_PARAMETER_MAP or {}, project_config or {})
-        experiment_config = Configuration(self.__class__.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
-        self.project_config.update(project_config)
-        self.experiment_config.update(experiment_config)
+        # project_config = Configuration(self.__class__.PROJECT_PARAMETER_MAP or {}, project_config or {})
+        # experiment_config = Configuration(self.__class__.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
+        # self.project_config.update(project_config)
+        # self.experiment_config.update(experiment_config)
 
     def sub_dir(self, name):
         return self.SUB_DIRS.get(name)
 
     def generate_filename(self, extension, extra=None):
         """Automatically generate filename from configuration plus timestamp."""
-        project = self.project_config.get("SHORTNAME")
-        subject = self.experiment_config.get("SHORTNAME")
+        project = self.shortname
+        subject = f"SUBJ_{self.shortname}"  #  self.experiment_config.get("SHORTNAME")
         if extra:
             return f"{project}_{subject}{current_timestamp()}_{extra}{extension}"
         else:
@@ -200,3 +283,6 @@ class ByteOrder(IntEnum):
 def get_section_reader(datatype: str, byte_order: ByteOrder) -> str:
     """ """
     return OJ_READERS[datatype][byte_order]
+
+
+# abt = AsamBaseType()

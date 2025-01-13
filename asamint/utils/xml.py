@@ -46,7 +46,7 @@ def create_elem(parent, name: str, text: str = None, attrib: dict = None):
     """ """
     elem = SubElement(parent, name, attrib or {})
     if text:
-        elem.text = text
+        elem.text = text.strip("\x00")  # CHECK: WHY `\x00`?
     return elem
 
 

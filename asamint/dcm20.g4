@@ -32,10 +32,18 @@
 grammar dcm20;
 
 konservierung:
-   ('\n')* 'KONSERVIERUNG_FORMAT' '2.0' ('\n')+
+   (
+   // ('\n')* 'KONSERVIERUNG_FORMAT' version=FLOAT /*'2.0'*/ ('\n')+
+   version = file_format
    kopf = kons_kopf
    rumpf = kons_rumpf
+   )?   // Consider empty filez.
    ;
+
+file_format:
+    ('\n')*
+    ('KONSERVIERUNG_FORMAT' version=FLOAT /*'2.0'*/ ('\n')+)?
+    ;
 
 kons_kopf:
    (info = modulkopf_info)? (func_def = funktionsdef)? (var_def = variantendef)?
@@ -117,7 +125,7 @@ kennwert:
    ;
 
 kennwerteblock
-   : 'FESTWERTEBLOCK' n = nameValue ax = anzahl_x '\n' info = kgr_info (ew = einheit_w)? (w += werteliste_kwb)+ 'END' ( '\n' )+
+   : 'FESTWERTEBLOCK' n = nameValue ax = anzahl_x ('@' ay = anzahl_y)? '\n' info = kgr_info (ew = einheit_w)? (w += werteliste_kwb)+ 'END' ( '\n' )+
    ;
 
 kennlinie:
@@ -233,57 +241,87 @@ integerValue:
    i = INT
    ;
 
+///
+///
+///
 NAME
-   : LETTER ( LETTER | '0' .. '9' | '[' | ']' | '.' )*
+   : NO_SO_VALID_C_IDENTIFIER_START ( NO_SO_VALID_C_IDENTIFIER )*
    ;
 
-
-fragment LETTER
+fragment NO_SO_VALID_C_IDENTIFIER_START
    : 'A' .. 'Z' | 'a' .. 'z' | '_'
    ;
 
-
-TEXT
-   : '"' ( EscapeSequence | ~ ( '\\' | '"' ) )* '"'
+fragment NO_SO_VALID_C_IDENTIFIER
+   : 'A' .. 'Z' | 'a' .. 'z' | '_' | '0' .. '9' | '[' | ']' | '.'
    ;
 
+fragment
+EXPONENT : ('e'|'E') ('+'|'-')? ('0'..'9')+ ;
+
+FLOAT:
+   ('+' | '-')?
+    (
+        ('0'..'9')+ '.' ('0'..'9')* EXPONENT?
+    |   '.' ('0'..'9')+ EXPONENT?
+    |   ('0'..'9')+ EXPONENT
+    | 'NaN'
+    | 'INF'
+    )
+    ;
+
+INT:
+      ('+' | '-')? '0'..'9'+
+    | '0'('x' | 'X') ('a' .. 'f' | 'A' .. 'F' | '0' .. '9')+
+    ;
+
+
+TEXT:
+    '"' ( ESC_SEQ | ~('\\'|'"') )* '"'
+    ;
+
+fragment
+ESC_SEQ
+    :   '\\'
+        (   // The standard escaped character set such as tab, newline, etc.
+            [btnfr"'\\]
+        |   // A Java style Unicode escape sequence
+            UNICODE_ESC
+        |   // Invalid escape
+            .
+        |   // Invalid escape at end of file
+            EOF
+        )
+    ;
+
+fragment
+UNICODE_ESC
+    :   'u' (HEX_DIGIT (HEX_DIGIT (HEX_DIGIT HEX_DIGIT?)?)?)?
+;
+
+fragment
+HEX_DIGIT : ('0'..'9'|'a'..'f'|'A'..'F') ;
+
+fragment
+OCTAL_ESC:
+    '\\' ('0'..'3') ('0'..'7') ('0'..'7')
+    |   '\\' ('0'..'7') ('0'..'7')
+    |   '\\' ('0'..'7')
+    ;
 
 fragment EscapeSequence
    : '\\' ( 'b' | 't' | 'n' | 'f' | 'r' | '\'' | '\\' ) // '\"'
    ;
 
-
-fragment QUOTE
-   : '"'
-   ;
-
-
-INT
-   : MINUS? ( '0' | '1' .. '9' '0' .. '9'* )
-   ;
-
-
-FLOAT
-   : MINUS? ( '0' .. '9' )+ '.' ( '0' .. '9' )* Exponent? | MINUS? '.' ( '0' .. '9' )+ Exponent? | MINUS? ( '0' .. '9' )+ Exponent
-   ;
-
-
-MINUS
-   : '-'
-   ;
-
-
-fragment Exponent
-   : ( 'e' | 'E' ) ( '+' | '-' )? ( '0' .. '9' )+
-   ;
-
-
 WS
    : ( ' ' | '\r' | '\t' | '\u000C' ) ->skip
    ;
 
+
 COMMENT:
-    ('//' ~('\n'|'\r')* '\r'? '\n'
-    |   '/*' .*? '*/')
+    ('*' ~('\n'|'\r')* '\r'? '\n'
+    |   '!' ~('\n'|'\r')* '\r'? '\n'
+//    |   '!' ~('\n'|'\r')* '\r'? '\n'
+    )
         -> channel(HIDDEN)
     ;
