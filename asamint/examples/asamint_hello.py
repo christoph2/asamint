@@ -38,7 +38,10 @@ from asamint.cmdline import ArgumentParser
 
 
 # sys.argv.extend(["-c", "c0stuff_conf.py"])
+
 sys.argv.extend(["-c", "jstuff_conf.py"])
+# sys.argv.extend(["-c", "asamint_conf.py"])
+
 os.chdir(r"C:\Users\Chris\PycharmProjects\asamint\asamint\examples")
 
 
@@ -50,7 +53,9 @@ def main():
     # cd.save_parameters(hexfile="J_B8N42@@_@41_16K0.s19", hexfile_type="srec")
     # cd.save_parameters(hexfile="0711XM89.HEX", hexfile_type="ihex")
     cdm = CalibrationData()
+    # cdm.save_parameters(xcp_master=cdm.xcp_master)
     cdm.save_parameters()
+    cdm.close()
 
 
 if __name__ == "__main__":

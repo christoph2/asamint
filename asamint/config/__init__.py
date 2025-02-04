@@ -54,6 +54,7 @@ class General(Configurable):
     a2l_dynamic = Bool(False, help="Enable dynamic (via XCP) A2L parsing").tag(config=True)
     master_hexfile = Unicode(default_value="", help="Master HEX file").tag(config=True)
     master_hexfile_type = Enum(values=["ihex", "srec"], default_value="ihex", help="Choose HEX file type").tag(config=True)
+    mdf_version = Unicode(default="4.20", help="Version used to write MDF files.").tag(config=True)
     experiments = List(
         trait=Unicode(),
         default_value=[],
@@ -165,7 +166,6 @@ class Asamint(Application):
         self.read_configuration_file(file_name, emit_warning)
         self.general = General(config=self.config, parent=self)
         self.xcp = XCP(config=self.config, parent=self)
-        print("RC", self.xcp)
 
     def read_configuration_file(self, file_name: str, emit_warning: bool = True):
         self.legacy_config: bool = False

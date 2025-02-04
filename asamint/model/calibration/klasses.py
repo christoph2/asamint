@@ -28,9 +28,20 @@ __copyright__ = """
 
 import json
 from dataclasses import asdict, dataclass, field, is_dataclass
+from datetime import datetime
 from typing import Union
+from uuid import UUID
 
 import numpy as np
+from sqlalchemy.ext.associationproxy import (
+    _AssociationDict,
+    _AssociationList,
+    _AssociationSet,
+)
+
+
+# numpy.seterr(all=None, divide=None, over=None, under=None, invalid=None)
+np.seterr(divide="raise")
 
 
 class JSONEncoder(json.JSONEncoder):
@@ -39,9 +50,25 @@ class JSONEncoder(json.JSONEncoder):
     def default(self, o):
         if is_dataclass(o):
             return asdict(o)
+        elif isinstance(o, datetime):
+            return o.isoformat()
         elif isinstance(o, np.ndarray):
             return o.tolist()
-        return super().default(o)
+        elif isinstance(o, _AssociationList):
+            return list(o)
+        elif isinstance(o, _AssociationSet):
+            return set(o)
+        elif isinstance(o, _AssociationDict):
+            return dict(o)
+        elif isinstance(o, UUID):
+            return str(o)
+        else:
+            try:
+                data = super().default(o)
+            except Exception as e:
+                print(f"JSONEncoder: {e!r} ==> {type(o)}")
+                data = ""
+        return data
 
 
 def dump_characteristics(chs) -> bytes:

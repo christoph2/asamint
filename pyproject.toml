@@ -29,8 +29,6 @@ include = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
-pya2ldb = "^0.13.1"
-objutils = "^0.4.12"
 asammdf = "^8.0.1"
 rich = "^13.9.2"
 traitlets = "^5.11.2"
@@ -43,6 +41,8 @@ antlr4-tools = "^0.2.1"
 cmd2 = "^2.5.7"
 pyreadline = "^2.1"
 pyreadline3 = "^3.5.4"
+objutils = "^0.6.0"
+numexpr = "^2.10.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
@@ -62,7 +62,7 @@ dynamic = ["license", "readme", "authors", "requires-python", "description", "cl
 
 [tool.pytest]
 addopts = "--verbose --tb=short --junitxml=result.xml -o junit_family=xunit2"
-testpaths = "pyxcp/tests"
+testpaths = "asamint/tests"
 
 [tool.isort]
 profile = "black"

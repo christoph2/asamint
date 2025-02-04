@@ -117,22 +117,6 @@ class AsamBaseType:
         - If `mdf_filename` is not None, **always overwrite** file.
     """
 
-    PROJECT_PARAMETER_MAP = {
-        #                           Type     Req'd   Default
-        "LOGLEVEL": (str, False, "WARN"),
-        "A2L_FILE": (str, True, ""),
-        "A2L_ENCODING": (str, False, "latin-1"),
-        "A2L_DYNAMIC": (bool, False, False),
-        "AUTHOR": (str, False, ""),
-        "COMPANY": (str, False, ""),
-        "DEPARTMENT": (str, False, ""),
-        "PROJECT": (str, True, ""),
-        "SHORTNAME": (str, True, ""),  # Contributes to filename generation.
-        "SEED_N_KEY_DLL": (str, False, ""),
-        "MASTER_HEXFILE": (str, False, ""),
-        "MASTER_HEXFILE_TYPE": (str, False, "ihex"),
-    }
-
     EXPERIMENT_PARAMETER_MAP = {
         #                           Type     Req'd   Default
         "SUBJECT": (str, True, ""),
@@ -155,8 +139,18 @@ class AsamBaseType:
         self.a2l_encoding = self.config.general.a2l_encoding
         self.a2l_dynamic = self.config.general.a2l_dynamic
         self.a2l_file = self.config.general.a2l_file
+        self.author = self.config.general.author
+        self.company = self.config.general.company
+        self.department = self.config.general.department
+        self.project = self.config.general.project
+        self.master_hexfile = self.config.general.master_hexfile
+        self.master_hexfile_type = self.config.general.master_hexfile_type
 
         self.xcp_master = create_xcp_master()
+        self.xcp_connected = False
+
+        # self.xcp_master.connect()
+        # self.xcp_connected = True
 
         if not self.a2l_dynamic:
             self.open_create_session(
@@ -212,6 +206,14 @@ class AsamBaseType:
             return f"{project}_{subject}{current_timestamp()}_{extra}{extension}"
         else:
             return f"{project}_{subject}{current_timestamp()}{extension}"
+
+    def close(self):
+        if self.xcp_connected:
+            try:
+                self.xcp_master.disconnect()
+            finally:
+                self.xcp_master.close()
+                self.xcp_connected = False
 
     @property
     def session(self):

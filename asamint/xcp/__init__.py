@@ -38,7 +38,7 @@ from pya2l.api.inspect import AxisPts, Characteristic, Group
 from asamint.asam import TYPE_SIZES, AsamBaseType
 from asamint.cdf import CDFCreator
 from asamint.utils import chunks, current_timestamp
-from asamint.utils.optimize import DaqList, McObject, binpacking, make_continuous_blocks
+from asamint.utils.optimize import McObject, binpacking, make_continuous_blocks
 from asamint.xcp.reco import LogConverter, Worker
 
 
@@ -102,8 +102,8 @@ class CalibrationData(AsamBaseType):
             img.file_name = None
         else:
             if not hexfile:
-                hexfile = self.project_config.get("MASTER_HEXFILE")
-                hexfile_type = self.project_config.get("MASTER_HEXFILE_TYPE")
+                hexfile = self.master_hexfile
+                hexfile_type = self.master_hexfile_type
             with open(f"{hexfile}", "rb") as inf:
                 img = load(hexfile_type, inf)
             img.file_name = hexfile

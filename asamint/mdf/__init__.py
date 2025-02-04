@@ -50,7 +50,7 @@ class MDFCreator(AsamBaseType):
 
     PROJECT_PARAMETER_MAP = {
         #                           Type     Req'd   Default
-        "MDF_VERSION": (str, False, "4.10"),
+        "MDF_VERSION": (str, False, "4.20"),
     }
 
     EXPERIMENT_PARAMETER_MAP = {
@@ -66,6 +66,7 @@ class MDFCreator(AsamBaseType):
         self._mdf_obj = MDF(version=self.project_config.get("MDF_VERSION"))
         hd_comment = self.hd_comment()
         self._mdf_obj.md_data = hd_comment
+        self.mdf_version = self.config.general.mdf_version
 
     def hd_comment(self):
         """ """

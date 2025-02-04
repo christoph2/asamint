@@ -28,11 +28,10 @@ __copyright__ = """
 """
 
 import functools
-import os
 import sys
 from collections import OrderedDict
 from enum import IntEnum
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
 import pya2l.model as model
@@ -60,6 +59,8 @@ else:
 
 BOOLEAN_MAP = {"true": 1, "false": 0}
 AXES = ("x", "y", "z", "4", "5")
+
+sys.setrecursionlimit(2000)  # Not required by asamint by itself, but if we run pyinstrument benchmarks...
 
 
 class ExecutionPolicy(IntEnum):
@@ -571,40 +572,18 @@ class CalibrationData(AsamBaseType):
         }
 
     def load_hex(self):
-        # try:
         self._load_axis_pts()
-        # except Exception as e:
-        #    print(e)
-        try:
-            self._load_values()
-        except Exception as e:
-            print(e)
-        try:
-            self._load_asciis()
-        except Exception as e:
-            print(e)
-        try:
-            self._load_value_blocks()
-        except Exception as e:
-            print(e)
-        try:
-            self._load_curves()
-        except Exception as e:
-            print(e)
-        # try:
+        self._load_values()
+        self._load_asciis()
+        self._load_value_blocks()
+        self._load_curves()
         self._load_maps()
-        # except Exception as e:
-        #    print(e)
-        try:
-            self._load_cubes()
-        except Exception as e:
-            print(e)
+        self._load_cubes()
 
         calibration_log = klasses.dump_characteristics(self._parameters)
-
         file_name = self.generate_filename(".json")
         file_name = self.sub_dir("logs") / file_name
-        self.logger.info(f"Writing calibration log to {file_name!r}")
+        self.logger.info(f"Writing calibration log to {str(file_name)!r}")
         with open(file_name, "wb") as of:
             of.write(calibration_log)
 
@@ -669,13 +648,12 @@ class CalibrationData(AsamBaseType):
                 hexfile = self.config.general.master_hexfile
                 hexfile_type = self.config.general.master_hexfile_type
             with open(f"{hexfile}", "rb") as inf:
-                self.logger.info(f"Start loading {hexfile}...")
+                self.logger.info(f"Loading hex-file {hexfile!r}")
                 image = load(hexfile_type, inf)
-                self.logger.info("done.")
             image.file_name = hexfile
-            self.logger.info(f"Using image from HEX file '{hexfile}'")
+            # self.logger.info(f"Using image from HEX file '{hexfile}'")
         if not image:
-            raise ValueError("")
+            raise ValueError("Empty calibration image.")
         else:
             self._image = image
         self.load_hex()
@@ -784,17 +762,17 @@ class CalibrationData(AsamBaseType):
         a2l_epk = self.a2l_epk
         if a2l_epk:
             epk, address = a2l_epk
-            result.append(McObject("EPK", address, len(epk)))
+            result.append(McObject("EPK", address, 0, len(epk), ""))
         axis_pts = self.query(model.AxisPts).order_by(model.AxisPts.address).all()
         for a in axis_pts:
             ax = AxisPts.get(self.session, a.name)
             mem_size = ax.total_allocated_memory
-            result.append(McObject(ax.name, ax.address, mem_size))
+            result.append(McObject(ax.name, ax.address, 0, mem_size, ""))
         characteristics = self.query(model.Characteristic).order_by(model.Characteristic.type, model.Characteristic.address).all()
         for c in characteristics:
             characteristic = Characteristic.get(self.session, c.name)
             mem_size = characteristic.total_allocated_memory
-            result.append(McObject(characteristic.name, characteristic.address, mem_size))
+            result.append(McObject(characteristic.name, characteristic.address, 0, mem_size, ""))
         blocks = make_continuous_blocks(result)
         total_size = functools.reduce(lambda a, s: s.length + a, blocks, 0)
         self.logger.info(f"Fetching a total of {total_size / 1024:.2f} KBytes from XCP slave")
@@ -814,13 +792,17 @@ class CalibrationData(AsamBaseType):
 
     def _load_asciis(self) -> None:
         self.logger.info("ASCIIs")
+        value: Optional[str] = None
         for characteristic in self.characteristics("ASCII"):
             self.logger.debug(f"Processing ASCII '{characteristic.name}' @0x{characteristic.address:08x}")
             if characteristic.matrixDim:
                 length = characteristic.matrixDim["x"]
             else:
                 length = characteristic.number
-            value = self.image.read_string(characteristic.address, length=length)
+            try:
+                value = self.image.read_string(characteristic.address, length=length)
+            except Exception as e:
+                self.logger.error(f"{characteristic.name}: {e!r}")
             self._parameters["ASCII"][characteristic.name] = klasses.Ascii(
                 name=characteristic.name,
                 comment=characteristic.longIdentifier,
@@ -947,7 +929,10 @@ class CalibrationData(AsamBaseType):
             else:
                 raise TypeError(f"Malformed AXIS_PTS '{ap}'.")
             if not virtual:
-                raw_values = self.read_nd_array(ap, "x", attr, count)
+                try:
+                    raw_values = self.read_nd_array(ap, "x", attr, count)
+                except Exception as e:
+                    self.logger.error(f"{ap.name}: {e!r}")
                 if index_incr == "INDEX_DECR":
                     raw_values = raw_values[::-1]
                     reversed_storage = True
@@ -1069,14 +1054,14 @@ class CalibrationData(AsamBaseType):
                             par_dist["numberapo"],
                         )
                     elif axis_descr.fixAxisParList:
-                        raw_axis_values = axis.fixAxisParList
+                        raw_axis_values = axis_descr.fixAxisParList
                     elif axis_descr.fixAxisPar:
                         par = axis_descr.fixAxisPar
                         raw_axis_values = fix_axis_par(par["offset"], par["shift"], par["numberapo"])
                     no_axis_points = len(raw_axis_values)
                     converted_axis_values = axis_cm.int_to_physical(raw_axis_values)
                 elif axis_attribute == "STD_AXIS":
-                    raw_axis_values = self.read_nd_array(characteristic, "x", "axisPts", no_axis_points)
+                    raw_axis_values = self.read_nd_array(characteristic, axis_name, "axisPts", no_axis_points)
                     index_incr = axis["axisPts"]["indexIncr"]
                     if index_incr == "INDEX_DECR":
                         raw_axis_values = raw_axis_values[::-1]
@@ -1123,31 +1108,44 @@ class CalibrationData(AsamBaseType):
                     )
                 )
             length = num_func_values * TYPE_SIZES[fnc_datatype]
-            raw_values = self.image.read_ndarray(
-                addr=characteristic.address + characteristic.record_layout_components.fncValues["offset"],
-                length=length,
-                dtype=get_section_reader(
-                    characteristic.record_layout_components.fncValues["datatype"],
-                    self.byte_order(characteristic),
-                ),
-                shape=shape,
-                # order = order,
-                # bit_mask = characteristic.bitMask
-            )
+            try:
+                raw_values = self.image.read_ndarray(
+                    addr=characteristic.address + characteristic.record_layout_components.fncValues["offset"],
+                    length=length,
+                    dtype=get_section_reader(
+                        characteristic.record_layout_components.fncValues["datatype"],
+                        self.byte_order(characteristic),
+                    ),
+                    shape=shape,
+                    # order = order,
+                    # bit_mask = characteristic.bitMask
+                )
+            except Exception as e:
+                self.logger.error(f"{axis_name}: {e!r}")
             if flipper:
                 raw_values = np.flip(raw_values, axis=flipper)
-            converted_values = chr_cm.int_to_physical(raw_values)
+            try:
+                converted_values = chr_cm.int_to_physical(raw_values)
+            except Exception as e:
+                self.logger.error(f"Exception in _load_curves_and_maps(): {e!r}")
+                self.logger.error(f"CHARACTERISTIC: {characteristic.name!r}")
+                self.logger.error(f"COMPU_METHOD: {chr_cm.name!r} ==> {chr_cm.evaluator!r}")
+                self.logger.error(f"RAW_VALUES: {raw_values!r}")
+
+                converted_values = [0.0] * len(raw_values)
+
             klass = klasses.get_calibration_class(category)
-            self._parameters[f"{category}"][characteristic.name] = klass(
-                name=characteristic.name,
-                comment=characteristic.longIdentifier,
-                category=category,
-                displayIdentifier=characteristic.displayIdentifier,
-                raw_values=raw_values,
-                converted_values=converted_values,
-                fnc_unit=fnc_unit,
-                axes=axes,
-            )
+            if klass:
+                self._parameters[f"{category}"][characteristic.name] = klass(
+                    name=characteristic.name,
+                    comment=characteristic.longIdentifier,
+                    category=category,
+                    displayIdentifier=characteristic.displayIdentifier,
+                    raw_values=raw_values,
+                    converted_values=converted_values,
+                    fnc_unit=fnc_unit,
+                    axes=axes,
+                )
 
     def record_layout_correct_offsets(self, obj):
         """ """
@@ -1246,7 +1244,14 @@ class CalibrationData(AsamBaseType):
 
     def int_to_physical(self, characteristic, int_values):
         """ """
-        cm_name = "NO_COMPU_METHOD" if characteristic.compuMethod == "NO_COMPU_METHOD" else characteristic.compuMethod.name
+        if isinstance(characteristic.compuMethod, str) and characteristic.compuMethod == "NO_COMPU_METHOD":
+            cm_name = "NO_COMPU_METHOD"
+        else:
+            cm_name = (
+                "NO_COMPU_METHOD"
+                if characteristic.compuMethod.conversionType == "NO_COMPU_METHOD"
+                else characteristic.compuMethod.name
+            )
         cm = CompuMethod.get(self.session, cm_name)
         return cm.int_to_physical(int_values)
 
