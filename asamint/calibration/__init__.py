@@ -31,21 +31,27 @@ import functools
 import sys
 from collections import OrderedDict
 from enum import IntEnum
+from functools import cache
 from typing import Optional, Union
 
 import numpy as np
 import pya2l.model as model
 from objutils import Image, Section, dump, load
 from pya2l import DB
-from pya2l.api.inspect import AxisPts, Characteristic, CompuMethod, ModCommon, ModPar
+from pya2l.api.inspect import (
+    ASAM_INTEGER_QUANTITIES,
+    AxisPts,
+    Characteristic,
+    CompuMethod,
+    ModCommon,
+    ModPar,
+)
 from pya2l.functions import fix_axis_par, fix_axis_par_dist
 from pyxcp.cpp_ext.cpp_ext import McObject
 from pyxcp.daq_stim.optimize import make_continuous_blocks
 
 from asamint.asam import TYPE_SIZES, AsamBaseType, ByteOrder, get_section_reader
 from asamint.logger import Logger
-
-# from asamint.calibration import model as cmod
 from asamint.model.calibration import klasses
 from asamint.utils import SINGLE_BITS, current_timestamp, ffs
 
@@ -604,7 +610,7 @@ class CalibrationData(AsamBaseType):
         epk_xcp = epk_xcp[: len(epk_a2l)].decode("ascii")
         ok = epk_xcp == epk_a2l
         if not ok:
-            self.logger.warn(f"EPK is invalid -- A2L: '{self.mod_par.epk}' XCP: '{epk_xcp}'.")
+            self.logger.warning(f"EPK is invalid -- A2L: '{self.mod_par.epk}' XCP: '{epk_xcp}'.")
         else:
             self.logger.info("OK, matching EPKs.")
         return ok
@@ -803,6 +809,7 @@ class CalibrationData(AsamBaseType):
                 value = self.image.read_string(characteristic.address, length=length)
             except Exception as e:
                 self.logger.error(f"{characteristic.name}: {e!r}")
+                value = None
             self._parameters["ASCII"][characteristic.name] = klasses.Ascii(
                 name=characteristic.name,
                 comment=characteristic.longIdentifier,
@@ -814,17 +821,22 @@ class CalibrationData(AsamBaseType):
 
     def _load_value_blocks(self) -> None:
         self.logger.info("VAL_BLKs")
+        raw_values: list = []
         for characteristic in self.characteristics("VAL_BLK"):
             self.logger.debug(f"Processing VAL_BLK '{characteristic.name}' @0x{characteristic.address:08x}")
             reader = get_section_reader(characteristic.fnc_asam_dtype, self.byte_order(characteristic))
-            raw_values = self.image.read_ndarray(
-                addr=characteristic.address,
-                length=characteristic.fnc_allocated_memory,
-                dtype=reader,
-                shape=characteristic.fnc_np_shape,
-                order=characteristic.fnc_np_order,
-                bit_mask=characteristic.bitMask,
-            )
+            try:
+                raw_values = self.image.read_ndarray(
+                    addr=characteristic.address,
+                    length=characteristic.fnc_allocated_memory,
+                    dtype=reader,
+                    shape=characteristic.fnc_np_shape,
+                    order=characteristic.fnc_np_order,
+                    bit_mask=characteristic.bitMask,
+                )
+            except Exception as e:
+                self.logger.error(f"{characteristic.name}: {e!r}")
+                raw_values = []
             converted_values = self.int_to_physical(characteristic, raw_values)
             self._parameters["VAL_BLK"][characteristic.name] = klasses.ValueBlock(
                 name=characteristic.name,
@@ -855,6 +867,7 @@ class CalibrationData(AsamBaseType):
                     raw_value = self.image.read_numeric(characteristic.address, reader)
                 except Exception as e:
                     self.logger.error(f"{characteristic.name}: {e!r}")
+                    raw_value = 0
                 is_bool = False
             if characteristic.physUnit is None and characteristic._conversionRef != "NO_COMPU_METHOD":
                 unit = characteristic.compuMethod.unit
@@ -933,6 +946,7 @@ class CalibrationData(AsamBaseType):
                     raw_values = self.read_nd_array(ap, "x", attr, count)
                 except Exception as e:
                     self.logger.error(f"{ap.name}: {e!r}")
+                    raw_values = []
                 if index_incr == "INDEX_DECR":
                     raw_values = raw_values[::-1]
                     reversed_storage = True
@@ -940,10 +954,6 @@ class CalibrationData(AsamBaseType):
                     reversed_storage = False
             converted_values = self.int_to_physical(ap, raw_values)
             unit = ap.compuMethod.refUnit
-
-            # pts = klasses.AxisPts()
-            # print(pts)
-
             self._parameters["AXIS_PTS"][ap.name] = klasses.AxisPts(
                 name=ap.name,
                 comment=ap.longIdentifier,
@@ -1121,7 +1131,8 @@ class CalibrationData(AsamBaseType):
                     # bit_mask = characteristic.bitMask
                 )
             except Exception as e:
-                self.logger.error(f"{axis_name}: {e!r}")
+                self.logger.error(f"{characteristic.name}:  {axis_name}-axis: {e!r}")
+                raw_values = []
             if flipper:
                 raw_values = np.flip(raw_values, axis=flipper)
             try:
@@ -1211,6 +1222,7 @@ class CalibrationData(AsamBaseType):
                 result[key] = self.read_record_layout_value(obj, axis_name, key)
         return result
 
+    @cache
     def read_record_layout_value(self, obj, axis_name, component_name):
         """ """
         axis = obj.record_layout_components.axes(axis_name)
@@ -1221,8 +1233,14 @@ class CalibrationData(AsamBaseType):
         offset = component_map["offset"]
         reader = get_section_reader(datatype, self.byte_order(obj))
         value = self.image.read_numeric(obj.address + offset, reader)
+        if datatype not in ASAM_INTEGER_QUANTITIES:
+            self.logger.warning(
+                f"{obj.name!r}: RECORD_LAYOUT component {component_name!r} is not an integer quantity, got: {datatype!r}."
+            )
+            value = int(value)
         return value
 
+    @cache
     def read_nd_array(self, axis_pts, axis_name, component, no_elements, shape=None, order=None):
         """ """
         axis = axis_pts.record_layout_components.axes(axis_name)
