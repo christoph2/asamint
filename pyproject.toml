@@ -43,6 +43,7 @@ pyreadline = "^2.1"
 pyreadline3 = "^3.5.4"
 objutils = "^0.6.0"
 numexpr = "^2.10.2"
+pya2ldb = "^0.14.5"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
