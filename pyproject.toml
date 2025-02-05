@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "asamint"
-version = "0.1.4"
+version = "0.1.5"
 description = "Integration package for ASAM related projects"
 authors = ["Christoph Schueler <cpu12.gems@googlemail.com>"]
 license = "GPLv2"
