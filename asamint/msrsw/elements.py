@@ -127,7 +127,8 @@ class ArrayIndex:
 class ValueContainer:
     unit_display_name: UnitDisplayName
     array_size: ArraySize
-    values: VG
+    values_phys: VG
+    values_int: VG
 
 
 @dataclass
@@ -135,7 +136,8 @@ class AxisContainer:
     category: Category
     unit_display_name: UnitDisplayName
     array_size: ArraySize
-    values: VG
+    values_phys: VG
+    values_int: VG
     instance_ref: InstanceRef
 
 

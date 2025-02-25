@@ -30,7 +30,6 @@ __copyright__ = """
 __author__ = """Christoph Schueler"""
 __email__ = "cpu12.gems@googlemail.com"
 
-import os
 from pprint import pprint
 
 import numpy as np
@@ -54,7 +53,7 @@ class MSRMixIn:
 
     def write_tree(self, file_name):
         """ """
-        print("validating...", file_name)
+        # print("validating...", file_name)
         # self.validate()
         file_name = self.generate_filename(self.EXTENSION)
         file_name = self.sub_dir("parameters") / file_name

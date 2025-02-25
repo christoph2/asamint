@@ -201,7 +201,7 @@ class AsamBaseType:
     def generate_filename(self, extension, extra=None):
         """Automatically generate filename from configuration plus timestamp."""
         project = self.shortname
-        subject = f"SUBJ_{self.shortname}"  #  self.experiment_config.get("SHORTNAME")
+        subject = f"SUBJ_{self.shortname}"  # self.experiment_config.get("SHORTNAME")
         if extra:
             return f"{project}_{subject}{current_timestamp()}_{extra}{extension}"
         else:
@@ -249,22 +249,6 @@ class AsamBaseType:
             else ByteOrder.LITTLE_ENDIAN
         )
 
-
-TYPE_SIZES = {
-    "BYTE": 1,
-    "UBYTE": 1,
-    "SBYTE": 1,
-    "WORD": 2,
-    "UWORD": 2,
-    "SWORD": 2,
-    "LONG": 4,
-    "ULONG": 4,
-    "SLONG": 4,
-    "A_UINT64": 8,
-    "A_INT64": 8,
-    "FLOAT32_IEEE": 4,
-    "FLOAT64_IEEE": 8,
-}
 
 OJ_READERS = {
     "UBYTE": ("uint8_le", "uint8_be"),

@@ -1,6 +1,5 @@
 import binascii
 import datetime
-import itertools
 import mmap
 import re
 import sqlite3
@@ -12,28 +11,11 @@ from pathlib import Path
 
 import sqlalchemy as sqa
 from lxml import etree  # nosec
-from sqlalchemy import (
-    Column,
-    ForeignKey,
-    UniqueConstraint,
-    create_engine,
-    event,
-    orm,
-    types,
-)
+from sqlalchemy import Column, ForeignKey, create_engine, event, orm, types
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.ext.orderinglist import ordering_list
-from sqlalchemy.orm import (
-    Mapped,
-    as_declarative,
-    backref,
-    column_property,
-    mapped_column,
-    relationship,
-)
-from sqlalchemy.orm.collections import InstrumentedList
+from sqlalchemy.orm import Mapped, as_declarative, backref, mapped_column, relationship
 
 from asamint.utils.xml import create_validator
 
@@ -25731,7 +25713,6 @@ class Parser:
                     print(f"unknown attribute: {attrib}")
                     continue
                 try:
-                    axx = getattr(obj, attrib)
                     if elem_tp == "A":
                         setattr(obj, attrib, items)
                     else:

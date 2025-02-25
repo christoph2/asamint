@@ -31,16 +31,12 @@ include = [
 python = "^3.10"
 asammdf = "^8.0.1"
 rich = "^13.9.2"
-traitlets = "^5.11.2"
 pyxcp = "^0.22.9"
 sortedcontainers = "^2.4.0"
 lxml = "^5.3.0"
 babel = "^2.16.0"
 antlr4-python3-runtime = "^4.13.2"
 antlr4-tools = "^0.2.1"
-cmd2 = "^2.5.7"
-pyreadline = "^2.1"
-pyreadline3 = "^3.5.4"
 objutils = "^0.6.0"
 numexpr = "^2.10.2"
 pya2ldb = "^0.14.5"
@@ -149,7 +145,7 @@ exclude = '''
 build-verbosity = 3
 #test-command = "pytest {package}/tests"
 
-build = "cp3{10,11,12,13}-*"
+build = "cp3{10,11,12,13,14}-*"
 skip = ["*-manylinux_i686", "*-musllinux_x86_64", "*-musllinux_i686"]
 build-frontend = "build"
 

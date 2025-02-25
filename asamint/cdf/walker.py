@@ -9,7 +9,7 @@ from decimal import Decimal
 
 from asamint.calibration.msrsw_db import MSRSWDatabase, SwInstance, SwInstanceSpec
 from asamint.msrsw import elements
-from asamint.msrsw.elements import VG, VT, Instance
+from asamint.msrsw.elements import VG, VT
 from asamint.utils import slicer
 
 
@@ -42,7 +42,8 @@ def axis_formatter(values):
 
 def dump_array(values, level: int = 1, brackets=False) -> str:
     result = []
-    for value in values:
+    for v in values:
+        value = v.value
         if isinstance(value, list):
             result.extend(["   " * level, "[" if brackets else ""])
             result.extend(dump_array(value, level + 1))
@@ -54,8 +55,8 @@ def dump_array(values, level: int = 1, brackets=False) -> str:
             if isinstance(value, (int, float, Decimal)):
                 result.append(f"{value:8.3f}")
             else:
-                result.append(f"'{value:20s}'")
-    return "".join(result)
+                result.append(f"{value!r:20}")
+    return " ".join(result)
 
 
 def reshape(arr, dim: tuple[int]):
@@ -261,15 +262,18 @@ class CdfWalker:
 
     def do_value_cont(self, cont):
         if cont is None:
-            return elements.ValueContainer(None, None, [])
+            return elements.ValueContainer(unit_display_name=None, array_size=(), values_phys=[], values_int=[])
         display_name = self.do_unit_display_name(cont.unit_display_name)
         array_size = self.do_array_size(cont.sw_arraysize)
-        values = []
         if cont.sw_values_phys:
-            values = self.do_sw_values_phys(cont.sw_values_phys)
+            values_phys = self.do_sw_values_phys(cont.sw_values_phys)
         if cont.sw_values_coded:
-            values = self.do_sw_values_coded(cont.sw_values_coded)
-        return elements.ValueContainer(display_name, array_size, values)
+            values_int = self.do_sw_values_coded(cont.sw_values_coded)
+        else:
+            values_int = []
+        return elements.ValueContainer(
+            unit_display_name=display_name, array_size=array_size, values_phys=values_phys, values_int=values_int
+        )
 
     def do_axis_conts(self, cont):
         result = []
@@ -351,29 +355,9 @@ class CdfWalker:
 
         value_container = self.do_value_cont(inst.sw_value_cont)
         axis_containers = self.do_axis_conts(inst.sw_axis_conts)
-
-        # TODO: conversion routines, e.g. '', or "" around strings, FORMATs, and the like, if A2L is available.
-        array_size = value_container.array_size.dimensions
-        match category:
-            case "VALUE" | "DEPENDENT_VALUE" | "BOOLEAN" | "ASCII":
-                values = scalar_value(value_container.values)
-            case "COM_AXIS" | "CURVE_AXIS" | "RES_AXIS" | "CURVE":
-                values = array_values(value_container.values, flatten=True)
-            case "VAL_BLK" | "MAP" | "CUBOID" | "CUBE_4" | "CUBE_5":
-                if array_size:
-                    values = array_values(value_container.values, flatten=True)
-                    values = reshape(values, array_size)
-                else:
-                    values = array_values(value_container.values, flatten=False)
-            case "BLOB":
-                values = array_values(value_container.values, flatten=True)
-            case _:
-                raise ValueError(category)
-
-        vc = ValueContainer(value_container.unit_display_name.value or "", array_size, values)
-
-        cp = CalibrationParameter(shortname, displayname, category, longname, feature_ref, model_link, axis_containers, vc)
-        # print("\tCP:", cp)
+        cp = CalibrationParameter(
+            shortname, displayname, category, longname, feature_ref, model_link, axis_containers, value_container
+        )
 
         history = self.do_sw_cs_history(inst.sw_cs_history)
         array_index = self.do_array_index(inst.sw_array_index)
@@ -389,7 +373,7 @@ class CdfWalker:
             displayname,
             category,
             feature_ref,
-            vc,
+            value_container,
             axis_containers,
             history,
             flags,

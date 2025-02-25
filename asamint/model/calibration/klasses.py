@@ -113,6 +113,7 @@ class AxisPts(BaseCharacteristic):
     paired: bool
     unit: str
     reversed_storage: bool
+    is_numeric: bool
 
     @property
     def axis_points_raw(self):
@@ -175,6 +176,7 @@ class Value(BaseCharacteristic):
     raw_value: Union[int, float]
     converted_value: Union[int, float]
     unit: str
+    is_numeric: bool = field(default=True)
 
 
 @dataclass
@@ -185,6 +187,7 @@ class ValueBlock(BaseCharacteristic):
     converted_values: list[Union[int, float]]
     shape: list[int]
     unit: str
+    is_numeric: bool = field(default=True)
 
 
 @dataclass

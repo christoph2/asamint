@@ -46,7 +46,12 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
     # DTD = get_dtd("cdf_v2.0.0.sl")    # TODO: check!!!
     EXTENSION = ".cdfx"
 
+    def __init__(self, parameters) -> None:
+        super().__init__()
+        self._parameters = parameters
+
     def on_init(self, project_config, experiment_config, *args, **kws):
+        print("CDFCreator", project_config, experiment_config, *args, **kws)
         super().on_init(project_config, experiment_config, *args, **kws)
 
     def save(self):
@@ -57,7 +62,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         self.write_tree("CDF20demo")
 
     def _toplevel_boilerplate(self):
-        print(f"A2L: {self.a2l_file}")
+        # print(f"A2L: {self.a2l_file}")
         root = self.msrsw_header("CDF20", "CDF")
         sw_system = self.sub_trees["SW-SYSTEM"]
         instance_spec = create_elem(sw_system, "SW-INSTANCE-SPEC")
@@ -71,9 +76,9 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
             "SYMBOLIC-FILE",
             add_suffix_to_path(self.a2l_file, ".a2l"),
         )
-        data_file_name = self.image.file_name
-        if data_file_name:
-            create_elem(instance_tree_origin, "DATA-FILE", data_file_name)
+        # data_file_name = self.image.file_name
+        # if data_file_name:
+        #    create_elem(instance_tree_origin, "DATA-FILE", data_file_name)
         return root
 
     def cs_collection(self, name: str, category: str, tree, is_group: bool):
@@ -152,6 +157,9 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
 
     def dump_array(self, attribute):
         for key, inst in self._parameters[attribute].items():
+            if list(inst.converted_values) == []:
+                self.logger.warning(f"{attribute} {inst.name!r}: no values.")
+                continue
             axis_conts = self.curve_and_map_header(
                 name=inst.name,
                 descr=inst.comment,
@@ -261,7 +269,6 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         vph = create_elem(value_cont, "SW-VALUES-PHYS")
         if not isinstance(fnc_values, np.ndarray):
             fnc_values = np.array(fnc_values)
-            print(f"obj {fnc_values} is not `numpy`.")
         self.output_value_array(fnc_values, vph)
         return axis_conts
 
