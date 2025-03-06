@@ -158,7 +158,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
     def dump_array(self, attribute):
         for key, inst in self._parameters[attribute].items():
             if list(inst.converted_values) == []:
-                self.logger.warning(f"{attribute} {inst.name!r}: no values.")
+                self.logger.warning(f"{attribute} {inst.name!r}: has no values.")
                 continue
             axis_conts = self.curve_and_map_header(
                 name=inst.name,
@@ -186,7 +186,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
                 elif category == "CURVE_AXIS":
                     axis_cont = create_elem(axis_conts, "SW-AXIS-CONT")
                     create_elem(axis_cont, "CATEGORY", "CURVE_AXIS")
-                    create_elem(axis_cont, "SW-INSTANCE-REF", text=axis.curve_axis_ref)
+                    create_elem(axis_cont, "SW-INSTANCE-REF", text=axis.axis_pts_ref)
 
     def instance_scalar(
         self,

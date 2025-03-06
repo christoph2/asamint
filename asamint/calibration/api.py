@@ -33,10 +33,17 @@ from typing import Union
 
 import numpy as np
 from pya2l import DB
-from pya2l.api.inspect import AxisPts, Characteristic, CompuMethod, ModCommon, ModPar
+from pya2l.api.inspect import (
+    AxisPts,
+    Characteristic,
+    CompuMethod,
+    ModCommon,
+    ModPar,
+    asam_type_size,
+)
 from pya2l.functions import fix_axis_par, fix_axis_par_dist
 
-from asamint.asam import ByteOrder, asam_type_size, get_section_reader
+from asamint.asam import ByteOrder, get_section_reader
 from asamint.logger import Logger
 from asamint.model.calibration import klasses
 from asamint.utils import SINGLE_BITS, ffs

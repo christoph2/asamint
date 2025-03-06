@@ -32,7 +32,7 @@ def axis_pts(axis):
     elif axis.category in ("COM_AXIS", "RES_AXIS"):
         return params["AXIS_PTS"].get(axis.axis_pts_ref).converted_values
     elif axis.category == "CURVE_AXIS":
-        return params["CURVE"].get(axis.curve_axis_ref).converted_values
+        return params["CURVE"].get(axis.axis_pts_ref).converted_values
 %>
 <%def name = "header(inst)">
 %if inst.comment:

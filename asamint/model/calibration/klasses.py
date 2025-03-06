@@ -29,6 +29,7 @@ __copyright__ = """
 import json
 from dataclasses import asdict, dataclass, field, is_dataclass
 from datetime import datetime
+from enum import IntEnum
 from typing import Union
 from uuid import UUID
 
@@ -94,6 +95,7 @@ class NDimContainer(BaseCharacteristic):
     converted_values: list[Union[int, float]]
     fnc_unit: str
     axes: list
+    is_numeric: bool
 
 
 @dataclass
@@ -200,7 +202,6 @@ class AxisContainer:
     converted_values: list[Union[int, float]]
     reversed_storage: bool = field(default=False)
     axis_pts_ref: Union[str, None] = field(default=None)
-    curve_axis_ref: Union[str, None] = field(default=None)
 
 
 def get_calibration_class(name: str):
@@ -216,3 +217,21 @@ def get_calibration_class(name: str):
         "VALUE": Value,
         "VAL_BLK": ValueBlock,
     }.get(name)
+
+
+class MemoryType(IntEnum):
+    AXIS_PTS = 0
+    VALUE = 1
+    ASCII = 3
+    VAL_BLK = 4
+    CURVE = 5
+    MAP = 6
+    CUBOID = 7
+
+
+@dataclass
+class MemoryObject:
+    memory_type: MemoryType
+    name: str
+    address: int
+    length: int

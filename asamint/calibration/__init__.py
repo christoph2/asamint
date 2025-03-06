@@ -29,47 +29,30 @@ __copyright__ = """
 
 import functools
 from collections import OrderedDict, defaultdict
-from dataclasses import dataclass
-from enum import IntEnum
 from functools import cache
 from typing import Optional
 
 import numpy as np
 import pya2l.model as model
 from objutils import Image, Section, dump, load
+from objutils.exceptions import InvalidAddressError
 from pya2l.api.inspect import (
     ASAM_INTEGER_QUANTITIES,
     AxisPts,
     Characteristic,
     CompuMethod,
     ModPar,
+    asam_type_size,
 )
 from pya2l.functions import fix_axis_par, fix_axis_par_dist
 from pyxcp.cpp_ext.cpp_ext import McObject
 from pyxcp.daq_stim.optimize import make_continuous_blocks
 
-from asamint.asam import AsamBaseType, asam_type_size, get_section_reader
+from asamint.asam import AsamBaseType, get_section_reader
 from asamint.calibration.mapfile import create_map_file
 from asamint.model.calibration import klasses
+from asamint.model.calibration.klasses import MemoryObject, MemoryType
 from asamint.utils import SINGLE_BITS, current_timestamp, ffs
-
-
-class MemoryType(IntEnum):
-    AXIS_PTS = 0
-    VALUE = 1
-    ASCII = 3
-    VAL_BLK = 4
-    CURVE = 5
-    MAP = 6
-    CUBOID = 7
-
-
-@dataclass
-class MemoryObject:
-    memory_type: MemoryType
-    name: str
-    address: int
-    length: int
 
 
 AXES = ("x", "y", "z", "4", "5")
@@ -112,6 +95,7 @@ class CalibrationData(AsamBaseType):
             )
         }
         self.memory_map = defaultdict(list)
+        self.memory_errors = defaultdict(list)
 
     def load_hex(self):
         self._load_axis_pts()
@@ -351,6 +335,7 @@ class CalibrationData(AsamBaseType):
                 value = self.image.read_string(characteristic.address, length=length)
             except Exception as e:
                 self.logger.error(f"{characteristic.name}: {e!r}")
+                self.log_memory_errors(e, MemoryType.ASCII, characteristic.name, characteristic.address, length)
                 value = None
             else:
                 self.memory_map[characteristic.address].append(
@@ -369,8 +354,8 @@ class CalibrationData(AsamBaseType):
 
     def _load_value_blocks(self) -> None:
         self.logger.info("VAL_BLKs")
-        raw_values: list = []
         for characteristic in self.characteristics("VAL_BLK"):
+            raw_values: np.array = np.array([])
             self.logger.debug(f"Processing VAL_BLK '{characteristic.name}' @0x{characteristic.address:08x}")
             reader = get_section_reader(characteristic.fnc_asam_dtype, self.byte_order(characteristic))
             try:
@@ -384,7 +369,10 @@ class CalibrationData(AsamBaseType):
                 )
             except Exception as e:
                 self.logger.error(f"{characteristic.name}: {e!r}")
-                raw_values = []
+                self.log_memory_errors(
+                    e, MemoryType.VAL_BLK, characteristic.name, characteristic.address, characteristic.fnc_allocated_memory
+                )
+                raw_values = np.array([])
             else:
                 converted_values = self.int_to_physical(characteristic, raw_values)
                 self._parameters["VAL_BLK"][characteristic.name] = klasses.ValueBlock(
@@ -427,6 +415,7 @@ class CalibrationData(AsamBaseType):
                     raw_value = self.image.read_numeric(characteristic.address, reader)
                 except Exception as e:
                     self.logger.error(f"{characteristic.name}: {e!r}")
+                    self.log_memory_errors(e, MemoryType.VALUE, characteristic.name, characteristic.address, allocated_memory)
                     raw_value = 0
                 is_bool = False
             if characteristic.physUnit is None and characteristic._conversionRef != "NO_COMPU_METHOD":
@@ -465,6 +454,7 @@ class CalibrationData(AsamBaseType):
         self.logger.info("AXIS_PTSs")
         for ap in self.axis_points():
             self.logger.debug(f"Processing AXIS_PTS '{ap.name}' @0x{ap.address:08x}")
+            raw_values = np.array([])
             rl_values = self.read_record_layout_values(ap, "x")
             self.record_layout_correct_offsets(ap)
             virtual = False
@@ -512,7 +502,8 @@ class CalibrationData(AsamBaseType):
                     raw_values = self.read_nd_array(ap, "x", attr, count)
                 except Exception as e:
                     self.logger.error(f"{ap.name}: {e!r}")
-                    raw_values = []
+                    self.log_memory_errors(e, MemoryType.AXIS_PTS, ap.name, ap.address, ap.axis_allocated_memory)
+                    raw_values = np.array([])
                 if index_incr == "INDEX_DECR":
                     raw_values = raw_values[::-1]
                     reversed_storage = True
@@ -593,7 +584,7 @@ class CalibrationData(AsamBaseType):
             characteristics = self._order_curves(characteristics)
         for characteristic in characteristics:
             self.logger.debug(f"Processing {category} '{characteristic.name}' @0x{characteristic.address:08x}")
-
+            raw_values = np.array([])
             if characteristic.compuMethod != "NO_COMPU_METHOD":
                 characteristic_cm = characteristic.compuMethod.name
             else:
@@ -616,7 +607,6 @@ class CalibrationData(AsamBaseType):
                 axis = characteristic.record_layout_components.axes(axis_name)
                 fix_no_axis_pts = characteristic.deposit.fixNoAxisPts.get(axis_name)
                 rl_values = self.read_record_layout_values(characteristic, axis_name)
-                curve_axis_ref = None
                 axis_pts_ref = None
                 reversed_storage = False
                 flipper = []
@@ -662,7 +652,7 @@ class CalibrationData(AsamBaseType):
                     reversed_storage = ref_obj.reversed_storage
                 elif axis_attribute == "CURVE_AXIS":
                     ref_obj = self._parameters["CURVE"][axis_descr.curveAxisRef.name]
-                    curve_axis_ref = axis_descr.curveAxisRef.name
+                    axis_pts_ref = axis_descr.curveAxisRef.name
                     raw_axis_values = None
                     converted_axis_values = None
                     axis_unit = None
@@ -688,9 +678,14 @@ class CalibrationData(AsamBaseType):
                         raw_values=raw_axis_values,
                         converted_values=converted_axis_values,
                         axis_pts_ref=axis_pts_ref,
-                        curve_axis_ref=curve_axis_ref,
                     )
                 )
+            if category == "CURVE":
+                memory_type = MemoryType.CURVE
+            elif category == "MAP":
+                memory_type = MemoryType.MAP
+            else:
+                memory_type = MemoryType.CUBOID
             length = num_func_values * asam_type_size(fnc_datatype)
             try:
                 raw_values = self.image.read_ndarray(
@@ -706,7 +701,10 @@ class CalibrationData(AsamBaseType):
                 )
             except Exception as e:
                 self.logger.error(f"{characteristic.name}:  {axis_name}-axis: {e!r}")
-                raw_values = []
+                raw_values = np.array([])
+                self.log_memory_errors(
+                    e, memory_type, characteristic.name, characteristic.address, characteristic.total_allocated_memory
+                )
             if flipper:
                 raw_values = np.flip(raw_values, axis=flipper)
             try:
@@ -717,7 +715,7 @@ class CalibrationData(AsamBaseType):
                 self.logger.error(f"COMPU_METHOD: {chr_cm.name!r} ==> {chr_cm.evaluator!r}")
                 self.logger.error(f"RAW_VALUES: {raw_values!r}")
 
-                converted_values = [0.0] * len(raw_values)
+                converted_values = np.array([0.0] * len(raw_values))
 
             klass = klasses.get_calibration_class(category)
             if klass:
@@ -730,13 +728,8 @@ class CalibrationData(AsamBaseType):
                     converted_values=converted_values,
                     fnc_unit=fnc_unit,
                     axes=axes,
+                    is_numeric=characteristic.compuMethod.conversionType != "TAB_VERB",
                 )
-                if category == "CURVE":
-                    memory_type = MemoryType.CURVE
-                elif category == "MAP":
-                    memory_type = MemoryType.MAP
-                else:
-                    memory_type = MemoryType.CUBOID
                 self.memory_map[characteristic.address].append(
                     MemoryObject(
                         memory_type=memory_type,
@@ -851,6 +844,10 @@ class CalibrationData(AsamBaseType):
     def int_to_physical(self, characteristic, int_values):
         """ """
         return characteristic.compuMethod.int_to_physical(int_values)
+
+    def log_memory_errors(self, exc: Exception, memory_type: MemoryType, name: str, address: int, length):
+        if isinstance(exc, InvalidAddressError):
+            self.memory_errors[address].append(MemoryObject(memory_type=memory_type, name=name, address=address, length=length))
 
     @property
     def image(self):
