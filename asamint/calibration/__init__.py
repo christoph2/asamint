@@ -49,7 +49,7 @@ from pyxcp.cpp_ext.cpp_ext import McObject
 from pyxcp.daq_stim.optimize import make_continuous_blocks
 
 from asamint.asam import AsamBaseType, get_section_reader
-from asamint.calibration.mapfile import create_map_file
+from asamint.calibration.mapfile import MapFile
 from asamint.model.calibration import klasses
 from asamint.model.calibration.klasses import MemoryObject, MemoryType
 from asamint.utils import SINGLE_BITS, current_timestamp, ffs
@@ -116,7 +116,8 @@ class CalibrationData(AsamBaseType):
 
         imp = DBImporter("test_db", self._parameters, self.logger)
         imp.run()
-        create_map_file("test_db.map", self.memory_map)
+        mm = MapFile("test_db.map", self.memory_map, self.memory_errors)
+        mm.run()
 
     def check_epk_xcp(self, xcp_master):
         """Compare EPK (EPROM Kennung) from A2L with EPK from ECU.
