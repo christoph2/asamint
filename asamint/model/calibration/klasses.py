@@ -202,6 +202,7 @@ class AxisContainer:
     converted_values: list[Union[int, float]]
     reversed_storage: bool = field(default=False)
     axis_pts_ref: Union[str, None] = field(default=None)
+    is_numeric: bool = field(default=True)
 
 
 def get_calibration_class(name: str):

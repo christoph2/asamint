@@ -679,6 +679,7 @@ class CalibrationData(AsamBaseType):
                         raw_values=raw_axis_values,
                         converted_values=converted_axis_values,
                         axis_pts_ref=axis_pts_ref,
+                        is_numeric=axis_cm.conversionType != "TAB_VERB",
                     )
                 )
             if category == "CURVE":
