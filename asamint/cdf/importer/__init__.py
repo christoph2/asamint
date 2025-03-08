@@ -19,6 +19,7 @@ from asamint.calibration.msrsw_db import (
     SwInstance,
     SwInstancePropsVariant,
     SwInstancePropsVariants,
+    SwInstanceRef,
     SwInstanceSpec,
     SwInstanceTree,
     SwInstanceTreeOrigin,
@@ -196,18 +197,25 @@ class DBImporter:
         if value.raw_values.shape != (0,):
             self.output_value_array(inst.sw_value_cont.sw_values_coded, value.raw_values)
         for axis in value.axes:
-            print("\t", axis)
             category = axis.category
             match category:
                 case "STD_AXIS":
-                    self.add_axis(sw_axis_conts.sw_axis_cont, axis.converted_values, axis.raw_values, "STD_AXIS", axis.unit)
+                    self.add_axis(
+                        sw_axis_conts.sw_axis_cont, axis.converted_values, axis.raw_values, "STD_AXIS", axis.unit, axis.is_numeric
+                    )
                 case "FIX_AXIS":
-                    self.add_axis(sw_axis_conts.sw_axis_cont, axis.converted_values, axis.raw_values, "FIX_AXIS", axis.unit)
+                    self.add_axis(
+                        sw_axis_conts.sw_axis_cont, axis.converted_values, axis.raw_values, "FIX_AXIS", axis.unit, axis.is_numeric
+                    )
                 case "COM_AXIS" | "RES_AXIS" | "CURVE_AXIS":
-                    # axis_cont = create_elem(axis_conts, "SW-AXIS-CONT")
-                    # create_elem(axis_cont, "CATEGORY", "COM_AXIS")
-                    # create_elem(axis_cont, "SW-INSTANCE-REF", text=axis.axi.s_pts_ref)
-                    pass
+                    axis_cont = SwAxisCont()
+                    self.session.add(axis_cont)
+                    sw_axis_conts.sw_axis_cont.append(axis_cont)
+                    self.set_category(axis_cont, category)
+                    instance_ref = SwInstanceRef()
+                    self.session.add(instance_ref)
+                    instance_ref.content = axis.axis_pts_ref
+                    axis_cont.sw_instance_ref = instance_ref
         return inst
 
     def value_block(self, value):
@@ -341,18 +349,7 @@ class DBImporter:
                 obj.vgs.append(vg)
                 self.output_value_array(vg, value, is_numeric)
 
-    # def add_axis(self, axis_conts, converted_value, raw_values, category, unit=""):
-    #    axis_cont = create_elem(axis_conts, "SW-AXIS-CONT")
-    #    create_elem(axis_cont, "CATEGORY", text=category)
-    #    if unit:
-    #        create_elem(axis_cont, "UNIT-DISPLAY-NAME", text=unit)
-    #    self.output_1darray(axis_cont, "SW-VALUES-PHYS", converted_value)
-
-    def add_axis(self, obj, converted_values, raw_values, category, unit=""):
-        # sw_axis_cont = SwAxisCont()
-        # self.session.add(sw_axis_cont)
-        # inst.sw_axis_conts.sw_axis_cont.append(sw_axis_cont)
-
+    def add_axis(self, obj, converted_values, raw_values, category, unit="", is_numeric: bool = True):
         axis_cont = SwAxisCont()
         self.session.add(axis_cont)
         obj.append(axis_cont)
@@ -368,5 +365,5 @@ class DBImporter:
         self.session.add(values_coded)
         axis_cont.sw_values_phys = values_phys
         axis_cont.sw_values_coded = values_coded
-        self.add_1d_array(axis_cont, "sw_values_phys", converted_values)
+        self.add_1d_array(axis_cont, "sw_values_phys", converted_values, is_numeric=is_numeric)
         self.add_1d_array(axis_cont, "sw_values_coded", raw_values)
