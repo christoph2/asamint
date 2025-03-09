@@ -385,7 +385,7 @@ class CalibrationData(AsamBaseType):
                     displayIdentifier=characteristic.displayIdentifier,
                     shape=characteristic.fnc_np_shape,
                     unit=characteristic.physUnit,
-                    is_numeric=characteristic.compuMethod.conversionType != "TAB_VERB",
+                    is_numeric=self.is_numeric(characteristic.compuMethod),
                 )
                 self.memory_map[characteristic.address].append(
                     MemoryObject(
@@ -424,7 +424,7 @@ class CalibrationData(AsamBaseType):
             else:
                 unit = characteristic.physUnit
             converted_value = self.int_to_physical(characteristic, raw_value)
-            is_numeric = characteristic.compuMethod.conversionType != "TAB_VERB"
+            is_numeric = self.is_numeric(characteristic.compuMethod)
             if is_numeric:
                 if is_bool:
                     category = "BOOLEAN"
@@ -522,7 +522,7 @@ class CalibrationData(AsamBaseType):
                 paired=paired,
                 unit=unit,
                 reversed_storage=reversed_storage,
-                is_numeric=ap.compuMethod.conversionType != "TAB_VERB",
+                is_numeric=self.is_numeric(ap.compuMethod),
             )
             self.memory_map[ap.address].append(
                 MemoryObject(memory_type=MemoryType.AXIS_PTS, name=ap.name, address=ap.address, length=ap.axis_allocated_memory)
@@ -679,7 +679,7 @@ class CalibrationData(AsamBaseType):
                         raw_values=raw_axis_values,
                         converted_values=converted_axis_values,
                         axis_pts_ref=axis_pts_ref,
-                        is_numeric=axis_cm.conversionType != "TAB_VERB",
+                        is_numeric=self.is_numeric(axis_cm),
                     )
                 )
             if category == "CURVE":
@@ -730,7 +730,7 @@ class CalibrationData(AsamBaseType):
                     converted_values=converted_values,
                     fnc_unit=fnc_unit,
                     axes=axes,
-                    is_numeric=characteristic.compuMethod.conversionType != "TAB_VERB",
+                    is_numeric=self.is_numeric(characteristic.compuMethod),
                 )
                 self.memory_map[characteristic.address].append(
                     MemoryObject(
@@ -855,6 +855,9 @@ class CalibrationData(AsamBaseType):
             )
         cm = CompuMethod.get(self.session, cm_name)
         return cm.int_to_physical(int_values)
+
+    def is_numeric(self, compu_method):
+        return compu_method == "NO_COMPU_METHOD" or compu_method.conversionType != "TAB_VERB"
 
     def log_memory_errors(self, exc: Exception, memory_type: MemoryType, name: str, address: int, length):
         if isinstance(exc, InvalidAddressError):
