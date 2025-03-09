@@ -845,7 +845,16 @@ class CalibrationData(AsamBaseType):
 
     def int_to_physical(self, characteristic, int_values):
         """ """
-        return characteristic.compuMethod.int_to_physical(int_values)
+        if isinstance(characteristic.compuMethod, str) and characteristic.compuMethod == "NO_COMPU_METHOD":
+            cm_name = "NO_COMPU_METHOD"
+        else:
+            cm_name = (
+                "NO_COMPU_METHOD"
+                if characteristic.compuMethod.conversionType == "NO_COMPU_METHOD"
+                else characteristic.compuMethod.name
+            )
+        cm = CompuMethod.get(self.session, cm_name)
+        return cm.int_to_physical(int_values)
 
     def log_memory_errors(self, exc: Exception, memory_type: MemoryType, name: str, address: int, length):
         if isinstance(exc, InvalidAddressError):
@@ -863,10 +872,20 @@ class CalibrationData(AsamBaseType):
         """ """
         axis_pts = self.query(model.AxisPts).order_by(model.AxisPts.address).all()
         for a in axis_pts:
-            yield AxisPts.get(self.session, a.name)
+            try:
+                ap = AxisPts.get(self.session, a.name)
+            except Exception as e:
+                self.logger.error(e)
+                continue
+            yield ap
 
     def characteristics(self, category):
         """ """
         query = self.query(model.Characteristic.name).filter(model.Characteristic.type == category)
         for characteristic in query.all():
-            yield Characteristic.get(self.session, characteristic.name)
+            try:
+                chs = Characteristic.get(self.session, characteristic.name)
+            except Exception as e:
+                self.logger.error(e)
+                continue
+            yield chs
