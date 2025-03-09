@@ -42,8 +42,7 @@ def axis_formatter(values):
 
 def dump_array(values, level: int = 1, brackets=False) -> str:
     result = []
-    for v in values:
-        value = v.value
+    for value in values:
         if isinstance(value, list):
             result.extend(["   " * level, "[" if brackets else ""])
             result.extend(dump_array(value, level + 1))
@@ -81,34 +80,6 @@ def get_content(attr: typing.Any, default: typing.Any | None = None, converter: 
         except Exception as e:
             print(str(e))
     return value
-
-
-@dataclass
-class ValueContainer:
-    unit_display_name: str
-    array_size: tuple[int]
-    values: list[typing.Any]
-
-
-@dataclass
-class AxisContainer:
-    category: str
-    unit_display_name: str
-    array_size: tuple[int]
-    instance_ref: str
-    values: list[typing.Any]
-
-
-@dataclass
-class CalibrationParameter:
-    short_name: str
-    display_name: str
-    category: str
-    long_name: str
-    feature_ref: str
-    model_link: str
-    axes: elements.AxisContainer
-    values: ValueContainer
 
 
 class CdfWalker:
@@ -281,13 +252,24 @@ class CdfWalker:
             for item in cont.sw_axis_cont:
                 category = self.do_category(item.category)
                 unit_display_name = self.do_unit_display_name(item.unit_display_name)
-                values = self.do_sw_values_phys(item.sw_values_phys)
+                if item.sw_values_phys:
+                    values_phys = self.do_sw_values_phys(item.sw_values_phys)
+                else:
+                    values_phys = []
+                if item.sw_values_coded:
+                    values_int = self.do_sw_values_coded(item.sw_values_coded)
+                else:
+                    values_int = []
                 array_size = self.do_array_size(item.sw_arraysize)
                 instance_ref = self.do_instance_ref(item.sw_instance_ref)
-                # print("\tAX:", cont.category.value, cont.unit_display_name, cont.array_size.dimensions, cont.instance_ref.name, walker.axis_formatter(walker.array_values(cont.values))
                 result.append(
-                    AxisContainer(
-                        category.value, unit_display_name.value, array_size, instance_ref, array_values(values, flatten=True)
+                    elements.AxisContainer(
+                        category=category.value,
+                        unit_display_name=unit_display_name.value,
+                        array_size=array_size,
+                        values_phys=values_phys,
+                        values_int=values_int,
+                        instance_ref=instance_ref,
                     )
                 )
         return result
@@ -355,7 +337,7 @@ class CdfWalker:
 
         value_container = self.do_value_cont(inst.sw_value_cont)
         axis_containers = self.do_axis_conts(inst.sw_axis_conts)
-        cp = CalibrationParameter(
+        cp = elements.CalibrationParameter(
             shortname, displayname, category, longname, feature_ref, model_link, axis_containers, value_container
         )
 

@@ -142,6 +142,18 @@ class AxisContainer:
 
 
 @dataclass
+class CalibrationParameter:
+    short_name: str
+    display_name: str
+    category: str
+    long_name: str
+    feature_ref: str
+    model_link: str
+    axes: AxisContainer
+    values: ValueContainer
+
+
+@dataclass
 class P:
     value: str
 

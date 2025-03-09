@@ -66,7 +66,7 @@ class Exporter(walker.CdfWalker):
                 element_count = array_elements(value_container.array_size)
                 print(f"STUETZSTELLENVERTEILUNG  {name} {element_count}")
                 print(f'  EINHEIT_W "{unit.value}"')
-                values = utils.flatten(value_container.values_phys)
+                values = walker.array_values(value_container.values_phys, flatten=True)
                 for row in utils.slicer(values, 6):
                     print(f"  ST/X {walker.dump_array(row)}")
                 print("END\n")
@@ -80,18 +80,31 @@ class Exporter(walker.CdfWalker):
                 if function:
                     print(f"  FUNKTION {function.value}")
                 print(f'  EINHEIT_W "{unit.value}"')
-                values = utils.flatten(value_container.values_phys)
+                values = walker.array_values(value_container.values_phys, flatten=True)
+                # values = utils.flatten(value_container.values_phys)
                 for row in utils.slicer(values, 6):
                     print(f"  WERT {walker.dump_array(row)}")
                 print("END\n")
             case "CURVE":
-
-                print(f"KENNLINIE {name} {len(value_container.values_phys)}")
+                axis = axes[0]
+                if axis.category == "COM_AXIS":
+                    print(f"GRUPPENKENNLINIE {name} {len(value_container.values_phys)}")
+                elif axis.category == "FIX_AXIS":
+                    print(f"FESTKENNLINIE {name} {len(value_container.values_phys)}")
+                else:  # if axis.category=='STD_AXIS':
+                    print(f"KENNLINIE {name} {len(value_container.values_phys)}")
                 if function:
                     print(f"  FUNKTION {function.value}")
                 print(f'  EINHEIT_W "{unit.value}"')
-                print(axes)
-                print(value_container)
+                if axis.category == "COM_AXIS":
+                    print(f"  *SSTX {axis.instance_ref.name}")
+                else:
+                    values = walker.array_values(axis.values_phys, flatten=True)
+                    for row in utils.slicer(values, 6):
+                        print(f"  ST/X {walker.dump_array(row)}")
+                values = walker.array_values(value_container.values_phys, flatten=True)
+                for row in utils.slicer(values, 6):
+                    print(f"  WERT {walker.dump_array(row)}")
                 print("END\n")
             case "MAP":
                 pass
