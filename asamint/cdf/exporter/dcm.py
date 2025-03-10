@@ -1,6 +1,7 @@
 import functools
 import operator
 from decimal import Decimal
+from typing import Optional
 
 from asamint import utils
 from asamint.cdf import walker
@@ -27,45 +28,63 @@ END
 class Exporter(walker.CdfWalker):
 
     def on_header(self, shortname: str, a2l_file: str, hex_file: str, references: list, variants: bool):
-        print("KONSERVIERUNG_FORMAT 2.0")
+        print("KONSERVIERUNG_FORMAT 2.0\n\n")
 
-        print("* ", shortname, a2l_file, hex_file, variants)
-        print("FUNKTIONEN")
-        for ref in references:
-            print(f'  FKT {ref.name} "" ""')
-        print("END\n")
+        # print("* ", shortname, a2l_file, hex_file, variants)
+        # print("FUNKTIONEN")
+        # for ref in references:
+        #    print(f'  FKT {ref.name} "" ""')
+        # print("END\n")
+
+    def value_header(self, type_name: str, instance: Instance, size_x: Optional[int] = None, size_y: Optional[int] = None):
+        name = instance.short_name
+        comment = instance.long_name
+        display_name = instance.display_name
+        function = instance.feature_ref
+        unit = instance.values.unit_display_name.value
+        if size_x is not None:
+            if size_y is not None:
+                print(f"{type_name} {name} {size_x} {size_y}")
+            else:
+                print(f"{type_name} {name} {size_x}")
+        else:
+            print(f"{type_name} {name}")
+        if comment:
+            print(f'  LANGNAME "{comment}"')
+        if display_name:
+            print(f'  DISPLAYNAME "{display_name}"')
+        if function:
+            print(f"  FUNKTION {function}")
+        if unit:
+            print(f'  EINHEIT_W "{unit}"')
 
     def on_instance(self, instance: Instance) -> None:
         name = instance.short_name
         comment = instance.long_name
+        display_name = instance.display_name
         function = instance.feature_ref
-        unit = instance.values.unit_display_name
+        unit = instance.values.unit_display_name.value
         category = instance.category
         value_container = instance.values
         axes = instance.axes
         array_size = value_container.array_size
 
         match category:
-            case "VALUE" | "DEPENDENT_VALUE" | "BOOLEAN":
+            case "VALUE" | "DEPENDENT_VALUE" | "BOOLEAN" | "ASCII":
                 value = value_container.values_phys[0].value
-                print(f"FESTWERT {name}")
-                if function:
-                    print(f"  FUNKTION {function}")
-                print(f'  EINHEIT_W "{unit.value}"')
-                if isinstance(value, Decimal):
-                    print(f"  WERT {value}")
-                elif category == "BOOLEAN":
-                    value = 1 if value == "true" else 0
-                    print(f"  WERT {value}")
-                else:
-                    print(f'  TEXT "{value.replace("'", "")}"')
+                self.value_header("FESTWERT", instance)
+                if value:
+                    if isinstance(value, Decimal):
+                        print(f"  WERT {value}")
+                    elif category == "BOOLEAN":
+                        value = 1 if value == "true" else 0
+                        print(f"  WERT {value}")
+                    else:
+                        print(f'  TEXT "{value.replace("'", "")}"')
                 print("END\n")
-            case "ASCII":
-                pass
             case "COM_AXIS":
                 element_count = array_elements(value_container.array_size)
-                print(f"STUETZSTELLENVERTEILUNG  {name} {element_count}")
-                print(f'  EINHEIT_W "{unit.value}"')
+                self.value_header("STUETZSTELLENVERTEILUNG", instance, element_count)
                 values = walker.array_values(value_container.values_phys, flatten=True)
                 for row in utils.slicer(values, 6):
                     print(f"  ST/X {walker.dump_array(row)}")
@@ -76,26 +95,21 @@ class Exporter(walker.CdfWalker):
                 pass
             case "VAL_BLK":
                 element_count = array_elements(value_container.array_size)
-                print(f"FESTWERTEBLOCK {name} {element_count}")
-                if function:
-                    print(f"  FUNKTION {function.value}")
-                print(f'  EINHEIT_W "{unit.value}"')
+                self.value_header("FESTWERTEBLOCK", instance, element_count)
                 values = walker.array_values(value_container.values_phys, flatten=True)
-                # values = utils.flatten(value_container.values_phys)
                 for row in utils.slicer(values, 6):
                     print(f"  WERT {walker.dump_array(row)}")
                 print("END\n")
             case "CURVE":
                 axis = axes[0]
+                element_count = len(value_container.values_phys)
                 if axis.category == "COM_AXIS":
-                    print(f"GRUPPENKENNLINIE {name} {len(value_container.values_phys)}")
+                    type_name = "GRUPPENKENNLINIE"
                 elif axis.category == "FIX_AXIS":
-                    print(f"FESTKENNLINIE {name} {len(value_container.values_phys)}")
+                    type_name = "FESTKENNLINIE"
                 else:  # if axis.category=='STD_AXIS':
-                    print(f"KENNLINIE {name} {len(value_container.values_phys)}")
-                if function:
-                    print(f"  FUNKTION {function.value}")
-                print(f'  EINHEIT_W "{unit.value}"')
+                    type_name = "KENNLINIE"
+                self.value_header(type_name, instance, element_count)
                 if axis.category == "COM_AXIS":
                     print(f"  *SSTX {axis.instance_ref.name}")
                 else:
