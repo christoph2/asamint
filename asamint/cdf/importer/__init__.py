@@ -49,15 +49,14 @@ class DBImporter:
             db_name.unlink()
         except Exception:
             pass
-        self.logger.info(f"Creating database {str(db_name)!r}")
+        self.logger.info(f"Creating database {str(db_name)!r}.")
         self.db = MSRSWDatabase(db_name, debug=False)
         self.session = self.db.session
-        self.logger.info("Done.")
-        # for k, v in parameters.items():
-        #    print(k)
+        self.logger.info("Saving characteristics...")
 
     def run(self):
         self.top_level_boilerplate()
+        self.logger.info("Done.")
 
     def top_level_boilerplate(self):
         msrsw = Msrsw()
@@ -111,22 +110,31 @@ class DBImporter:
         collections.sw_cs_collection.append(collection)
         res = []
         instance_tree.sw_instances = []
+        self.logger.info("VALUEs")
         for key, value in self.parameters.get("VALUE").items():
             instance_tree.sw_instances.append(self.scalar_value(value))
+        self.logger.info("ASCIIs")
         for key, value in self.parameters.get("ASCII").items():
             instance_tree.sw_instances.append(self.scalar_value(value))
+        self.logger.info("VAL_BLKs")
         for key, value in self.parameters.get("VAL_BLK").items():
             instance_tree.sw_instances.append(self.value_block(value))
+        self.logger.info("AXIS_PTSs")
         for key, value in self.parameters.get("AXIS_PTS").items():
             instance_tree.sw_instances.append(self.axis_pts(value))
+        self.logger.info("CURVEs")
         for key, value in self.parameters.get("CURVE").items():
             instance_tree.sw_instances.append(self.map_curve(value, "CURVE"))
+        self.logger.info("MAPs")
         for key, value in self.parameters.get("MAP").items():
             instance_tree.sw_instances.append(self.map_curve(value, "MAP"))
+        self.logger.info("CUBOIDs")
         for key, value in self.parameters.get("CUBOID").items():
             instance_tree.sw_instances.append(self.map_curve(value, "CUBOID"))
+        self.logger.info("CUBE_4s")
         for key, value in self.parameters.get("CUBE_4").items():
             instance_tree.sw_instances.append(self.map_curve(value, "CUBE_4"))
+        self.logger.info("CUBE_5s")
         for key, value in self.parameters.get("CUBE_5").items():
             instance_tree.sw_instances.append(self.map_curve(value, "CUBE_5"))
         self.session.commit()

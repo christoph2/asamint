@@ -6,7 +6,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020-2024 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2020-2025 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -29,6 +29,8 @@ __copyright__ = """
 from rich import pretty
 from rich.console import Console
 from rich.traceback import install as tb_install
+
+from asamint.asam import AsamMC
 
 
 pretty.install()

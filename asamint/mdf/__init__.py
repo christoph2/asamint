@@ -31,7 +31,7 @@ from asammdf import MDF, Signal
 from lxml.etree import Element, tostring  # nosec
 from pya2l.api import inspect
 
-from asamint.asam import AsamBaseType
+from asamint.asam import AsamMC
 from asamint.utils.xml import create_elem
 
 
@@ -41,7 +41,7 @@ class Datasource:
     """
 
 
-class MDFCreator(AsamBaseType):
+class MDFCreator(AsamMC):
     """
     Parameters
     ----------

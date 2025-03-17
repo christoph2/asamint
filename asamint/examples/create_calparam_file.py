@@ -32,7 +32,7 @@ from asamint.cmdline import ArgumentParser
 def main():
     ap = ArgumentParser(use_xcp=False)
     cd = CDFCreator(ap.project, ap.experiment)
-    cd.save_parameters(hexfile="CDF20demo.hex")
+    cd.load_characteristics(hexfile="CDF20demo.hex")
 
 
 if __name__ == "__main__":

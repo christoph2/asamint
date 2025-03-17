@@ -50,9 +50,9 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         super().__init__()
         self._parameters = parameters
 
-    def on_init(self, project_config, experiment_config, *args, **kws):
-        print("CDFCreator", project_config, experiment_config, *args, **kws)
-        super().on_init(project_config, experiment_config, *args, **kws)
+    def on_init(self, config, *args, **kws):
+        print("CDFCreator", config, *args, **kws)
+        super().on_init(config, *args, **kws)
 
     def save(self):
         self.root = self._toplevel_boilerplate()

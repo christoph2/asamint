@@ -38,6 +38,7 @@ from pya2l import DB
 from pya2l.api.inspect import Group, Measurement, ModCommon, ModPar
 from sqlalchemy import func, or_
 
+# from . epk import Epk
 from asamint.config import get_application
 from asamint.utils import current_timestamp, partition
 
@@ -102,7 +103,7 @@ class Directory:
         pass
 
 
-class AsamBaseType:
+class AsamMC:
     """
     Parameters
     ----------
@@ -131,7 +132,7 @@ class AsamBaseType:
         "logs": "logs",
     }
 
-    def __init__(self, project_config=None, experiment_config=None, *args, **kws):
+    def __init__(self, *args, **kws):
         self.config = get_application()
         self.logger = self.config.log
 
@@ -164,7 +165,7 @@ class AsamBaseType:
         self.mod_par = ModPar.get(self.session) if ModPar.exists(self.session) else None
 
         self.directory = Directory(self.session)
-        self.on_init(project_config, experiment_config, *args, **kws)
+        self.on_init(self.config, *args, **kws)
 
     def cond_create_directories(self) -> None:
         """ """
@@ -181,12 +182,11 @@ class AsamBaseType:
                 os.mkdir(dir_name)
 
     def open_create_session(self, a2l_file, encoding="latin-1"):
-        if not hasattr(AsamBaseType, "_session_obj"):
-            db = DB()
-            AsamBaseType._session_obj = db.open_create(a2l_file, encoding=encoding)
+        db = DB()
+        self.session = db.open_create(a2l_file, encoding=encoding, local=True)
 
-    def on_init(self, *args, **kws):
-        raise NotImplementedError()
+    def on_init(self, config, *args, **kws):
+        pass
 
     def loadConfig(self, project_config, experiment_config):
         """Load configuration data."""
@@ -215,9 +215,9 @@ class AsamBaseType:
                 self.xcp_master.close()
                 self.xcp_connected = False
 
-    @property
-    def session(self):
-        return self._session_obj
+    # @property
+    # def session(self):
+    #    return self._session_obj
 
     @property
     def query(self):
@@ -272,6 +272,3 @@ class ByteOrder(IntEnum):
 def get_section_reader(datatype: str, byte_order: ByteOrder) -> str:
     """ """
     return OJ_READERS[datatype][byte_order]
-
-
-# abt = AsamBaseType()

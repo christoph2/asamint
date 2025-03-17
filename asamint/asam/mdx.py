@@ -33,7 +33,7 @@ from lxml import etree  # nosec
 from pya2l.api.inspect import Characteristic, CompuMethod, Measurement, ModCommon
 
 import asamint.msrsw as msrsw
-from asamint.asam import AsamBaseType
+from asamint.asam import AsamMC
 from asamint.utils import replace_non_c_char, sha1_digest
 from asamint.utils.xml import create_elem
 
@@ -46,7 +46,7 @@ def matching_dcis(tree):
     create_elem(dci, "URL", "http://www.mdx-dci-checkrules.com")
 
 
-class MDXCreator(msrsw.MSRMixIn, AsamBaseType):
+class MDXCreator(msrsw.MSRMixIn, AsamMC):
     """
     <!ELEMENT SW-DATA-DICTIONARY-SPEC
     (

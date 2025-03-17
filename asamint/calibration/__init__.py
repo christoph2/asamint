@@ -48,7 +48,8 @@ from pya2l.functions import fix_axis_par, fix_axis_par_dist
 from pyxcp.cpp_ext.cpp_ext import McObject
 from pyxcp.daq_stim.optimize import make_continuous_blocks
 
-from asamint.asam import AsamBaseType, get_section_reader
+from asamint.asam import AsamMC, get_section_reader
+from asamint.asam.epk import Epk
 from asamint.calibration.mapfile import MapFile
 from asamint.model.calibration import klasses
 from asamint.model.calibration.klasses import MemoryObject, MemoryType
@@ -58,7 +59,7 @@ from asamint.utils import SINGLE_BITS, current_timestamp, ffs
 AXES = ("x", "y", "z", "4", "5")
 
 
-class CalibrationData(AsamBaseType):
+class CalibrationData:
     """Fetch calibration parameters from HEX file or XCP slave and create an in-memory representation.
 
     Parameters
@@ -73,13 +74,10 @@ class CalibrationData(AsamBaseType):
     Don't use directly.
     """
 
-    def on_init(self, project_config, experiment_config, *args, **kws):
-        # self.loadConfig(project_config, experiment_config)
-        self.a2l_epk = self.epk_from_a2l()
-        if self.a2l_epk is None:
-            self.logger.info("A2L doesn't contains an EPK.")
-        else:
-            self.logger.info(f"EPK from A2L: '{self.a2l_epk[0]}'")
+    def __init__(self, asam_mc: AsamMC, *args, **kws) -> None:
+        self.asam_mc = asam_mc
+        self.config = asam_mc.config
+        self.logger = self.config.log
         self._parameters = {
             k: OrderedDict()
             for k in (
@@ -96,6 +94,20 @@ class CalibrationData(AsamBaseType):
         }
         self.memory_map = defaultdict(list)
         self.memory_errors = defaultdict(list)
+        self.epk = Epk(self)
+
+        print("EPK from A2L", self.epk.from_a2l())
+
+    def close(self):
+        self.asam_mc.close()
+
+    @property
+    def session(self):
+        return self.asam_mc.session
+
+    @property
+    def query(self):
+        return self.asam_mc.query
 
     def load_hex(self):
         self._load_axis_pts()
@@ -107,9 +119,9 @@ class CalibrationData(AsamBaseType):
         self._load_cubes()
 
         calibration_log = klasses.dump_characteristics(self._parameters)
-        file_name = self.generate_filename(".json")
-        file_name = self.sub_dir("logs") / file_name
-        self.logger.info(f"Writing calibration log to {str(file_name)!r}")
+        file_name = self.asam_mc.generate_filename(".json")
+        file_name = self.asam_mc.sub_dir("logs") / file_name
+        self.logger.info(f"Writing calibration log to {str(file_name)!r}.")
         with open(file_name, "wb") as of:
             of.write(calibration_log)
         from asamint.cdf.importer import DBImporter
@@ -119,47 +131,7 @@ class CalibrationData(AsamBaseType):
         mm = MapFile("test_db.map", self.memory_map, self.memory_errors)
         mm.run()
 
-    def check_epk_xcp(self, xcp_master):
-        """Compare EPK (EPROM Kennung) from A2L with EPK from ECU.
-
-        Returns
-        -------
-            - True:     EPKs are matching.
-            - False:    EPKs are not matching.
-            - None:     EPK not configured in MOD_COMMON.
-        """
-        if self.mod_par is None or self.a2l_epk is None:
-            return None
-        epk_a2l, epk_addr = self.a2l_epk
-        xcp_master.setMta(epk_addr)
-        epk_xcp = xcp_master.pull(len(epk_a2l))
-        epk_xcp = epk_xcp[: len(epk_a2l)].decode("ascii")
-        ok = epk_xcp == epk_a2l
-        if not ok:
-            self.logger.warning(f"EPK is invalid -- A2L: '{self.mod_par.epk}' XCP: '{epk_xcp}'.")
-        else:
-            self.logger.info("OK, matching EPKs.")
-        return ok
-
-    def epk_from_a2l(self):
-        """Read EPK from A2L database.
-
-        Returns
-        -------
-        tuple: (epk, address)
-        """
-        if self.mod_par is None:
-            return None
-        if self.mod_par.addrEpk is None:
-            return None
-        elif self.mod_par.epk is None:
-            return None
-        else:
-            addr = self.mod_par.addrEpk[0]
-            epk = self.mod_par.epk
-            return (epk, addr)
-
-    def save_parameters(self, xcp_master=None, hexfile: str = None, hexfile_type: str = "ihex"):
+    def load_characteristics(self, xcp_master=None, hexfile: str = None, hexfile_type: str = "ihex"):
         """
         Parameters
         ----------
@@ -172,24 +144,19 @@ class CalibrationData(AsamBaseType):
         """
         if xcp_master:
             self.check_epk_xcp(xcp_master)
-            image = self.upload_parameters(xcp_master)
-            image.file_name = None
-            self.logger.info("Using image from XCP slave")
+            self.image = self.upload_parameters(xcp_master)
+            # image.file_name = None
+            self.logger.info("Using image from XCP slave.")
         else:
             if not hexfile:
                 hexfile = self.config.general.master_hexfile
                 hexfile_type = self.config.general.master_hexfile_type
             with open(f"{hexfile}", "rb") as inf:
-                self.logger.info(f"Loading hex-file {hexfile!r}")
-                image = load(hexfile_type, inf)
-            image.file_name = hexfile
-            # self.logger.info(f"Using image from HEX file '{hexfile}'")
-        if not image:
+                self.logger.info(f"Loading characteristics from {hexfile!r}.")
+                self.image = load(hexfile_type, inf)
+        if not self.image:
             raise ValueError("Empty calibration image.")
-        else:
-            self._image = image
         self.load_hex()
-        # self.save()
 
     def upload_calram(self, xcp_master, file_type: str = "ihex"):
         """Tansfer RAM segments from ECU to MCS.
@@ -358,7 +325,7 @@ class CalibrationData(AsamBaseType):
         for characteristic in self.characteristics("VAL_BLK"):
             raw_values: np.array = np.array([])
             self.logger.debug(f"Processing VAL_BLK '{characteristic.name}' @0x{characteristic.address:08x}")
-            reader = get_section_reader(characteristic.fnc_asam_dtype, self.byte_order(characteristic))
+            reader = get_section_reader(characteristic.fnc_asam_dtype, self.asam_mc.byte_order(characteristic))
             try:
                 raw_values = self.image.read_ndarray(
                     addr=characteristic.address,
@@ -406,7 +373,7 @@ class CalibrationData(AsamBaseType):
             raw_value = 0
             fnc_asam_dtype = characteristic.fnc_asam_dtype
             allocated_memory = asam_type_size(fnc_asam_dtype)
-            reader = get_section_reader(fnc_asam_dtype, self.byte_order(characteristic))
+            reader = get_section_reader(fnc_asam_dtype, self.asam_mc.byte_order(characteristic))
             if characteristic.bitMask:
                 raw_value = self.image.read_numeric(characteristic.address, reader, bit_mask=characteristic.bitMask)
                 raw_value >>= ffs(characteristic.bitMask)  # Right-shift to get rid of trailing zeros (s. ASAM 2-MC spec).
@@ -695,7 +662,7 @@ class CalibrationData(AsamBaseType):
                     length=length,
                     dtype=get_section_reader(
                         characteristic.record_layout_components.fncValues["datatype"],
-                        self.byte_order(characteristic),
+                        self.asam_mc.byte_order(characteristic),
                     ),
                     shape=shape,
                     # order = order,
@@ -814,7 +781,7 @@ class CalibrationData(AsamBaseType):
             return None
         datatype = component_map["datatype"]
         offset = component_map["offset"]
-        reader = get_section_reader(datatype, self.byte_order(obj))
+        reader = get_section_reader(datatype, self.asam_mc.byte_order(obj))
         value = self.image.read_numeric(obj.address + offset, reader)
         if datatype not in ASAM_INTEGER_QUANTITIES:
             self.logger.warning(
@@ -830,7 +797,7 @@ class CalibrationData(AsamBaseType):
         component_map = axis[component]
         datatype = component_map["datatype"]
         offset = component_map["offset"]
-        reader = get_section_reader(datatype, self.byte_order(axis_pts))
+        reader = get_section_reader(datatype, self.asam_mc.byte_order(axis_pts))
 
         length = no_elements * asam_type_size(datatype)
         np_arr = self.image.read_ndarray(
@@ -862,10 +829,6 @@ class CalibrationData(AsamBaseType):
     def log_memory_errors(self, exc: Exception, memory_type: MemoryType, name: str, address: int, length):
         if isinstance(exc, InvalidAddressError):
             self.memory_errors[address].append(MemoryObject(memory_type=memory_type, name=name, address=address, length=length))
-
-    @property
-    def image(self):
-        return self._image
 
     @property
     def parameters(self):

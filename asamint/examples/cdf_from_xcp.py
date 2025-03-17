@@ -48,7 +48,7 @@ def main():
             a2l_data = x.identifier(4)
             print(a2l_data)
         # print(cd.check_epk(x))
-        cd.save_parameters(x)
+        cd.load_characteristics(x)
         x.disconnect()
 
 

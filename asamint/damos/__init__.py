@@ -38,9 +38,9 @@ class DCMCreator(CalibrationData):
     EXTENSION = ".dcm"
     TEMPLATE = read_resource_file("asamint", "data/templates/dcm.tmpl", binary=False)
 
-    def on_init(self, project_config, experiment_config, *args, **kws):
-        super().on_init(project_config, experiment_config, *args, **kws)
-        self.loadConfig(project_config, experiment_config)
+    def on_init(self, config, *args, **kws):
+        super().on_init(config, *args, **kws)
+        self.loadConfig(config)
 
     def save(self):
 
