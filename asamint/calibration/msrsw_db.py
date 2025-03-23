@@ -20523,7 +20523,9 @@ class SwInstancePropsVariants(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_instance_props_variant: Mapped[list["SwInstancePropsVariant"]] = relationship(back_populates="sw_instance_props_variants")
+    sw_instance_props_variant: Mapped[list["SwInstancePropsVariant"]] = relationship(
+        back_populates="sw_instance_props_variants"
+    )
 
 
 class SwCsFlags(Base):
@@ -20991,7 +20993,9 @@ class SwMcInstanceInterfaces(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_mc_instance_interface: Mapped[list["SwMcInstanceInterface"]] = relationship(back_populates="sw_mc_instance_interfaces")
+    sw_mc_instance_interface: Mapped[list["SwMcInstanceInterface"]] = relationship(
+        back_populates="sw_mc_instance_interfaces"
+    )
 
 
 class SwSizeofInstance(Base):
@@ -21337,7 +21341,9 @@ class SwMcInterfaceAvlSources(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_mc_interface_source_ref: Mapped[list["SwMcInterfaceSourceRef"]] = relationship(back_populates="sw_mc_interface_avl_sources")
+    sw_mc_interface_source_ref: Mapped[list["SwMcInterfaceSourceRef"]] = relationship(
+        back_populates="sw_mc_interface_avl_sources"
+    )
 
 
 class SwMcInterfaceDefaultSource(Base):
@@ -25631,6 +25637,10 @@ class MSRSWDatabase:
         self.engine.dispose()
         self._closed = True
 
+    def create_indices(self):
+        index_name = sqa.Index("shortname_content_idx", ShortName.content)
+        index_name.create(bind=self.engine)
+
     @property
     def engine(self):
         return self._engine
@@ -25655,7 +25665,7 @@ class MSRSWDatabase:
 
 class Parser:
 
-    ATTR = re.compile("(\\{.*?\\})?(.*)", re.DOTALL)
+    ATTR = re.compile(r"(\\{.*?\\})?(.*)", re.DOTALL)
 
     def __init__(self, file_name: str, db: MSRSWDatabase, root_elem: str = ROOT_ELEMENT):
         self.validator = create_validator("cdf_v2.0.0.sl.dtd")

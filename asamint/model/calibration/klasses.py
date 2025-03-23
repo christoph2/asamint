@@ -196,6 +196,8 @@ class ValueBlock(BaseCharacteristic):
 class AxisContainer:
     """ """
 
+    name: str
+    input_quantity: str
     category: str
     unit: str
     raw_values: list[Union[int, float]]

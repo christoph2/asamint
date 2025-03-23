@@ -27,14 +27,12 @@ __copyright__ = """
 """
 __author__ = "Christoph Schueler"
 
-
 import os
 from dataclasses import dataclass, field
 from enum import IntEnum
 from pathlib import Path
 
-import pya2l.model as model
-from pya2l import DB
+from pya2l import DB, model
 from pya2l.api.inspect import Group, Measurement, ModCommon, ModPar
 from sqlalchemy import func, or_
 
@@ -51,7 +49,9 @@ def create_xcp_master():
     app = get_application()
     xcp_config = app.xcp
     master = Master(
-        xcp_config.transport.layer, config=xcp_config  # policy=policy, transport_layer_interface=transport_layer_interface
+        xcp_config.transport.layer,
+        config=xcp_config,
+        # policy=policy, transport_layer_interface=transport_layer_interface
     )
     return master
 

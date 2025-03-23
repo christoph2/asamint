@@ -40,6 +40,9 @@ antlr4-tools = "^0.2.1"
 objutils = "^0.6.0"
 numexpr = "^2.10.2"
 pya2ldb = "^0.14.5"
+h5py = "^3.13.0"
+xarray = "^2025.1.2"
+csvmagic = "^2.3.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"

@@ -1,7 +1,9 @@
 from pathlib import Path
 from typing import List, Union
 
+import h5py
 import numpy as np
+from numpy.dtypes import StringDType
 
 from asamint.calibration.msrsw_db import (
     Category,
@@ -36,10 +38,10 @@ from asamint.calibration.msrsw_db import (
     Vh,
     Vt,
 )
-from asamint.utils import slicer
 
 
 class DBImporter:
+    opened: bool = False
 
     def __init__(self, file_name: str, parameters, logger):
         db_name = Path(file_name).with_suffix(".msrswdb")
@@ -51,8 +53,19 @@ class DBImporter:
             pass
         self.logger.info(f"Creating database {str(db_name)!r}.")
         self.db = MSRSWDatabase(db_name, debug=False)
+        self.storage = h5py.File(db_name.with_suffix(".h5"), mode="w", libver="latest", locking="best-effort", track_order=True)
         self.session = self.db.session
         self.logger.info("Saving characteristics...")
+        self.opened = True
+
+    def close(self):
+        if self.opened:
+            self.storage.close()
+            self.db.close()
+            self.opened = False
+
+    def __del__(self):
+        self.close()
 
     def run(self):
         self.top_level_boilerplate()
@@ -138,130 +151,111 @@ class DBImporter:
         for key, value in self.parameters.get("CUBE_5").items():
             instance_tree.sw_instances.append(self.map_curve(value, "CUBE_5"))
         self.session.commit()
-        self.db.close()
+        self.db.create_indices()
 
     def scalar_value(self, value):
         inst = self.create_instance(value)
         self.add_value_container(inst, value.unit if hasattr(value, "unit") else None)
-        values_phys = SwValuesPhys()  # self.create_values_phys(inst, value.converted_value)
-        values_coded = SwValuesCoded()
-        inst.sw_value_cont.sw_values_phys = values_phys
-        inst.sw_value_cont.sw_values_coded = values_coded
-        self.session.add(values_phys)
-        self.session.add(values_coded)
-        is_text = False
         if value.category == "BOOLEAN":
             converted_value = 1 if value.converted_value == 1.0 else 0
             raw_value = value.raw_value
         elif value.category == "TEXT":
             converted_value = value.converted_value
             raw_value = value.raw_value
-            is_text = True
         elif value.category == "ASCII":
-            converted_value = value.value
-            raw_value = value.value
-            is_text = True
+            converted_value = value.value.replace("\x00", " ") if value.value is not None else ""
+            raw_value = converted_value
         else:
             converted_value = value.converted_value
             raw_value = value.raw_value
-        if is_text:
-            node_phys = Vt()
-            node_internal = Vt()
-        else:
-            node_phys = V()
-            node_internal = V()
-        self.session.add(node_phys)
-        self.session.add(node_internal)
-        node_phys.content = converted_value
-        node_internal.content = raw_value
-        if is_text:
-            values_phys.vts = []
-            values_phys.vts.append(node_phys)
-            values_coded.vts = []
-            values_coded.vts.append(node_internal)
-        else:
-            values_phys.vs = []
-            values_phys.vs.append(node_phys)
-            values_coded.vs = []
-            values_coded.vs.append(node_internal)
+        ds = self.storage.create_group(name=f"/{value.name}", track_order=True)
+        ds.attrs["comment"] = value.comment if value.comment is not None else ""
+        ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
+        ds.attrs["category"] = value.category
+        ds.attrs["is_text"] = not value.is_numeric if value.category != "ASCII" else True
+        ds.attrs["unit"] = value.unit if hasattr(value, "unit") and value.unit is not None else ""
+        if raw_value is not None:
+            ds["raw"] = raw_value
+        if converted_value is not None:
+            ds["converted"] = converted_value
         return inst
 
     def map_curve(self, value, category: str):
         inst = self.create_instance(value)
         self.add_value_container(inst, value.unit if hasattr(value, "unit") else None)
-        values_phys = SwValuesPhys()  # self.create_values_phys(inst, value.converted_value)
-        values_coded = SwValuesCoded()
-        inst.sw_value_cont.sw_values_phys = values_phys
-        inst.sw_value_cont.sw_values_coded = values_coded
-        self.session.add(values_phys)
-        self.session.add(values_coded)
-
-        sw_axis_conts = SwAxisConts()
-        self.session.add(sw_axis_conts)
-        inst.sw_axis_conts = sw_axis_conts
-
-        if value.converted_values.shape != (0,):
-            self.output_value_array(inst.sw_value_cont.sw_values_phys, value.converted_values, is_numeric=value.is_numeric)
-        if value.raw_values.shape != (0,):
-            self.output_value_array(inst.sw_value_cont.sw_values_coded, value.raw_values)
-        for axis in value.axes:
+        ds = self.storage.create_group(name=f"/{value.name}", track_order=True)
+        axes = ds.create_group("axes")
+        ds.attrs["category"] = value.category
+        ds.attrs["unit"] = value.fnc_unit if value.fnc_unit is not None else ""
+        ds.attrs["comment"] = value.comment if value.comment is not None else ""
+        ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
+        ds.attrs["is_text"] = not value.is_numeric if value.category != "ASCII" else True
+        if value.raw_values is not None:
+            ds["raw"] = value.raw_values
+        if value.converted_values is not None:
+            if not value.is_numeric:
+                ds["converted"] = value.converted_values.astype(h5py.string_dtype())
+            else:
+                ds["converted"] = value.converted_values
+        for idx, axis in enumerate(value.axes):
+            ax = axes.create_group(str(idx))
             category = axis.category
+            ax.attrs["category"] = category
+            ax.attrs["unit"] = axis.unit if axis.unit else ""
+            ax.attrs["name"] = axis.name if axis.name else ""
+            ax.attrs["input_quantity"] = axis.input_quantity if axis.input_quantity else ""
             match category:
-                case "STD_AXIS":
-                    self.add_axis(
-                        sw_axis_conts.sw_axis_cont, axis.converted_values, axis.raw_values, "STD_AXIS", axis.unit, axis.is_numeric
-                    )
-                case "FIX_AXIS":
-                    self.add_axis(
-                        sw_axis_conts.sw_axis_cont, axis.converted_values, axis.raw_values, "FIX_AXIS", axis.unit, axis.is_numeric
-                    )
+                case "STD_AXIS" | "FIX_AXIS":
+                    ax["raw"] = axis.raw_values
+                    if not axis.is_numeric:
+                        ax["converted"] = axis.converted_values.astype(h5py.string_dtype())
+                    else:
+                        ax["converted"] = axis.converted_values
                 case "COM_AXIS" | "RES_AXIS" | "CURVE_AXIS":
-                    axis_cont = SwAxisCont()
-                    self.session.add(axis_cont)
-                    sw_axis_conts.sw_axis_cont.append(axis_cont)
-                    self.set_category(axis_cont, category)
-                    instance_ref = SwInstanceRef()
-                    self.session.add(instance_ref)
-                    instance_ref.content = axis.axis_pts_ref
-                    axis_cont.sw_instance_ref = instance_ref
+                    ax["reference"] = h5py.SoftLink(f"/{axis.axis_pts_ref}")
         return inst
 
     def value_block(self, value):
         inst = self.create_instance(value)
         self.add_value_container(inst, value.unit if hasattr(value, "unit") else None)
-        values_phys = SwValuesPhys()  # self.create_values_phys(inst, value.converted_value)
-        values_coded = SwValuesCoded()
-        inst.sw_value_cont.sw_values_phys = values_phys
-        inst.sw_value_cont.sw_values_coded = values_coded
-        self.session.add(values_phys)
-        self.session.add(values_coded)
-        arraysize = SwArraysize()
-        self.session.add(arraysize)
-        inst.sw_value_cont.sw_arraysize = arraysize
-        if value.converted_values.shape != (0,):
-            self.add_1d_array(inst.sw_value_cont, "sw_arraysize", reversed(value.converted_values.shape))
-            self.output_value_array(inst.sw_value_cont.sw_values_phys, value.converted_values, is_numeric=value.is_numeric)
+
+        ds = self.storage.create_group(name=f"/{value.name}", track_order=True)
+        ds.attrs["shape"] = value.converted_values.shape
+        ds.attrs["is_text"] = not value.is_numeric
+        ds.attrs["category"] = value.category
+        ds.attrs["comment"] = value.comment if value.comment is not None else ""
+        ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
+        # ds.attrs["unit"] = value.unit if value.unit is not None else ""
+
         if value.raw_values.shape != (0,):
-            self.output_value_array(inst.sw_value_cont.sw_values_coded, value.raw_values)
+            ds["raw"] = value.raw_values
+        if value.converted_values.shape != (0,):
+            if not value.is_numeric:
+                ds["converted"] = value.converted_values.astype(h5py.string_dtype())
+            else:
+                ds["converted"] = value.converted_values
         return inst
 
     def axis_pts(self, value):
         inst = self.create_instance(value)
         self.add_value_container(inst, value.unit if hasattr(value, "unit") else None)
-        values_phys = SwValuesPhys()  # self.create_values_phys(inst, value.converted_value)
-        values_coded = SwValuesCoded()
-        inst.sw_value_cont.sw_values_phys = values_phys
-        inst.sw_value_cont.sw_values_coded = values_coded
-        self.session.add(values_phys)
-        self.session.add(values_coded)
-        arraysize = SwArraysize()
-        self.session.add(arraysize)
-        inst.sw_value_cont.sw_arraysize = arraysize
-        if value.converted_values.shape != (0,):
-            self.add_1d_array(inst.sw_value_cont, "sw_arraysize", reversed(value.converted_values.shape))
-            self.output_value_array(inst.sw_value_cont.sw_values_phys, value.converted_values, is_numeric=value.is_numeric)
+
+        ds = self.storage.create_group(name=f"/{value.name}", track_order=True)
+        ds.attrs["shape"] = value.converted_values.shape
+        ds.attrs["is_text"] = not value.is_numeric
+        ds.attrs["category"] = value.category
+        ds.attrs["comment"] = value.comment if value.comment is not None else ""
+        ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
+
+        # ds.attrs["unit"] = value.unit if hasattr(value, "unit") else ""
+
         if value.raw_values.shape != (0,):
-            self.output_value_array(inst.sw_value_cont.sw_values_coded, value.raw_values)
+            ds["raw"] = value.raw_values
+        if value.converted_values.shape != (0,):
+            if not value.is_numeric:
+                ds["converted"] = value.converted_values.astype(h5py.string_dtype())
+            else:
+                ds["converted"] = value.converted_values
         return inst
 
     def create_instance(self, value):
@@ -307,71 +301,3 @@ class DBImporter:
         display_name.content = name
         self.session.add(display_name)
         obj.display_name = display_name
-
-    def add_1d_array(self, obj, name: str, values=[], is_numeric: bool = True, paired: bool = False):
-        if is_numeric:
-            value_klass = V
-        else:
-            value_klass = Vt
-        if name:
-            container = getattr(obj, name)
-        else:
-            container = obj
-        result = []
-        if paired:
-            if isinstance(values, np.ndarray):
-                parts = np.split(values, values.size // 2)
-            else:
-                parts = slicer(values, 2)
-            for part in parts:
-                group = Vg()
-                self.session.add(group)
-                container.vgs.append(group)
-                v0 = value_klass()
-                v0.content = part[0]
-                v1 = value_klass()
-                v1.content = part[1]
-                self.session.add(v0)
-                self.session.add(v1)
-                group.vs.append(v0)
-                group.vs.append(v1)
-        else:
-            for value in values:
-                value_holder = value_klass()
-                value_holder.content = value
-                self.session.add(value_holder)
-                result.append(value_holder)
-            if is_numeric:
-                container.vs = result
-            else:
-                container.vts = result
-
-    def output_value_array(self, obj, values, is_numeric: bool = True):
-        if values.ndim == 1:
-            self.add_1d_array(obj, None, values, is_numeric)
-        else:
-            obj.vgs = []
-            for value in values:
-                vg = Vg()
-                self.session.add(vg)
-                obj.vgs.append(vg)
-                self.output_value_array(vg, value, is_numeric)
-
-    def add_axis(self, obj, converted_values, raw_values, category, unit="", is_numeric: bool = True):
-        axis_cont = SwAxisCont()
-        self.session.add(axis_cont)
-        obj.append(axis_cont)
-        self.set_category(axis_cont, category)
-        if unit:
-            unit_display_name = UnitDisplayName()
-            self.session.add(unit_display_name)
-            unit_display_name.content = unit
-            axis_cont.unit_display_name = unit_display_name
-        values_phys = SwValuesPhys()
-        values_coded = SwValuesCoded()
-        self.session.add(values_phys)
-        self.session.add(values_coded)
-        axis_cont.sw_values_phys = values_phys
-        axis_cont.sw_values_coded = values_coded
-        self.add_1d_array(axis_cont, "sw_values_phys", converted_values, is_numeric=is_numeric)
-        self.add_1d_array(axis_cont, "sw_values_coded", raw_values)

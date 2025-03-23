@@ -33,9 +33,9 @@ from functools import cache
 from typing import Optional
 
 import numpy as np
-import pya2l.model as model
 from objutils import Image, Section, dump, load
 from objutils.exceptions import InvalidAddressError
+from pya2l import model
 from pya2l.api.inspect import (
     ASAM_INTEGER_QUANTITIES,
     AxisPts,
@@ -128,6 +128,7 @@ class CalibrationData:
 
         imp = DBImporter("test_db", self._parameters, self.logger)
         imp.run()
+        imp.close()
         mm = MapFile("test_db.map", self.memory_map, self.memory_errors)
         mm.run()
 
@@ -580,13 +581,12 @@ class CalibrationData:
                 flipper = []
                 if fix_no_axis_pts:
                     no_axis_points = fix_no_axis_pts
+                elif "noAxisPts" in rl_values:
+                    no_axis_points = rl_values["noAxisPts"]
+                elif "noRescale" in rl_values:
+                    no_axis_points = rl_values["noRescale"]
                 else:
-                    if "noAxisPts" in rl_values:
-                        no_axis_points = rl_values["noAxisPts"]
-                    elif "noRescale" in rl_values:
-                        no_axis_points = rl_values["noRescale"]
-                    else:
-                        no_axis_points = maxAxisPoints
+                    no_axis_points = maxAxisPoints
                 if axis_attribute == "FIX_AXIS":
                     if axis_descr.fixAxisParDist:
                         par_dist = axis_descr.fixAxisParDist
@@ -640,6 +640,8 @@ class CalibrationData:
                     flipper.append(axis_idx)
                 axes.append(
                     klasses.AxisContainer(
+                        name=axis_name,
+                        input_quantity=axis_descr.inputQuantity,
                         category=axis_attribute,
                         unit=axis_unit,
                         reversed_storage=reversed_storage,

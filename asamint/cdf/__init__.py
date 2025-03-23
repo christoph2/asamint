@@ -27,14 +27,120 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
-import numpy as np
-import pya2l.model as model
-from lxml import etree  # nosec
+import sys
+from pathlib import Path
 
-import asamint.msrsw as msrsw
+import h5py
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+import sqlalchemy as sqa
+import xarray as xr
+from lxml import etree  # nosec
+from pya2l import model
+
+import asamint.calibration.msrsw_db as model
+from asamint import msrsw
 from asamint.calibration import CalibrationData
+from asamint.calibration.msrsw_db import MSRSWDatabase
+from asamint.model.calibration import klasses
 from asamint.utils import add_suffix_to_path
 from asamint.utils.xml import create_elem, xml_comment
+
+
+sns.set_theme("notebook")
+
+sys.setrecursionlimit(2000)
+
+
+class DB:
+
+    def __init__(self, file_name: str):
+        db_name = Path(file_name).with_suffix(".msrswdb")
+        # self.logger = logger
+        # self.logger.info(f"Creating database {str(db_name)!r}.")
+        self.db = MSRSWDatabase(db_name, debug=False)
+        self.session = self.db.session
+        self.storage = h5py.File(db_name.with_suffix(".h5"), mode="r", libver="latest", locking="best-effort")
+        self.opened = True
+        print(self.storage)
+
+    def __del__(self):
+        self.close()
+
+    def close(self):
+        if self.opened:
+            self.storage.close()
+            self.db.close()
+            self.opened = False
+
+    def load(self, name: str):
+        # self.session.query(model.ShortName).filter(model.ShortName.content == name)
+        # inst = self.session.query(model.SwInstance).join(model.ShortName).filter(model.ShortName.content == name).first()
+        # category = inst.category.content
+
+        ds = self.storage[f"/{name}"]
+        ds_attrs = dict(ds.attrs.items())
+        category = ds_attrs["category"]
+        attrs = {
+            "comment": ds_attrs.get("commment") or "",
+            "display_identifier": ds_attrs.get("display_identifier") or "",
+            "category": category,
+        }
+        values = ds["converted"][()]
+        if category not in ("VALUE", "DEPENDENT_VALUE", "BOOLEAN", "ASCII", "TEXT", "VAL_BLK", "COM_AXIS"):
+            axes = ds["axes"]
+            axes_attrs = dict(axes.attrs.items())
+            dims = []
+            coords = {}
+            shape = []
+            for idx in range(len(axes)):
+                ax = axes[str(idx)]
+                ax_attrs = dict(ax.attrs.items())
+                ax_items = dict(ax.items())
+                ax_name = ax_attrs["name"]
+                dims.append(ax_name)
+                category = ax_attrs["category"]
+                if category == "COM_AXIS":
+                    ref_axis = ax_items["reference"]
+                    raw_values = np.array(ref_axis["raw"])
+                    converted_values = np.array(ref_axis["converted"])
+                else:
+                    if category not in ("FIX_AXIS", "STD_AXIS"):
+                        raise TypeError(f"{category} axis")
+                    converted_values = np.array(ax_items["converted"])
+                coords[ax_name] = converted_values
+                shape.append(converted_values.size)
+            if values.shape == (0,):  # TODO: fix while saving!?
+                values = np.zeros(tuple(shape))
+            arr = xr.DataArray(values, dims=dims, coords=coords, attrs=attrs)
+        elif category in ("VAL_BLK", "COM_AXIS"):
+            arr = xr.DataArray(values, attrs=attrs)
+        else:
+            arr = xr.DataArray(values, attrs=attrs)
+        return arr
+
+    def instances(self):
+        for inst in self.session.query(model.SwInstance).all():
+            arr = self.load(inst.short_name.content)
+            print(arr)
+
+    def unroll(self, values):
+        result = []
+        if values.vs is not None:
+            result = [v.content for v in values.vs]
+        if values.vts is not None:
+            result = [v.content for v in values.vts]
+        if isinstance(values, model.Vg):
+            if values.children:
+                result.append([self.unroll(v) for v in values.children])
+        elif values.vgs is not None:
+            result.append([self.unroll(v) for v in values.vgs])
+        if values.vfs is not None:
+            result = [v.content for v in values.vfs]
+        if values.vhs is not None:
+            result = [v.content for v in values.vhs]
+        return result
 
 
 class CDFCreator(msrsw.MSRMixIn, CalibrationData):
