@@ -28,13 +28,12 @@ __copyright__ = """
 """
 
 import sys
+import uuid
 from pathlib import Path
 
 import h5py
-import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-import sqlalchemy as sqa
 import xarray as xr
 from lxml import etree  # nosec
 from pya2l import model
@@ -43,7 +42,6 @@ import asamint.calibration.msrsw_db as model
 from asamint import msrsw
 from asamint.calibration import CalibrationData
 from asamint.calibration.msrsw_db import MSRSWDatabase
-from asamint.model.calibration import klasses
 from asamint.utils import add_suffix_to_path
 from asamint.utils.xml import create_elem, xml_comment
 
@@ -55,7 +53,8 @@ sys.setrecursionlimit(2000)
 
 class DB:
 
-    def __init__(self, file_name: str):
+    def __init__(self, file_name: str) -> None:
+        self.opened = False
         db_name = Path(file_name).with_suffix(".msrswdb")
         # self.logger = logger
         # self.logger.info(f"Creating database {str(db_name)!r}.")
@@ -63,18 +62,18 @@ class DB:
         self.session = self.db.session
         self.storage = h5py.File(db_name.with_suffix(".h5"), mode="r", libver="latest", locking="best-effort")
         self.opened = True
-        print(self.storage)
+        self.guid = uuid.uuid4()
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.close()
 
-    def close(self):
+    def close(self) -> None:
         if self.opened:
             self.storage.close()
             self.db.close()
             self.opened = False
 
-    def load(self, name: str):
+    def load(self, name: str) -> xr.DataArray:
         # self.session.query(model.ShortName).filter(model.ShortName.content == name)
         # inst = self.session.query(model.SwInstance).join(model.ShortName).filter(model.ShortName.content == name).first()
         # category = inst.category.content
@@ -83,12 +82,15 @@ class DB:
         ds_attrs = dict(ds.attrs.items())
         category = ds_attrs["category"]
         attrs = {
-            "comment": ds_attrs.get("commment") or "",
+            "name": name,
             "display_identifier": ds_attrs.get("display_identifier") or "",
             "category": category,
+            "comment": ds_attrs.get("commment") or "",
         }
         values = ds["converted"][()]
-        if category not in ("VALUE", "DEPENDENT_VALUE", "BOOLEAN", "ASCII", "TEXT", "VAL_BLK", "COM_AXIS"):
+        if category in ("VALUE", "DEPENDENT_VALUE", "BOOLEAN", "ASCII", "TEXT") or category in ("VAL_BLK", "COM_AXIS"):
+            arr = xr.DataArray(values, attrs=attrs)
+        else:
             axes = ds["axes"]
             axes_attrs = dict(axes.attrs.items())
             dims = []
@@ -114,33 +116,7 @@ class DB:
             if values.shape == (0,):  # TODO: fix while saving!?
                 values = np.zeros(tuple(shape))
             arr = xr.DataArray(values, dims=dims, coords=coords, attrs=attrs)
-        elif category in ("VAL_BLK", "COM_AXIS"):
-            arr = xr.DataArray(values, attrs=attrs)
-        else:
-            arr = xr.DataArray(values, attrs=attrs)
         return arr
-
-    def instances(self):
-        for inst in self.session.query(model.SwInstance).all():
-            arr = self.load(inst.short_name.content)
-            print(arr)
-
-    def unroll(self, values):
-        result = []
-        if values.vs is not None:
-            result = [v.content for v in values.vs]
-        if values.vts is not None:
-            result = [v.content for v in values.vts]
-        if isinstance(values, model.Vg):
-            if values.children:
-                result.append([self.unroll(v) for v in values.children])
-        elif values.vgs is not None:
-            result.append([self.unroll(v) for v in values.vgs])
-        if values.vfs is not None:
-            result = [v.content for v in values.vfs]
-        if values.vhs is not None:
-            result = [v.content for v in values.vhs]
-        return result
 
 
 class CDFCreator(msrsw.MSRMixIn, CalibrationData):

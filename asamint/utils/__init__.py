@@ -89,7 +89,6 @@ def make_2darray(arr):
             ndim -= 1
             shape.pop(0)
             shape.pop(0)
-            print(reshaped)
         if shape:
             reshaped.extend(shape)
         return arr.reshape(tuple(reshaped))
@@ -165,3 +164,10 @@ def flatten(values: list[Any]) -> list[Any]:
 def partition(pred, iterable):
     t1, t2 = itertools.tee(iterable)
     return filter(pred, t2), itertools.filterfalse(pred, t1)
+
+
+def adjust_to_word_boundary(value: int, alignment: int = 2):
+    if (value % (1 << alignment)) == 0:
+        return value
+    else:
+        return ((value >> alignment) + 1) << alignment

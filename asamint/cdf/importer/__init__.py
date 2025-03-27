@@ -1,10 +1,7 @@
 from pathlib import Path
-from typing import List, Union
+from typing import Union
 
-import h5py
-import numpy as np
-from numpy.dtypes import StringDType
-
+from asamint.calibration.db import CalibrationDB
 from asamint.calibration.msrsw_db import (
     Category,
     DataFile,
@@ -13,31 +10,19 @@ from asamint.calibration.msrsw_db import (
     Msrsw,
     MSRSWDatabase,
     ShortName,
-    SwArraysize,
-    SwAxisCont,
-    SwAxisConts,
     SwCsCollection,
     SwCsCollections,
     SwInstance,
-    SwInstancePropsVariant,
-    SwInstancePropsVariants,
-    SwInstanceRef,
     SwInstanceSpec,
     SwInstanceTree,
     SwInstanceTreeOrigin,
     SwSystem,
     SwSystems,
     SwValueCont,
-    SwValuesCoded,
-    SwValuesPhys,
     SymbolicFile,
     UnitDisplayName,
-    V,
-    Vf,
-    Vg,
-    Vh,
-    Vt,
 )
+from asamint.model.calibration import klasses
 
 
 class DBImporter:
@@ -52,16 +37,18 @@ class DBImporter:
         except Exception:
             pass
         self.logger.info(f"Creating database {str(db_name)!r}.")
-        self.db = MSRSWDatabase(db_name, debug=False)
-        self.storage = h5py.File(db_name.with_suffix(".h5"), mode="w", libver="latest", locking="best-effort", track_order=True)
-        self.session = self.db.session
+        self.cdf_db = MSRSWDatabase(db_name, debug=False)
+        # self.hdf_db = h5py.File(db_name.with_suffix(".h5"), mode="w", libver="latest", locking="best-effort",
+        #                         track_order=True)
+        self.hdf_db = CalibrationDB(db_name)
+        self.session = self.cdf_db.session
         self.logger.info("Saving characteristics...")
         self.opened = True
 
     def close(self):
         if self.opened:
-            self.storage.close()
-            self.db.close()
+            self.hdf_db.close()
+            self.cdf_db.close()
             self.opened = False
 
     def __del__(self):
@@ -151,111 +138,33 @@ class DBImporter:
         for key, value in self.parameters.get("CUBE_5").items():
             instance_tree.sw_instances.append(self.map_curve(value, "CUBE_5"))
         self.session.commit()
-        self.db.create_indices()
+        self.cdf_db.create_indices()
 
-    def scalar_value(self, value):
+    def scalar_value(self, value: klasses.Value) -> SwInstance:
         inst = self.create_instance(value)
         self.add_value_container(inst, value.unit if hasattr(value, "unit") else None)
-        if value.category == "BOOLEAN":
-            converted_value = 1 if value.converted_value == 1.0 else 0
-            raw_value = value.raw_value
-        elif value.category == "TEXT":
-            converted_value = value.converted_value
-            raw_value = value.raw_value
-        elif value.category == "ASCII":
-            converted_value = value.value.replace("\x00", " ") if value.value is not None else ""
-            raw_value = converted_value
-        else:
-            converted_value = value.converted_value
-            raw_value = value.raw_value
-        ds = self.storage.create_group(name=f"/{value.name}", track_order=True)
-        ds.attrs["comment"] = value.comment if value.comment is not None else ""
-        ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
-        ds.attrs["category"] = value.category
-        ds.attrs["is_text"] = not value.is_numeric if value.category != "ASCII" else True
-        ds.attrs["unit"] = value.unit if hasattr(value, "unit") and value.unit is not None else ""
-        if raw_value is not None:
-            ds["raw"] = raw_value
-        if converted_value is not None:
-            ds["converted"] = converted_value
+        self.hdf_db.import_scalar_value(value)
         return inst
 
-    def map_curve(self, value, category: str):
+    def map_curve(
+        self, value: Union[klasses.Curve, klasses.Map, klasses.Cuboid, klasses.Cube4, klasses.Cube5], category: str
+    ) -> SwInstance:
         inst = self.create_instance(value)
         self.add_value_container(inst, value.unit if hasattr(value, "unit") else None)
-        ds = self.storage.create_group(name=f"/{value.name}", track_order=True)
-        axes = ds.create_group("axes")
-        ds.attrs["category"] = value.category
-        ds.attrs["unit"] = value.fnc_unit if value.fnc_unit is not None else ""
-        ds.attrs["comment"] = value.comment if value.comment is not None else ""
-        ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
-        ds.attrs["is_text"] = not value.is_numeric if value.category != "ASCII" else True
-        if value.raw_values is not None:
-            ds["raw"] = value.raw_values
-        if value.converted_values is not None:
-            if not value.is_numeric:
-                ds["converted"] = value.converted_values.astype(h5py.string_dtype())
-            else:
-                ds["converted"] = value.converted_values
-        for idx, axis in enumerate(value.axes):
-            ax = axes.create_group(str(idx))
-            category = axis.category
-            ax.attrs["category"] = category
-            ax.attrs["unit"] = axis.unit if axis.unit else ""
-            ax.attrs["name"] = axis.name if axis.name else ""
-            ax.attrs["input_quantity"] = axis.input_quantity if axis.input_quantity else ""
-            match category:
-                case "STD_AXIS" | "FIX_AXIS":
-                    ax["raw"] = axis.raw_values
-                    if not axis.is_numeric:
-                        ax["converted"] = axis.converted_values.astype(h5py.string_dtype())
-                    else:
-                        ax["converted"] = axis.converted_values
-                case "COM_AXIS" | "RES_AXIS" | "CURVE_AXIS":
-                    ax["reference"] = h5py.SoftLink(f"/{axis.axis_pts_ref}")
+
+        self.hdf_db.import_map_curve(value)
         return inst
 
-    def value_block(self, value):
+    def value_block(self, value: klasses.ValueBlock) -> SwInstance:
         inst = self.create_instance(value)
         self.add_value_container(inst, value.unit if hasattr(value, "unit") else None)
-
-        ds = self.storage.create_group(name=f"/{value.name}", track_order=True)
-        ds.attrs["shape"] = value.converted_values.shape
-        ds.attrs["is_text"] = not value.is_numeric
-        ds.attrs["category"] = value.category
-        ds.attrs["comment"] = value.comment if value.comment is not None else ""
-        ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
-        # ds.attrs["unit"] = value.unit if value.unit is not None else ""
-
-        if value.raw_values.shape != (0,):
-            ds["raw"] = value.raw_values
-        if value.converted_values.shape != (0,):
-            if not value.is_numeric:
-                ds["converted"] = value.converted_values.astype(h5py.string_dtype())
-            else:
-                ds["converted"] = value.converted_values
+        self.hdf_db.import_value_block(value)
         return inst
 
-    def axis_pts(self, value):
+    def axis_pts(self, value: klasses.AxisPts) -> SwInstance:
         inst = self.create_instance(value)
         self.add_value_container(inst, value.unit if hasattr(value, "unit") else None)
-
-        ds = self.storage.create_group(name=f"/{value.name}", track_order=True)
-        ds.attrs["shape"] = value.converted_values.shape
-        ds.attrs["is_text"] = not value.is_numeric
-        ds.attrs["category"] = value.category
-        ds.attrs["comment"] = value.comment if value.comment is not None else ""
-        ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
-
-        # ds.attrs["unit"] = value.unit if hasattr(value, "unit") else ""
-
-        if value.raw_values.shape != (0,):
-            ds["raw"] = value.raw_values
-        if value.converted_values.shape != (0,):
-            if not value.is_numeric:
-                ds["converted"] = value.converted_values.astype(h5py.string_dtype())
-            else:
-                ds["converted"] = value.converted_values
+        self.hdf_db.import_axis_pts(value)
         return inst
 
     def create_instance(self, value):

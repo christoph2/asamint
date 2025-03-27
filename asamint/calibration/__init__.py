@@ -30,7 +30,7 @@ __copyright__ = """
 import functools
 from collections import OrderedDict, defaultdict
 from functools import cache
-from typing import Optional
+from typing import List, Optional
 
 import numpy as np
 from objutils import Image, Section, dump, load
@@ -45,6 +45,7 @@ from pya2l.api.inspect import (
     asam_type_size,
 )
 from pya2l.functions import fix_axis_par, fix_axis_par_dist
+from pyxcp.checksum import check
 from pyxcp.cpp_ext.cpp_ext import McObject
 from pyxcp.daq_stim.optimize import make_continuous_blocks
 
@@ -53,7 +54,7 @@ from asamint.asam.epk import Epk
 from asamint.calibration.mapfile import MapFile
 from asamint.model.calibration import klasses
 from asamint.model.calibration.klasses import MemoryObject, MemoryType
-from asamint.utils import SINGLE_BITS, current_timestamp, ffs
+from asamint.utils import SINGLE_BITS, adjust_to_word_boundary, current_timestamp, ffs
 
 
 AXES = ("x", "y", "z", "4", "5")
@@ -108,6 +109,60 @@ class CalibrationData:
     @property
     def query(self):
         return self.asam_mc.query
+
+    def get_memory_ranges(self) -> list[McObject]:
+        """Get memory blocks/ranges relevant for calibration."""
+        result = []
+        a2l_epk = self.epk.from_a2l()
+        if a2l_epk:
+            epk_addr, epk_len = self.epk.epk_address_and_length()
+            result.append(McObject("EPK", epk_addr, 0, epk_len, ""))
+        axis_pts = self.query(model.AxisPts).order_by(model.AxisPts.address).all()
+        for a in axis_pts:
+            ax = AxisPts.get(self.session, a.name)
+            mem_size = ax.total_allocated_memory
+            result.append(McObject(ax.name, ax.address, 0, mem_size, ""))
+        characteristics = self.query(model.Characteristic).order_by(model.Characteristic.type, model.Characteristic.address).all()
+        for c in characteristics:
+            characteristic = Characteristic.get(self.session, c.name)
+            mem_size = characteristic.total_allocated_memory
+            result.append(McObject(characteristic.name, characteristic.address, 0, mem_size, ""))
+        blocks = make_continuous_blocks(result)
+        return blocks
+
+    def get_image_from_xcp(self) -> Image:
+        # row_length
+        sections = []
+        blocks = self.get_memory_ranges()
+        self.asam_mc.xcp_connect()
+        total_size = functools.reduce(lambda a, s: s.length + a, blocks, 0)
+        self.logger.info(f"Fetching {total_size / 1024:.2f} KBytes calibration data from XCP slave.")
+        num_blocks = len(blocks)
+        for idx in range(num_blocks):
+            block = blocks[idx]
+            adj_length = adjust_to_word_boundary(block.length, 2)  # Adjust length to multiples of 4
+            # (There are double-word checksum types).
+            if idx < num_blocks - 1:
+                dist = blocks[idx + 1].address - block.address
+                length = min(dist, adj_length)
+            else:
+                length = adj_length
+            self.asam_mc.xcp_master.setMta(block.address, block.ext)
+            data = self.asam_mc.xcp_master.pull(length)
+
+            self.asam_mc.xcp_master.setMta(block.address, block.ext)
+            cs = self.asam_mc.xcp_master.buildChecksum(length)
+
+            cs_self = check(data, cs.checksumType)
+
+            print(cs, cs_self)
+
+            sections.append(Section(block.address, data))
+        return Image(sections)
+
+    ###
+    ###
+    ###
 
     def load_hex(self):
         self._load_axis_pts()
@@ -259,7 +314,7 @@ class CalibrationData:
         if hexfile_type not in ("ihex", "srec"):
             raise ValueError("'file_type' must be either 'ihex' or 'srec'")
         result = []
-        a2l_epk = self.a2l_epk
+        a2l_epk = self.epk.from_a2l()
         if a2l_epk:
             epk, address = a2l_epk
             result.append(McObject("EPK", address, 0, len(epk), ""))

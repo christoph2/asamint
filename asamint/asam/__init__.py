@@ -167,6 +167,9 @@ class AsamMC:
         self.directory = Directory(self.session)
         self.on_init(self.config, *args, **kws)
 
+    def __del__(self) -> None:
+        self.close()
+
     def cond_create_directories(self) -> None:
         """ """
         SUB_DIRS = [
@@ -190,10 +193,6 @@ class AsamMC:
 
     def loadConfig(self, project_config, experiment_config):
         """Load configuration data."""
-        # project_config = Configuration(self.__class__.PROJECT_PARAMETER_MAP or {}, project_config or {})
-        # experiment_config = Configuration(self.__class__.EXPERIMENT_PARAMETER_MAP or {}, experiment_config or {})
-        # self.project_config.update(project_config)
-        # self.experiment_config.update(experiment_config)
 
     def sub_dir(self, name) -> Path:
         return Path(self.SUB_DIRS.get(name))
@@ -207,17 +206,20 @@ class AsamMC:
         else:
             return f"{project}_{subject}{current_timestamp()}{extension}"
 
+    def xcp_connect(self):
+        if not self.xcp_connected:
+            self.xcp_master.connect()
+            self.xcp_connected = True
+
     def close(self):
         if self.xcp_connected:
             try:
                 self.xcp_master.disconnect()
             finally:
+                print("close/finally")
                 self.xcp_master.close()
                 self.xcp_connected = False
-
-    # @property
-    # def session(self):
-    #    return self._session_obj
+        self.session.close()
 
     @property
     def query(self):

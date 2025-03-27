@@ -27,9 +27,7 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
-from asamint.cdf import CDFCreator
 from asamint.cmdline import ArgumentParser
-from asamint.xcp import CalibrationData
 
 
 # def upload_calram(xcp_master, a2ldb_session, module_name: str = None, file_type: str = "ihex"):
