@@ -252,7 +252,7 @@ class AsamMC:
         )
 
 
-OJ_READERS = {
+DATA_TYPES = {
     "UBYTE": ("uint8_le", "uint8_be"),
     "SBYTE": ("int8_le", "int8_be"),
     "UWORD": ("uint16_le", "uint16_be"),
@@ -271,6 +271,6 @@ class ByteOrder(IntEnum):
     BIG_ENDIAN = 1
 
 
-def get_section_reader(datatype: str, byte_order: ByteOrder) -> str:
+def get_data_type(datatype: str, byte_order: ByteOrder) -> str:
     """ """
-    return OJ_READERS[datatype][byte_order]
+    return DATA_TYPES[datatype][byte_order]

@@ -29,22 +29,16 @@ __copyright__ = """
 
 import sys
 from enum import IntEnum
-from typing import Union
+from functools import partialmethod
+from typing import Optional, Union
 
 import numpy as np
-from pya2l import DB
-from pya2l.api.inspect import (
-    AxisPts,
-    Characteristic,
-    CompuMethod,
-    ModCommon,
-    ModPar,
-    asam_type_size,
-)
+from objutils import Image
+from pya2l import DB, model
+from pya2l.api.inspect import AxisPts, Characteristic, CompuMethod, asam_type_size
 from pya2l.functions import fix_axis_par, fix_axis_par_dist
 
-from asamint.asam import ByteOrder, get_section_reader
-from asamint.logger import Logger
+from asamint.asam import AsamMC, ByteOrder, get_data_type
 from asamint.model.calibration import klasses
 from asamint.utils import SINGLE_BITS, ffs
 
@@ -57,6 +51,7 @@ else:
     ValueType = Union[float, int, bool, str]
 
 BOOLEAN_MAP = {"true": 1, "false": 0}
+AXES = ("x", "y", "z", "4", "5")
 
 sys.setrecursionlimit(2000)  # Not required by asamint by itself, but if we run pyinstrument benchmarks...
 
@@ -106,28 +101,104 @@ def check_limits(characteristic, value: float, extended_limits: bool = False) ->
     return True
 
 
+class DictLike:
+
+    def __init__(self, getter_method) -> None:
+        self.getter_method = getter_method
+        self.cache = {}
+
+    def __getitem__(self, item: int):
+        if item in self.cache:
+            return self.cache[item]
+        else:
+            value = self.getter_method(item)
+            self.cache[item] = value
+        return value
+
+
+class ParameterCache:
+
+    # def __init__(self, asam_mc) -> None:
+    #    self.asam_mc = asam_mc
+
+    def set_parent(self, parent):
+        self.parent = parent
+        self.curves = DictLike(partialmethod(parent.load_curve_or_map, category="CURVE", num_axes=1))
+        self.axis_pts = DictLike(parent.load_axis_pts)
+        self.dicts = {
+            "CURVE": self.curves,
+            "AXIS_PTS": self.axis_pts,
+        }
+
+    def __getitem__(self, item: str) -> DictLike:
+        return self.dicts.get(item)
+
+
 class Calibration:
     """ """
 
-    def __init__(self, a2l_db: DB, image, loglevel: str = "WARN") -> None:
+    def __init__(self, asam_mc: AsamMC, image: Image, parameter_cache: Union[dict, ParameterCache], logger) -> None:
         self.image = image
-        self.a2l_db = a2l_db
-        self.session = self.a2l_db.session
-        self.logger = Logger(loglevel)
-        self.mod_common = ModCommon.get(self.session)
-        self.mod_par = ModPar.get(self.session) if ModPar.exists(self.session) else None
+        self.asam_mc = asam_mc
+        self.session = asam_mc.session
+        self.parameter_cache = parameter_cache
+        if isinstance(parameter_cache, ParameterCache):
+            self.parameter_cache.set_parent(self)
+        self.logger = logger
+        self.mod_common = asam_mc.mod_common
+        self.mod_par = asam_mc.mod_par
 
     def update(self):
         """To the actual update of parameters (write to HEX file / XCP)."""
         pass
 
+    def load(self, name: str):
+        chr = self.session.query(model.Characteristic).filter(model.Characteristic.name == name).first()
+        if chr is None:
+            axis_pts = self.session.query(model.AxisPts).filter(model.AxisPts.name == name).first()
+            return self.load_axis_pts(name).converted_values
+        else:
+            match chr.type:
+                case "ASCII":
+                    return self.load_ascii(name).value
+                case "CUBOID":
+                    return self.load_curve_or_map(name, "CUBOID", 3).converted_values
+                case "CUBE_4":
+                    return self.load_curve_or_map(name, "CUBE_4", 4).converted_values
+                case "CUBE_5":
+                    return self.load_curve_or_map(name, "CUBE_5", 5).converted_values
+                case "CURVE":
+                    return self.load_curve_or_map(name, "CURVE", 1).converted_values
+                case "MAP":
+                    return self.load_curve_or_map(name, "MAP", 2).converted_values
+                case "VAL_BLK":
+                    return self.load_value_block(name).converted_values
+                case "VALUE":
+                    return self.load_value(name).converted_value
+
+    # load_with_metadata
+
     def load_ascii(self, characteristic_name: str) -> klasses.Ascii:
         characteristic = self.get_characteristic(characteristic_name, "ASCII", False)
+        value: Optional[str] = None
         if characteristic.matrixDim:
             length = characteristic.matrixDim["x"]
         else:
             length = characteristic.number
-        value = self.image.read_string(characteristic.address, length=length)
+        try:
+            value = self.image.read_string(characteristic.address, length=length)
+        except Exception as e:
+            self.logger.error(f"{characteristic.name}: {e!r}")
+            # self.log_memory_errors(e, MemoryType.ASCII, characteristic.name, characteristic.address, length)
+            value = None
+        else:
+            pass
+            # self.memory_map[characteristic.address].append(
+            #    MemoryObject(
+            #        memory_type=MemoryType.ASCII, name=characteristic.name, address=characteristic.address,
+            #        length=length
+            #    )
+            # )
         return klasses.Ascii(
             name=characteristic.name,
             comment=characteristic.longIdentifier,
@@ -159,16 +230,32 @@ class Calibration:
 
     def load_value_block(self, characteristic_name: str) -> klasses.ValueBlock:
         characteristic = self.get_characteristic(characteristic_name, "VAL_BLK", False)
-        reader = get_section_reader("UBYTE", 0)
-        raw_values = self.image.read_ndarray(
-            addr=characteristic.address,
-            length=characteristic.fnc_allocated_memory,
-            dtype=reader,
-            shape=characteristic.fnc_np_shape,
-            order=characteristic.fnc_np_order,
-            bit_mask=characteristic.bitMask,
-        )
-        converted_values = self.int_to_physical(characteristic, raw_values)
+        raw_values: np.array = np.array([])
+        converted_values: np.array = np.array([])
+        try:
+            raw_values = self.image.read_ndarray(
+                addr=characteristic.address,
+                length=characteristic.fnc_allocated_memory,
+                dtype=get_data_type(characteristic.fnc_asam_dtype, self.asam_mc.byte_order(characteristic)),
+                shape=characteristic.fnc_np_shape,
+                order=characteristic.fnc_np_order,
+                bit_mask=characteristic.bitMask,
+            )
+        except Exception as e:
+            self.logger.error(f"{characteristic.name}: {e!r}")
+            # self.log_memory_errors(
+            #    e, MemoryType.VAL_BLK, characteristic.name, characteristic.address, characteristic.fnc_allocated_memory
+            # )
+        else:
+            converted_values = self.int_to_physical(characteristic, raw_values)
+            # self.memory_map[characteristic.address].append(
+            #    MemoryObject(
+            #        memory_type=MemoryType.VAL_BLK,
+            #        name=characteristic.name,
+            #        address=characteristic.address,
+            #        length=characteristic.fnc_allocated_memory,
+            #    )
+            # )
         return klasses.ValueBlock(
             name=characteristic.name,
             comment=characteristic.longIdentifier,
@@ -178,6 +265,7 @@ class Calibration:
             displayIdentifier=characteristic.displayIdentifier,
             shape=characteristic.fnc_np_shape,
             unit=characteristic.physUnit,
+            is_numeric=self.is_numeric(characteristic.compuMethod),
         )
 
     def save_value_block(
@@ -199,26 +287,35 @@ class Calibration:
 
     def load_value(self, characteristic_name: str) -> klasses.Value:
         characteristic = self.get_characteristic(characteristic_name, "VALUE", False)
-
         # CALIBRATION_ACCESS
+        # READ_ONLY
+        raw_value = 0
         fnc_asam_dtype = characteristic.fnc_asam_dtype
-        reader = get_section_reader(fnc_asam_dtype, self.byte_order(characteristic))
+        allocated_memory = asam_type_size(fnc_asam_dtype)
+        reader = get_data_type(fnc_asam_dtype, self.asam_mc.byte_order(characteristic))
         if characteristic.bitMask:
             raw_value = self.image.read_numeric(characteristic.address, reader, bit_mask=characteristic.bitMask)
             raw_value >>= ffs(characteristic.bitMask)  # Right-shift to get rid of trailing zeros (s. ASAM 2-MC spec).
             is_bool = True if characteristic.bitMask in SINGLE_BITS else False
         else:
-            raw_value = self.image.read_numeric(characteristic.address, reader)
+            try:
+                raw_value = self.image.read_numeric(characteristic.address, reader)
+            except Exception as e:
+                self.logger.error(f"{characteristic.name}: {e!r}")
+                # self.log_memory_errors(e, MemoryType.VALUE, characteristic.name, characteristic.address,
+                #                       allocated_memory)
+                raw_value = 0
             is_bool = False
         if characteristic.physUnit is None and characteristic._conversionRef != "NO_COMPU_METHOD":
             unit = characteristic.compuMethod.unit
         else:
             unit = characteristic.physUnit
         converted_value = self.int_to_physical(characteristic, raw_value)
-        if isinstance(converted_value, (int, float)):
+        is_numeric = self.is_numeric(characteristic.compuMethod)
+        if is_numeric:
             if is_bool:
                 category = "BOOLEAN"
-                converted_value = "true" if bool(converted_value) else "false"
+                # converted_value = "true" if bool(converted_value) else "false"
             else:
                 category = "VALUE"
         else:
@@ -233,7 +330,14 @@ class Calibration:
             converted_value=converted_value,
             displayIdentifier=characteristic.displayIdentifier,
             unit=unit,
+            is_numeric=is_numeric,
         )
+        # self.memory_map[characteristic.address].append(
+        #    MemoryObject(
+        #        memory_type=MemoryType.VALUE, name=characteristic.name, address=characteristic.address,
+        #        length=allocated_memory
+        #    )
+        # )
 
     def save_value(
         self,
@@ -256,16 +360,15 @@ class Calibration:
             text_values = characteristic.compuMethod.tab_verb.get("text_values")
             if value not in text_values:
                 raise ValueError(f"value must be in {text_values} got {value}.")
-        else:
-            if isinstance(value, bool):
-                value = int(value)
-            elif isinstance(value, str):
-                pass
-                if value in ("true", "false"):
-                    value = BOOLEAN_MAP[value]
-                else:
-                    raise ValueError("value of type str must be 'true' or 'false'")
-        dtype = get_section_reader(characteristic.fnc_asam_dtype, self.byte_order(characteristic))
+        elif isinstance(value, bool):
+            value = int(value)
+        elif isinstance(value, str):
+            pass
+            if value in ("true", "false"):
+                value = BOOLEAN_MAP[value]
+            else:
+                raise ValueError("value of type str must be 'true' or 'false'")
+        dtype = get_data_type(characteristic.fnc_asam_dtype, self.byte_order(characteristic))
 
         if isinstance(value, (int, float)) and not check_limits(characteristic, value, extendedLimits):
             self.logger.info(f"Characteristic '{characteristic_name}' is out of range")
@@ -282,11 +385,12 @@ class Calibration:
         return Status.OK
 
     def load_axis_pts(self, axis_pts_name: str) -> Status:
-        axis_pts = self.get_axis_pts(axis_pts_name, False)
-        rl_values = self.read_record_layout_values(axis_pts, "x")
-        self.record_layout_correct_offsets(axis_pts)
+        ap = self.get_axis_pts(axis_pts_name)
+        rl_values = self.read_record_layout_values(ap, "x")
+        self.record_layout_correct_offsets(ap)
+        raw_values = np.array([])
+        axis = ap.record_layout_components.axes("x")
         virtual = False
-        axis = axis_pts.record_layout_components.axes("x")
         paired = False
         if "axisRescale" in axis:
             category = "RES_AXIS"
@@ -296,7 +400,7 @@ class Calibration:
             else:
                 no_rescale_pairs = axis["maxNumberOfRescalePairs"]
             index_incr = axis["axisRescale"]["indexIncr"]
-            count = no_rescale_pairs * 2
+            count = int(no_rescale_pairs * 2)
             attr = "axisRescale"
         elif "axisPts" in axis:
             category = "COM_AXIS"
@@ -305,12 +409,12 @@ class Calibration:
             else:
                 no_axis_points = axis["maxAxisPoints"]
             index_incr = axis["axisPts"]["indexIncr"]
-            count = no_axis_points
+            count = int(no_axis_points)
             attr = "axisPts"
         elif "offset" in axis:
             category = "FIX_AXIS"
             virtual = True  # Virtual / Calculated axis.
-            offset = rl_values.get("offset")
+            offset = int(rl_values.get("offset"))
             dist_op = rl_values.get("distOp")
             shift_op = rl_values.get("shiftOp")
             if "noAxisPts" in rl_values:
@@ -318,33 +422,204 @@ class Calibration:
             else:
                 no_axis_points = axis["maxAxisPoints"]
             if (dist_op or shift_op) is None:
-                raise TypeError(f"Malformed AXIS_PTS '{axis_pts}', neither DIST_OP nor SHIFT_OP specified.")
+                raise TypeError(f"Malformed AXIS_PTS '{ap}', neither DIST_OP nor SHIFT_OP specified.")
             if dist_op is not None:
                 raw_values = fix_axis_par_dist(offset, dist_op, no_axis_points)
             else:
                 raw_values = fix_axis_par(offset, shift_op, no_axis_points)
         else:
-            raise TypeError(f"Malformed AXIS_PTS '{axis_pts}'.")
+            raise TypeError(f"Malformed AXIS_PTS '{ap}'.")
         if not virtual:
-            raw_values = self.read_nd_array(axis_pts, "x", attr, count)
+            try:
+                raw_values = self.read_nd_array(ap, "x", attr, count)
+            except Exception as e:
+                self.logger.error(f"{ap.name}: {e!r}")
+                # self.log_memory_errors(e, MemoryType.AXIS_PTS, ap.name, ap.address, ap.axis_allocated_memory)
             if index_incr == "INDEX_DECR":
                 raw_values = raw_values[::-1]
                 reversed_storage = True
             else:
                 reversed_storage = False
-        converted_values = self.int_to_physical(axis_pts, raw_values)
-        unit = axis_pts.compuMethod.refUnit
+        converted_values = self.int_to_physical(ap, raw_values)
+        unit = ap.compuMethod.refUnit
         return klasses.AxisPts(
-            name=axis_pts.name,
-            comment=axis_pts.longIdentifier,
+            name=ap.name,
+            comment=ap.longIdentifier,
             category=category,
             raw_values=raw_values,
             converted_values=converted_values,
-            displayIdentifier=axis_pts.displayIdentifier,
+            displayIdentifier=ap.displayIdentifier,
             paired=paired,
             unit=unit,
             reversed_storage=reversed_storage,
+            is_numeric=self.is_numeric(ap.compuMethod),
         )
+        # self.memory_map[ap.address].append(
+        #    MemoryObject(memory_type=MemoryType.AXIS_PTS, name=ap.name, address=ap.address,
+        #                 length=ap.axis_allocated_memory)
+        # )
+
+    def load_curve_or_map(
+        self, characteristic_name: str, category: str, num_axes: int
+    ) -> Union[klasses.Cube4, klasses.Cube5, klasses.Cuboid, klasses.Curve, klasses.Map]:
+        klass = klasses.get_calibration_class(category)
+        characteristic = self.get_characteristic(characteristic_name, category, True)
+        raw_values = np.array([])
+        if characteristic.compuMethod != "NO_COMPU_METHOD":
+            characteristic_cm = characteristic.compuMethod.name
+        else:
+            characteristic_cm = "NO_COMPU_METHOD"
+        chr_cm = CompuMethod.get(self.session, characteristic_cm)
+        fnc_unit = chr_cm.unit
+        fnc_datatype = characteristic.record_layout_components.fncValues["datatype"]
+        self.record_layout_correct_offsets(characteristic)
+        num_func_values = 1
+        shape = []
+        axes = []
+        for axis_idx in range(num_axes):
+            axis_descr = characteristic.axisDescriptions[axis_idx]
+            axis_name = AXES[axis_idx]
+            maxAxisPoints = axis_descr.maxAxisPoints
+            axis_cm_name = "NO_COMPU_METHOD" if axis_descr.compuMethod == "NO_COMPU_METHOD" else axis_descr.compuMethod.name
+            axis_cm = CompuMethod.get(self.session, axis_cm_name)
+            axis_unit = axis_cm.unit
+            axis_attribute = axis_descr.attribute
+            axis = characteristic.record_layout_components.axes(axis_name)
+            fix_no_axis_pts = characteristic.deposit.fixNoAxisPts.get(axis_name)
+            rl_values = self.read_record_layout_values(characteristic, axis_name)
+            axis_pts_ref = None
+            reversed_storage = False
+            flipper = []
+            raw_axis_values = []
+            if fix_no_axis_pts:
+                no_axis_points = fix_no_axis_pts
+            elif "noAxisPts" in rl_values:
+                no_axis_points = rl_values["noAxisPts"]
+            elif "noRescale" in rl_values:
+                no_axis_points = rl_values["noRescale"]
+            else:
+                no_axis_points = maxAxisPoints
+            if axis_attribute == "FIX_AXIS":
+                if axis_descr.fixAxisParDist:
+                    par_dist = axis_descr.fixAxisParDist
+                    raw_axis_values = fix_axis_par_dist(
+                        par_dist["offset"],
+                        par_dist["distance"],
+                        par_dist["numberapo"],
+                    )
+                elif axis_descr.fixAxisParList:
+                    raw_axis_values = axis_descr.fixAxisParList
+                elif axis_descr.fixAxisPar:
+                    par = axis_descr.fixAxisPar
+                    raw_axis_values = fix_axis_par(par["offset"], par["shift"], par["numberapo"])
+                no_axis_points = len(raw_axis_values)
+                converted_axis_values = axis_cm.int_to_physical(raw_axis_values)
+            elif axis_attribute == "STD_AXIS":
+                raw_axis_values = self.read_nd_array(characteristic, axis_name, "axisPts", no_axis_points)
+                index_incr = axis["axisPts"]["indexIncr"]
+                if index_incr == "INDEX_DECR":
+                    raw_axis_values = raw_axis_values[::-1]
+                    reversed_storage = True
+                converted_axis_values = axis_cm.int_to_physical(raw_axis_values)
+            elif axis_attribute == "RES_AXIS":
+                ref_obj = self.parameter_cache["AXIS_PTS"][axis_descr.axisPtsRef.name]
+                # no_axis_points = min(no_axis_points, len(ref_obj.raw_values) // 2)
+                axis_pts_ref = axis_descr.axisPtsRef.name
+                raw_axis_values = None
+                converted_axis_values = None
+                axis_unit = None
+                no_axis_points = len(ref_obj.raw_values)
+                reversed_storage = ref_obj.reversed_storage
+            elif axis_attribute == "CURVE_AXIS":
+                ref_obj = self.parameter_cache["CURVE"][axis_descr.curveAxisRef.name]
+                axis_pts_ref = axis_descr.curveAxisRef.name
+                raw_axis_values = None
+                converted_axis_values = None
+                axis_unit = None
+                no_axis_points = len(ref_obj.raw_values)
+                reversed_storage = ref_obj.axes[0].reversed_storage
+            elif axis_attribute == "COM_AXIS":
+                ref_obj = self.parameter_cache["AXIS_PTS"][axis_descr.axisPtsRef.name]
+                axis_pts_ref = axis_descr.axisPtsRef.name
+                raw_axis_values = []
+                converted_axis_values = []
+                axis_unit = None
+                no_axis_points = len(ref_obj.raw_values)
+                reversed_storage = ref_obj.reversed_storage
+            num_func_values *= no_axis_points
+            shape.append(no_axis_points)
+            if reversed_storage:
+                flipper.append(axis_idx)
+            axes.append(
+                klasses.AxisContainer(
+                    name=axis_name,
+                    input_quantity=axis_descr.inputQuantity,
+                    category=axis_attribute,
+                    unit=axis_unit,
+                    reversed_storage=reversed_storage,
+                    raw_values=raw_axis_values,
+                    converted_values=converted_axis_values,
+                    axis_pts_ref=axis_pts_ref,
+                    is_numeric=self.is_numeric(axis_cm),
+                )
+            )
+        # if category == "CURVE":
+        #    memory_type = MemoryType.CURVE
+        # elif category == "MAP":
+        #    memory_type = MemoryType.MAP
+        # else:
+        #    memory_type = MemoryType.CUBOID
+        length = num_func_values * asam_type_size(fnc_datatype)
+        try:
+            raw_values = self.image.read_ndarray(
+                addr=characteristic.address + characteristic.record_layout_components.fncValues["offset"],
+                length=length,
+                dtype=get_data_type(
+                    characteristic.record_layout_components.fncValues["datatype"],
+                    self.asam_mc.byte_order(characteristic),
+                ),
+                shape=shape,
+                # order = order,
+                # bit_mask = characteristic.bitMask
+            )
+        except Exception as e:
+            self.logger.error(f"{characteristic.name}:  {axis_name}-axis: {e!r}")
+            raw_values = np.array([])
+            # self.log_memory_errors(
+            #    e, memory_type, characteristic.name, characteristic.address, characteristic.total_allocated_memory
+            # )
+        if flipper:
+            raw_values = np.flip(raw_values, axis=flipper)
+        try:
+            converted_values = chr_cm.int_to_physical(raw_values)
+        except Exception as e:
+            self.logger.error(f"Exception in _load_curves_and_maps(): {e!r}")
+            self.logger.error(f"CHARACTERISTIC: {characteristic.name!r}")
+            self.logger.error(f"COMPU_METHOD: {chr_cm.name!r} ==> {chr_cm.evaluator!r}")
+            self.logger.error(f"RAW_VALUES: {raw_values!r}")
+
+            converted_values = np.array([0.0] * len(raw_values))
+        return klass(
+            name=characteristic.name,
+            comment=characteristic.longIdentifier,
+            category=category,
+            displayIdentifier=characteristic.displayIdentifier,
+            raw_values=raw_values,
+            converted_values=converted_values,
+            fnc_unit=fnc_unit,
+            axes=axes,
+            is_numeric=self.is_numeric(characteristic.compuMethod),
+        )
+        ###
+        ###
+        # self.memory_map[characteristic.address].append(
+        #    MemoryObject(
+        #        memory_type=memory_type,
+        #        name=characteristic.name,
+        #        address=characteristic.address,
+        #        length=characteristic.total_allocated_memory,
+        #    )
+        # )
 
     def int_to_physical(self, characteristic, int_values):
         """Convert ECU internal values to physical representation."""
@@ -358,7 +633,7 @@ class Calibration:
 
     def get_compu_method(self, characteristic):
         cm_name = "NO_COMPU_METHOD" if characteristic.compuMethod == "NO_COMPU_METHOD" else characteristic.compuMethod.name
-        return CompuMethod.get(self.a2l_db.session, cm_name)
+        return CompuMethod.get(self.session, cm_name)
 
     def get_characteristic(self, characteristic_name, type_name: str, save: bool = False):
         characteristic = self._load_characteristic(characteristic_name, type_name)
@@ -368,7 +643,7 @@ class Calibration:
 
     def _load_characteristic(self, characteristic_name, category):
         try:
-            characteristic = Characteristic.get(self.a2l_db.session, characteristic_name)
+            characteristic = Characteristic.get(self.session, characteristic_name)
         except ValueError:
             raise
         if characteristic.type != category:
@@ -386,7 +661,7 @@ class Calibration:
 
     def _load_axis_pts(self, axis_pts_name):
         try:
-            axis_pts = AxisPts.get(self.a2l_db.session, axis_pts_name)
+            axis_pts = AxisPts.get(self.session, axis_pts_name)
         except ValueError:
             raise
         return axis_pts
@@ -481,28 +756,37 @@ class Calibration:
             return None
         datatype = component_map["datatype"]
         offset = component_map["offset"]
-        reader = get_section_reader(datatype, self.byte_order(obj))
-        value = self.image.read_numeric(obj.address + offset, reader)
+        value = self.image.read_numeric(obj.address + offset, get_data_type(datatype, self.byte_order(obj)))
         return value
 
-    def read_nd_array(self, axis_pts, axis_name, component, no_elements, shape=None, order=None):
+    def read_nd_array(
+        self, axis_pts: AxisPts, axis_name: str, component: str, no_elements: int, shape=None, order=None
+    ) -> np.ndarray:
         """ """
         axis = axis_pts.record_layout_components.axes(axis_name)
         component_map = axis[component]
         datatype = component_map["datatype"]
         offset = component_map["offset"]
-        reader = get_section_reader(datatype, self.byte_order(axis_pts))
-
         length = no_elements * asam_type_size(datatype)
         np_arr = self.image.read_ndarray(
             addr=axis_pts.address + offset,
             length=length,
-            dtype=reader,
+            dtype=get_data_type(datatype, self.byte_order(axis_pts)),
             shape=shape,
             order=order,
             # bit_mask = characteristic.bitMask
         )
         return np_arr
+
+    def write_nd_array(self, axis_pts: AxisPts, axis_name: str, component: str, np_arr: np.ndarray, order=None) -> None:
+        axis = axis_pts.record_layout_components.axes(axis_name)
+        component_map = axis[component]
+        datatype = component_map["datatype"]
+        offset = component_map["offset"]
+        self.image.write_ndarray(addr=axis_pts.address + offset, array=np_arr, order=order)
+
+    def is_numeric(self, compu_method):
+        return compu_method == "NO_COMPU_METHOD" or compu_method.conversionType != "TAB_VERB"
 
 
 class OnlineCalibration(Calibration):
