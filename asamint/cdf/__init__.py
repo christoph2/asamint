@@ -105,14 +105,14 @@ class DB:
                 category = ax_attrs["category"]
                 if category == "COM_AXIS":
                     ref_axis = ax_items["reference"]
-                    raw_values = np.array(ref_axis["raw"])
-                    converted_values = np.array(ref_axis["converted"])
+                    raw = np.array(ref_axis["raw"])
+                    phys = np.array(ref_axis["converted"])
                 else:
                     if category not in ("FIX_AXIS", "STD_AXIS"):
                         raise TypeError(f"{category} axis")
-                    converted_values = np.array(ax_items["converted"])
-                coords[ax_name] = converted_values
-                shape.append(converted_values.size)
+                    phys = np.array(ax_items["converted"])
+                coords[ax_name] = phys
+                shape.append(phys.size)
             if values.shape == (0,):  # TODO: fix while saving!?
                 values = np.zeros(tuple(shape))
             arr = xr.DataArray(values, dims=dims, coords=coords, attrs=attrs)
@@ -196,13 +196,13 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
             value_cont = create_elem(variant, "SW-VALUE-CONT")
             if inst.unit:
                 create_elem(value_cont, "UNIT-DISPLAY-NAME", text=inst.unit)
-            self.output_1darray(value_cont, "SW-VALUES-PHYS", inst.converted_values)
+            self.output_1darray(value_cont, "SW-VALUES-PHYS", inst.phys)
         xml_comment(instance_tree, "    VALUEs    ")
         for key, inst in self._parameters["VALUE"].items():
             self.instance_scalar(
                 name=key,
                 descr=inst.comment,
-                value=inst.converted_value,
+                value=inst.phys,
                 unit=inst.unit,
                 displayIdentifier=inst.displayIdentifier,
                 category=inst.category,
@@ -212,7 +212,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
             self.instance_scalar(
                 name=key,
                 descr=inst.comment,
-                value=inst.value,
+                value=inst.phys,
                 category="ASCII",
                 unit=None,
                 displayIdentifier=inst.displayIdentifier,
@@ -222,7 +222,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
             self.value_blk(
                 name=key,
                 descr=inst.comment,
-                values=inst.converted_values,
+                values=inst.phys,
                 displayIdentifier=inst.displayIdentifier,
                 unit=inst.unit,
             )
@@ -239,14 +239,14 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
 
     def dump_array(self, attribute):
         for key, inst in self._parameters[attribute].items():
-            if list(inst.converted_values) == []:
+            if list(inst.phys) == []:
                 self.logger.warning(f"{attribute} {inst.name!r}: has no values.")
                 continue
             axis_conts = self.curve_and_map_header(
                 name=inst.name,
                 descr=inst.comment,
                 category=attribute,
-                fnc_values=inst.converted_values,
+                fnc_values=inst.phys,
                 fnc_unit=inst.fnc_unit,
                 displayIdentifier=inst.displayIdentifier,
                 feature_ref=None,
@@ -254,9 +254,9 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
             for axis in inst.axes:
                 category = axis.category
                 if category == "STD_AXIS":
-                    self.add_axis(axis_conts, axis.converted_values, "STD_AXIS", axis.unit)
+                    self.add_axis(axis_conts, axis.phys, "STD_AXIS", axis.unit)
                 elif category == "FIX_AXIS":
-                    self.add_axis(axis_conts, axis.converted_values, "FIX_AXIS", axis.unit)
+                    self.add_axis(axis_conts, axis.phys, "FIX_AXIS", axis.unit)
                 elif category == "COM_AXIS":
                     axis_cont = create_elem(axis_conts, "SW-AXIS-CONT")
                     create_elem(axis_cont, "CATEGORY", "COM_AXIS")

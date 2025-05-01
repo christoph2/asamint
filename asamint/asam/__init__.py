@@ -33,7 +33,7 @@ from enum import IntEnum
 from pathlib import Path
 
 from pya2l import DB, model
-from pya2l.api.inspect import Group, Measurement, ModCommon, ModPar
+from pya2l.api.inspect import Group, Measurement, ModCommon, ModPar, VariantCoding
 from sqlalchemy import func, or_
 
 # from . epk import Epk
@@ -163,6 +163,7 @@ class AsamMC:
 
         self.mod_common = ModCommon.get(self.session)
         self.mod_par = ModPar.get(self.session) if ModPar.exists(self.session) else None
+        self.variant_coding = VariantCoding.get(self.session)
 
         self.directory = Directory(self.session)
         self.on_init(self.config, *args, **kws)
@@ -186,7 +187,9 @@ class AsamMC:
 
     def open_create_session(self, a2l_file, encoding="latin-1"):
         db = DB()
+        self.opened = False
         self.session = db.open_create(a2l_file, encoding=encoding, local=True)
+        self.opened = True
 
     def on_init(self, config, *args, **kws):
         pass
@@ -216,10 +219,10 @@ class AsamMC:
             try:
                 self.xcp_master.disconnect()
             finally:
-                print("close/finally")
                 self.xcp_master.close()
                 self.xcp_connected = False
-        self.session.close()
+        if self.opened:
+            self.session.close()
 
     @property
     def query(self):

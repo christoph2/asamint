@@ -3,7 +3,6 @@
 import binascii
 import typing
 from copy import deepcopy
-from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 
@@ -22,12 +21,12 @@ def array_values(values, flatten: bool = False):
             else:
                 result.append(array_values(v.values, flatten))
         else:
-            result.append(v.value)
+            result.append(v.phys)
     return result
 
 
 def scalar_value(values):
-    value = values[0].value
+    value = values[0].phys
     if isinstance(values[0], VT):
         value = f"'{value}'"
     return value
@@ -50,11 +49,10 @@ def dump_array(values, level: int = 1, brackets=False) -> str:
                 result.append("]\n")
             else:
                 result.append("\n")
+        elif isinstance(value, (int, float, Decimal)):
+            result.append(f"{value:8.3f}")
         else:
-            if isinstance(value, (int, float, Decimal)):
-                result.append(f"{value:8.3f}")
-            else:
-                result.append(f"{value!r:20}")
+            result.append(f"{value!r:20}")
     return " ".join(result)
 
 
@@ -163,7 +161,7 @@ class CdfWalker:
             values = []
             values.extend(self.do_vfs(arr.vfs))
             values.extend(self.do_vs(arr.vs))
-            return elements.ArraySize(tuple(int(v.value) for v in values))
+            return elements.ArraySize(tuple(int(v.phys) for v in values))
         else:
             return elements.ArraySize(())
 

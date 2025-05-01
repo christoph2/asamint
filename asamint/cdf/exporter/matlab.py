@@ -1,8 +1,5 @@
-from decimal import Decimal
-
 from asamint.cdf import walker
-from asamint.msrsw.elements import VG, VT, Instance
-from asamint.utils import slicer
+from asamint.msrsw.elements import Instance
 
 
 """%CANape Parameter ExportV1.0
@@ -19,7 +16,7 @@ def do_axis_containers(conts):
         for cont in conts:
             print(
                 "\tAX:",
-                cont.category.value,
+                cont.category.phys,
                 cont.unit_display_name,
                 cont.array_size.dimensions,
                 cont.instance_ref.name,

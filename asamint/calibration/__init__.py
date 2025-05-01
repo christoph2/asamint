@@ -29,33 +29,72 @@ __copyright__ = """
 
 import functools
 from collections import OrderedDict, defaultdict
-from functools import cache
-from typing import List, Optional
+from enum import IntEnum
 
-import numpy as np
 from objutils import Image, Section, dump, load
 from objutils.exceptions import InvalidAddressError
 from pya2l import model
-from pya2l.api.inspect import (
-    ASAM_INTEGER_QUANTITIES,
-    AxisPts,
-    Characteristic,
-    CompuMethod,
-    ModPar,
-    asam_type_size,
-)
-from pya2l.functions import fix_axis_par, fix_axis_par_dist
+from pya2l.api.inspect import AxisPts, Characteristic, ModPar
 from pyxcp.checksum import check
 from pyxcp.cpp_ext.cpp_ext import McObject
 from pyxcp.daq_stim.optimize import make_continuous_blocks
 
-from asamint.asam import AsamMC, get_data_type
+from asamint.asam import AsamMC
 from asamint.asam.epk import Epk
 from asamint.calibration import api
 from asamint.calibration.mapfile import MapFile
 from asamint.model.calibration import klasses
 from asamint.model.calibration.klasses import MemoryObject, MemoryType
-from asamint.utils import SINGLE_BITS, adjust_to_word_boundary, current_timestamp, ffs
+from asamint.utils import adjust_to_word_boundary, current_timestamp
+
+
+class CalibrationState(IntEnum):
+    DEFAULT = 0
+    CHANGED = 1
+    PRELIM_CALIBRATED = 2
+    CALIBRATED = 3
+    CHECKED = 4
+    COMPLETED = 5
+
+
+def dimension(obj, axis: str = "X") -> int:
+    pass
+
+
+def xdimension(obj) -> int:
+    return dimension(obj, "X")
+
+
+def ydimension(obj) -> int:
+    return dimension(obj, "Y")
+
+
+def zdimension(obj) -> int:
+    return dimension(obj, "Z")
+
+
+def axis(obj, index: int = 0):
+    pass
+
+
+def xaxis(obj):
+    pass
+
+
+def yaxis(obj):
+    pass
+
+
+def zaxis(obj):
+    pass
+
+
+def phys(obj):
+    pass
+
+
+def raw(obj):
+    return obj.raw
 
 
 class CalibrationData:
@@ -492,13 +531,8 @@ class CalibrationData:
                 continue
             yield ap
 
-    def characteristics(self, category):
+    def characteristics(self, category: str) -> Characteristic:
         """ """
         query = self.query(model.Characteristic.name).filter(model.Characteristic.type == category)
         for characteristic in query.all():
-            try:
-                chs = Characteristic.get(self.session, characteristic.name)
-            except Exception as e:
-                self.logger.error(e)
-                continue
-            yield chs
+            yield Characteristic.get(self.session, characteristic.name)

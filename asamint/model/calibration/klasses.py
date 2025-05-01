@@ -91,8 +91,8 @@ class BaseCharacteristic:
 class NDimContainer(BaseCharacteristic):
     """ """
 
-    raw_values: list[Union[int, float]]
-    converted_values: list[Union[int, float]]
+    raw: list[Union[int, float]]
+    phys: list[Union[int, float]]
     fnc_unit: str
     axes: list
     is_numeric: bool
@@ -103,15 +103,15 @@ class Ascii(BaseCharacteristic):
     """ """
 
     length: int
-    value: str
+    phys: str
 
 
 @dataclass
 class AxisPts(BaseCharacteristic):
     """ """
 
-    raw_values: list[Union[int, float]]
-    converted_values: list[Union[int, float]]
+    raw: list[Union[int, float]]
+    phys: list[Union[int, float]]
     paired: bool
     unit: str
     reversed_storage: bool
@@ -120,28 +120,28 @@ class AxisPts(BaseCharacteristic):
     @property
     def axis_points_raw(self):
         if self.paired:
-            self.raw_values[0::2]
+            self.raw[0::2]
         else:
             return None
 
     @property
     def virtual_axis_points_raw(self):
         if self.paired:
-            self.raw_values[1::2]
+            self.raw[1::2]
         else:
             return None
 
     @property
     def axis_points_converted(self):
         if self.paired:
-            self.converted_values[0::2]
+            self.phys[0::2]
         else:
             return None
 
     @property
     def virtual_axis_points_converted(self):
         if self.paired:
-            self.converted_values[1::2]
+            self.phys[1::2]
         else:
             return None
 
@@ -175,8 +175,8 @@ class Map(NDimContainer):
 class Value(BaseCharacteristic):
     """ """
 
-    raw_value: Union[int, float]
-    converted_value: Union[int, float]
+    raw: Union[int, float]
+    phys: Union[int, float]
     unit: str
     is_numeric: bool = field(default=True)
 
@@ -185,8 +185,8 @@ class Value(BaseCharacteristic):
 class ValueBlock(BaseCharacteristic):
     """ """
 
-    raw_values: list[Union[int, float]]
-    converted_values: list[Union[int, float]]
+    raw: list[Union[int, float]]
+    phys: list[Union[int, float]]
     shape: list[int]
     unit: str
     is_numeric: bool = field(default=True)
@@ -200,8 +200,8 @@ class AxisContainer:
     input_quantity: str
     category: str
     unit: str
-    raw_values: list[Union[int, float]]
-    converted_values: list[Union[int, float]]
+    raw: list[Union[int, float]]
+    phys: list[Union[int, float]]
     reversed_storage: bool = field(default=False)
     axis_pts_ref: Union[str, None] = field(default=None)
     is_numeric: bool = field(default=True)

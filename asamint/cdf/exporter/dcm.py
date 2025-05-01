@@ -14,10 +14,10 @@ def array_elements(array_size: ArraySize) -> int:
 
 def axis():
     """
-    STUETZSTELLENVERTEILUNG  ${inst.name} ${len(inst.converted_values)}\
+    STUETZSTELLENVERTEILUNG  ${inst.name} ${len(inst.phys)}\
 ${header(inst)}
-##<% values = " ".join(["{:.8f}".format(x) for x in inst.converted_values]) %>
-<% values = " ".join(["{:f}".format(x) for x in inst.converted_values.flatten()]) %>\
+##<% values = " ".join(["{:.8f}".format(x) for x in inst.phys]) %>
+<% values = " ".join(["{:f}".format(x) for x in inst.phys.flatten()]) %>\
 %for line in wrap(values, 130):
     ST/X ${line}
 %endfor
@@ -41,7 +41,7 @@ class Exporter(walker.CdfWalker):
         comment = instance.long_name
         display_name = instance.display_name
         function = instance.feature_ref
-        unit = instance.values.unit_display_name.value
+        unit = instance.values.unit_display_name.phys
         if size_x is not None:
             if size_y is not None:
                 print(f"{type_name} {name} {size_x} {size_y}")
@@ -63,7 +63,7 @@ class Exporter(walker.CdfWalker):
         comment = instance.long_name
         display_name = instance.display_name
         function = instance.feature_ref
-        unit = instance.values.unit_display_name.value
+        unit = instance.values.unit_display_name.phys
         category = instance.category
         value_container = instance.values
         axes = instance.axes
@@ -71,7 +71,7 @@ class Exporter(walker.CdfWalker):
 
         match category:
             case "VALUE" | "DEPENDENT_VALUE" | "BOOLEAN" | "ASCII":
-                value = value_container.values_phys[0].value
+                value = value_container.values_phys[0].phys
                 self.value_header("FESTWERT", instance)
                 if value:
                     if isinstance(value, Decimal):

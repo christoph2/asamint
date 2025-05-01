@@ -50,12 +50,12 @@ def offline(a2l_db, image):
 def test_ascii(offline):
     ascii = offline.load_ascii("CDF20.ASCII.N42_wU8")
     # print(ascii)
-    assert ascii.value == "   CDF20 Test String                      "
+    assert ascii.phys == "   CDF20 Test String                      "
     value = "ASAMInt is awesome!!!"
     offline.save_ascii("CDF20.ASCII.N42_wU8", value)
     ascii = offline.load_ascii("CDF20.ASCII.N42_wU8")
     # print(ascii)
-    assert ascii.value == "ASAMInt is awesome!!!\x00                    "
+    assert ascii.phys == "ASAMInt is awesome!!!\x00                    "
 
 
 def test_block(offline):
@@ -63,24 +63,24 @@ def test_block(offline):
     # print(block)
     assert np.all(
         np.equal(
-            block.raw_values,
+            block.raw,
             np.array([[8, 16, 25], [33, 41, 49], [57, 66, 74], [82, 90, 98]]),
         )
     )
-    # assert np.all(np.equal(block.converted_values, np.array([
+    # assert np.all(np.equal(block.phys, np.array([
     #    [0.09765923, 0.19531846, 0.30518509],
     #    [0.40284433,  0.50050356, 0.59816279],
     #    [0.69582202,  0.80568865, 0.90334788],
     #    [1.00100711,  1.09866634, 1.19632557]])
     # ))
-    offline.save_value_block("CDF20.MATRIX_DIM.N341_wS8", block.converted_values)
+    offline.save_value_block("CDF20.MATRIX_DIM.N341_wS8", block.phys)
 
 
 def load_save_verify_value(conn, param_name, expected_rw, expected_cw):
     value = conn.load_value(param_name)
-    assert value.converted_value == expected_cw
-    assert value.raw_value == expected_rw
-    conn.save_value(param_name, value.converted_value)
+    assert value.phys == expected_cw
+    assert value.raw == expected_rw
+    conn.save_value(param_name, value.phys)
 
 
 def test_value_uword(offline):
@@ -209,9 +209,9 @@ def test_value026(offline):
 
 def load_save_verify_axis_pts(conn, param_name, expected_rw, expected_cw):
     value = conn.load_axis_pts(param_name)
-    assert np.allclose(value.converted_values, expected_cw)
-    assert np.array_equal(value.raw_values, expected_rw)
-    # conn.save_axis_pts(param_name, value.converted_value)
+    assert np.allclose(value.phys, expected_cw)
+    assert np.array_equal(value.raw, expected_rw)
+    # conn.save_axis_pts(param_name, value.phys)
 
 
 def test_axis_pts001(offline):
