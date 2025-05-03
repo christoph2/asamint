@@ -634,7 +634,13 @@ class Calibration:
                     raw_axis_values = axis_arrays.get("axis_pts")
                     converted_axis_values = axis_cm.int_to_physical(raw_axis_values)
                 case "CURVE_AXIS":
-                    print("\tCURVE_AXIS:")
+                    ref_obj = self.parameter_cache["CURVE"][axis_descr.curveAxisRef.name]
+                    axis_pts_ref = axis_descr.curveAxisRef.name
+                    raw_axis_values = []
+                    converted_axis_values = None
+                    axis_unit = None
+                    no_axis_points = len(ref_obj.raw)
+                    reversed_storage = ref_obj.axes[0].reversed_storage
                 case "COM_AXIS":
                     ref_obj = self.parameter_cache["AXIS_PTS"][axis_descr.axisPtsRef.name]
                     axis_pts_ref = axis_descr.axisPtsRef.name
@@ -867,7 +873,7 @@ class Calibration:
             return result
 
     def read_axes_arrays(self, obj: Union[AxisPts | Characteristic], axis_name: Optional[str] = None) -> dict:
-        NO_OF_POINTS = {"axis_pts": "no_axis_pts", "axis_rescale": "no_rescale"}
+        # NO_OF_POINTS = {"axis_pts": "no_axis_pts", "axis_rescale": "no_rescale"}
         result = defaultdict(dict)
         components = obj.record_layout_components
         axes = components.get("axes")
