@@ -372,7 +372,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
             displayIdentifier=displayIdentifier,
             feature_ref=feature_ref,
         )
-        self.output_1darray(cont, "SW-ARRAYSIZE", reversed(values.shape))
+        self.output_1darray(cont, "SW-ARRAYSIZE", values.shape)
         values_cont = create_elem(cont, "SW-VALUES-PHYS")
         self.output_value_array(values, values_cont)
 

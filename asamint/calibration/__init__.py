@@ -228,7 +228,7 @@ class CalibrationData:
         calibration_log = klasses.dump_characteristics(self._parameters)
         file_name = self.asam_mc.generate_filename(".json")
         file_name = self.asam_mc.sub_dir("logs") / file_name
-        self.logger.info(f"Writing calibration log to {file_name!s}.")
+        self.logger.info(f"Writing calibration log to {file_name!s}")
         with open(file_name, "wb") as of:
             of.write(calibration_log)
         from asamint.cdf.importer import DBImporter

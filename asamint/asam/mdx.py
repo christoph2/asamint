@@ -28,11 +28,11 @@ __copyright__ = """
 """
 
 
-import pya2l.model as model
 from lxml import etree  # nosec
+from pya2l import model
 from pya2l.api.inspect import Characteristic, CompuMethod, Measurement, ModCommon
 
-import asamint.msrsw as msrsw
+from asamint import msrsw
 from asamint.asam import AsamMC
 from asamint.utils import replace_non_c_char, sha1_digest
 from asamint.utils.xml import create_elem
@@ -213,7 +213,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             # constr_name = "CONSTR_{}".format(chx.name)
             matrixDim = (chx.matrixDim["x"], chx.matrixDim["y"], chx.matrixDim["z"]) if chx.matrixDim else None
             datatype = chx.fnc_asam_dtype
-            is_dependent = True if chx.dependentCharacteristic else False
+            is_dependent = True if chx.dependent_characteristic else False
             is_ascii = chx.type == "ASCII"
             is_block = chx.type == "VAL_BLK"
             if is_block:
@@ -248,7 +248,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
                 create_elem(
                     data_dependency,
                     "SW-DATA-DEPENDENCY-FORMULA",
-                    text=chx.dependentCharacteristic,
+                    text=chx.dependent_characteristic,
                 )
 
             """

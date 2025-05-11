@@ -40,7 +40,7 @@ from objutils import Image
 from objutils.exceptions import InvalidAddressError
 from pya2l import DB, model
 from pya2l.api.inspect import AxisPts, Characteristic, CompuMethod, asam_type_size
-from pya2l.functions import fix_axis_par, fix_axis_par_dist
+from pya2l.functions import Formula, fix_axis_par, fix_axis_par_dist
 
 from asamint.asam import AsamMC, ByteOrder, get_data_type
 from asamint.model.calibration import klasses
@@ -136,10 +136,25 @@ class ParameterCache:
     def set_parent(self, parent):
         self.parent = parent
         self.curves = DictLike(partialmethod(parent.load_curve_or_map, category="CURVE", num_axes=1))
+        self.maps = DictLike(partialmethod(parent.load_curve_or_map, category="MAP", num_axes=2))
+        self.cuboids = DictLike(partialmethod(parent.load_curve_or_map, category="CUBOID", num_axes=3))
+        self.cube4s = DictLike(partialmethod(parent.load_curve_or_map, category="CUBE_4", num_axes=4))
+        self.cube5s = DictLike(partialmethod(parent.load_curve_or_map, category="CUBE_5", num_axes=5))
         self.axis_pts = DictLike(parent.load_axis_pts)
+        self.values = DictLike(parent.load_value)
+        self.asciis = DictLike(parent.load_ascii)
+        self.value_blocks = DictLike(parent.load_value_block)
+
         self.dicts = {
             "CURVE": self.curves,
             "AXIS_PTS": self.axis_pts,
+            "VALUE": self.values,
+            "ASCII": self.asciis,
+            "MAP": self.maps,
+            "VAL_BLK": self.value_blocks,
+            "CUBOID": self.cuboids,
+            "CUBE_4": self.cube4s,
+            "CUBE_5": self.cube5s,
         }
 
     def __getitem__(self, item: str) -> DictLike:
@@ -169,7 +184,7 @@ class Calibration:
         result = None
         if chr is None:
             axis_pts = self.session.query(model.AxisPts).filter(model.AxisPts.name == name).first()
-            return self.load_axis_pts(name).phys
+            return self.load_axis_pts(name)
         else:
             match chr.type:
                 case "ASCII":
@@ -339,7 +354,19 @@ class Calibration:
         characteristic = self.get_characteristic(characteristic_name, "VALUE", False)
         # CALIBRATION_ACCESS
         # READ_ONLY
+        virtual_characteristic = characteristic.virtual_characteristic
         raw = 0
+        if virtual_characteristic is not None:
+            vc_values = []
+            formula = virtual_characteristic.formula
+            for chx_name in virtual_characteristic.characteristics:
+                category = self.characteristic_category(chx_name)
+                chx = self.parameter_cache[category].get(chx_name)
+                vc_values.append(chx.phys)
+            fx = Formula(formula=formula, system_constants=self.asam_mc.mod_par.systemConstants)
+            result = fx.int_to_physical(*vc_values)
+            print(result)
+
         fnc_asam_dtype = characteristic.fnc_asam_dtype
         reader = get_data_type(fnc_asam_dtype, self.asam_mc.byte_order(characteristic))
         if characteristic.bitMask:
@@ -368,7 +395,7 @@ class Calibration:
                 category = "VALUE"
         else:
             category = "TEXT"
-        if characteristic.dependentCharacteristic:
+        if characteristic.dependent_characteristic:
             category = "DEPENDENT_VALUE"
         return klasses.Value(
             name=characteristic.name,
@@ -447,9 +474,6 @@ class Calibration:
         elif axis_info.category == "RES_AXIS":
             raw = axis_arrays.get("axis_rescale")
             # no_axis_pts = axis_values.get("no_rescale")
-        if axis_info.reversed_storage:
-            raw = raw[::-1]
-        # raw = axes_values
         phys = self.int_to_physical(ap, raw)
         unit = ap.compuMethod.refUnit
         return klasses.AxisPts(
@@ -526,6 +550,7 @@ class Calibration:
         fnc_values = characteristic.record_layout_components["elements"].get("fnc_values")
         address = fnc_values.address
         data_type = fnc_values.data_type
+        order = characteristic.fnc_np_order
         try:
             raw = self.image.read_ndarray(
                 addr=address,
@@ -535,7 +560,7 @@ class Calibration:
                     self.asam_mc.byte_order(characteristic),
                 ),
                 shape=axes_container.shape,
-                # order = order,
+                order=order,
                 # bit_mask = characteristic.bitMask
             )
         except Exception as e:
@@ -611,9 +636,10 @@ class Calibration:
         record_layout_components = characteristic.record_layout_components
         axes_values = self.read_axes_values(characteristic)
         # axes_arrays = self.read_axes_arrays(characteristic)
+        flip_position = 0
+        flipper = []
         for idx, axis_descr in enumerate(characteristic.axisDescriptions):
             axis_name = AXES[idx]
-            flipper = []
             maxAxisPoints = axis_descr.maxAxisPoints
             axis_cm_name = "NO_COMPU_METHOD" if axis_descr.compuMethod == "NO_COMPU_METHOD" else axis_descr.compuMethod.name
             axis_cm = CompuMethod.get(self.session, axis_cm_name)
@@ -621,10 +647,13 @@ class Calibration:
             axis_category = axis_descr.attribute
             reversed_storage = False
             axis_pts_ref = None
+            flip_position -= 1
             match axis_category:
                 case "STD_AXIS":
                     axis_values = axes_values.get(axis_name, {})
                     axis_arrays = self.read_axes_arrays(characteristic, axis_name)
+                    axis_info = characteristic.axis_info(axis_name)
+                    reversed_storage = axis_info.reversed_storage
                     if "fix_no_axis_pts" in axis_values:
                         no_axis_points = axis_values.get("fix_no_axis_pts")
                     elif "no_axis_pts" in axis_values:
@@ -685,9 +714,9 @@ class Calibration:
                     axis_pts_ref = None
                     # print("\tFIX_AXIS:")
             num_func_values *= no_axis_points
-            shape.append(no_axis_points)
+            shape.insert(0, no_axis_points)
             if reversed_storage:
-                flipper.append(idx)
+                flipper.append(flip_position)
             axes.append(
                 klasses.AxisContainer(
                     name=axis_name,
@@ -809,7 +838,14 @@ class Calibration:
         self.logger.debug(f"{direction} {type_name} '{characteristic.name}' @0x{characteristic.address:08x}")
         return characteristic
 
-    def _load_characteristic(self, characteristic_name, category):
+    def characteristic_category(self, characteristic_name: str) -> str:
+        try:
+            characteristic = Characteristic.get(self.session, characteristic_name)
+        except ValueError:
+            raise
+        return characteristic.type
+
+    def _load_characteristic(self, characteristic_name: str, category: str) -> Characteristic:
         try:
             characteristic = Characteristic.get(self.session, characteristic_name)
         except ValueError:
