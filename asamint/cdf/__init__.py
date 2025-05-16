@@ -87,7 +87,7 @@ class DB:
             "category": category,
             "comment": ds_attrs.get("commment") or "",
         }
-        values = ds["converted"][()]
+        values = ds["phys"][()]
         if category in ("VALUE", "DEPENDENT_VALUE", "BOOLEAN", "ASCII", "TEXT") or category in ("VAL_BLK", "COM_AXIS"):
             arr = xr.DataArray(values, attrs=attrs)
         else:
@@ -106,11 +106,11 @@ class DB:
                 if category == "COM_AXIS":
                     ref_axis = ax_items["reference"]
                     raw = np.array(ref_axis["raw"])
-                    phys = np.array(ref_axis["converted"])
+                    phys = np.array(ref_axis["phys"])
                 else:
                     if category not in ("FIX_AXIS", "STD_AXIS"):
                         raise TypeError(f"{category} axis")
-                    phys = np.array(ax_items["converted"])
+                    phys = np.array(ax_items["phys"])
                 coords[ax_name] = phys
                 shape.append(phys.size)
             if values.shape == (0,):  # TODO: fix while saving!?

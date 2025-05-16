@@ -291,14 +291,15 @@ class Calibration:
         raw: np.array = np.array([])
         phys: np.array = np.array([])
 
-        num_func_values = reduce(operator.mul, characteristic.fnc_np_shape, 1)
+        shape = characteristic.fnc_np_shape[::-1]
+        num_func_values = reduce(operator.mul, shape, 1)
         length = num_func_values * asam_type_size(characteristic.fnc_asam_dtype)
         try:
             raw = self.image.read_ndarray(
                 addr=characteristic.address,
                 length=length,
                 dtype=get_data_type(characteristic.fnc_asam_dtype, self.asam_mc.byte_order(characteristic)),
-                shape=characteristic.fnc_np_shape,
+                shape=shape,
                 order=characteristic.fnc_np_order,
                 bit_mask=characteristic.bitMask,
             )
@@ -324,7 +325,7 @@ class Calibration:
             raw=raw,
             phys=phys,
             displayIdentifier=characteristic.displayIdentifier,
-            shape=characteristic.fnc_np_shape,
+            shape=shape,
             unit=characteristic.physUnit,
             is_numeric=self.is_numeric(characteristic.compuMethod),
         )
@@ -468,12 +469,15 @@ class Calibration:
 
         if axis_info.category == "COM_AXIS":
             raw = axis_arrays.get("axis_pts")
-            # no_axis_pts = axis_values.get("no_axis_pts")
+            no_axis_pts = axis_values.get("no_axis_pts")
         elif axis_info.category == "FIX_AXIS":
             pass
         elif axis_info.category == "RES_AXIS":
             raw = axis_arrays.get("axis_rescale")
-            # no_axis_pts = axis_values.get("no_rescale")
+            no_axis_pts = axis_values.get("no_rescale") * 2
+        raw = raw[:no_axis_pts]
+        if axis_info.reversed_storage:
+            raw = raw[::-1]
         phys = self.int_to_physical(ap, raw)
         unit = ap.compuMethod.refUnit
         return klasses.AxisPts(
@@ -661,6 +665,9 @@ class Calibration:
                     else:
                         no_axis_points = axis_descr.maxAxisPoints
                     raw_axis_values = axis_arrays.get("axis_pts")
+                    raw_axis_values = raw_axis_values[:no_axis_points]
+                    if reversed_storage:
+                        raw_axis_values = raw_axis_values[::-1]
                     converted_axis_values = axis_cm.int_to_physical(raw_axis_values)
                 case "CURVE_AXIS":
                     ref_obj = self.parameter_cache["CURVE"][axis_descr.curveAxisRef.name]
@@ -715,93 +722,9 @@ class Calibration:
                     # print("\tFIX_AXIS:")
             num_func_values *= no_axis_points
             shape.insert(0, no_axis_points)
+            # shape.append(no_axis_points)
             if reversed_storage:
                 flipper.append(flip_position)
-            axes.append(
-                klasses.AxisContainer(
-                    name=axis_name,
-                    input_quantity=axis_descr.inputQuantity,
-                    category=axis_category,
-                    unit=axis_unit,
-                    reversed_storage=reversed_storage,
-                    raw=raw_axis_values,
-                    phys=converted_axis_values,
-                    axis_pts_ref=axis_pts_ref,
-                    is_numeric=self.is_numeric(axis_cm),
-                )
-            )
-        return AxesContainer(axes, shape=tuple(shape), flip_axes=flipper)
-        ##
-        ##
-        ##
-        for axis_idx in range(num_axes):
-            axis_descr = characteristic.axisDescriptions[axis_idx]
-            axis_name = AXES[axis_idx]
-            maxAxisPoints = axis_descr.maxAxisPoints
-            axis_cm_name = "NO_COMPU_METHOD" if axis_descr.compuMethod == "NO_COMPU_METHOD" else axis_descr.compuMethod.name
-            axis_cm = CompuMethod.get(self.session, axis_cm_name)
-            axis_unit = axis_cm.unit
-            axis_category = axis_descr.attribute
-            axis = characteristic.record_layout_components.axes.get(axis_name)
-            fix_no_axis_pts = characteristic.deposit.fixNoAxisPts.get(axis_name)
-            rl_values = self.read_record_layout_values(characteristic, axis_name)
-            axis_pts_ref = None
-            reversed_storage = False
-            flipper = []
-            raw_axis_values = []
-            if fix_no_axis_pts:
-                no_axis_points = fix_no_axis_pts
-            elif "noAxisPts" in rl_values:
-                no_axis_points = rl_values["noAxisPts"]
-            elif "noRescale" in rl_values:
-                no_axis_points = rl_values["noRescale"]
-            else:
-                no_axis_points = maxAxisPoints
-            if axis_category == "FIX_AXIS":
-                if axis_descr.fixAxisParDist:
-                    par_dist = axis_descr.fixAxisParDist
-                    raw_axis_values = fix_axis_par_dist(
-                        par_dist.offset,
-                        par_dist.distance,
-                        par_dist.numberapo,
-                    )
-                elif axis_descr.fixAxisParList:
-                    raw_axis_values = axis_descr.fixAxisParList
-                elif axis_descr.fixAxisPar:
-                    par = axis_descr.fixAxisPar
-                    raw_axis_values = fix_axis_par(par.offset, par.shift, par.numberapo)
-                no_axis_points = len(raw_axis_values)
-                converted_axis_values = axis_cm.int_to_physical(raw_axis_values)
-
-            elif axis_category == "RES_AXIS":
-                ref_obj = self.parameter_cache["AXIS_PTS"][axis_descr.axisPtsRef.name]
-                # no_axis_points = min(no_axis_points, len(ref_obj.raw) // 2)
-                axis_pts_ref = axis_descr.axisPtsRef.name
-                raw_axis_values = []
-                converted_axis_values = None
-                axis_unit = None
-                no_axis_points = len(ref_obj.raw)
-                reversed_storage = ref_obj.reversed_storage
-            elif axis_category == "CURVE_AXIS":
-                ref_obj = self.parameter_cache["CURVE"][axis_descr.curveAxisRef.name]
-                axis_pts_ref = axis_descr.curveAxisRef.name
-                raw_axis_values = []
-                converted_axis_values = None
-                axis_unit = None
-                no_axis_points = len(ref_obj.raw)
-                reversed_storage = ref_obj.axes[0].reversed_storage
-            elif axis_category == "COM_AXIS":
-                ref_obj = self.parameter_cache["AXIS_PTS"][axis_descr.axisPtsRef.name]
-                axis_pts_ref = axis_descr.axisPtsRef.name
-                raw_axis_values = []
-                converted_axis_values = []
-                axis_unit = None
-                no_axis_points = len(ref_obj.raw)
-                reversed_storage = ref_obj.reversed_storage
-            num_func_values *= no_axis_points
-            shape.append(no_axis_points)
-            if reversed_storage:
-                flipper.append(axis_idx)
             axes.append(
                 klasses.AxisContainer(
                     name=axis_name,
@@ -885,7 +808,37 @@ class Calibration:
             else ByteOrder.LITTLE_ENDIAN
         )
 
+    def update_record_layout(self, obj: Union[AxisPts | Characteristic]) -> dict:
+        patches = dict()
+        components = obj.record_layout_components
+        offset = 0
+        for name, attr in components["position"]:
+            if offset:
+                aligned_address = obj.record_layout.alignment.align(attr.data_type, attr.address + offset)
+                attr.address = aligned_address
+                print(f"Updating {obj.name!r} {obj.record_layout.name!r}:  -> [{aligned_address}]")
+            if name in ("no_axis_pts", "no_rescale"):
+                info = components.get("axes").get(attr.axis)
+                try:
+                    value = self.image.read_numeric(attr.address, get_data_type(attr.data_type, self.byte_order(obj)))
+                except InvalidAddressError as e:
+                    value = None
+                    self.logger.error(f"{obj.name!r} {ax_name}-axis: {e}")
+                else:
+                    info.actual_element_count = value
+                    if value != info.maximum_element_count:
+                        if name == "no_axis_pts":
+                            patch_name = "axis_pts"
+                        elif name == "no_rescale":
+                            patch_name = "axis_rescale"
+                        patches[(patch_name, attr.axis)] = value - info.maximum_element_count
+            elif name in ("axis_pts", "axis_rescale"):
+                tmp = patches.pop((name, attr.axis), None)
+                if tmp is not None:
+                    offset += tmp
+
     def read_axes_values(self, obj: Union[AxisPts | Characteristic], axis_name: Optional[str] = None) -> dict:
+        self.update_record_layout(obj)
         result = defaultdict(dict)
         components = obj.record_layout_components
         axes = components.get("axes")
@@ -902,6 +855,10 @@ class Calibration:
                         except InvalidAddressError as e:
                             value = None
                             self.logger.error(f"{obj.name!r} {ax_name}-axis: {e}")
+                        else:
+                            if axis_info.adjustable:
+                                if name == "no_axis_pts" or name == "no_rescale":
+                                    axis_info.actual_element_count = value
                     result[ax_name][name] = value
         if axis_name is not None and result:
             return result[axis_name]
@@ -915,10 +872,11 @@ class Calibration:
         axes = components.get("axes")
         for ax_name in axes.keys():
             axis_info = axes.get(ax_name)
-            number_of_elements = axis_info.maximum_points
+            number_of_elements = axis_info.actual_element_count or axis_info.maximum_element_count
             axis_elements = axis_info.elements
             for name, attr in axis_elements.items():
                 if name in ("axis_pts", "axis_rescale"):
+                    number_of_elements = number_of_elements << 1 if name == "axis_rescale" else number_of_elements
                     try:
                         values = self.image.read_ndarray(
                             attr.address,

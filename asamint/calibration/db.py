@@ -52,17 +52,15 @@ class CalibrationDB:
         ds.attrs["comment"] = value.comment if value.comment is not None else ""
         ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
         ds.attrs["category"] = value.category
-        ds.attrs["is_text"] = not value.is_numeric if value.category != "ASCII" else True
         ds.attrs["unit"] = value.unit if hasattr(value, "unit") and value.unit is not None else ""
         if raw is not None:
             ds["raw"] = raw
         if phys is not None:
-            ds["converted"] = phys
+            ds["phys"] = phys
 
     def import_value_block(self, value: klasses.ValueBlock) -> None:
         ds = self.db.create_group(name=f"/{value.name}", track_order=True)
-        ds.attrs["shape"] = value.phys.shape
-        ds.attrs["is_text"] = not value.is_numeric
+        # ds.attrs["shape"] = value.phys.shape
         ds.attrs["category"] = value.category
         ds.attrs["comment"] = value.comment if value.comment is not None else ""
         ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
@@ -70,14 +68,13 @@ class CalibrationDB:
             ds["raw"] = value.raw
         if value.phys.shape != (0,):
             if not value.is_numeric:
-                ds["converted"] = value.phys.astype(h5py.string_dtype())
+                ds["phys"] = value.phys.astype(h5py.string_dtype())
             else:
-                ds["converted"] = value.phys
+                ds["phys"] = value.phys
 
     def import_axis_pts(self, value: klasses.AxisPts) -> None:
         ds = self.db.create_group(name=f"/{value.name}", track_order=True)
-        ds.attrs["shape"] = value.phys.shape
-        ds.attrs["is_text"] = not value.is_numeric
+        # ds.attrs["shape"] = value.phys.shape
         ds.attrs["category"] = value.category
         ds.attrs["comment"] = value.comment if value.comment is not None else ""
         ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
@@ -85,9 +82,9 @@ class CalibrationDB:
             ds["raw"] = value.raw
         if value.phys.shape != (0,):
             if not value.is_numeric:
-                ds["converted"] = value.phys.astype(h5py.string_dtype())
+                ds["phys"] = value.phys.astype(h5py.string_dtype())
             else:
-                ds["converted"] = value.phys
+                ds["phys"] = value.phys
 
     def import_map_curve(self, value: Union[klasses.Curve, klasses.Map, klasses.Cuboid, klasses.Cube4, klasses.Cube5]) -> None:
         ds = self.db.create_group(name=f"/{value.name}", track_order=True)
@@ -96,14 +93,13 @@ class CalibrationDB:
         ds.attrs["unit"] = value.fnc_unit if value.fnc_unit is not None else ""
         ds.attrs["comment"] = value.comment if value.comment is not None else ""
         ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
-        ds.attrs["is_text"] = not value.is_numeric if value.category != "ASCII" else True
         if value.raw is not None:
             ds["raw"] = value.raw
         if value.phys is not None:
             if not value.is_numeric:
-                ds["converted"] = value.phys.astype(h5py.string_dtype())
+                ds["phys"] = value.phys.astype(h5py.string_dtype())
             else:
-                ds["converted"] = value.phys
+                ds["phys"] = value.phys
         for idx, axis in enumerate(value.axes):
             ax = axes.create_group(str(idx))
             category = axis.category
@@ -115,9 +111,9 @@ class CalibrationDB:
                 case "STD_AXIS" | "FIX_AXIS":
                     ax["raw"] = axis.raw
                     if not axis.is_numeric:
-                        ax["converted"] = axis.phys.astype(h5py.string_dtype())
+                        ax["phys"] = axis.phys.astype(h5py.string_dtype())
                     else:
-                        ax["converted"] = axis.phys
+                        ax["phys"] = axis.phys
                 case "COM_AXIS" | "RES_AXIS" | "CURVE_AXIS":
                     ax["reference"] = h5py.SoftLink(f"/{axis.axis_pts_ref}")
 
@@ -131,7 +127,7 @@ class CalibrationDB:
             "category": category,
             "comment": ds_attrs.get("commment") or "",
         }
-        values = ds["converted"][()]
+        values = ds["phys"][()]
         if category in ("VALUE", "DEPENDENT_VALUE", "BOOLEAN", "ASCII", "TEXT") or category in ("VAL_BLK", "COM_AXIS"):
             arr = xr.DataArray(values, attrs=attrs)
         else:
@@ -150,11 +146,11 @@ class CalibrationDB:
                 if category == "COM_AXIS":
                     ref_axis = ax_items["reference"]
                     raw = np.array(ref_axis["raw"])
-                    phys = np.array(ref_axis["converted"])
+                    phys = np.array(ref_axis["phys"])
                 else:
                     if category not in ("FIX_AXIS", "STD_AXIS"):
                         raise TypeError(f"{category} axis")
-                    phys = np.array(ax_items["converted"])
+                    phys = np.array(ax_items["phys"])
                 coords[ax_name] = phys
                 shape.append(phys.size)
             if values.shape == (0,):  # TODO: fix while saving!?
