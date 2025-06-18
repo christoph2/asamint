@@ -223,6 +223,8 @@ class AsamMC:
                 self.xcp_connected = False
         if self.opened:
             self.session.close()
+            # self.session.bind.raw_connection().close()
+            self.opened = False
 
     @property
     def query(self):

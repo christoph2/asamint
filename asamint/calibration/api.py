@@ -470,8 +470,9 @@ class Calibration:
         if axis_info.category == "COM_AXIS":
             raw = axis_arrays.get("axis_pts")
             no_axis_pts = axis_values.get("no_axis_pts")
-        elif axis_info.category == "FIX_AXIS":
-            pass
+        # elif axis_info.category == "FIX_AXIS":
+        #    print("AXIS_PTS /w FIX_AXIS", axis_info, axis_values, axis_arrays)
+        #    no_axis_pts = axis_info.actual_element_count or axis_info.maximum_element_count
         elif axis_info.category == "RES_AXIS":
             raw = axis_arrays.get("axis_rescale")
             no_axis_pts = axis_values.get("no_rescale") * 2
@@ -513,18 +514,18 @@ class Calibration:
         # dynamic_values = self.read_rl_values(ap, include_arrays=False)
         # if not "axisPts" in axis:
         #    raise TypeError(f" AXIS_PTS {axis_pts_name!r} is not physically allocated, use A2L to change.")
-        if values.ndim != 1:
+        if values.phys.ndim != 1:
             raise ValueError("`values` must be 1D array")
         if "no_axis_pts" not in axis_info.elements:
-            if values.size != ap.maxAxisPoints:
+            if values.phys.size != ap.maxAxisPoints:
                 raise ValueError(f"`values`: expected an array with {ap.maxAxisPoints} elemets.")
-        elif values.size > ap.maxAxisPoints:
+        elif values.phys.size > ap.maxAxisPoints:
             raise ValueError("`values` size exceeds maxAxisPoints")
         else:
             no_axis_pts = axis_info.elements.get("no_axis_pts")
             data_type = get_data_type(no_axis_pts.data_type, self.byte_order(ap))
-            self.image.write_numeric(addr=no_axis_pts.address, value=values.size, dtype=data_type)
-        values = self.physical_to_int(ap, values)
+            self.image.write_numeric(addr=no_axis_pts.address, value=values.phys.size, dtype=data_type)
+        values = self.physical_to_int(ap, values.phys)
         # axis_pts = static_values.get("axis_pts")
         self.write_nd_array(ap, "x", "axis_pts", values)
 
@@ -610,10 +611,10 @@ class Calibration:
     def save_curve_or_map(self, characteristic_name: str, category: str, num_axes: int, values: np.ndarray) -> None:
         characteristic = self.get_characteristic(characteristic_name, category, True)
         axes_container = self.get_axes(characteristic, num_axes)
-        if values.shape != axes_container.shape:
-            raise ValueError(f"Values shape ({values.shape}) does not match ({axes_container.shape})")
+        if values.phys.shape != axes_container.shape:
+            raise ValueError(f"Values shape ({values.phys.physshape}) does not match ({axes_container.shape})")
         print(axes_container)
-        values = self.physical_to_int(characteristic, values)
+        values = self.physical_to_int(characteristic, values.phys)
 
         elements = characteristic.record_layout_components.get("elements")
         fnc_values = elements.get("fnc_values")
@@ -823,7 +824,7 @@ class Calibration:
                     value = self.image.read_numeric(attr.address, get_data_type(attr.data_type, self.byte_order(obj)))
                 except InvalidAddressError as e:
                     value = None
-                    self.logger.error(f"{obj.name!r} {ax_name}-axis: {e}")
+                    self.logger.error(f"{obj.name!r}: {e}")
                 else:
                     info.actual_element_count = value
                     if value != info.maximum_element_count:
