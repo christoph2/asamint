@@ -1275,9 +1275,7 @@ class Calibration:
             if offset:
                 aligned_address = obj.record_layout.alignment.align(attr.data_type, attr.address + offset)
                 attr.address = aligned_address
-                self.logger.debug(f"Updating {obj.name!r} {obj.record_layout.name!r}: -> [{aligned_address}]")
-
-            # Handle number of axis points or rescale points
+                self.logger.info(f"Updating RecordLayout for {obj.name!r} / {obj.record_layout.name!r}:  -> [{aligned_address}]")
             if name in ("no_axis_pts", "no_rescale"):
                 info = components.get("axes").get(attr.axis)
                 try:
