@@ -33,12 +33,12 @@ from pathlib import Path
 
 import h5py
 import numpy as np
-import seaborn as sns
+
+# import seaborn as sns
 import xarray as xr
 from lxml import etree  # nosec
 from pya2l import model
 
-import asamint.calibration.msrsw_db as model
 from asamint import msrsw
 from asamint.calibration import CalibrationData
 from asamint.calibration.msrsw_db import MSRSWDatabase
@@ -46,7 +46,7 @@ from asamint.utils import add_suffix_to_path
 from asamint.utils.xml import create_elem, xml_comment
 
 
-sns.set_theme("notebook")
+# sns.set_theme("notebook")
 
 sys.setrecursionlimit(2000)
 
@@ -92,7 +92,7 @@ class DB:
             arr = xr.DataArray(values, attrs=attrs)
         else:
             axes = ds["axes"]
-            axes_attrs = dict(axes.attrs.items())
+            # axes_attrs = dict(axes.attrs.items())
             dims = []
             coords = {}
             shape = []
@@ -105,7 +105,7 @@ class DB:
                 category = ax_attrs["category"]
                 if category == "COM_AXIS":
                     ref_axis = ax_items["reference"]
-                    raw = np.array(ref_axis["raw"])
+                    # raw = np.array(ref_axis["raw"])
                     phys = np.array(ref_axis["phys"])
                 else:
                     if category not in ("FIX_AXIS", "STD_AXIS"):
