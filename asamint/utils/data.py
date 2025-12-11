@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-"""
-
-"""
+""" """
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
@@ -34,7 +32,6 @@ from collections import defaultdict
 from functools import lru_cache
 from io import FileIO
 from pathlib import Path
-
 
 pyver = sys.version_info
 
@@ -92,7 +89,9 @@ if pyver.major == 3 and pyver.minor <= 9:
 
     import pkg_resources
 
-    def read_resource_file(package: str, file_name: str, binary: bool = False) -> Optional[Union[str, bytes]]:
+    def read_resource_file(
+        package: str, file_name: str, binary: bool = False
+    ) -> Optional[Union[str, bytes]]:
         pth = Path(pkg_resources.resource_filename(package, file_name))
         if binary:
             return pth.read_bytes()
@@ -101,15 +100,15 @@ if pyver.major == 3 and pyver.minor <= 9:
 
 else:
     import importlib.resources
+    from typing import Union
 
-    def read_resource_file(package: str, file_name: str, binary: bool = False) -> str | bytes | None:
-        st0 = Path(file_name).parts[-1]
-        file_name = str(Path(file_name).parent).replace("/", ".").replace("\\", ".")
-        for item in importlib.resources.files(f"{package}.{file_name}").iterdir():
-            st1 = item.parts[-1]
-            if st0 == st1:
-                if binary:
-                    return item.read_bytes()
-                else:
-                    return item.read_text()
-        return None
+    def read_resource_file(
+        package: str, file_name: str, binary: bool = False
+    ) -> Union[str, bytes]:
+        # This assumes 'package' is a Python package and 'file_name' is a resource within it.
+        # e.g., package='asamint.examples.my_example', file_name='data.txt'
+        return (
+            importlib.resources.files(package).joinpath(file_name).read_bytes()
+            if binary
+            else importlib.resources.files(package).joinpath(file_name).read_text()
+        )

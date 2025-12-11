@@ -1,34 +1,27 @@
+from __future__ import annotations
+
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Union
+from typing import Any, Union
 
 from asamint.calibration.db import CalibrationDB
-from asamint.calibration.msrsw_db import (
-    Category,
-    DataFile,
-    DisplayName,
-    LongName,
-    Msrsw,
-    MSRSWDatabase,
-    ShortName,
-    SwCsCollection,
-    SwCsCollections,
-    SwInstance,
-    SwInstanceSpec,
-    SwInstanceTree,
-    SwInstanceTreeOrigin,
-    SwSystem,
-    SwSystems,
-    SwValueCont,
-    SymbolicFile,
-    UnitDisplayName,
-)
+from asamint.calibration.msrsw_db import (Category, DataFile, DisplayName,
+                                          LongName, Msrsw, MSRSWDatabase,
+                                          ShortName, SwCsCollection,
+                                          SwCsCollections, SwInstance,
+                                          SwInstanceSpec, SwInstanceTree,
+                                          SwInstanceTreeOrigin, SwSystem,
+                                          SwSystems, SwValueCont, SymbolicFile,
+                                          UnitDisplayName)
 from asamint.model.calibration import klasses
 
 
 class DBImporter:
     opened: bool = False
 
-    def __init__(self, file_name: str, parameters, logger):
+    def __init__(
+        self, file_name: str, parameters: Mapping[str, Any], logger: Any
+    ) -> None:
         db_name = Path(file_name).with_suffix(".msrswdb")
         self.parameters = parameters
         self.logger = logger
@@ -45,20 +38,20 @@ class DBImporter:
         self.logger.info("Saving characteristics...")
         self.opened = True
 
-    def close(self):
+    def close(self) -> None:
         if self.opened:
             self.hdf_db.close()
             self.cdf_db.close()
             self.opened = False
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.close()
 
-    def run(self):
+    def run(self) -> None:
         self.top_level_boilerplate()
         self.logger.info("Done.")
 
-    def top_level_boilerplate(self):
+    def top_level_boilerplate(self) -> None:
         msrsw = Msrsw()
         self.session.add(msrsw)
 
@@ -147,12 +140,19 @@ class DBImporter:
         return inst
 
     def map_curve(
-        self, value: Union[klasses.Curve, klasses.Map, klasses.Cuboid, klasses.Cube4, klasses.Cube5], category: str
+        self,
+        value: (
+            klasses.Curve | klasses.Map | klasses.Cuboid | klasses.Cube4 | klasses.Cube5
+        ),
+        category: str,
     ) -> SwInstance:
         inst = self.create_instance(value)
         self.add_value_container(inst, value.unit if hasattr(value, "unit") else None)
 
-        self.hdf_db.import_map_curve(value)
+        try:
+            self.hdf_db.import_map_curve(value)
+        except Exception as e:
+            print(f"map_curve({value.name}): {e} value: {value}")
         return inst
 
     def value_block(self, value: klasses.ValueBlock) -> SwInstance:
@@ -167,7 +167,7 @@ class DBImporter:
         self.hdf_db.import_axis_pts(value)
         return inst
 
-    def create_instance(self, value):
+    def create_instance(self, value: Any) -> SwInstance:
         inst = SwInstance()
         self.session.add(inst)
         self.set_short_name(inst, value.name)
@@ -178,7 +178,7 @@ class DBImporter:
             self.set_display_name(inst, value.displayIdentifier)
         return inst
 
-    def add_value_container(self, obj, unit: str):
+    def add_value_container(self, obj: SwInstance, unit: str | None) -> None:
         container = SwValueCont()
         self.session.add(container)
         if unit:
@@ -187,13 +187,13 @@ class DBImporter:
             container.unit_display_name = unit_display_name
         obj.sw_value_cont = container
 
-    def set_short_name(self, obj, name):
+    def set_short_name(self, obj: Any, name: str) -> None:
         short_name = ShortName()
         short_name.content = name
         self.session.add(short_name)
         obj.short_name = short_name
 
-    def set_long_name(self, obj, name):
+    def set_long_name(self, obj: Any, name: str) -> None:
         long_name = LongName()
         long_name.content = name
         self.session.add(long_name)

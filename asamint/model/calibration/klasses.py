@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Model representing calibration data.
-"""
+"""Model representing calibration data."""
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
@@ -30,16 +29,12 @@ import json
 from dataclasses import asdict, dataclass, field, is_dataclass
 from datetime import datetime
 from enum import IntEnum
-from typing import Union
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 import numpy as np
-from sqlalchemy.ext.associationproxy import (
-    _AssociationDict,
-    _AssociationList,
-    _AssociationSet,
-)
-
+from sqlalchemy.ext.associationproxy import (_AssociationDict,
+                                             _AssociationList, _AssociationSet)
 
 # numpy.seterr(all=None, divide=None, over=None, under=None, invalid=None)
 np.seterr(divide="raise")
@@ -50,7 +45,13 @@ class JSONEncoder(json.JSONEncoder):
 
     def default(self, o):
         if is_dataclass(o):
-            return asdict(o)
+            try:
+                result = o.asdict()
+            except Exception as e:
+                print(f"asdict: {e!r} ==> {type(o)}")
+                return b""
+            else:
+                return result
         elif isinstance(o, datetime):
             return o.isoformat()
         elif isinstance(o, np.ndarray):
@@ -74,152 +75,165 @@ class JSONEncoder(json.JSONEncoder):
 
 def dump_characteristics(chs) -> bytes:
     """JSON representation of characteristic values."""
-    return json.dumps(chs, cls=JSONEncoder, indent=4, separators=(",", ": "), ensure_ascii=False).encode("utf-8")
+    return json.dumps(
+        chs, cls=JSONEncoder, indent=4, separators=(",", ": "), ensure_ascii=False
+    ).encode("utf-8")
 
 
-@dataclass
-class BaseCharacteristic:
-    """ """
-
+@dataclass(kw_only=True)
+class CalibratedObject:
     name: str
     comment: str
     category: str
-    displayIdentifier: str
+    _raw: np.ndarray
+    _phys: np.ndarray
+    displayIdentifier: Optional[str] = None
+    unit: Optional[str] = None  # vereinheitlicht: überall verfügbar
+    fnc_unit: Optional[str] = None  # für Funktionswerte-Container
+    axes: list[dict] | None = None
+    is_numeric: bool | None = None
+    shape: tuple[int, ...] | None = None
+    api: Optional[Any] = None
+    _characteristic: Optional[Any] = None
+
+    @property
+    def raw(self):
+        return self._raw
+
+    @raw.setter
+    def raw(self, value):
+        self._raw = np.asarray(value)
+        if self.api and self._characteristic is not None:
+            self._phys = self.api.int_to_physical(self._characteristic, self._raw)
+
+    @property
+    def phys(self):
+        return self._phys
+
+    @phys.setter
+    def phys(self, value):
+        self._phys = np.asarray(value)
+        if self.api and self._characteristic is not None:
+            self._raw = self.api.physical_to_int(self._characteristic, self._phys)
+
+    def asdict(self):
+        """Custom asdict that ??? fields."""
+        result = {}
+        for k in self.__dataclass_fields__.keys():
+            if k in ("api", "_characteristic", "fnc_unit"):
+                continue
+            value = getattr(self, k)
+            if isinstance(value, AxisContainer):
+                result[k] = asdict(value)
+            else:
+                if k.startswith("_"):
+                    k = k[1:]
+                result[k] = value
+        return result
+
+
+# Vereinheitlichte Ableitungen verwenden CalibratedObject ohne redundante Felder
+@dataclass
+class Ascii(CalibratedObject):
+    pass
 
 
 @dataclass
-class NDimContainer(BaseCharacteristic):
-    """ """
+class AxisPts(CalibratedObject):
+    paired: bool | None = None
+    reversed_storage: bool | None = None
 
-    raw: list[Union[int, float]]
-    phys: list[Union[int, float]]
+
+@dataclass
+class Cube4(CalibratedObject):
+    """Represents a 4D cube characteristic."""
+
     fnc_unit: str
-    axes: list
+    axes: list[dict]
     is_numeric: bool
 
 
 @dataclass
-class Ascii(BaseCharacteristic):
-    """ """
+class Cube5(CalibratedObject):
+    """Represents a 5D cube characteristic."""
 
-    length: int
-    phys: str
-
-
-@dataclass
-class AxisPts(BaseCharacteristic):
-    """ """
-
-    raw: list[Union[int, float]]
-    phys: list[Union[int, float]]
-    paired: bool
-    unit: str
-    reversed_storage: bool
+    fnc_unit: str
+    axes: list[dict]
     is_numeric: bool
 
-    @property
-    def axis_points_raw(self):
-        if self.paired:
-            self.raw[0::2]
-        else:
-            return None
 
-    @property
-    def virtual_axis_points_raw(self):
-        if self.paired:
-            self.raw[1::2]
-        else:
-            return None
+@dataclass
+class Cuboid(CalibratedObject):
+    """Represents a cuboid characteristic."""
 
-    @property
-    def axis_points_converted(self):
-        if self.paired:
-            self.phys[0::2]
-        else:
-            return None
-
-    @property
-    def virtual_axis_points_converted(self):
-        if self.paired:
-            self.phys[1::2]
-        else:
-            return None
+    fnc_unit: str
+    axes: list[dict]
+    is_numeric: bool
 
 
 @dataclass
-class Cube4(NDimContainer):
-    """ """
+class Curve(CalibratedObject):
+    """Represents a curve characteristic."""
+
+    fnc_unit: str
+    axes: list[dict]
+    is_numeric: bool
 
 
 @dataclass
-class Cube5(NDimContainer):
-    """ """
+class Map(CalibratedObject):
+    """Represents a map characteristic."""
+
+    fnc_unit: str
+    axes: list[dict]
+    is_numeric: bool
 
 
 @dataclass
-class Cuboid(NDimContainer):
-    """ """
+class NDimContainer(CalibratedObject):
+    # Ein Container-Typ für CURVE, MAP, CUBOID, CUBE_4, CUBE_5, VAL_BLK
+    pass
 
 
 @dataclass
-class Curve(NDimContainer):
-    """ """
+class Value(CalibratedObject):
+    pass
 
 
-@dataclass
-class Map(NDimContainer):
-    """ """
+# Reduzierung: ValueBlock wird von NDimContainer abgedeckt, alias für Abwärtskompatibilität
+ValueBlock = NDimContainer
 
 
-@dataclass
-class Value(BaseCharacteristic):
-    """ """
-
-    raw: Union[int, float]
-    phys: Union[int, float]
-    unit: str
-    is_numeric: bool = field(default=True)
-
-
-@dataclass
-class ValueBlock(BaseCharacteristic):
-    """ """
-
-    raw: list[Union[int, float]]
-    phys: list[Union[int, float]]
-    shape: list[int]
-    unit: str
-    is_numeric: bool = field(default=True)
-
-
+# AxisContainer bleibt, aber vereinheitlichte Typen
 @dataclass
 class AxisContainer:
-    """ """
-
     name: str
     input_quantity: str
     category: str
-    unit: str
+    unit: str | None
     raw: list[Union[int, float]]
     phys: list[Union[int, float]]
     reversed_storage: bool = field(default=False)
     axis_pts_ref: Union[str, None] = field(default=None)
     is_numeric: bool = field(default=True)
 
+    def asdict(self):
+        return asdict(self)
+
 
 def get_calibration_class(name: str):
-    """ """
-    return {
+    mapping = {
         "ASCII": Ascii,
         "AXIS_PTS": AxisPts,
-        "CUBE_4": Cube4,
-        "CUBE_5": Cube5,
-        "CUBOID": Cuboid,
-        "CURVE": Curve,
-        "MAP": Map,
+        "CURVE": NDimContainer,
+        "MAP": NDimContainer,
+        "CUBOID": NDimContainer,
+        "CUBE_4": NDimContainer,
+        "CUBE_5": NDimContainer,
         "VALUE": Value,
-        "VAL_BLK": ValueBlock,
-    }.get(name)
+        "VAL_BLK": NDimContainer,
+    }
+    return mapping.get(name)
 
 
 class MemoryType(IntEnum):

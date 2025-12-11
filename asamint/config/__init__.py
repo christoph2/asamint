@@ -42,19 +42,31 @@ class General(Configurable):
 
     author = Unicode(default_value="", help="Author of the project").tag(config=True)
     company = Unicode(default_value="", help="Company of the project").tag(config=True)
-    department = Unicode(default_value="", help="Department of the project").tag(config=True)
+    department = Unicode(default_value="", help="Department of the project").tag(
+        config=True
+    )
     project = Unicode(default_value="", help="Project name").tag(config=True)
     shortname = Unicode(
         default_value="",
         help="Short name of the project (Contributes to filename generation)",
     ).tag(config=True)
-    pyxcp_config_file = Unicode(default_value="pyxcp_conf.py", help="pyXCP config file").tag(config=True)
+    pyxcp_config_file = Unicode(
+        default_value="pyxcp_conf.py", help="pyXCP config file"
+    ).tag(config=True)
     a2l_file = Unicode(default_value="", help="Input A2L file").tag(config=True)
-    a2l_encoding = Unicode(default_value="latin-1", help="Input A2L file encoding").tag(config=True)
-    a2l_dynamic = Bool(False, help="Enable dynamic (via XCP) A2L parsing").tag(config=True)
+    a2l_encoding = Unicode(default_value="latin-1", help="Input A2L file encoding").tag(
+        config=True
+    )
+    a2l_dynamic = Bool(False, help="Enable dynamic (via XCP) A2L parsing").tag(
+        config=True
+    )
     master_hexfile = Unicode(default_value="", help="Master HEX file").tag(config=True)
-    master_hexfile_type = Enum(values=["ihex", "srec"], default_value="ihex", help="Choose HEX file type").tag(config=True)
-    mdf_version = Unicode(default="4.20", help="Version used to write MDF files.").tag(config=True)
+    master_hexfile_type = Enum(
+        values=["ihex", "srec"], default_value="ihex", help="Choose HEX file type"
+    ).tag(config=True)
+    mdf_version = Unicode(default="4.20", help="Version used to write MDF files.").tag(
+        config=True
+    )
     experiments = List(
         trait=Unicode(),
         default_value=[],
@@ -67,7 +79,9 @@ class General(Configurable):
 class ProfileCreate(Application):
     description = "\nCreate a new profile"
 
-    dest_file = Unicode(default_value=None, allow_none=True, help="destination file name").tag(config=True)
+    dest_file = Unicode(
+        default_value=None, allow_none=True, help="destination file name"
+    ).tag(config=True)
     aliases = Dict(  # type:ignore[assignment]
         dict(
             d="ProfileCreate.dest_file",
@@ -80,7 +94,9 @@ class ProfileCreate(Application):
         if self.dest_file:
             dest = Path(self.dest_file)
             if dest.exists():
-                if not Confirm.ask(f"Destination file [green]{dest.name!r}[/green] already exists. Do you want to overwrite it?"):
+                if not Confirm.ask(
+                    f"Destination file [green]{dest.name!r}[/green] already exists. Do you want to overwrite it?"
+                ):
                     print("Aborting...")
                     self.exit(1)
             with dest.open("w", encoding="latin1") as out_file:
@@ -98,7 +114,9 @@ class ProfileApp(Application):
 
     def start(self):
         if self.subapp is None:
-            print(f"No subcommand specified. Must specify one of: {self.subcommands.keys()}")
+            print(
+                f"No subcommand specified. Must specify one of: {self.subcommands.keys()}"
+            )
             print()
             self.print_description()
             self.print_subcommands()
@@ -118,7 +136,9 @@ class XCP(Configurable):
 
 class Asamint(Application):
     description = "ASAMInt application"
-    config_file = Unicode(default_value="asamint_conf.py", help="base name of config file").tag(config=True)
+    config_file = Unicode(
+        default_value="asamint_conf.py", help="base name of config file"
+    ).tag(config=True)
 
     classes = List([General, XCP])
 
@@ -155,9 +175,9 @@ class Asamint(Application):
         self.log.addHandler(rich_handler)
 
     def initialize(self, argv=None):
-        from asamint import __version__ as pyxcp_version
+        from asamint import __version__ as asamint_version
 
-        Asamint.version = pyxcp_version
+        Asamint.version = asamint_version
         Asamint.name = Path(sys.argv[0]).name
         self.parse_command_line(argv[1:])
         self.log.debug(f"asamint version: {self.version}")

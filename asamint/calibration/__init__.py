@@ -33,11 +33,10 @@ __copyright__ = """
 
 import functools
 from collections import OrderedDict, defaultdict
+from collections.abc import Generator
 from enum import IntEnum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
-
-from collections.abc import Generator
 
 from objutils import Image, Section, dump, load
 from objutils.exceptions import InvalidAddressError
@@ -289,11 +288,17 @@ class CalibrationData:
             result.append(McObject(ax.name, ax.address, 0, mem_size, ""))
 
         # Add all characteristics
-        characteristics = self.query(model.Characteristic).order_by(model.Characteristic.type, model.Characteristic.address).all()
+        characteristics = (
+            self.query(model.Characteristic)
+            .order_by(model.Characteristic.type, model.Characteristic.address)
+            .all()
+        )
         for c in characteristics:
             characteristic = Characteristic.get(self.session, c.name)
             mem_size = characteristic.total_allocated_memory
-            result.append(McObject(characteristic.name, characteristic.address, 0, mem_size, ""))
+            result.append(
+                McObject(characteristic.name, characteristic.address, 0, mem_size, "")
+            )
 
         # Optimize by merging adjacent memory blocks
         blocks = make_continuous_blocks(result)
@@ -323,7 +328,9 @@ class CalibrationData:
                 xcp_checksum = self.asam_mc.xcp_master.buildChecksum(cs_length)
                 checksum = check(block, str(xcp_checksum.checksumType))
                 equal = checksum == xcp_checksum.checksum
-                self.logger.info(f"Address: 0x{address:08X} XCPChecksum {xcp_checksum.checksum} Checksum: {checksum} ==> {equal}")
+                self.logger.info(
+                    f"Address: 0x{address:08X} XCPChecksum {xcp_checksum.checksum} Checksum: {checksum} ==> {equal}"
+                )
                 offset += cs_length
 
             # Process remaining bytes (partial block)
@@ -334,7 +341,9 @@ class CalibrationData:
                 xcp_checksum = self.asam_mc.xcp_master.buildChecksum(remaining_bytes)
                 checksum = check(block, str(xcp_checksum.checksumType))
                 equal = checksum == xcp_checksum.checksum
-                self.logger.info(f"Address: 0x{address:08X} XCPChecksum {xcp_checksum.checksum} Checksum: {checksum} ==> {equal}")
+                self.logger.info(
+                    f"Address: 0x{address:08X} XCPChecksum {xcp_checksum.checksum} Checksum: {checksum} ==> {equal}"
+                )
 
     # Keep the old method name for backward compatibility
     validata_image = validate_image
@@ -358,7 +367,9 @@ class CalibrationData:
 
         # Calculate total size for logging
         total_size = functools.reduce(lambda a, s: s.length + a, blocks, 0)
-        self.logger.info(f"Fetching {total_size / 1024:.2f} KBytes calibration data from XCP slave.")
+        self.logger.info(
+            f"Fetching {total_size / 1024:.2f} KBytes calibration data from XCP slave."
+        )
 
         # Process each memory block
         num_blocks = len(blocks)
@@ -406,6 +417,9 @@ class CalibrationData:
         file_name = self.asam_mc.generate_filename(".json")
         file_name = self.asam_mc.sub_dir("logs") / file_name
         self.logger.info(f"Writing calibration log to {file_name!s}")
+        ##
+        ## Optional LOG
+        #
         with open(file_name, "wb") as of:
             of.write(calibration_log)
 
@@ -420,7 +434,12 @@ class CalibrationData:
         mm = MapFile("test_db.map", self.memory_map, self.memory_errors)
         mm.run()
 
-    def load_hex_file(self, xcp_master: Any = None, hexfile: Optional[str] = None, hexfile_type: str = "ihex") -> None:
+    def load_hex_file(
+        self,
+        xcp_master: Any = None,
+        hexfile: Optional[str] = None,
+        hexfile_type: str = "ihex",
+    ) -> None:
         """Load a hex file or get calibration data from XCP slave.
 
         This method loads calibration data either from a hex file or directly from an XCP slave.
@@ -457,9 +476,16 @@ class CalibrationData:
             raise ValueError("Empty calibration image.")
 
         # Create the calibration API object
-        self.api = api.Calibration(self.asam_mc, self.image, self._parameters, self.logger)
+        self.api = api.Calibration(
+            self.asam_mc, self.image, self._parameters, self.logger
+        )
 
-    def load_characteristics(self, xcp_master: Any = None, hexfile: Optional[str] = None, hexfile_type: str = "ihex") -> None:
+    def load_characteristics(
+        self,
+        xcp_master: Any = None,
+        hexfile: Optional[str] = None,
+        hexfile_type: str = "ihex",
+    ) -> None:
         """Load a hex file or get calibration data from XCP slave and process all characteristics.
 
         This method loads calibration data either from a hex file or directly from an XCP slave,
@@ -502,12 +528,16 @@ class CalibrationData:
             raise ValueError("Empty calibration image.")
 
         # Create the calibration API object
-        self.api = api.Calibration(self.asam_mc, self.image, self._parameters, self.logger)
+        self.api = api.Calibration(
+            self.asam_mc, self.image, self._parameters, self.logger
+        )
 
         # Process all characteristics
         self.load_hex()
 
-    def upload_calram(self, xcp_master: Any, file_type: str = "ihex") -> Optional[Image]:
+    def upload_calram(
+        self, xcp_master: Any, file_type: str = "ihex"
+    ) -> Optional[Image]:
         """Transfer RAM segments from ECU to MCS (Measurement, Calibration, and Stimulation).
 
         This method reads all RAM segments from the ECU and saves them to a hex file.
@@ -571,7 +601,12 @@ class CalibrationData:
 
         return img
 
-    def download_calram(self, xcp_master: Any, module_name: Optional[str] = None, data: Optional[bytes] = None) -> None:
+    def download_calram(
+        self,
+        xcp_master: Any,
+        module_name: Optional[str] = None,
+        data: Optional[bytes] = None,
+    ) -> None:
         """Transfer RAM segments from MCS (Measurement, Calibration, and Stimulation) to ECU.
 
         This method writes data to the RAM segment of the ECU.
@@ -604,11 +639,17 @@ class CalibrationData:
         if segment["memoryType"] == "RAM":
             xcp_master.setMta(segment["address"])
             xcp_master.push(data)
-            self.logger.info(f"Downloaded {len(data)} bytes to RAM at address 0x{segment['address']:X}")
+            self.logger.info(
+                f"Downloaded {len(data)} bytes to RAM at address 0x{segment['address']:X}"
+            )
         else:
-            self.logger.warning(f"Segment {segment['name']} is not RAM type, skipping download")
+            self.logger.warning(
+                f"Segment {segment['name']} is not RAM type, skipping download"
+            )
 
-    def upload_parameters(self, xcp_master: Any, save_to_file: bool = True, hexfile_type: str = "ihex") -> Image:
+    def upload_parameters(
+        self, xcp_master: Any, save_to_file: bool = True, hexfile_type: str = "ihex"
+    ) -> Image:
         """Upload all calibration parameters from the ECU.
 
         This method retrieves all calibration parameters from the ECU, including EPK,
@@ -648,25 +689,35 @@ class CalibrationData:
             result.append(McObject(ax.name, ax.address, 0, mem_size, ""))
 
         # Add all characteristics
-        characteristics = self.query(model.Characteristic).order_by(model.Characteristic.type, model.Characteristic.address).all()
+        characteristics = (
+            self.query(model.Characteristic)
+            .order_by(model.Characteristic.type, model.Characteristic.address)
+            .all()
+        )
         for c in characteristics:
             characteristic = Characteristic.get(self.session, c.name)
             mem_size = characteristic.total_allocated_memory
-            result.append(McObject(characteristic.name, characteristic.address, 0, mem_size, ""))
+            result.append(
+                McObject(characteristic.name, characteristic.address, 0, mem_size, "")
+            )
 
         # Optimize by merging adjacent memory blocks
         blocks = make_continuous_blocks(result)
 
         # Calculate total size for logging
         total_size = functools.reduce(lambda a, s: s.length + a, blocks, 0)
-        self.logger.info(f"Fetching a total of {total_size / 1024:.2f} KBytes from XCP slave")
+        self.logger.info(
+            f"Fetching a total of {total_size / 1024:.2f} KBytes from XCP slave"
+        )
 
         # Upload each memory block
         sections = []
         for block in blocks:
             xcp_master.setMta(block.address)
             mem = xcp_master.pull(block.length)
-            sections.append(Section(start_address=block.address, data=mem[: block.length]))
+            sections.append(
+                Section(start_address=block.address, data=mem[: block.length])
+            )
 
         # Create image from sections
         img = Image(sections=sections, join=True)
@@ -689,8 +740,14 @@ class CalibrationData:
         """
         self.logger.info("Loading ASCII string characteristics")
         for characteristic in self.characteristics("ASCII"):
-            self.logger.debug(f"Processing ASCII '{characteristic.name}' @0x{characteristic.address:08x}")
-            self._parameters["ASCII"][characteristic.name] = self.api.load_ascii(characteristic.name)
+            if characteristic is None:
+                continue
+            self.logger.debug(
+                f"Processing ASCII '{characteristic.name}' @0x{characteristic.address:08x}"
+            )
+            self._parameters["ASCII"][characteristic.name] = self.api.load_ascii(
+                characteristic.name
+            )
 
     def _load_value_blocks(self) -> None:
         """Load all value block characteristics from the current image.
@@ -700,8 +757,14 @@ class CalibrationData:
         """
         self.logger.info("Loading value block characteristics")
         for characteristic in self.characteristics("VAL_BLK"):
-            self.logger.debug(f"Processing VAL_BLK '{characteristic.name}' @0x{characteristic.address:08x}")
-            self._parameters["VAL_BLK"][characteristic.name] = self.api.load_value_block(characteristic.name)
+            if characteristic is None:
+                continue
+            self.logger.debug(
+                f"Processing VAL_BLK '{characteristic.name}' @0x{characteristic.address:08x}"
+            )
+            self._parameters["VAL_BLK"][characteristic.name] = (
+                self.api.load_value_block(characteristic.name)
+            )
 
     def _load_values(self) -> None:
         """Load all scalar value characteristics from the current image.
@@ -711,8 +774,14 @@ class CalibrationData:
         """
         self.logger.info("Loading scalar value characteristics")
         for characteristic in self.characteristics("VALUE"):
-            self.logger.debug(f"Processing VALUE '{characteristic.name}' @0x{characteristic.address:08x}")
-            self._parameters["VALUE"][characteristic.name] = self.api.load_value(characteristic.name)
+            if characteristic is None:
+                continue
+            self.logger.debug(
+                f"Processing VALUE '{characteristic.name}' @0x{characteristic.address:08x}"
+            )
+            self._parameters["VALUE"][characteristic.name] = self.api.load_value(
+                characteristic.name
+            )
 
     def _load_axis_pts(self) -> None:
         """Load all axis points from the current image.
@@ -722,6 +791,8 @@ class CalibrationData:
         """
         self.logger.info("Loading axis points")
         for ap in self.axis_points():
+            if ap is None:
+                continue
             self.logger.debug(f"Processing AXIS_PTS '{ap.name}' @0x{ap.address:08x}")
             self._parameters["AXIS_PTS"][ap.name] = self.api.load_axis_pts(ap.name)
 
@@ -784,7 +855,9 @@ class CalibrationData:
                 # Check if this curve references another curve
                 if axis_descr.attribute == "CURVE_AXIS":
                     if axis_descr.curveAxisRef.name in curves_by_name:
-                        ref_pos, ref_curve = curves_by_name.get(axis_descr.curveAxisRef.name)
+                        ref_pos, ref_curve = curves_by_name.get(
+                            axis_descr.curveAxisRef.name
+                        )
 
                         # If the referenced curve appears after this curve, swap them
                         if ref_pos > curr_pos:
@@ -830,12 +903,21 @@ class CalibrationData:
 
         # Load each characteristic
         for characteristic in characteristics:
-            self.logger.debug(f"Processing {category} '{characteristic.name}' @0x{characteristic.address:08x}")
-            self._parameters[f"{category}"][characteristic.name] = self.api.load_curve_or_map(
-                characteristic.name, category, num_axes
+            self.logger.debug(
+                f"Processing {category} '{characteristic.name}' @0x{characteristic.address:08x}"
+            )
+            self._parameters[f"{category}"][characteristic.name] = (
+                self.api.load_curve_or_map(characteristic.name, category, num_axes)
             )
 
-    def log_memory_errors(self, exc: Exception, memory_type: MemoryType, name: str, address: int, length: int) -> None:
+    def log_memory_errors(
+        self,
+        exc: Exception,
+        memory_type: MemoryType,
+        name: str,
+        address: int,
+        length: int,
+    ) -> None:
         """Log memory errors for invalid addresses.
 
         This method logs memory errors when an invalid address is encountered
@@ -849,8 +931,14 @@ class CalibrationData:
             length: Length of the memory object in bytes
         """
         if isinstance(exc, InvalidAddressError):
-            self.memory_errors[address].append(MemoryObject(memory_type=memory_type, name=name, address=address, length=length))
-            self.logger.error(f"Invalid address 0x{address:08X} for {memory_type.name} '{name}'")
+            self.memory_errors[address].append(
+                MemoryObject(
+                    memory_type=memory_type, name=name, address=address, length=length
+                )
+            )
+            self.logger.error(
+                f"Invalid address 0x{address:08X} for {memory_type.name} '{name}'"
+            )
 
     @property
     def parameters(self) -> dict[str, dict[str, Any]]:
@@ -860,6 +948,33 @@ class CalibrationData:
             Dictionary of calibration parameters organized by category
         """
         return self._parameters
+
+    def generate_c_structs(
+        self,
+        log_path: Optional[str] = None,
+        template: Optional[str] = None,
+        out_basename: Optional[str] = None,
+    ) -> Path:
+        """Generate a C header with structs/arrays from a calibration JSON log.
+
+        This is a convenience wrapper around asamint.calibration.codegen.generate_c_structs_from_log.
+        If log_path is None, it will pick the most recent JSON in logs/.
+        The output header is written to the 'code' subdirectory using the project's naming scheme.
+        """
+        from .codegen import generate_c_structs_from_log
+
+        tpath = Path(template) if template else None
+        out_path = None
+        if out_basename:
+            out_name = (
+                out_basename if out_basename.endswith(".h") else f"{out_basename}.h"
+            )
+            code_dir = self.asam_mc.sub_dir("code")
+            code_dir.mkdir(exist_ok=True)
+            out_path = code_dir / out_name
+        return generate_c_structs_from_log(
+            self.asam_mc, Path(log_path) if log_path else None, out_path, tpath
+        )
 
     def axis_points(self) -> Generator[AxisPts, None, None]:
         """Get all axis points defined in the A2L file.
@@ -889,12 +1004,16 @@ class CalibrationData:
             Characteristic objects for each characteristic of the specified category
         """
         # Query all characteristics of the specified category
-        query = self.query(model.Characteristic.name).filter(model.Characteristic.type == category)
+        query = self.query(model.Characteristic.name).filter(
+            model.Characteristic.type == category
+        )
 
         # Yield each characteristic
         for characteristic in query.all():
             try:
                 yield Characteristic.get(self.session, characteristic.name)
             except Exception as e:
-                self.logger.error(f"Error loading {category} '{characteristic.name}': {e}")
+                self.logger.error(
+                    f"Error loading {category} '{characteristic.name}': {e}"
+                )
                 continue

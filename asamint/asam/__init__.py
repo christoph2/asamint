@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""
-"""
+""" """
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
@@ -33,7 +32,8 @@ from enum import IntEnum
 from pathlib import Path
 
 from pya2l import DB, model
-from pya2l.api.inspect import Group, Measurement, ModCommon, ModPar, VariantCoding
+from pya2l.api.inspect import (Group, Measurement, ModCommon, ModPar,
+                               VariantCoding)
 from sqlalchemy import func, or_
 
 # from . epk import Epk
@@ -67,40 +67,18 @@ class Directory:
 
     def __init__(self, session):
         self.session = session
-        self.group_by_rid = {}
-        self.group_by_name = {}
-        self.function_by_rid = {}
-        self.function_by_name = {}
-        self.group_treee = []
+        self.group_by_name = {
+            g.groupName: g for g in self.session.query(model.Group).all()
+        }
+        self.function_by_name = {
+            f.name: f for f in self.session.query(model.Function).all()
+        }
 
-        gr = self.session.query(model.Group).all()
-        for g in gr:
-            self.group_by_rid[g.rid] = g
-            self.group_by_name[g.groupName] = g
-        fc = self.session.query(model.Function).all()
-        for f in fc:
-            self.function_by_rid[f.rid] = f
-            self.function_by_name[f.name] = f
-            # print(f)
-        # print("=" * 80)
-        root_groups, gr = partition(lambda g: g.root is not None, gr)
+    def get_group(self, name: str):
+        return self.group_by_name.get(name)
 
-        if root_groups:
-            # print("ROOT")
-            for g in root_groups:
-                self.group_treee.append(Group(g.groupName))
-                # print(g, g.sub_group.identifier)   # 'groupLongIdentifier', 'groupName'
-
-            # print("*** NON-ROOT")
-            # for g in gr:
-            #    print(g, g.sub_group)   # 'groupLongIdentifier', 'groupName'
-        else:
-            pass
-            # print("*** NO ROOT GROUPS")
-        # print("KRUPS", self.group_treee)
-
-    def create_sub_tree(self):
-        pass
+    def get_function(self, name: str):
+        return self.function_by_name.get(name)
 
 
 class AsamMC:
@@ -130,6 +108,7 @@ class AsamMC:
         "parameters": "parameters",
         "hexfiles": "hexfiles",
         "logs": "logs",
+        "code": "code",
     }
 
     def __init__(self, *args, **kws):
@@ -147,6 +126,26 @@ class AsamMC:
         self.master_hexfile = self.config.general.master_hexfile
         self.master_hexfile_type = self.config.general.master_hexfile_type
 
+        # Build a compatibility shim for legacy experiment_config using the new config system.
+        # This replaces the old external experiment_config dict and provides reasonable defaults
+        # sourced from the new traitlets-based config where possible.
+        try:
+            default_subject = f"SUBJ_{self.shortname}" if self.shortname else ""
+        except Exception:
+            default_subject = ""
+        self.experiment_config = {
+            # Common experiment metadata
+            "SUBJECT": default_subject,
+            "DESCRIPTION": "",
+            "SHORTNAME": self.shortname or "",
+            # MDF-related defaults
+            "TIME_SOURCE": "local PC reference timer",
+            # Selections; callers can still override by providing names explicitly at runtime
+            "MEASUREMENTS": [],
+            "FUNCTIONS": [],
+            "GROUPS": [],
+        }
+
         self.xcp_master = create_xcp_master()
         self.xcp_connected = False
 
@@ -160,10 +159,11 @@ class AsamMC:
             )
 
         self.cond_create_directories()
-
         self.mod_common = ModCommon.get(self.session)
         self.mod_par = ModPar.get(self.session) if ModPar.exists(self.session) else None
-        self.variant_coding = VariantCoding.get(self.session)
+        self.variant_coding = VariantCoding.get(
+            self.session, module_name=self.mod_par.modpar.module.name
+        )
 
         self.directory = Directory(self.session)
         self.on_init(self.config, *args, **kws)
@@ -179,6 +179,7 @@ class AsamMC:
             "parameters",
             "hexfiles",
             "logs",
+            "code",
         ]
         for dir_name in SUB_DIRS:
             if not os.access(dir_name, os.F_OK):
@@ -211,19 +212,21 @@ class AsamMC:
 
     def xcp_connect(self):
         if not self.xcp_connected:
+            if self.xcp_master is None:
+                self.xcp_master = create_xcp_master()
             self.xcp_master.connect()
             self.xcp_connected = True
 
     def close(self):
-        if self.xcp_connected:
+        if getattr(self, "xcp_connected", False) and self.xcp_master:
             try:
                 self.xcp_master.disconnect()
             finally:
                 self.xcp_master.close()
                 self.xcp_connected = False
-        if self.opened:
+                self.xcp_master = None
+        if getattr(self, "opened", False):
             self.session.close()
-            # self.session.bind.raw_connection().close()
             self.opened = False
 
     @property
@@ -234,7 +237,12 @@ class AsamMC:
     def measurements(self):
         """ """
         query = self.query(model.Measurement.name)
-        query = query.filter(or_(func.regexp(model.Measurement.name, m) for m in self.experiment_config.get("MEASUREMENTS")))
+        query = query.filter(
+            or_(
+                func.regexp(model.Measurement.name, m)
+                for m in self.experiment_config.get("MEASUREMENTS")
+            )
+        )
         for meas in query.all():
             yield Measurement.get(self.session, meas.name)
 
@@ -252,7 +260,8 @@ class AsamMC:
         """
         return (
             ByteOrder.BIG_ENDIAN
-            if obj.byteOrder or self.mod_common.byteOrder in ("MSB_FIRST", "LITTLE_ENDIAN")
+            if obj.byteOrder
+            or self.mod_common.byteOrder in ("MSB_FIRST", "LITTLE_ENDIAN")
             else ByteOrder.LITTLE_ENDIAN
         )
 

@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import annotations
+
 """
 
 """
@@ -29,11 +31,12 @@ __copyright__ = """
 
 import sys
 import uuid
+from collections.abc import Mapping
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 import h5py
 import numpy as np
-
 # import seaborn as sns
 import xarray as xr
 from lxml import etree  # nosec
@@ -45,6 +48,10 @@ from asamint.calibration.msrsw_db import MSRSWDatabase
 from asamint.utils import add_suffix_to_path
 from asamint.utils.xml import create_elem, xml_comment
 
+from .importer import DBImporter
+
+__all__ = ["DB", "CDFCreator", "DBImporter"]
+
 
 # sns.set_theme("notebook")
 
@@ -52,6 +59,11 @@ sys.setrecursionlimit(2000)
 
 
 class DB:
+    """Lightweight reader for CDF HDF5 payload produced by the importer.
+
+    Opens the companion .h5 store next to the .msrswdb and allows loading
+    parameters into xarray.DataArray structures.
+    """
 
     def __init__(self, file_name: str) -> None:
         self.opened = False
@@ -60,7 +72,9 @@ class DB:
         # self.logger.info(f"Creating database {str(db_name)!r}.")
         self.db = MSRSWDatabase(db_name, debug=False)
         self.session = self.db.session
-        self.storage = h5py.File(db_name.with_suffix(".h5"), mode="r", libver="latest", locking="best-effort")
+        self.storage = h5py.File(
+            db_name.with_suffix(".h5"), mode="r", libver="latest", locking="best-effort"
+        )
         self.opened = True
         self.guid = uuid.uuid4()
 
@@ -85,10 +99,16 @@ class DB:
             "name": name,
             "display_identifier": ds_attrs.get("display_identifier") or "",
             "category": category,
-            "comment": ds_attrs.get("commment") or "",
+            "comment": ds_attrs.get("comment") or "",
         }
         values = ds["phys"][()]
-        if category in ("VALUE", "DEPENDENT_VALUE", "BOOLEAN", "ASCII", "TEXT") or category in ("VAL_BLK", "COM_AXIS"):
+        if category in (
+            "VALUE",
+            "DEPENDENT_VALUE",
+            "BOOLEAN",
+            "ASCII",
+            "TEXT",
+        ) or category in ("VAL_BLK", "COM_AXIS"):
             arr = xr.DataArray(values, attrs=attrs)
         else:
             axes = ds["axes"]
@@ -120,30 +140,35 @@ class DB:
 
 
 class CDFCreator(msrsw.MSRMixIn, CalibrationData):
-    """ """
+    """Exporter that creates an ASAM CDF20 XML (.cdfx) from loaded calibration parameters.
 
-    DOCTYPE = (
+    It relies on MSRMixIn for XML scaffolding and CalibrationData's loaded parameter
+    dictionary. Methods here build the required CDF structure and write it via the
+    mixin's XML utilities.
+    """
+
+    DOCTYPE: str = (
         """<!DOCTYPE MSRSW PUBLIC "-//ASAM//DTD CALIBRATION DATA FORMAT:V2.0.0:LAI:IAI:XML:CDF200.XSD//EN" "cdf_v2.0.0.sl.dtd">"""
     )
     # DTD = get_dtd("cdf_v2.0.0.sl")    # TODO: check!!!
     EXTENSION = ".cdfx"
 
-    def __init__(self, parameters) -> None:
+    def __init__(self, parameters: Mapping[str, dict[str, Any]]) -> None:
         super().__init__()
         self._parameters = parameters
 
-    def on_init(self, config, *args, **kws):
+    def on_init(self, config: Any, *args: Any, **kws: Any) -> None:
         print("CDFCreator", config, *args, **kws)
         super().on_init(config, *args, **kws)
 
-    def save(self):
+    def save(self) -> None:
         self.root = self._toplevel_boilerplate()
         self.tree = etree.ElementTree(self.root)
         self.cs_collections()
         self.instances()
         self.write_tree("CDF20demo")
 
-    def _toplevel_boilerplate(self):
+    def _toplevel_boilerplate(self) -> Any:
         # print(f"A2L: {self.a2l_file}")
         root = self.msrsw_header("CDF20", "CDF")
         sw_system = self.sub_trees["SW-SYSTEM"]
@@ -151,7 +176,9 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         instance_tree = create_elem(instance_spec, "SW-INSTANCE-TREE")
         self.sub_trees["SW-INSTANCE-TREE"] = instance_tree
         create_elem(instance_tree, "SHORT-NAME", text="STD")
-        create_elem(instance_tree, "CATEGORY", text="NO_VCD")  # or VCD, variant-coding f.parameters.
+        create_elem(
+            instance_tree, "CATEGORY", text="NO_VCD"
+        )  # or VCD, variant-coding f.parameters.
         instance_tree_origin = create_elem(instance_tree, "SW-INSTANCE-TREE-ORIGIN")
         create_elem(
             instance_tree_origin,
@@ -163,7 +190,9 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         #    create_elem(instance_tree_origin, "DATA-FILE", data_file_name)
         return root
 
-    def cs_collection(self, name: str, category: str, tree, is_group: bool):
+    def cs_collection(
+        self, name: str, category: str, tree: Any, is_group: bool
+    ) -> None:
         collection = create_elem(tree, "SW-CS-COLLECTION")
         create_elem(collection, "CATEGORY", text=category)
         if is_group:
@@ -171,18 +200,22 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         else:
             create_elem(collection, "SW-FEATURE-REF", text=name)
 
-    def cs_collections(self):
+    def cs_collections(self) -> None:
         instance_tree = self.sub_trees["SW-INSTANCE-TREE"]
         collections = create_elem(instance_tree, "SW-CS-COLLECTIONS")
         functions = self.query(model.Function).all()
-        functions = [f for f in functions if f.def_characteristic and f.def_characteristic.identifier != []]
+        functions = [
+            f
+            for f in functions
+            if f.def_characteristic and f.def_characteristic.identifier != []
+        ]
         for f in functions:
             self.cs_collection(f.name, "FEATURE", collections, False)
         groups = self.query(model.Group).all()
         for g in groups:
             self.cs_collection(g.groupName, "COLLECTION", collections, True)
 
-    def instances(self):
+    def instances(self) -> None:
         instance_tree = self.sub_trees["SW-INSTANCE-TREE"]
         xml_comment(instance_tree, "    AXIS_PTSs ")
         for key, inst in self._parameters["AXIS_PTS"].items():
@@ -237,7 +270,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         xml_comment(instance_tree, "    CUBE_5    ")
         self.dump_array("CUBE_5")
 
-    def dump_array(self, attribute):
+    def dump_array(self, attribute: str) -> None:
         for key, inst in self._parameters[attribute].items():
             if list(inst.phys) == []:
                 self.logger.warning(f"{attribute} {inst.name!r}: has no values.")
@@ -272,14 +305,14 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
 
     def instance_scalar(
         self,
-        name,
-        descr,
-        value,
-        category,
-        unit="",
-        displayIdentifier=None,
-        feature_ref=None,
-    ):
+        name: str,
+        descr: str | None,
+        value: Any,
+        category: str,
+        unit: str | None = "",
+        displayIdentifier: str | None = None,
+        feature_ref: str | None = None,
+    ) -> None:
         if category == "TEXT":
             is_text = True
             category = "VALUE"
@@ -301,7 +334,9 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         else:
             create_elem(values, "V", text=str(value))
 
-    def add_axis(self, axis_conts, axis_values, category, unit=""):
+    def add_axis(
+        self, axis_conts: Any, axis_values: np.ndarray, category: str, unit: str = ""
+    ) -> None:
         axis_cont = create_elem(axis_conts, "SW-AXIS-CONT")
         create_elem(axis_cont, "CATEGORY", text=category)
         if unit:
@@ -310,13 +345,13 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
 
     def instance_container(
         self,
-        name,
-        descr,
-        category="VALUE",
-        unit="",
-        displayIdentifier=None,
-        feature_ref=None,
-    ):
+        name: str,
+        descr: str | None,
+        category: str = "VALUE",
+        unit: str = "",
+        displayIdentifier: str | None = None,
+        feature_ref: str | None = None,
+    ) -> tuple[Any, Any]:
         variant = self.sw_instance(
             name,
             descr,
@@ -332,14 +367,14 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
 
     def curve_and_map_header(
         self,
-        name,
-        descr,
-        category,
-        fnc_values,
-        fnc_unit="",
-        displayIdentifier=None,
-        feature_ref=None,
-    ):
+        name: str,
+        descr: str | None,
+        category: str,
+        fnc_values: np.ndarray,
+        fnc_unit: str = "",
+        displayIdentifier: str | None = None,
+        feature_ref: str | None = None,
+    ) -> Any:
         value_cont, axis_conts = self.instance_container(
             name,
             descr,
@@ -354,16 +389,24 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         self.output_value_array(fnc_values, vph)
         return axis_conts
 
-    def output_value_array(self, values, value_group):
-        """ """
+    def output_value_array(self, values: np.ndarray, value_group: Any) -> None:
+        """Write an ndarray into nested VG/V elements according to CDF structure."""
         if values.ndim == 1:
             self.output_1darray(value_group, None, values)
         else:
             for elem in values:
                 self.output_value_array(elem, create_elem(value_group, "VG"))
 
-    def value_blk(self, name, descr, values, unit="", displayIdentifier=None, feature_ref=None):
-        """ """
+    def value_blk(
+        self,
+        name: str,
+        descr: str | None,
+        values: np.ndarray,
+        unit: str = "",
+        displayIdentifier: str | None = None,
+        feature_ref: str | None = None,
+    ) -> None:
+        """Create VAL_BLK instance with array size and values."""
         cont = self.no_axis_container(
             name=name,
             descr=descr,
@@ -376,7 +419,14 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         values_cont = create_elem(cont, "SW-VALUES-PHYS")
         self.output_value_array(values, values_cont)
 
-    def sw_instance(self, name, descr, category, displayIdentifier=None, feature_ref=None):
+    def sw_instance(
+        self,
+        name: str,
+        descr: str | None,
+        category: str,
+        displayIdentifier: str | None = None,
+        feature_ref: str | None = None,
+    ) -> Any:
         instance_tree = self.sub_trees["SW-INSTANCE-TREE"]
         instance = create_elem(instance_tree, "SW-INSTANCE")
         create_elem(instance, "SHORT-NAME", text=name)
@@ -391,7 +441,15 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         variant = create_elem(variants, "SW-INSTANCE-PROPS-VARIANT")
         return variant
 
-    def no_axis_container(self, name, descr, category, unit="", displayIdentifier=None, feature_ref=None):
+    def no_axis_container(
+        self,
+        name: str,
+        descr: str | None,
+        category: str,
+        unit: str = "",
+        displayIdentifier: str | None = None,
+        feature_ref: str | None = None,
+    ) -> Any:
         variant = self.sw_instance(
             name,
             descr,
