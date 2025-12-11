@@ -83,6 +83,9 @@ exclude = [
     "asamint/parsers/*",
     "asamint/damos/parsers/*",
 ]
+[tool.ruff.lint]
+ignore = ["I001"]
+unfixable = ["B"]
 
 [tool.ruff.lint]
 # B, C, E, F, W, T4, B9 from flake8 config

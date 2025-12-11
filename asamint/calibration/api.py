@@ -428,7 +428,7 @@ class Calibration:
         characteristic = self.get_characteristic(characteristic_name, "ASCII", False)
 
         # Determine the string length
-        if characteristic.matrixDim.valid():
+        if characteristic.matrixDim.valid():  # TODO: np_dim
             length = characteristic.matrixDim.x
         else:
             length = characteristic.number
@@ -495,7 +495,7 @@ class Calibration:
         value = "" if value is None else str(value)
 
         # Determine the string length
-        if characteristic.matrixDim:
+        if characteristic.matrixDim:  # TODO: np_dim
             length = characteristic.matrixDim.x
         else:
             length = characteristic.number
