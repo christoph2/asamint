@@ -84,14 +84,13 @@ exclude = [
     "asamint/damos/parsers/*",
 ]
 [tool.ruff.lint]
-ignore = ["I001"]
 unfixable = ["B"]
 
-[tool.ruff.lint]
 # B, C, E, F, W, T4, B9 from flake8 config
 # I for isort
 select = ["B", "C", "E", "F", "W", "B9", "I"]
 ignore = [
+    "I001",
     "D203", # from flake8
     "E203", # from flake8 & black compatibility
     "E266", # from flake8
