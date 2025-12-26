@@ -6,8 +6,6 @@ This module renders C headers (structs/arrays) from the JSON calibration log
 produced by CalibrationData.load_hex(). It aims to be robust across slightly
 varying JSON formats observed in examples.
 """
-from __future__ import annotations
-
 import json
 import re
 from dataclasses import dataclass

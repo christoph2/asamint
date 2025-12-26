@@ -1552,7 +1552,7 @@ class Calibration:
                 )
                 attr.address = aligned_address
                 self.logger.debug(
-                    f"Updating RecordLayout for {obj.name!r} / {obj.record_layout.name!r}:  -> [{aligned_address}]"
+                    f"Updating RecordLayout for {obj.name!r} / {obj.record_layout.name!r}:  -> [0x{aligned_address:08x}]"
                 )
             if name in ("no_axis_pts", "no_rescale"):
                 info = components.get("axes").get(attr.axis)

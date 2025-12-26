@@ -1,5 +1,5 @@
-import logging
 from collections.abc import Mapping
+import logging
 from contextlib import suppress
 from pathlib import Path
 from typing import Any

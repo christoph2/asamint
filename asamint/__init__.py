@@ -29,9 +29,9 @@ from rich.console import Console
 from rich.traceback import install as tb_install
 
 from asamint.asam import AsamMC
-
-from .api import (Calibration, ExecutionPolicy, OfflineCalibration,
-                  OnlineCalibration, ParameterCache, Status)
+from asamint.calibration.api import (Calibration, ExecutionPolicy,
+                                     OfflineCalibration, OnlineCalibration,
+                                     ParameterCache, Status)
 
 pretty.install()
 
