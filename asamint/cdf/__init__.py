@@ -37,7 +37,6 @@ from typing import Any, Dict, List, Optional
 
 import h5py
 import numpy as np
-# import seaborn as sns
 import xarray as xr
 from lxml import etree  # nosec
 from pya2l import model

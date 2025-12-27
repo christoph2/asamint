@@ -1,19 +1,12 @@
 import logging
 from pathlib import Path
 
+from asamint.calibration.db import CalibrationDB
+from asamint.calibration.msrsw_db import (ELEMENTS, Msrsw, MSRSWDatabase,
+                                          SwInstance, SwValueCont)
 from lxml import etree
-import numpy as np
-from sqlalchemy.orm import Session
 from sqlalchemy import inspect
 
-from asamint.calibration.db import CalibrationDB
-from asamint.calibration.msrsw_db import (
-    ELEMENTS,
-    MSRSWDatabase,
-    Msrsw,
-    SwInstance,
-    SwValueCont,
-)
 
 class CDFExporter:
     def __init__(

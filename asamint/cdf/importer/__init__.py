@@ -1,9 +1,8 @@
-from __future__ import annotations
-
 import logging
 from collections.abc import Mapping
+from contextlib import suppress
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 from asamint.calibration.db import CalibrationDB
 from asamint.calibration.msrsw_db import (Category, DataFile, DisplayName,
@@ -28,10 +27,8 @@ class DBImporter:
         db_name = Path(file_name).with_suffix(".msrswdb")
         self.parameters = parameters
         self.logger = logger
-        try:
+        with suppress(FileNotFoundError):
             db_name.unlink()
-        except Exception:
-            pass  # nosec: B110
         self.logger.info(f"Creating database {str(db_name)!r}.")
         self.cdf_db = MSRSWDatabase(db_name, debug=False)
         # self.hdf_db = h5py.File(db_name.with_suffix(".h5"), mode="w", libver="latest", locking="best-effort",
