@@ -131,8 +131,75 @@ class XCP(Configurable):
 
     def __init__(self, **kws):
         super().__init__(**kws)
+        # Try to load external pyXCP configuration file, if specified, into our Config
+        # BEFORE instantiating the traitlets-based pyxcp classes. This way, any
+        # overrides in asamint's own config file still take precedence over the
+        # external pyXCP defaults.
+        try:
+            self._merge_external_pyxcp_config_into_self_config()
+        except Exception as exc:
+            # Don’t abort startup; just log the problem so the user can fix the path
+            if hasattr(self, "log"):
+                self.log.warning(f"Failed to load external pyXCP configuration: {exc}")
+            else:
+                # Fallback if no logger yet
+                sys.stderr.write(
+                    f"Warning: Failed to load external pyXCP configuration: {exc}\n"
+                )
+        # Now create the pyxcp config sections using the merged config
         self.general = pyxcp_config.General(config=self.config, parent=self)
         self.transport = pyxcp_config.Transport(parent=self)
+
+    def _merge_external_pyxcp_config_into_self_config(self) -> None:
+        """
+        Load settings from a standalone pyXCP configuration file and merge them into
+        this Configurable's traitlets Config object, so that pyxcp General/Transport
+        receive them on construction. Local overrides in asamint's config will still
+        win because they are already present in self.config when instances are built.
+
+        This enables using the same pyXCP config both standalone and within asamint,
+        avoiding duplication in asamint example configs.
+        """
+        # Expecting parent to be the Asamint application
+        parent = getattr(self, "parent", None)
+        if parent is None or not hasattr(parent, "general"):
+            return
+        cfg_file = getattr(parent.general, "pyxcp_config_file", None)
+        if not cfg_file:
+            return
+
+        # Resolve path: absolute stays; relative is resolved against the asamint config file directory if known
+        cfg_path = Path(cfg_file)
+        base_dir = None
+        asamint_cfg_path = getattr(parent, "_config_file_path", None)
+        if asamint_cfg_path is not None:
+            base_dir = Path(asamint_cfg_path).parent
+        if not cfg_path.is_absolute() and base_dir is not None:
+            cfg_path = base_dir / cfg_path
+
+        if not cfg_path.exists():
+            raise FileNotFoundError(f"pyXCP configuration file '{cfg_path}' not found")
+        if cfg_path.suffix.lower() != ".py":
+            raise TypeError("pyXCP configuration file must be a Python (.py) file")
+
+        loader = PyFileConfigLoader(str(cfg_path))
+        cfg = loader.load_config()
+
+        # Merge sections into our Config so instances pick them up via traitlets
+        if "General" in cfg:
+            # Ensure sub-config exists
+            if not hasattr(self.config, "General"):
+                self.config.General = {}
+            for k, v in cfg["General"].items():
+                # Do not override values already provided by asamint config
+                if k not in self.config.General:  # type: ignore[operator]
+                    self.config.General[k] = v  # type: ignore[index]
+        if "Transport" in cfg:
+            if not hasattr(self.config, "Transport"):
+                self.config.Transport = {}
+            for k, v in cfg["Transport"].items():
+                if k not in self.config.Transport:  # type: ignore[operator]
+                    self.config.Transport[k] = v  # type: ignore[index]
 
 
 class Asamint(Application):
@@ -194,6 +261,8 @@ class Asamint(Application):
         pth = Path(file_name)
         if not pth.exists():
             raise FileNotFoundError(f"Configuration file {file_name!r} does not exist.")
+        # Remember the full path of the active asamint configuration to resolve relative pyXCP config paths
+        self._config_file_path = pth
         suffix = pth.suffix.lower()
         if suffix == ".py":
             self.load_config_file(pth)
