@@ -27,18 +27,26 @@ __copyright__ = """
 __author__ = "Christoph Schueler"
 
 import os
+import time
 from dataclasses import dataclass, field
 from enum import IntEnum
 from pathlib import Path
+from typing import Any
 
+import numpy as np
 from pya2l import DB, model
-from pya2l.api.inspect import (Group, Measurement, ModCommon, ModPar,
-                               VariantCoding)
-from sqlalchemy import func, or_
+from pya2l.api.inspect import (
+    CompuMethod,
+    Group,
+    ModCommon,
+    ModPar,
+    VariantCoding,
+    asam_type_size,
+)
 
 # from . epk import Epk
 from asamint.config import get_application
-from asamint.utils import current_timestamp, partition
+from asamint.utils import current_timestamp
 
 
 def create_xcp_master():
@@ -145,26 +153,19 @@ class AsamMC:
             "FUNCTIONS": [],
             "GROUPS": [],
         }
-
         self.xcp_master = create_xcp_master()
         self.xcp_connected = False
-
-        # self.xcp_master.connect()
-        # self.xcp_connected = True
-
         if not self.a2l_dynamic:
             self.open_create_session(
                 self.a2l_file,
                 encoding=self.a2l_encoding,
             )
-
         self.cond_create_directories()
         self.mod_common = ModCommon.get(self.session)
         self.mod_par = ModPar.get(self.session) if ModPar.exists(self.session) else None
         self.variant_coding = VariantCoding.get(
             self.session, module_name=self.mod_par.modpar.module.name
         )
-
         self.directory = Directory(self.session)
         self.on_init(self.config, *args, **kws)
 

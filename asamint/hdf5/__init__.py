@@ -1,19 +1,19 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+
+import os
+import queue
+import threading
+import time
+from datetime import datetime
+from typing import Any
+
+from collections.abc import Iterable
 
 import h5py
 import numpy as np
-import threading
-import queue
-import time
-import os
-from datetime import datetime
-
-
-from typing import Any, Iterable
+from pya2l.api import inspect
 
 from asamint.asam import AsamMC
-from pya2l.api import inspect
 
 
 class AsyncHDF5StreamingWriter:
@@ -54,6 +54,9 @@ class AsyncHDF5StreamingWriter:
             Maximale Zeit zwischen Flushes (Sekunden)
         queue_maxsize : int
             Maximale Länge der internen Queue (Backpressure)
+        use_suffix : bool
+            True: Hängt _0000.h5 an base_filename an.
+            False: Nutzt base_filename direkt.
         """
         self.base_filename = base_filename
         self.datasets_spec = datasets
@@ -88,8 +91,6 @@ class AsyncHDF5StreamingWriter:
         if hasattr(self, "file") and self.file:
             self.file.close()
 
-        filename = f"{self.base_filename}_{self.file_index:04d}.h5"
-        self.file_index += 1
 
         self.file = h5py.File(filename, "w")
         self.datasets = {}
@@ -287,7 +288,10 @@ class HDF5Creator(AsamMC):
         self,
         h5_filename: str | None = None,
         data: dict[str, Any] | None = None,
-        **kwargs,
+        *,
+        strict: bool = False,
+        strict_no_trim: bool = False,
+        strict_no_synth: bool = False,
     ) -> None:
         """
         Save collected measurements into an HDF5 file using AsyncHDF5StreamingWriter.
@@ -315,10 +319,6 @@ class HDF5Creator(AsamMC):
             "description": self.experiment_config.get("DESCRIPTION", ""),
         }
 
-        # Create writer - AsyncHDF5StreamingWriter expects a base filename without extension
-        # because it appends _0000.h5 etc.
-        # But if we want exactly h5_filename, we might need to adjust AsyncHDF5StreamingWriter
-        # or just use it as is.
         base = h5_filename
         if base.lower().endswith(".h5"):
             base = base[:-3]

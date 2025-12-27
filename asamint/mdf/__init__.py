@@ -3,7 +3,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020-2024 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2020-2025 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -24,9 +24,6 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 __author__ = "Christoph Schueler"
-
-
-from __future__ import annotations
 
 import time
 from collections.abc import Iterable

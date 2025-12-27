@@ -35,6 +35,7 @@ from rich.logging import RichHandler
 from rich.prompt import Confirm
 from traitlets import Bool, Dict, Enum, List, Unicode
 from traitlets.config import Application, Configurable, Instance, default
+from traitlets.config.loader import PyFileConfigLoader
 
 
 class General(Configurable):

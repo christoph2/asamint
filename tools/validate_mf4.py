@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 validate_mf4: Inspect an MF4 file and optionally cross-check with CSV/HDF5.
 
@@ -15,7 +14,7 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 
 def _infer_timebase_seconds(timestamps) -> float | None:
@@ -40,13 +39,14 @@ def _infer_timebase_seconds(timestamps) -> float | None:
         return None
 
 
-def _load_csv(csv_path: Path) -> Dict[str, Any]:
+def _load_csv(csv_path: Path) -> dict[str, Any]:
     import csv
+
     import numpy as np
 
-    cols: List[str] = []
-    rows: List[List[str]] = []
-    header_lines: List[str] = []
+    cols: list[str] = []
+    rows: list[list[str]] = []
+    header_lines: list[str] = []
     with csv_path.open("r", encoding="utf-8", newline="") as fh:
         rdr = csv.reader(fh)
         for raw in rdr:
@@ -60,10 +60,10 @@ def _load_csv(csv_path: Path) -> Dict[str, Any]:
                 cols = [c.strip() for c in raw]
                 continue
             rows.append(raw)
-    data: Dict[str, Any] = {}
+    data: dict[str, Any] = {}
     if not cols:
         return data
-    col_data: List[List[float]] = [[] for _ in cols]
+    col_data: list[list[float]] = [[] for _ in cols]
     for r in rows:
         for i, v in enumerate(r):
             try:
@@ -77,7 +77,7 @@ def _load_csv(csv_path: Path) -> Dict[str, Any]:
     return data
 
 
-def _parse_csv_timebase_header(header_lines: List[str]) -> Dict[str, Dict[str, Any]]:
+def _parse_csv_timebase_header(header_lines: list[str]) -> dict[str, dict[str, Any]]:
     """Parse '# timebase:' lines into a mapping {signal: {tb, src, grp}}.
 
     Expected format: '# timebase: <sig> tb≈<seconds>s src=<src> grp=<id>'
@@ -85,7 +85,7 @@ def _parse_csv_timebase_header(header_lines: List[str]) -> Dict[str, Dict[str, A
     """
     import re
 
-    result: Dict[str, Dict[str, Any]] = {}
+    result: dict[str, dict[str, Any]] = {}
     # Regex to capture: timebase: <sig> tb≈<num>s src=<src> grp=<gid>
     pattern = re.compile(
         r"^#\s*timebase:\s*(?P<sig>[^\s]+)\s+tb≈(?P<tb>[^s]*)s\s+src=(?P<src>[^\s]*)\s+grp=(?P<gid>.*)$"
@@ -119,12 +119,12 @@ def _parse_csv_timebase_header(header_lines: List[str]) -> Dict[str, Dict[str, A
     return result
 
 
-def _load_hdf5(h5_path: Path) -> Dict[str, Any]:
+def _load_hdf5(h5_path: Path) -> dict[str, Any]:
     try:
         import h5py  # type: ignore
     except Exception:
         return {}
-    result: Dict[str, Any] = {}
+    result: dict[str, Any] = {}
     with h5py.File(str(h5_path), "r") as hf:
         for name, dset in hf.items():
             try:
@@ -134,7 +134,7 @@ def _load_hdf5(h5_path: Path) -> Dict[str, Any]:
     return result
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Validate MF4 and cross-check with CSV/HDF5"
     )
@@ -154,14 +154,14 @@ def main(argv: List[str] | None = None) -> int:
 
     from asammdf import MDF  # type: ignore
 
-    errors: List[str] = []
-    warnings: List[str] = []
+    errors: list[str] = []
+    warnings: list[str] = []
 
     print(f"MF4: {args.mf4}")
     with MDF(str(args.mf4)) as mdf:
         # Robust enumeration across asammdf versions: iterate channels and group by group_index
-        groups_info: List[Dict[str, Any]] = []
-        members_by_group: Dict[int, List[Any]] = {}
+        groups_info: list[dict[str, Any]] = []
+        members_by_group: dict[int, list[Any]] = {}
         try:
             # Preferred: iterator over channels
             for ch in mdf.iter_channels():  # type: ignore[attr-defined]
@@ -224,7 +224,7 @@ def main(argv: List[str] | None = None) -> int:
                 pass
 
     # Cross-checks
-    csv_timebase_map: Dict[str, Dict[str, Any]] = {}
+    csv_timebase_map: dict[str, dict[str, Any]] = {}
     if args.csv and args.csv.exists():
         csv_data = _load_csv(args.csv)
         if csv_data:
