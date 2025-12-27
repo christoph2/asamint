@@ -9,7 +9,12 @@ from asamint.utils.templates import do_template
 
 
 class DcmExporter:
-    def __init__(self, db: MSRSWDatabase, h5_db: CalibrationDB = None, logger: logging.Logger = None):
+    def __init__(
+        self,
+        db: MSRSWDatabase,
+        h5_db: CalibrationDB = None,
+        logger: logging.Logger = None,
+    ):
         self.db = db
         self.h5_db = h5_db
         self.logger = logger or logging.getLogger(__name__)
@@ -60,7 +65,12 @@ class DcmExporter:
         }
 
         try:
-            res = do_template(str(self.template_path), namespace, formatExceptions=True, encoding="latin-1")
+            res = do_template(
+                str(self.template_path),
+                namespace,
+                formatExceptions=True,
+                encoding="latin-1",
+            )
             if res is None:
                 self.logger.error("Template rendering returned None")
                 return False
@@ -86,7 +96,17 @@ class DcmExporter:
                 self.logger.debug(f"Could not load values for {name} from H5: {e}")
 
         class ParamData:
-            def __init__(self, name, category, comment, display_id, unit, values, axes=None, fnc_unit=None):
+            def __init__(
+                self,
+                name,
+                category,
+                comment,
+                display_id,
+                unit,
+                values,
+                axes=None,
+                fnc_unit=None,
+            ):
                 self.name = name
                 self.category = category
                 self.comment = comment
@@ -98,7 +118,11 @@ class DcmExporter:
                 if values is not None:
                     # Template expects converted_value for single values and converted_values for arrays
                     if category in ("VALUE", "BOOLEAN", "TEXT"):
-                        self.converted_value = values.values.item() if hasattr(values.values, "item") else values.values
+                        self.converted_value = (
+                            values.values.item()
+                            if hasattr(values.values, "item")
+                            else values.values
+                        )
                         # For ASCII, it might expect .value
                         self.value = self.converted_value
                     else:
@@ -113,12 +137,12 @@ class DcmExporter:
         # In our model, SwInstance might have relationships to Desc/Comment
         # But for now, let's use what's in H5 if MSRSW is empty
         if data is not None:
-             comment = data.attrs.get("comment", "")
-             display_id = data.attrs.get("display_identifier", "")
-             unit = data.attrs.get("unit", "")
+            comment = data.attrs.get("comment", "")
+            display_id = data.attrs.get("display_identifier", "")
+            unit = data.attrs.get("unit", "")
         else:
-             display_id = ""
-             unit = ""
+            display_id = ""
+            unit = ""
 
         # Mapping CDF categories to DCM-friendly ones for the template
         dcm_category = category
@@ -141,16 +165,28 @@ class DcmExporter:
 
                 class AxisData:
                     def __init__(self, category, unit, values):
-                        self.category = category # Standard vs Fixed vs Common
+                        self.category = category  # Standard vs Fixed vs Common
                         self.unit = unit
                         self.converted_values = values
 
                 # Assume STD_AXIS for now
                 axes_data.append(AxisData("STD_AXIS", "", axis_vals))
 
-        return ParamData(name, dcm_category, comment, display_id, unit, data, axes=axes_data, fnc_unit=fnc_unit)
+        return ParamData(
+            name,
+            dcm_category,
+            comment,
+            display_id,
+            unit,
+            data,
+            axes=axes_data,
+            fnc_unit=fnc_unit,
+        )
 
-def export_to_dcm(db_path: str | Path, output_dcm_path: str | Path, h5_path: str | Path = None):
+
+def export_to_dcm(
+    db_path: str | Path, output_dcm_path: str | Path, h5_path: str | Path = None
+):
     db = MSRSWDatabase(db_path)
 
     h5_db = None
