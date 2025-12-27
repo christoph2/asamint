@@ -51,7 +51,7 @@ pybind11 = "^2.13.6"
 ruff = "^0.5.5"
 
 [build-system]
-requires = ["poetry-core>=1.0.0", "pybind11>=2.12.0",  "pybind11[global]>=2.12.0"]
+requires = ["poetry-core>=1.0.0", "pybind11>=2.12.0", "pybind11[global]>=2.12.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest]
@@ -87,13 +87,12 @@ exclude = [
 [tool.ruff.lint]
 # B, C, E, F, W, T4, B9 from flake8 config
 # I for isort
-select = ["B", "C", "E", "F", "W", "T4", "B9", "I"]
+select = ["B", "C", "E", "F", "W", "B9", "I"]
 ignore = [
     "D203", # from flake8
     "E203", # from flake8 & black compatibility
     "E266", # from flake8
     "E501", # handled by line-length
-    "W503", # from flake8 & black compatibility
     "F401", # from flake8
     "F403", # from flake8
 ]
@@ -116,7 +115,7 @@ build-frontend = "build"
 archs = ["x86_64", "universal2", "arm64"]
 
 [tool.cibuildwheel.windows]
-archs = ["AMD64"]	# , "ARM64"
+archs = ["AMD64"]    # , "ARM64"
 
 [tool.cibuildwheel.linux]
 # archs = ["auto", "aarch64"]
