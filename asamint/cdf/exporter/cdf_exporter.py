@@ -16,7 +16,13 @@ from asamint.calibration.msrsw_db import (
 )
 
 class CDFExporter:
-    def __init__(self, db: MSRSWDatabase, h5_db: CalibrationDB = None, variant_coding: bool = False, logger: logging.Logger = None):
+    def __init__(
+        self,
+        db: MSRSWDatabase,
+        h5_db: CalibrationDB = None,
+        variant_coding: bool = False,
+        logger: logging.Logger = None,
+    ):
         self.db = db
         self.h5_db = h5_db
         self.variant_coding = variant_coding
@@ -24,7 +30,7 @@ class CDFExporter:
         self.reverse_elements = {v: k for k, v in ELEMENTS.items()}
         # Add special case for root if not in ELEMENTS
         if Msrsw not in self.reverse_elements:
-             self.reverse_elements[Msrsw] = "MSRSW"
+            self.reverse_elements[Msrsw] = "MSRSW"
 
     def export(self, file_path: str | Path):
         self.logger.info(f"Exporting database to {file_path}")
@@ -42,7 +48,11 @@ class CDFExporter:
         # For now, let's just write the XML.
 
         with open(file_path, "wb") as f:
-            f.write(etree.tostring(tree, encoding="UTF-8", xml_declaration=True, pretty_print=True))
+            f.write(
+                etree.tostring(
+                    tree, encoding="UTF-8", xml_declaration=True, pretty_print=True
+                )
+            )
 
         self.logger.info("Export completed successfully.")
         return True
@@ -50,33 +60,33 @@ class CDFExporter:
     def _format_tag(self, tag):
         # Specific overrides for tags that shouldn't be just upper-cased
         overrides = {
-             "ShortName": "SHORT-NAME",
-             "LongName": "LONG-NAME",
-             "ProjectData": "PROJECT-DATA",
-             "AdminData": "ADMIN-DATA",
-             "GeneralRequirements": "GENERAL-REQUIREMENTS",
-             "SwSystems": "SW-SYSTEMS",
-             "SwSystem": "SW-SYSTEM",
-             "SwMcCommunicationSpec": "SW-MC-COMMUNICATION-SPEC",
-             "SwGlossary": "SW-GLOSSARY",
-             "SpecialData": "SPECIAL-DATA",
-             "MsrProcessingLog": "MSR-PROCESSING-LOG",
-             "MatchingDcis": "MATCHING-DCIS",
-             "SwInstanceSpec": "SW-INSTANCE-SPEC",
-             "SwInstanceTree": "SW-INSTANCE-TREE",
-             "SwInstance": "SW-INSTANCE",
-             "SwInstanceTreeOrigin": "SW-INSTANCE-TREE-ORIGIN",
-             "SymbolicFile": "SYMBOLIC-FILE",
-             "DataFile": "DATA-FILE",
-             "DisplayName": "DISPLAY-NAME",
-             "SwValueCont": "SW-VALUE-CONT",
-             "UnitDisplayName": "UNIT-DISPLAY-NAME",
-             "SwCsCollections": "SW-CS-COLLECTIONS",
-             "SwCsCollection": "SW-CS-COLLECTION",
-             "SwInstancePropsVariants": "SW-INSTANCE-PROPS-VARIANTS",
-             "SwInstancePropsVariant": "SW-INSTANCE-PROPS-VARIANT",
-             "SwAxisConts": "SW-AXIS-CONTS",
-             "SwAxisCont": "SW-AXIS-CONT",
+            "ShortName": "SHORT-NAME",
+            "LongName": "LONG-NAME",
+            "ProjectData": "PROJECT-DATA",
+            "AdminData": "ADMIN-DATA",
+            "GeneralRequirements": "GENERAL-REQUIREMENTS",
+            "SwSystems": "SW-SYSTEMS",
+            "SwSystem": "SW-SYSTEM",
+            "SwMcCommunicationSpec": "SW-MC-COMMUNICATION-SPEC",
+            "SwGlossary": "SW-GLOSSARY",
+            "SpecialData": "SPECIAL-DATA",
+            "MsrProcessingLog": "MSR-PROCESSING-LOG",
+            "MatchingDcis": "MATCHING-DCIS",
+            "SwInstanceSpec": "SW-INSTANCE-SPEC",
+            "SwInstanceTree": "SW-INSTANCE-TREE",
+            "SwInstance": "SW-INSTANCE",
+            "SwInstanceTreeOrigin": "SW-INSTANCE-TREE-ORIGIN",
+            "SymbolicFile": "SYMBOLIC-FILE",
+            "DataFile": "DATA-FILE",
+            "DisplayName": "DISPLAY-NAME",
+            "SwValueCont": "SW-VALUE-CONT",
+            "UnitDisplayName": "UNIT-DISPLAY-NAME",
+            "SwCsCollections": "SW-CS-COLLECTIONS",
+            "SwCsCollection": "SW-CS-COLLECTION",
+            "SwInstancePropsVariants": "SW-INSTANCE-PROPS-VARIANTS",
+            "SwInstancePropsVariant": "SW-INSTANCE-PROPS-VARIANT",
+            "SwAxisConts": "SW-AXIS-CONTS",
+            "SwAxisCont": "SW-AXIS-CONT",
         }
         if tag in overrides:
             return overrides[tag]
@@ -115,7 +125,11 @@ class CDFExporter:
 
             session = inspect(obj).session
             if session:
-                instance = session.query(SwInstance).filter(SwInstance.sw_value_cont == obj).first()
+                instance = (
+                    session.query(SwInstance)
+                    .filter(SwInstance.sw_value_cont == obj)
+                    .first()
+                )
             if instance and instance.short_name:
                 param_name = instance.short_name.content
                 try:
@@ -123,7 +137,9 @@ class CDFExporter:
                     self._append_values(elem, data)
 
                 except Exception as e:
-                    self.logger.debug(f"Could not load values for {param_name} from H5: {e}")
+                    self.logger.debug(
+                        f"Could not load values for {param_name} from H5: {e}"
+                    )
                     valid_entry = False
 
         # Handle child elements
@@ -151,7 +167,9 @@ class CDFExporter:
                         if target_cls:
                             child_val = session.query(target_cls).first()
                             if child_val:
-                                self.logger.debug(f"Found orphaned {tag} for MSRSW root")
+                                self.logger.debug(
+                                    f"Found orphaned {tag} for MSRSW root"
+                                )
 
                 if child_val is None:
                     continue
@@ -185,9 +203,20 @@ class CDFExporter:
             tag = "VT" if category in ("ASCII", "TEXT") else "V"
             v_elem = etree.SubElement(elem, tag)
             v_elem.text = str(val)
-        elif category in ("VAL_BLK", "COM_AXIS", "CURVE", "MAP", "CUBOID", "CUBE4", "CUBE5"):
+        elif category in (
+                "VAL_BLK",
+                "COM_AXIS",
+                "CURVE",
+                "MAP",
+                "CUBOID",
+                "CUBE4",
+                "CUBE5",
+        ):
             # For multi-dimensional data, we should group by dimension with <VG> elements
-            if category in ("CURVE", "MAP", "VAL_BLK", "CUBOID", "CUBE4", "CUBE5") and len(data.dims) > 0:
+            if (
+                category in ("CURVE", "MAP", "VAL_BLK", "CUBOID", "CUBE4", "CUBE5")
+                and len(data.dims) > 0
+            ):
                 if len(data.dims) == 1:
                     vg_elem = etree.SubElement(elem, "VG")
                     for v in data.values:
@@ -208,7 +237,7 @@ class CDFExporter:
                     _append_recursive(elem, data.values)
             else:
                 vals = data.values.flatten()
-                tag = "VT" if category == "ASCII" else "V" # simplified
+                tag = "VT" if category == "ASCII" else "V"  # simplified
                 for v in vals:
                     v_elem = etree.SubElement(elem, tag)
                     v_elem.text = str(v)
@@ -219,7 +248,13 @@ class CDFExporter:
                 v_elem = etree.SubElement(elem, "V")
                 v_elem.text = str(v)
 
-def export_to_cdf(db_path: str | Path, output_xml_path: str | Path, h5_path: str | Path = None, variant_coding: bool = False):
+
+def export_to_cdf(
+    db_path: str | Path,
+    output_xml_path: str | Path,
+    h5_path: str | Path = None,
+    variant_coding: bool = False,
+):
     db = MSRSWDatabase(db_path)
 
     h5_db = None
