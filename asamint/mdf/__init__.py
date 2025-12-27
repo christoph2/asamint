@@ -152,61 +152,251 @@ class MDFCreator(AsamMC):
             self.add_measurements(names)
 
     def save_measurements(
-        self, mdf_filename: str | None = None, data: dict[str, Any] | None = None
+        self,
+        mdf_filename: str | None = None,
+        data: dict[str, Any] | None = None,
+        *,
+        strict: bool = False,
+        strict_no_trim: bool = False,
+        strict_no_synth: bool = False,
     ) -> None:
         """
-        Parameters
-        ----------
+        Save collected measurements into an MDF4 file.
 
-
+        This function supports multi-rate acquisition by creating separate MDF
+        Channel Groups per distinct timebase. It will:
+        - Detect available timestamp arrays in the provided data dict
+          (keys like 'TIMESTAMPS', 'timestamp0', 'timestamp1', case-insensitive).
+        - Group signals by their sample counts and assign a matching timestamp
+          array. If no exact match exists but a higher-rate timestamp length is
+          an integer multiple, it will stride-select timestamps (e.g., ts[::k]).
+        - Append one channel group per assigned timestamp set.
         """
         if not data:
             return
-        timestamps = data.get("TIMESTAMPS")
-        signals = []
-        for measurement in self.measurements:
-            # matrixDim = measurement.matrixDim  # TODO: Measurements are not necessarily scalars!
-            if measurement.name not in data:
-                self.logger.warn(f"NO data for measurement '{measurement.name}'.")
+
+        # 1) Collect all candidate timestamp arrays from data
+        # Normalize keys for case-insensitive match and prefer event-specific keys
+        ts_candidates: dict[str, np.ndarray] = {}
+        for k, v in data.items():
+            if not isinstance(k, str):
                 continue
-            self.logger.info(f"Adding SIGNAL: '{measurement.name}'.")
+            kl = k.lower()
+            if kl == "timestamps" or kl.startswith("timestamp"):
+                try:
+                    arr = np.asarray(v)
+                    if arr.ndim == 1 and arr.size > 0:
+                        ts_candidates[k] = arr
+                except Exception:
+                    pass
 
-            comment = measurement.longIdentifier
-            # data_type = measurement.datatype
-            compuMethod = measurement.compuMethod
-            conversion_map = self.ccblock(compuMethod)
-            unit = compuMethod.unit if compuMethod != "NO_COMPU_METHOD" else None
-            samples = data.get(measurement.name)
-            samples = np.array(
-                samples, copy=False
-            )  # Make sure array-like data is of type `ndarray`.
+        # If no dedicated timestamp arrays found, we will synthesize later per group
 
-            # Step #1: bit fiddling.
-            bitMask = measurement.bitMask
-            if bitMask is not None:
-                samples &= bitMask
-            bitOperation = measurement.bitOperation
-            if bitOperation and bitOperation["amount"] != 0:
-                amount = bitOperation["amount"]
-                if bitOperation["direction"] == "L":
-                    samples <<= amount
-                else:
-                    samples >>= amount
-            # TODO: consider sign-extension!
+        # 2) Build list of measurements present in data
+        available_meas = [m for m in self.measurement_variables if m.name in data]
+        if not available_meas:
+            self.logger.warning("No matching measurement data present for MDF save.")
+            return
 
-            # Step #2: apply COMPU_METHODs.
-            samples = self.calculate_physical_values(samples, compuMethod)
+        # Partition measurements by sample length
+        groups_by_len: dict[int, list] = {}
+        for m in available_meas:
+            arr = np.asarray(data[m.name])
+            groups_by_len.setdefault(int(arr.shape[0]), []).append(m)
 
-            signal = Signal(
-                samples=samples,
-                timestamps=timestamps,
-                name=measurement.name,
-                unit=unit,
-                conversion=conversion_map,
-                comment=comment,
+        # Sort timestamp candidates by preference: event-specific before generic, then by length desc
+        def _ts_priority(item: tuple[str, np.ndarray]) -> tuple[int, int]:
+            name, arr = item
+            lname = name.lower()
+            # Prefer names like timestamp0/timestamp1 over generic 'timestamps'/'timestamp'
+            is_event = (
+                1
+                if (
+                    lname.startswith("timestamp")
+                    and lname != "timestamp"
+                    and lname != "timestamps"
+                )
+                else 0
             )
-            signals.append(signal)
-        self._mdf_obj.append(signals)
+            return (is_event, int(arr.shape[0]))
+
+        ts_items = sorted(
+            ((k, v) for k, v in ts_candidates.items()),
+            key=_ts_priority,
+            reverse=True,
+        )
+
+        # 3) For each measurement-length group, choose or synthesize proper timestamps
+        group_counter = 0
+        for sample_len, meas_list in groups_by_len.items():
+            # Pick best matching timestamp array
+            chosen_ts: Optional[np.ndarray] = None
+            chosen_src: Optional[str] = None
+            for name, ts in ts_items:
+                ts_len = int(ts.shape[0])
+                if ts_len == sample_len:
+                    chosen_ts = ts
+                    chosen_src = name
+                    break
+            if chosen_ts is None:
+                # Try downsample by integer stride from a higher-rate ts (with tolerance)
+                for name, ts in ts_items:
+                    ts_len = int(ts.shape[0])
+                    if ts_len > sample_len:
+                        # compute step as rounded ratio and allow small tail trimming if needed
+                        ratio = ts_len / float(sample_len)
+                        step = int(round(ratio)) if ratio > 0 else 0
+                        if step <= 0:
+                            continue
+                        target = step * sample_len
+                        if target <= ts_len and abs(ts_len - target) <= max(
+                            1, int(0.01 * ts_len)
+                        ):
+                            ts_use = ts[:target]
+                            try:
+                                chosen_ts = ts_use[::step]
+                                trimmed = "(trim)" if target != ts_len else ""
+                                chosen_src = f"{name}[::${step}]{trimmed}"
+                                # extra safety: ensure lengths now match
+                                if int(chosen_ts.shape[0]) == sample_len:
+                                    if (strict or strict_no_trim) and trimmed:
+                                        raise ValueError(
+                                            f"Strict mode: trimming timestamps not allowed for group len={sample_len} from source '{name}'"
+                                        )
+                                    break
+                                else:
+                                    # reset if mismatch and continue searching
+                                    chosen_ts = None
+                                    chosen_src = None
+                            except Exception:
+                                chosen_ts = None
+                                chosen_src = None
+            if chosen_ts is None:
+                # Synthesize linear timestamps 0..N-1 as float
+                if strict or strict_no_synth:
+                    raise ValueError(
+                        f"Strict mode: no compatible timestamps for sample_len={sample_len}; refusing to synthesize."
+                    )
+                self.logger.warning(
+                    f"No compatible timestamps found for sample_len={sample_len}; synthesizing simple indices."
+                )
+                chosen_ts = np.arange(sample_len, dtype=float)
+                chosen_src = "synthetic"
+
+            # Estimate timebase (median dt) when possible
+            timebase_s: Optional[float] = None
+            try:
+                if chosen_ts.shape[0] > 1:
+                    dt = np.diff(chosen_ts.astype(float))
+                    if dt.size:
+                        # Interpret event-specific timestamps (timestamp*) as nanoseconds
+                        # Normalize tb to seconds for metadata display
+                        is_event_ts = False
+                        if isinstance(chosen_src, str):
+                            lsrc = chosen_src.lower()
+                            # strip any stride annotation like [::10](trim)
+                            base = lsrc.split("[")[0]
+                            if base.startswith("timestamp") and base not in (
+                                "timestamp",
+                                "timestamps",
+                            ):
+                                is_event_ts = True
+                        median_dt = float(np.median(dt))
+                        timebase_s = median_dt / 1e9 if is_event_ts else median_dt
+            except Exception:
+                timebase_s = None
+
+            group_id = group_counter
+            group_counter += 1
+
+            # 4) Build Signal objects for this group and append as a separate channel group
+            signals: list[Signal] = []
+            for measurement in meas_list:
+                self.logger.info(
+                    f"Adding SIGNAL: '{measurement.name}' (len={sample_len}) with timestamps='{chosen_src}'."
+                )
+                kws: dict[str, Any] = {}
+                comment = measurement.longIdentifier
+                compuMethod = measurement.compuMethod
+                conversion_map = self.ccblock(compuMethod)
+                unit = compuMethod.unit if compuMethod != "NO_COMPU_METHOD" else None
+
+                samples = np.array(data.get(measurement.name), copy=False)
+
+                # Step #1: bit fiddling.
+                bitMask = measurement.bitMask
+                if bitMask is not None:
+                    samples &= bitMask
+                bitOperation = measurement.bitOperation
+                if bitOperation and bitOperation.get("amount", 0) != 0:
+                    amount = bitOperation["amount"]
+                    if bitOperation.get("direction") == "L":
+                        samples <<= amount
+                    else:
+                        samples >>= amount
+
+                # Step #2: apply COMPU_METHODs.
+                samples = self.calculate_physical_values(samples, compuMethod)
+
+                if getattr(compuMethod, "conversionType", None) == "TAB_VERB":
+                    kws["encoding"] = "utf-8"
+                    samples = samples.astype(bytes)
+
+                # Align lengths defensively (should already match)
+                if samples.shape[0] != chosen_ts.shape[0]:
+                    if strict:
+                        raise ValueError(
+                            f"Strict mode: length mismatch for '{measurement.name}' samples({samples.shape[0]}) vs ts({chosen_ts.shape[0]})."
+                        )
+                    n = min(samples.shape[0], chosen_ts.shape[0])
+                    self.logger.warning(
+                        f"Length mismatch for '{measurement.name}' samples({samples.shape[0]}) vs ts({chosen_ts.shape[0]}). Trimming to {n}."
+                    )
+                    samples = samples[:n]
+                    ts_use = chosen_ts[:n]
+                else:
+                    ts_use = chosen_ts
+
+                # Enrich signal comment with timebase metadata (non-breaking)
+                tb_str = (
+                    f" tb≈{timebase_s:.6g}s"
+                    if isinstance(timebase_s, (float, int))
+                    else ""
+                )
+                # Add (ns) hint to src if source is event-specific timestamp*
+                annotated_src = chosen_src
+                try:
+                    if isinstance(chosen_src, str):
+                        base_src = chosen_src.lower().split("[")[0]
+                        if base_src.startswith("timestamp") and base_src not in (
+                            "timestamp",
+                            "timestamps",
+                        ):
+                            if "(ns)" not in chosen_src:
+                                annotated_src = f"{chosen_src}(ns)"
+                except Exception:
+                    annotated_src = chosen_src
+                src_str = f" src={annotated_src}" if annotated_src is not None else ""
+                grp_str = f" grp={group_id}"
+                comment_enriched = (
+                    comment or ""
+                ) + f" [{tb_str}{src_str}{grp_str}]".replace("  ", " ").strip()
+
+                signal = Signal(
+                    samples=samples,
+                    timestamps=ts_use,
+                    name=measurement.name,
+                    unit=unit or "",
+                    conversion=conversion_map,
+                    comment=comment_enriched,
+                    **kws,
+                )
+                signals.append(signal)
+
+            # New MDF Channel Group per timebase
+            self._mdf_obj.append(signals)
+
+        # 5) Save MDF
         self._mdf_obj.save(dst=mdf_filename, overwrite=True)
 
     def ccblock(self, compuMethod) -> str | None:
