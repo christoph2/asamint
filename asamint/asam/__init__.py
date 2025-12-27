@@ -253,6 +253,135 @@ class AsamMC:
             else ByteOrder.LITTLE_ENDIAN
         )
 
+    def _numpy_dtype_for_asam(self, datatype: str, bo: Any) -> np.dtype:
+        """Map ASAM data types to numpy dtypes.
+
+        Parameters
+        ----------
+        datatype: str
+            ASAM data type name (e.g. 'UBYTE', 'FLOAT32_IEEE')
+        bo: ByteOrder or Any
+            Byte order to use.
+
+        Returns
+        -------
+        np.dtype:
+        """
+        endian = "<" if bo == ByteOrder.LITTLE_ENDIAN else ">"
+        match datatype:
+            case "UBYTE":
+                return np.dtype(endian + "u1")
+            case "SBYTE":
+                return np.dtype(endian + "i1")
+            case "UWORD":
+                return np.dtype(endian + "u2")
+            case "SWORD":
+                return np.dtype(endian + "i2")
+            case "ULONG":
+                return np.dtype(endian + "u4")
+            case "SLONG":
+                return np.dtype(endian + "i4")
+            case "A_UINT64":
+                return np.dtype(endian + "u8")
+            case "A_INT64":
+                return np.dtype(endian + "i8")
+            case "FLOAT32_IEEE":
+                return np.dtype(endian + "f4")
+            case "FLOAT64_IEEE":
+                return np.dtype(endian + "f8")
+            case _:
+                # Fallback: treat as 32-bit unsigned
+                return np.dtype(endian + "u4")
+
+    def acquire_via_pyxcp(
+        self,
+        master: Any,
+        duration_s: float | None = None,
+        samples: int | None = None,
+        period_s: float = 0.01,
+    ) -> dict[str, Any]:
+        """Acquire measurement samples via a pyxcp Master by periodic polling.
+
+        This is a simple polling-based acquisition for compatibility. For
+        higher performance consider using DAQ/ODT configuration in pyxcp.
+
+        Returns a dict compatible with save_measurements():
+        {"TIMESTAMPS": np.ndarray, <meas_name>: np.ndarray, ...}
+        """
+        if not hasattr(self, "measurement_variables") or not self.measurement_variables:
+            raise ValueError(
+                "No measurements selected - call add_measurements() or set MEASUREMENTS in config."
+            )
+
+        if (duration_s is None) == (samples is None):
+            raise ValueError("Provide either duration_s or samples, but not both")
+
+        # Build per-measurement access info
+        meas_info: list[dict[str, Any]] = []
+        for m in self.measurement_variables:
+            try:
+                dtype = self._numpy_dtype_for_asam(m.dataType, self.byte_order(m))
+                nbytes = int(asam_type_size(m.dataType))
+                addr = m.address
+                info = {
+                    "name": m.name,
+                    "dtype": dtype,
+                    "nbytes": nbytes,
+                    "address": addr,
+                    "bitMask": m.bitMask,
+                    "bitOperation": m.bitOperation,
+                    "compuMethod": m.compuMethod,
+                }
+                meas_info.append(info)
+            except Exception as e:
+                self.logger.error(
+                    f"Cannot prepare measurement '{getattr(m, 'name', '?')}': {e}"
+                )
+
+        # Determine number of samples
+        if samples is None:
+            samples = max(1, int(round(duration_s / period_s)))  # type: ignore[arg-type]
+
+        # Buffers
+        buffers: dict[str, list[Any]] = {mi["name"]: [] for mi in meas_info}
+        ts: list[float] = []
+
+        t0 = time.perf_counter()
+        for k in range(samples):
+            t_now = time.perf_counter() - t0
+            ts.append(t_now)
+            for mi in meas_info:
+                try:
+                    data = master.upload(mi["address"], mi["nbytes"])  # returns bytes
+                    val = np.frombuffer(data, dtype=mi["dtype"], count=1)[0]
+                    # Apply bit operations
+                    if mi["bitMask"] is not None:
+                        val = val & mi["bitMask"]
+                    bo = mi["bitOperation"]
+                    if bo and bo.get("amount"):
+                        amount = bo["amount"]
+                        if bo.get("direction") == "L":
+                            val = val << amount
+                        else:
+                            val = val >> amount
+                    buffers[mi["name"]].append(val)
+                except Exception as e:
+                    self.logger.error(f"pyxcp upload failed for {mi['name']}: {e}")
+                    buffers[mi["name"]].append(np.nan)
+            # Sleep remaining time in period
+            t_elapsed = time.perf_counter() - t0
+            t_target = (k + 1) * period_s
+            delay = t_target - t_elapsed
+            if delay > 0:
+                time.sleep(delay)
+
+        # Return RAW internal values; conversion to physical happens in save_measurements()
+        result: dict[str, Any] = {"TIMESTAMPS": np.asarray(ts)}
+        for m in self.measurement_variables:
+            raw_vals = np.asarray(buffers[m.name])
+            result[m.name] = raw_vals
+        return result
+
     def calculate_physical_values(self, internal_values, cm_object):
         """Calculate pyhsical value representation from raw, ECU-internal values.
 
