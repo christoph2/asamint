@@ -276,6 +276,382 @@ def build_daq_lists(
 # High-level acquisition (MVP)
 # -------------------------------
 
+
+@dataclass
+class RunResult:
+    mdf_path: Optional[str]
+    csv_path: Optional[str]
+    hdf5_path: Optional[str]
+    signals: dict[str, dict[str, Any]]
+    # Optional summary of detected timebases (one entry per distinct timestamp source)
+    # Each item: {"group_id": int, "timestamp_source": str, "timebase_s": float|None, "members": [signal names]}
+    timebases: Optional[list[dict[str, Any]]] = None
+
+
+def _auto_filename(prefix: str, ext: str) -> str:
+    ts = time.strftime("%Y%m%d_%H%M%S")
+    name = prefix or "asamint"
+    return f"{name}_{ts}{ext}"
+
+
+def _unique_names_from_groups(groups: list[dict[str, Any]]) -> list[str]:
+    names: list[str] = []
+    seen: set[str] = set()
+    for g in groups:
+        if g.get("variables"):
+            for n in g["variables"]:
+                if n not in seen:
+                    seen.add(n)
+                    names.append(n)
+    return names
+
+
+def _write_csv(
+    csv_path: Path,
+    data: dict[str, Any],
+    units: dict[str, Optional[str]],
+    project_meta: Optional[dict[str, Any]] = None,
+    meta: Optional[dict[str, dict[str, Any]]] = None,
+) -> None:
+    # Prepare header with timestamp + signal names
+    fieldnames = ["timestamp"] + [k for k in data.keys() if k != "TIMESTAMPS"]
+    # Ensure stable order
+    fieldnames = ["timestamp"] + sorted([k for k in data.keys() if k != "TIMESTAMPS"])
+    with csv_path.open("w", newline="", encoding="utf-8") as fh:
+        # Metadata header
+        fh.write("# asamint measurement (converted physical values)\n")
+        if project_meta:
+            # Write project/experiment metadata preamble
+            for key in (
+                "author",
+                "company",
+                "department",
+                "project",
+                "shortname",
+                "subject",
+                "time_source",
+            ):
+                if key in project_meta and project_meta[key] not in (None, ""):
+                    fh.write(f"# {key}: {project_meta[key]}\n")
+        for sig, unit in units.items():
+            if unit:
+                fh.write(f"# {sig} [{unit}]\n")
+            else:
+                fh.write(f"# {sig}\n")
+        # Per-signal timebase metadata (if available)
+        if meta:
+            fh.write(
+                "# timebase metadata per signal: tb≈<seconds>, src=<timestamp key>, grp=<id>\n"
+            )
+            for sig in sorted(k for k in units.keys()):
+                m = meta.get(sig, {})
+                tb = m.get("timebase_s")
+                src = m.get("timestamp_source")
+                gid = m.get("group_id")
+                if tb is None and src is None and gid is None:
+                    continue
+                tb_str = f"{tb:.6g}" if isinstance(tb, (int, float)) else ""
+                src_str = str(src) if src is not None else ""
+                gid_str = str(gid) if gid is not None else ""
+                fh.write(
+                    f"# timebase: {sig} tb≈{tb_str}s src={src_str} grp={gid_str}\n"
+                )
+        # blank line after headers for readability
+        fh.write("#\n")
+        writer = csv.writer(fh)
+        writer.writerow(fieldnames)
+        ts = data.get("TIMESTAMPS")
+        if ts is None:
+            # Synthesize simple 0..N-1 if no timestamps
+            max_len = 0
+            for k, v in data.items():
+                if k == "TIMESTAMPS":
+                    continue
+                try:
+                    max_len = max(max_len, len(v))
+                except Exception:
+                    pass
+            ts = list(range(max_len))
+        # Compose rows
+        # Build aligned columns by index
+        series_keys = [k for k in fieldnames if k != "timestamp"]
+        for idx in range(len(ts)):
+            row = [ts[idx]]
+            for k in series_keys:
+                arr = data.get(k)
+                try:
+                    row.append(arr[idx])
+                except Exception:
+                    row.append("")
+            writer.writerow(row)
+
+
+def _compute_timebase_metadata(
+    data: dict[str, Any], signal_names: Iterable[str]
+) -> dict[str, dict[str, Any]]:
+    """Compute per-signal timebase mapping and summary from a data dict.
+
+    Returns a dict mapping signal name to a metadata fragment with keys:
+    - timestamp_source: str | None
+    - timebase_s: float | None (median dt)
+    - group_id: int (stable index per timestamp source)
+    """
+    import numpy as np
+
+    # 1) Collect timestamp candidates
+    ts_candidates: dict[str, np.ndarray] = {}
+    for k, v in data.items():
+        if not isinstance(k, str):
+            continue
+        kl = k.lower()
+        if kl == "timestamps" or kl.startswith("timestamp"):
+            try:
+                arr = np.asarray(v)
+                if arr.ndim == 1 and arr.size > 0:
+                    ts_candidates[k] = arr
+            except Exception:
+                pass
+
+    # sort by preference: event-specific timestamp* first, then by length desc
+    def _ts_priority(item):
+        name, arr = item
+        lname = name.lower()
+        is_event = (
+            1
+            if (
+                lname.startswith("timestamp")
+                and lname not in ("timestamp", "timestamps")
+            )
+            else 0
+        )
+        return (is_event, int(arr.shape[0]))
+
+    ts_items = sorted(ts_candidates.items(), key=_ts_priority, reverse=True)
+
+    # 2) Map each signal to the best matching timestamp source
+    result: dict[str, dict[str, Any]] = {}
+    # assign group ids by the chosen_src string
+    group_map: dict[str, int] = {}
+    next_gid = 0
+
+    for name in signal_names:
+        samples = data.get(name)
+        if samples is None:
+            continue
+        try:
+            arr = np.asarray(samples)
+        except Exception:
+            continue
+        n = int(arr.shape[0]) if arr.ndim >= 1 else 0
+        chosen_src: Optional[str] = None
+        chosen_ts: Optional[np.ndarray] = None
+        # exact match first
+        for src, ts in ts_items:
+            if int(ts.shape[0]) == n:
+                chosen_src = src
+                chosen_ts = ts
+                break
+        if chosen_ts is None:
+            # try stride from higher-rate with small tolerance and optional tail trim
+            for src, ts in ts_items:
+                ts_len = int(ts.shape[0])
+                if ts_len > n and n > 0:
+                    ratio = ts_len / float(n)
+                    step = int(round(ratio)) if ratio > 0 else 0
+                    if step <= 0:
+                        continue
+                    target = step * n
+                    # allow small tail trimming up to 1% or at least 1 sample
+                    if target <= ts_len and abs(ts_len - target) <= max(
+                        1, int(0.01 * ts_len)
+                    ):
+                        ts_use = ts[:target]
+                        try:
+                            chosen_ts = ts_use[::step]
+                            trimmed = "(trim)" if target != ts_len else ""
+                            chosen_src = f"{src}[::${step}]{trimmed}"
+                            if int(chosen_ts.shape[0]) == n:
+                                break
+                            else:
+                                chosen_ts = None
+                                chosen_src = None
+                        except Exception:
+                            chosen_ts = None
+                            chosen_src = None
+        # compute timebase
+        tb: Optional[float] = None
+        if chosen_ts is not None and chosen_ts.shape[0] > 1:
+            try:
+                dt = np.diff(chosen_ts.astype(float))
+                if dt.size:
+                    median_dt = float(np.median(dt))
+                    # Treat event-specific timestamp* arrays as nanoseconds and convert to seconds
+                    base_src = (chosen_src or "").lower().split("[")[0]
+                    if base_src.startswith("timestamp") and base_src not in (
+                        "timestamp",
+                        "timestamps",
+                    ):
+                        tb = median_dt / 1e9
+                        # annotate source as ns for clarity if not already annotated
+                        if chosen_src and "(ns)" not in chosen_src:
+                            chosen_src = f"{chosen_src}(ns)"
+                    else:
+                        tb = median_dt
+            except Exception:
+                tb = None
+        # group id
+        key = chosen_src or "synthetic"
+        if key not in group_map:
+            group_map[key] = next_gid
+            next_gid += 1
+        gid = group_map[key]
+        result[name] = {
+            "timestamp_source": chosen_src,
+            "timebase_s": tb,
+            "group_id": gid,
+        }
+
+    return result
+
+
+def _write_hdf5(
+    h5_path: Path,
+    data: dict[str, Any],
+    meta: dict[str, dict[str, Any]],
+    project_meta: dict[str, Any],
+) -> None:
+    """
+    Write converted values to HDF5 with per-signal datasets and metadata attributes.
+    This uses h5py if available; otherwise a warning is emitted and the file is not written.
+    """
+    try:
+        import h5py  # type: ignore
+        import numpy as np  # ensure numpy available
+    except Exception as e:  # pragma: no cover
+        warnings.warn(
+            f"HDF5 export requested but h5py is not available: {e}. Skipping HDF5 write.",
+            RuntimeWarning,
+        )
+        return
+
+    with h5py.File(str(h5_path), "w") as hf:
+        # store a root-level attrs for project metadata
+        for k, v in project_meta.items():
+            try:
+                hf.attrs[k] = v if v is not None else ""
+            except Exception:
+                # ensure attribute assignment doesn't break
+                pass
+        # timestamps dataset
+        ts = data.get("TIMESTAMPS")
+        if ts is not None:
+            dset_ts = hf.create_dataset("timestamps", data=ts)
+            dset_ts.attrs["description"] = "Relative timestamps in seconds"
+        # per-signal datasets
+        for name, values in data.items():
+            if name == "TIMESTAMPS":
+                continue
+            dset = hf.create_dataset(name, data=values)
+            m = meta.get(name, {})
+            # attach useful attributes
+            if m.get("units"):
+                dset.attrs["units"] = m["units"]
+            if m.get("compu_method"):
+                dset.attrs["compu_method"] = m["compu_method"]
+            if m.get("sample_count") is not None:
+                dset.attrs["sample_count"] = int(m["sample_count"])  # type: ignore[arg-type]
+
+
+def _parse_daq_csv(csv_file: Path) -> dict[str, Any]:
+    """
+    Parse a single CSV produced by pyXCP DaqToCsv.
+
+    Returns a dict: {"TIMESTAMPS": np.ndarray | None, <signal>: np.ndarray, ...}
+    """
+    import numpy as np  # local import to avoid hard dep when not used
+
+    columns: list[str] = []
+    rows: list[list[str]] = []
+    with csv_file.open("r", encoding="utf-8", newline="") as fh:
+        reader = csv.reader(fh)
+        for raw in reader:
+            if not raw:
+                continue
+            if raw[0].startswith("#"):
+                continue
+            if not columns:
+                columns = [c.strip() for c in raw]
+                continue
+            rows.append(raw)
+
+    if not columns:
+        return {}
+
+    # candidate names for timestamp column
+    ts_names = {"timestamp", "time", "TIMESTAMP", "TIME"}
+    # normalize header
+    norm = [c.strip() for c in columns]
+    ts_idx = next((i for i, c in enumerate(norm) if c in ts_names), None)
+
+    col_data: list[list[float]] = [[] for _ in norm]
+    for r in rows:
+        for i, v in enumerate(r):
+            try:
+                col_data[i].append(float(v))
+            except Exception:
+                # best-effort parse; skip non-numeric
+                pass
+
+    result: dict[str, Any] = {}
+    if ts_idx is not None:
+        result["TIMESTAMPS"] = np.asarray(col_data[ts_idx])
+    for i, name in enumerate(norm):
+        if ts_idx is not None and i == ts_idx:
+            continue
+        result[name] = np.asarray(col_data[i])
+    return result
+
+
+def _merge_daq_csv_results(files: Iterable[Path]) -> dict[str, Any]:
+    """
+    Merge multiple DaqToCsv CSV files into one data dict.
+    Prefer the first file's timestamps if available; warn on length mismatches.
+    """
+    import numpy as np
+
+    merged: dict[str, Any] = {}
+    base_ts = None
+    for f in files:
+        try:
+            part = _parse_daq_csv(f)
+        except Exception as e:
+            warnings.warn(f"Failed to parse DAQ CSV {f}: {e}")
+            continue
+        if not part:
+            continue
+        ts = part.get("TIMESTAMPS")
+        if base_ts is None and ts is not None:
+            base_ts = ts
+            merged["TIMESTAMPS"] = ts
+        for k, v in part.items():
+            if k == "TIMESTAMPS":
+                continue
+            merged[k] = v
+    # Ensure TIMESTAMPS present if any signals exist
+    if "TIMESTAMPS" not in merged and merged:
+        # Synthesize simple 0..N-1 based on the longest series
+        max_len = max(
+            (len(v) for k, v in merged.items() if k != "TIMESTAMPS"), default=0
+        )
+        merged["TIMESTAMPS"] = np.arange(max_len, dtype=float)
+    return merged
+
+
+# ---------------------------------
+# DAQ streaming (A2) via callbacks
+# ---------------------------------
+
+
 def acquire_via_daq_stream(
     master: "Master",
     daq_lists: list[DaqList],
@@ -386,3 +762,331 @@ def acquire_via_daq_stream(
         elif duration is not None:
             _time.sleep(max(0.0, float(duration)))
     finally:
+        di.stop()
+        if hasattr(di, "unregister_record_callback"):
+            try:
+                di.unregister_record_callback(on_record)  # type: ignore[attr-defined]
+            except Exception:
+                pass
+
+    # Build result
+    result: dict[str, Any] = {}
+    if enable_timestamps and timestamps_sec:
+        # Generic seconds timeline
+        result["TIMESTAMPS"] = np.asarray(timestamps_sec, dtype=float)
+        # Per‑event nanoseconds timelines
+        for idx, buf in ts_ns_by_idx.items():
+            if buf:
+                result[f"timestamp{idx}"] = np.asarray(buf, dtype=np.int64)
+    # Convert buffers to arrays; they can be ragged if some signals miss records
+    for name, vals in buffers.items():
+        try:
+            result[name] = np.asarray(vals)
+        except Exception:
+            # fallback to object dtype
+            result[name] = np.asarray(vals, dtype=object)
+    return result
+
+
+def run(
+    groups: list[dict[str, Any]],
+    duration: Optional[float] = None,
+    samples: Optional[int] = None,
+    period_s: Optional[float] = 0.01,
+    mdf_out: Optional[str] = None,
+    csv_out: Optional[str] = None,
+    hdf5_out: Optional[str] = None,
+    enable_timestamps: bool = True,  # reserved for DAQ path
+    overwrite: bool = True,
+    use_daq: bool = True,
+    streaming: bool = False,
+    strict_mdf: bool = False,
+    strict_no_trim: bool = False,
+    strict_no_synth: bool = False,
+) -> RunResult:
+    """
+    High-level measurement runner (MVP, polling acquisition).
+
+    Parameters
+    - groups: list of dicts, each may include:
+        {"name": str, "event_num": int, "variables": [str, ...]}  # explicit names
+        or {"name": str, "event_num": int, "group_name": str}     # A2L group (not used in MVP resolve)
+    - duration or samples: provide exactly one.
+    - period_s: polling period for master.upload()
+    - mdf_out/csv_out: optional output paths; if None, generated using shortname + timestamp.
+
+    Returns RunResult with paths and per-signal metadata.
+    """
+    if (duration is None) == (samples is None):
+        raise ValueError("Provide either duration or samples, but not both or neither.")
+
+    app = get_application()
+
+    # Prepare MDF creator with an experiment_config shim
+    exp_cfg = {
+        "SUBJECT": f"SUBJ_{app.general.shortname}" if app.general.shortname else "",
+        "DESCRIPTION": "",
+        "SHORTNAME": app.general.shortname or "",
+        "TIME_SOURCE": "local PC reference timer",
+        # We will set MEASUREMENTS after resolving names
+        "MEASUREMENTS": [],
+        "FUNCTIONS": [],
+        "GROUPS": [],
+    }
+
+    # Prepare creator based on output format
+    output_format = app.general.output_format.upper()
+    if hdf5_out or output_format == "HDF5":
+        creator_class = HDF5Creator
+    else:
+        creator_class = MDFCreator
+
+    creator = creator_class(exp_cfg)  # AsamMC passes (app_config, exp_cfg) into on_init
+
+    # Resolve variable names
+    # 1) Collect explicit variables
+    names = _unique_names_from_groups(groups)
+    # 2) Expand any A2L group_name entries to variables via the A2L session
+    for g in groups:
+        grp_name = g.get("group_name")
+        if grp_name:
+            extra = names_from_group(
+                creator.session, grp_name, exclude=g.get("exclude")
+            )
+            for n in extra:
+                if n not in names:
+                    names.append(n)
+    if not names:
+        raise ValueError("No variable names provided in groups.")
+    creator.add_measurements(names)
+    if not creator.measurement_variables:
+        raise ValueError(
+            "None of the requested measurements could be resolved from A2L."
+        )
+
+    # Acquire via pyXCP polling
+    data: dict[str, Any]
+    if use_daq:
+        # Build DAQ lists from provided groups
+        try:
+            # enrich groups with priority/prescaler defaults
+            daq_groups: list[dict[str, Any]] = []
+            for g in groups:
+                gg = dict(g)
+                gg.setdefault("priority", 0)
+                gg.setdefault("prescaler", 1)
+                daq_groups.append(gg)
+            daq_lists = build_daq_lists(creator.session, daq_groups)
+            if streaming:
+                # Use in-process streaming via callbacks
+                creator.xcp_connect()
+                try:
+                    data = acquire_via_daq_stream(
+                        creator.xcp_master,
+                        daq_lists,
+                        duration=duration,
+                        samples=samples,
+                        enable_timestamps=enable_timestamps,
+                    )
+                finally:
+                    creator.close()
+            else:
+                # Prefer CSV output from pyXCP's DaqToCsv; we'll parse and convert via A2L.
+                from pyxcp.cmdline import ArgumentParser  # type: ignore
+
+                daq_parser = DaqToCsv(daq_lists)
+                ap = ArgumentParser(description="asamint DAQ run")
+                with ap.run(policy=daq_parser) as x:
+                    x.connect()
+                    if x.slaveProperties.optionalCommMode:
+                        x.getCommModeInfo()
+                    x.cond_unlock("DAQ")
+                    daq_parser.setup()
+                    daq_parser.start()
+                    try:
+                        if samples is not None and period_s:
+                            time.sleep(max(0.0, samples * float(period_s)))
+                        elif duration is not None:
+                            time.sleep(max(0.0, float(duration)))
+                        else:
+                            time.sleep(1.0)
+                    finally:
+                        daq_parser.stop()
+                        x.disconnect()
+
+                # Collect CSV files from the parser and merge to a single data dict (RAW values)
+                csv_files: list[Path] = []
+                if hasattr(daq_parser, "files") and isinstance(daq_parser.files, dict):
+                    for fh in daq_parser.files.values():  # file handles opened by pyXCP
+                        try:
+                            csv_files.append(Path(fh.name))
+                        except Exception:
+                            pass
+                if not csv_files:
+                    raise RuntimeError("pyXCP DaqToCsv did not yield any CSV files")
+                data = _merge_daq_csv_results(csv_files)
+                if not data:
+                    raise RuntimeError("No data parsed from DAQ CSV files")
+        except Exception as e:
+            # Fallback to polling path if DAQ integration fails
+            warnings.warn(
+                f"DAQ path failed ({e}); falling back to polling acquisition."
+            )
+            creator = creator_class(exp_cfg)
+            creator.add_measurements(names)
+            creator.xcp_connect()
+            try:
+                data = creator.acquire_via_pyxcp(
+                    creator.xcp_master,
+                    duration_s=duration,
+                    samples=samples,
+                    period_s=period_s or 0.01,
+                )
+            finally:
+                creator.close()
+    else:
+        creator.xcp_connect()
+        try:
+            data = creator.acquire_via_pyxcp(
+                creator.xcp_master,
+                duration_s=duration,
+                samples=samples,
+                period_s=period_s or 0.01,
+            )
+        finally:
+            creator.close()
+
+    # Prepare per-signal metadata (units, compu method name, counts)
+    meta: dict[str, dict[str, Any]] = {}
+    for m in creator.measurement_variables:
+        unit = None
+        if m.compuMethod != "NO_COMPU_METHOD":
+            try:
+                unit = m.compuMethod.unit
+            except Exception:
+                unit = None
+        meta[m.name] = {
+            "units": unit,
+            "compu_method": (
+                None
+                if m.compuMethod == "NO_COMPU_METHOD"
+                else getattr(m.compuMethod, "name", None)
+            ),
+            "sample_count": len(data.get(m.name, [])),
+        }
+
+    # Compute and merge timebase metadata (non-breaking)
+    tb_meta = _compute_timebase_metadata(data, meta.keys())
+    for name, extra in tb_meta.items():
+        if name not in meta:
+            meta[name] = {}
+        meta[name].update(extra)
+
+    # Build timebases summary for RunResult
+    timebases: list[dict[str, Any]] = []
+    # group by group_id
+    groups: dict[int, dict[str, Any]] = {}
+    for sig, m in meta.items():
+        gid = m.get("group_id")
+        if gid is None:
+            continue
+        if gid not in groups:
+            groups[gid] = {
+                "group_id": gid,
+                "timestamp_source": m.get("timestamp_source"),
+                "timebase_s": m.get("timebase_s"),
+                "members": [],
+            }
+        groups[gid]["members"].append(sig)
+        # Prefer non-None values if missing in summary
+        if (
+            groups[gid].get("timestamp_source") is None
+            and m.get("timestamp_source") is not None
+        ):
+            groups[gid]["timestamp_source"] = m.get("timestamp_source")
+        if groups[gid].get("timebase_s") is None and m.get("timebase_s") is not None:
+            groups[gid]["timebase_s"] = m.get("timebase_s")
+    if groups:
+        timebases = [groups[k] for k in sorted(groups.keys())]
+
+    # Save measurements in primary format
+    primary_path: Optional[str] = None
+    csv_path: Optional[str] = None
+    h5_path: Optional[str] = None
+
+    if output_format == "HDF5":
+        primary_ext = ".h5"
+        primary_out = hdf5_out
+    else:
+        primary_ext = ".mf4"
+        primary_out = mdf_out
+
+    primary_file = (
+        Path(primary_out)
+        if primary_out
+        else Path(_auto_filename(app.general.shortname, primary_ext))
+    )
+    if primary_file.exists() and not overwrite:
+        raise FileExistsError(f"File exists and overwrite=False: {primary_file}")
+
+    creator.save_measurements(
+        str(primary_file),
+        data=data,
+        strict=strict_mdf,
+        strict_no_trim=strict_no_trim,
+        strict_no_synth=strict_no_synth,
+    )
+    primary_path = str(primary_file)
+
+    # Optional CSV export of converted values
+    if csv_out is not None:
+        csv_file = Path(csv_out)
+    else:
+        csv_file = None
+    if csv_file is None and csv_out is not None:
+        csv_file = Path(csv_out)
+    if csv_file is None and csv_out is None:
+        # generate alongside primary
+        csv_file = primary_file.with_suffix(".csv")
+    if csv_file is not None:
+        if csv_file.exists() and not overwrite:
+            raise FileExistsError(f"File exists and overwrite=False: {csv_file}")
+        units = {m: meta[m]["units"] for m in meta.keys()}
+        project_meta = {
+            "author": app.general.author,
+            "company": app.general.company,
+            "department": app.general.department,
+            "project": app.general.project,
+            "shortname": app.general.shortname,
+            "subject": exp_cfg.get("SUBJECT"),
+            "time_source": exp_cfg.get("TIME_SOURCE"),
+        }
+        _write_csv(csv_file, data, units, project_meta, meta)
+        csv_path = str(csv_file)
+
+    # Optional HDF5 export of converted values with metadata (only if not primary format)
+    if hdf5_out is not None and output_format != "HDF5":
+        h5_file = Path(hdf5_out)
+        if h5_file.exists() and not overwrite:
+            raise FileExistsError(f"File exists and overwrite=False: {h5_file}")
+        project_meta = {
+            "author": app.general.author,
+            "company": app.general.company,
+            "department": app.general.department,
+            "project": app.general.project,
+            "shortname": app.general.shortname,
+            "subject": exp_cfg.get("SUBJECT"),
+            "time_source": exp_cfg.get("TIME_SOURCE"),
+        }
+        _write_hdf5(h5_file, data, meta, project_meta)
+        h5_path = str(h5_file)
+    elif output_format == "HDF5":
+        h5_path = primary_path
+
+    return RunResult(
+        mdf_path=primary_path if output_format == "MDF" else None,
+        csv_path=csv_path,
+        hdf5_path=h5_path,
+        signals=meta,
+        timebases=timebases or None,
+    )
