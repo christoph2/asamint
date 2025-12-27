@@ -1,10 +1,10 @@
 <%
-from asamint.utils import current_datetime
+#
 %>
 **
 **  DAMOS DCM format 2.0
-**  Created by asamint/DCMCreator
-**  Creation date: ${current_datetime()}
+**  Created by asamint/DcmExporter
+**  Creation date: ${current_datetime}
 %if "AUTHOR" in dataset:
 **  Author: ${dataset["AUTHOR"]}
 %endif
@@ -35,29 +35,29 @@ def axis_pts(axis):
         return params["CURVE"].get(axis.axis_pts_ref).converted_values
 %>
 <%def name = "header(inst)">
-%if inst.comment:
+% if inst.comment:
     LANGNAME "${inst.comment}"
-%else:
+% else:
     LANGNAME ""
-%endif
-%if inst.displayIdentifier:
+% endif
+% if inst.displayIdentifier:
     DISPLAYNAME "${inst.displayIdentifier}"
-%else:
+% else:
     DISPLAYNAME ""
-%endif
-%if not inst.category in ("ASCII", "CURVE", "MAP", "STUETZSTELLENVERTEILUNG"):
-%if inst.unit:
-    EINHEIT_W "${inst.unit}"\
-%else:
-    EINHEIT_W ""\
-%elif inst.category == "STUETZSTELLENVERTEILUNG":
-%if inst.unit:
-    EINHEIT_X "${inst.unit}"\
-%else:
-    EINHEIT_X ""\
-%endif
-%endif
-%endif
+% endif
+% if not inst.category in ("ASCII", "CURVE", "MAP", "STUETZSTELLENVERTEILUNG"):
+% if inst.unit:
+    EINHEIT_W "${inst.unit}"
+% else:
+    EINHEIT_W ""
+% endif
+% elif inst.category == "STUETZSTELLENVERTEILUNG":
+% if inst.unit:
+    EINHEIT_X "${inst.unit}"
+% else:
+    EINHEIT_X ""
+% endif
+% endif
 </%def>
 <%def name = "werte(inst)">
 <% values = " ".join(["{:f}".format(x) for x in inst.converted_values.flatten()]) %>\
@@ -101,7 +101,7 @@ KONSERVIERUNG_FORMAT 2.0
 ## AXIS_PTSs
 ##
 %for key, inst in params["AXIS_PTS"].items():
-STUETZSTELLENVERTEILUNG  ${inst.name} ${len(inst.converted_values)}\
+STUETZSTELLENVERTEILUNG  ${inst.name} ${len(inst.converted_values)}
 ${header(inst)}
 ##<% values = " ".join(["{:.8f}".format(x) for x in inst.converted_values]) %>
 <% values = " ".join(["{:f}".format(x) for x in inst.converted_values.flatten()]) %>\
@@ -115,7 +115,7 @@ END
 ## VALUEs
 ##
 %for key, inst in params["VALUE"].items():
-FESTWERT ${inst.name}\
+FESTWERT ${inst.name}
 ${header(inst)}
 %if inst.category in ("BOOLEAN", "TEXT"):
     TEXT "${inst.converted_value}"
@@ -129,8 +129,8 @@ END
 ## ASCIIs
 ##
 %for key, inst in params["ASCII"].items():
-TEXTSTRING ${inst.name}\
-${header(inst)}\
+TEXTSTRING ${inst.name}
+${header(inst)}
     TEXT "${inst.value}"
 END
 
@@ -139,8 +139,8 @@ END
 ## VAL_BLKs
 ##
 %for key, inst in params["VAL_BLK"].items():
-FESTWERTEBLOCK ${inst.name} ${len(inst.converted_values.flatten())}\
-${header(inst)}\
+FESTWERTEBLOCK ${inst.name} ${len(inst.converted_values.flatten())}
+${header(inst)}
 ${werte(inst)}
 END
 
@@ -159,8 +159,8 @@ GRUPPENKENNLINIE\
 %else:
 OTHER_KL\
 %endif
- ${inst.name} ${len(inst.converted_values)}\
-${header(inst)}\
+ ${inst.name} ${len(inst.converted_values)}
+${header(inst)}
 %if axis.unit:
     EINHEIT_X "${axis.unit}"
 %else:
@@ -193,8 +193,8 @@ GRUPPENKENNFELD\
 %else:
 KENNFELD    ** ${x_axis.category} ${y_axis.category}\
 %endif
- ${inst.name}    ${size_x}    ${size_y}\
-${header(inst)}\
+ ${inst.name}    ${size_x}    ${size_y}
+${header(inst)}
 %if x_axis.unit:
     EINHEIT_X "${x_axis.unit}"
 %else:
