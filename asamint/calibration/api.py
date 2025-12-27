@@ -903,7 +903,7 @@ class Calibration:
             phys_vals = np.asarray(values)
 
         # Read axis values and info
-        axis_values = self.read_axes_values(ap, "x")
+        # axis_values = self.read_axes_values(ap, "x")
         axes = ap.record_layout_components.get("axes")
         axis_info = axes.get("x")
 
@@ -1435,7 +1435,9 @@ class Calibration:
         try:
             characteristic = Characteristic.get(self.session, characteristic_name)
         except ValueError:
-            raise ValueError(f"Characteristic '{characteristic_name}' not found")
+            raise ValueError(
+                f"Characteristic '{characteristic_name}' not found"
+            ) from None
         return characteristic.type
 
     def _load_characteristic(
@@ -1457,7 +1459,9 @@ class Calibration:
         try:
             characteristic = Characteristic.get(self.session, characteristic_name)
         except ValueError:
-            raise ValueError(f"Characteristic '{characteristic_name}' not found")
+            raise ValueError(
+                f"Characteristic '{characteristic_name}' not found"
+            ) from None
 
         if characteristic.type != category:
             raise TypeError(
@@ -1501,7 +1505,7 @@ class Calibration:
         try:
             axis_pts = AxisPts.get(self.session, axis_pts_name)
         except ValueError:
-            raise ValueError(f"Axis points '{axis_pts_name}' not found")
+            raise ValueError(f"Axis points '{axis_pts_name}' not found") from None
 
         return axis_pts
 
@@ -1547,7 +1551,7 @@ class Calibration:
                     attr.data_type, attr.address + offset
                 )
                 attr.address = aligned_address
-                self.logger.info(
+                self.logger.debug(
                     f"Updating RecordLayout for {obj.name!r} / {obj.record_layout.name!r}:  -> [{aligned_address}]"
                 )
             if name in ("no_axis_pts", "no_rescale"):
