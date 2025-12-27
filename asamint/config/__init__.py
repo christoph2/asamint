@@ -68,6 +68,11 @@ class General(Configurable):
     mdf_version = Unicode(default="4.20", help="Version used to write MDF files.").tag(
         config=True
     )
+    output_format = Enum(
+        values=["MDF", "HDF5"],
+        default_value="MDF",
+        help="Default output format for measurements.",
+    ).tag(config=True)
     experiments = List(
         trait=Unicode(),
         default_value=[],
