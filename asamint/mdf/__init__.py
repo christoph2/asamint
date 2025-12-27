@@ -77,7 +77,7 @@ class MDFCreator(AsamMC):
         self._mdf_obj.md_data = hd_comment
         self.mdf_version = self.config.general.mdf_version
         # selected pya2l measurement objects
-        self.measurements: list[Any] = []
+        self.measurement_variables: list[Any] = []
         # Try to auto-select measurements from config
         try:
             self._resolve_measurements_from_config()
@@ -140,7 +140,8 @@ class MDFCreator(AsamMC):
         for name in names:
             try:
                 meas = inspect.Measurement.get(self.session, name)
-                self.measurements.append(meas)
+                if meas is not None:
+                    self.measurement_variables.append(meas)
             except Exception as e:
                 self.logger.warning(f"Unknown measurement '{name}': {e}")
 
@@ -208,125 +209,7 @@ class MDFCreator(AsamMC):
         self._mdf_obj.append(signals)
         self._mdf_obj.save(dst=mdf_filename, overwrite=True)
 
-    def _numpy_dtype_for_asam(self, datatype: str, bo: Any) -> np.dtype:
-        endian = "<" if bo == 0 else ">"
-        # Map to numpy dtype codes
-        match datatype:
-            case "UBYTE":
-                return np.dtype("u1")
-            case "SBYTE":
-                return np.dtype("i1")
-            case "UWORD":
-                return np.dtype(endian + "u2")
-            case "SWORD":
-                return np.dtype(endian + "i2")
-            case "ULONG":
-                return np.dtype(endian + "u4")
-            case "SLONG":
-                return np.dtype(endian + "i4")
-            case "A_UINT64":
-                return np.dtype(endian + "u8")
-            case "A_INT64":
-                return np.dtype(endian + "i8")
-            case "FLOAT32_IEEE":
-                return np.dtype(endian + "f4")
-            case "FLOAT64_IEEE":
-                return np.dtype(endian + "f8")
-            case _:
-                # Fallback: treat as 32-bit unsigned
-                return np.dtype(endian + "u4")
-
-    def acquire_via_pyxcp(
-        self,
-        master: Any,
-        duration_s: float | None = None,
-        samples: int | None = None,
-        period_s: float = 0.01,
-    ) -> dict[str, Any]:
-        """Acquire measurement samples via a pyxcp Master by periodic polling.
-
-        This is a simple polling-based acquisition for compatibility. For
-        higher performance consider using DAQ/ODT configuration in pyxcp.
-
-        Returns a dict compatible with save_measurements():
-        {"TIMESTAMPS": np.ndarray, <meas_name>: np.ndarray, ...}
-        """
-        if not self.measurements:
-            raise ValueError(
-                "No measurements selected - call add_measurements() or set MEASUREMENTS in config."
-            )
-
-        if (duration_s is None) == (samples is None):
-            raise ValueError("Provide either duration_s or samples, but not both")
-
-        # Build per-measurement access info
-        meas_info: list[dict[str, Any]] = []
-        for m in self.measurements:
-            try:
-                dtype = self._numpy_dtype_for_asam(m.dataType, self.byte_order(m))
-                nbytes = int(asam_type_size(m.dataType))
-                addr = m.address
-                info = {
-                    "name": m.name,
-                    "dtype": dtype,
-                    "nbytes": nbytes,
-                    "address": addr,
-                    "bitMask": m.bitMask,
-                    "bitOperation": m.bitOperation,
-                    "compuMethod": m.compuMethod,
-                }
-                meas_info.append(info)
-            except Exception as e:
-                self.logger.error(
-                    f"Cannot prepare measurement '{getattr(m, 'name', '?')}': {e}"
-                )
-
-        # Determine number of samples
-        if samples is None:
-            samples = max(1, int(round(duration_s / period_s)))  # type: ignore[arg-type]
-
-        # Buffers
-        buffers: dict[str, list[Any]] = {mi["name"]: [] for mi in meas_info}
-        ts: list[float] = []
-
-        t0 = time.perf_counter()
-        for k in range(samples):
-            t_now = time.perf_counter() - t0
-            ts.append(t_now)
-            for mi in meas_info:
-                try:
-                    data = master.upload(mi["address"], mi["nbytes"])  # returns bytes
-                    val = np.frombuffer(data, dtype=mi["dtype"], count=1)[0]
-                    # Apply bit operations
-                    if mi["bitMask"] is not None:
-                        val = val & mi["bitMask"]
-                    bo = mi["bitOperation"]
-                    if bo and bo.get("amount"):
-                        amount = bo["amount"]
-                        if bo.get("direction") == "L":
-                            val = val << amount
-                        else:
-                            val = val >> amount
-                    buffers[mi["name"]].append(val)
-                except Exception as e:
-                    self.logger.error(f"pyxcp upload failed for {mi['name']}: {e}")
-                    buffers[mi["name"]].append(np.nan)
-            # Sleep remaining time in period
-            t_elapsed = time.perf_counter() - t0
-            t_target = (k + 1) * period_s
-            delay = t_target - t_elapsed
-            if delay > 0:
-                time.sleep(delay)
-
-        # Post-process to physical values using pya2l compuMethods
-        result: dict[str, Any] = {"TIMESTAMPS": np.asarray(ts)}
-        for m in self.measurements:
-            raw_vals = np.asarray(buffers[m.name])
-            phys_vals = self.calculate_physical_values(raw_vals, m.compuMethod)
-            result[m.name] = phys_vals
-        return result
-
-    def ccblock(self, compuMethod) -> str:
+    def ccblock(self, compuMethod) -> str | None:
         """Construct CCBLOCK
 
         Parameters
@@ -337,96 +220,104 @@ class MDFCreator(AsamMC):
         -------
         dict: Suitable as MDF CCBLOCK or None (in case of `NO_COMPU_METHOD`).
         """
-        conversion = None
-        if compuMethod == "NO_COMPU_METHOD":
-            conversion = None
-        else:
-            cm_type = compuMethod.conversionType
-            if cm_type == "IDENTICAL":
-                conversion = None
-            elif cm_type == "FORM":
-                # formula_inv = compuMethod.formula["formula_inv"]
-                conversion = {"formula": compuMethod.formula["formula"]}
+        conversion: dict[str, object] | None = None
+        try:
+            # Handle missing/no conversion uniformly
+            if compuMethod is None:
+                return None
+
+            cm_type = getattr(compuMethod, "conversionType", None)
+            if not cm_type or cm_type in ("IDENTICAL", "NO_COMPU_METHOD"):
+                return None
+
+            if cm_type == "FORM":
+                # Only forward formula to MDF. Inverse formula is not part of MDF CCBLOCK
+                formula = None
+                try:
+                    formula = compuMethod.formula.get("formula")
+                except Exception:
+                    formula = None
+                if formula is not None:
+                    conversion = {"formula": formula}
+
             elif cm_type == "LINEAR":
-                conversion = {
-                    "a": compuMethod.coeffs_linear["a"],
-                    "b": compuMethod.coeffs_linear["b"],
-                }
+                a = getattr(compuMethod, "coeffs_linear", {}).get("a", 0.0)
+                b = getattr(compuMethod, "coeffs_linear", {}).get("b", 0.0)
+                conversion = {"a": a, "b": b}
+
             elif cm_type == "RAT_FUNC":
+                coeffs = getattr(compuMethod, "coeffs", {})
                 conversion = {
-                    "P1": compuMethod.coeffs["a"],
-                    "P2": compuMethod.coeffs["b"],
-                    "P3": compuMethod.coeffs["c"],
-                    "P4": compuMethod.coeffs["d"],
-                    "P5": compuMethod.coeffs["e"],
-                    "P6": compuMethod.coeffs["f"],
+                    "P1": coeffs.get("a", 0.0),
+                    "P2": coeffs.get("b", 0.0),
+                    "P3": coeffs.get("c", 0.0),
+                    "P4": coeffs.get("d", 0.0),
+                    "P5": coeffs.get("e", 0.0),
+                    "P6": coeffs.get("f", 0.0),
                 }
+
             elif cm_type in ("TAB_INTP", "TAB_NOINTP"):
-                interpolation = compuMethod.tab["interpolation"]
-                default_value = compuMethod.tab["default_value"]
-                in_values = compuMethod.tab["in_values"]
-                out_values = compuMethod.tab["out_values"]
-                conversion = {f"raw_{i}": in_values[i] for i in range(len(in_values))}
-                conversion.update(
-                    {f"phys_{i}": out_values[i] for i in range(len(out_values))}
-                )
-                conversion.update(default=default_value)
-                conversion.update(interpolation=interpolation)
-            elif cm_type == "TAB_VERB":
-                default_value = compuMethod.tab_verb["default_value"]
-                text_values = compuMethod.tab_verb["text_values"]
-                if compuMethod.tab_verb["ranges"]:
-                    lower_values = compuMethod.tab_verb["lower_values"]
-                    upper_values = compuMethod.tab_verb["upper_values"]
-                    conversion = {
-                        f"lower_{i}": lower_values[i] for i in range(len(lower_values))
-                    }
-                    conversion.update(
-                        {
-                            f"upper_{i}": upper_values[i]
-                            for i in range(len(upper_values))
-                        }
-                    )
-                    conversion.update(
-                        {f"text_{i}": text_values[i] for i in range(len(text_values))}
-                    )
-                    conversion.update(
-                        default=(
-                            bytes(default_value, encoding="utf-8")
-                            if default_value
-                            else b""
-                        )
-                    )
-                else:
-                    in_values = compuMethod.tab_verb["in_values"]
-                    conversion = {
-                        f"val_{i}": in_values[i] for i in range(len(in_values))
-                    }
-                    conversion.update(
-                        {f"text_{i}": text_values[i] for i in range(len(text_values))}
-                    )
+                tab = getattr(compuMethod, "tab", {})
+                in_values = list(tab.get("in_values", []))
+                out_values = list(tab.get("out_values", []))
+                default_value = tab.get("default_value")
+                interpolation = tab.get("interpolation")
+                conversion = {f"raw_{i}": v for i, v in enumerate(in_values)}
+                conversion.update({f"phys_{i}": v for i, v in enumerate(out_values)})
+                if default_value is not None:
                     conversion.update(default=default_value)
-        return conversion
+                if interpolation is not None:
+                    conversion.update(interpolation=interpolation)
 
-    def calculate_physical_values(self, internal_values, cm_object):
-        """Calculate pyhsical value representation from raw, ECU-internal values.
+            elif cm_type == "TAB_VERB":
+                tv = getattr(compuMethod, "tab_verb", {})
+                text_values = tv.text_values
+                default_value = tv.default_value
 
-        Parameters
-        ----------
-        internal_values: array-like
+                if isinstance(tv, inspect.CompuTabVerbRanges):
+                    lower_values = tv.lower_values
+                    upper_values = tv.upper_values
+                    conversion = {f"lower_{i}": v for i, v in enumerate(lower_values)}
+                    conversion.update(
+                        {f"upper_{i}": v for i, v in enumerate(upper_values)}
+                    )
+                    conversion.update(
+                        {f"text_{i}": v for i, v in enumerate(text_values)}
+                    )
+                    # MDF requires bytes for default text value
+                    if default_value:
+                        try:
+                            conversion.update(
+                                default=bytes(default_value, encoding="utf-8")
+                            )
+                        except Exception:
+                            conversion.update(default=b"")
+                else:  # must be CompuTabVerb instance.
+                    in_values = tv.in_values
+                    conversion = {f"val_{i}": v for i, v in enumerate(in_values)}
+                    conversion.update(
+                        {f"text_{i}": v for i, v in enumerate(text_values)}
+                    )
+                    if default_value is not None:
+                        conversion.update(default=default_value)
 
-        cm_object: `CompuMethod` instance
-
-        Returns
-        -------
-        array-like:
-        """
-        if cm_object is None:
-            return internal_values
-        else:
-            if cm_object != "NO_COMPU_METHOD":
-                name = cm_object.name
             else:
-                name = "NO_COMPU_METHOD"
-            calculator = inspect.CompuMethod(self.session, name)
-            return calculator.int_to_physical(internal_values)
+                # Unknown/rare conversion type — log once and proceed without conversion
+                try:
+                    self.logger.warning(
+                        f"Unsupported COMPU_METHOD type '{cm_type}' for MDF CCBLOCK; writing raw values."
+                    )
+                except Exception:
+                    pass
+                conversion = None
+        except (
+            Exception
+        ) as e:  # defensive: never fail MDF writing due to conversion map
+            try:
+                self.logger.warning(
+                    f"Failed to construct CCBLOCK for {getattr(compuMethod, 'name', compuMethod)}: {e}"
+                )
+            except Exception:
+                pass
+            conversion = None
+        return conversion

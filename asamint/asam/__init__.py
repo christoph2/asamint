@@ -234,19 +234,6 @@ class AsamMC:
     def query(self):
         return self.session.query
 
-    @property
-    def measurements(self):
-        """ """
-        query = self.query(model.Measurement.name)
-        query = query.filter(
-            or_(
-                func.regexp(model.Measurement.name, m)
-                for m in self.experiment_config.get("MEASUREMENTS")
-            )
-        )
-        for meas in query.all():
-            yield Measurement.get(self.session, meas.name)
-
     def byte_order(self, obj):
         """Get byte-order for A2L element.
 
@@ -265,6 +252,49 @@ class AsamMC:
             or self.mod_common.byteOrder in ("MSB_FIRST", "LITTLE_ENDIAN")
             else ByteOrder.LITTLE_ENDIAN
         )
+
+    def calculate_physical_values(self, internal_values, cm_object):
+        """Calculate pyhsical value representation from raw, ECU-internal values.
+
+        Parameters
+        ----------
+        internal_values: array-like
+
+        cm_object: `CompuMethod` instance
+
+        Returns
+        -------
+        array-like:
+        """
+        if (
+            cm_object is None
+            or isinstance(cm_object, (CompuMethod, str))
+            and cm_object
+            in (
+                "NO_COMPU_METHOD",
+                "",
+            )
+        ):
+            return internal_values
+        if hasattr(cm_object, "conversionType") and cm_object.conversionType in (
+            "IDENTICAL",
+            "NO_COMPU_METHOD",
+        ):
+            return internal_values
+
+        try:
+            if hasattr(cm_object, "name"):
+                name = cm_object.name
+            else:
+                name = str(cm_object)
+
+            if name == "NO_COMPU_METHOD":
+                return internal_values
+
+            calculator = CompuMethod(self.session, name)
+            return calculator.int_to_physical(internal_values)
+        except Exception:
+            return internal_values
 
 
 DATA_TYPES = {
