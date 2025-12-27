@@ -311,21 +311,112 @@ class HDF5Creator(AsamMC):
         if h5_filename is None:
             h5_filename = self.generate_filename(".h5")
 
-        # Determine datasets spec from data
+        # 1) Collect all candidate timestamp arrays from data
+        ts_candidates: dict[str, np.ndarray] = {}
+        for k, v in data.items():
+            if not isinstance(k, str):
+                continue
+            kl = k.lower()
+            if kl == "timestamps" or kl.startswith("timestamp"):
+                try:
+                    arr = np.asarray(v)
+                    if arr.ndim == 1 and arr.size > 0:
+                        ts_candidates[k] = arr
+                except Exception:
+                    pass
+
+        # 2) Build list of measurements present in data
+        available_meas = [m for m in self.measurement_variables if m.name in data]
+        if not available_meas:
+            self.logger.warning("No matching measurement data present for HDF5 save.")
+            return
+
+        # Partition measurements by sample length
+        groups_by_len: dict[int, list] = {}
+        for m in available_meas:
+            arr = np.asarray(data[m.name])
+            groups_by_len.setdefault(int(arr.shape[0]), []).append(m)
+
+        # Sort timestamp candidates
+        def _ts_priority(item: tuple[str, np.ndarray]) -> tuple[int, int]:
+            name, arr = item
+            lname = name.lower()
+            is_event = (
+                1
+                if (
+                    lname.startswith("timestamp")
+                    and lname != "timestamp"
+                    and lname != "timestamps"
+                )
+                else 0
+            )
+            return (is_event, int(arr.shape[0]))
+
+        ts_items = sorted(
+            ((k, v) for k, v in ts_candidates.items()),
+            key=_ts_priority,
+            reverse=True,
+        )
+
+        # Final datasets to be written
+        final_data: dict[str, np.ndarray] = {}
+
+        # 3) Process each group
+        for sample_len, meas_list in groups_by_len.items():
+            chosen_ts: np.ndarray | None = None
+            for name, ts in ts_items:
+                if int(ts.shape[0]) == sample_len:
+                    chosen_ts = ts
+                    break
+            if chosen_ts is None:
+                # Try downsample
+                for name, ts in ts_items:
+                    ts_len = int(ts.shape[0])
+                    if ts_len > sample_len:
+                        ratio = ts_len / float(sample_len)
+                        step = int(round(ratio))
+                        if step > 0 and step * sample_len <= ts_len:
+                            chosen_ts = ts[: step * sample_len : step]
+                            if int(chosen_ts.shape[0]) == sample_len:
+                                break
+            if chosen_ts is None:
+                if strict or strict_no_synth:
+                    raise ValueError(f"Strict: no timestamps for len={sample_len}")
+                chosen_ts = np.arange(sample_len, dtype=float)
+
+            final_data[f"group_{sample_len}_timestamps"] = chosen_ts
+
+            for measurement in meas_list:
+                samples = np.array(data.get(measurement.name), copy=True)
+                # Bit fiddling
+                bitMask = measurement.bitMask
+                if bitMask is not None:
+                    samples &= bitMask
+                bitOperation = measurement.bitOperation
+                if bitOperation and bitOperation.get("amount", 0) != 0:
+                    amount = bitOperation["amount"]
+                    if bitOperation.get("direction") == "L":
+                        samples <<= amount
+                    else:
+                        samples >>= amount
+                # Conversion
+                samples = self.calculate_physical_values(
+                    samples, measurement.compuMethod
+                )
+                final_data[measurement.name] = samples
+
+        # 4) Save via AsyncHDF5StreamingWriter
         datasets_spec = {}
-        for name, values in data.items():
-            arr = np.asarray(values)
+        for name, values in final_data.items():
             datasets_spec[name] = {
-                "dtype": arr.dtype,
-                "shape": arr.shape[1:],  # shape per sample
+                "dtype": values.dtype,
+                "shape": values.shape[1:],
             }
 
-        # Project metadata
         metadata = {
             "author": self.config.general.author,
             "project": self.config.general.project,
             "subject": self.experiment_config.get("SUBJECT", ""),
-            "description": self.experiment_config.get("DESCRIPTION", ""),
         }
 
         base = h5_filename
@@ -336,26 +427,16 @@ class HDF5Creator(AsamMC):
             base_filename=base,
             datasets=datasets_spec,
             metadata=metadata,
+            use_suffix=False,  # We want exactly the requested filename
         )
         writer.start()
 
-        # Enqueue all data at once (AsyncHDF5StreamingWriter will batch it)
-        # We need to transform data dict of arrays into a list of sample dicts
-        # or we could optimize AsyncHDF5StreamingWriter to take a batch.
-        # Given it's a "StreamingWriter", it's designed for samples.
-
-        # Find max length to know how many samples we have
-        sample_counts = [len(v) for v in data.values()]
-        if not sample_counts:
-            writer.stop()
-            return
-        num_samples = max(sample_counts)
-
+        num_samples = max(len(v) for v in final_data.values()) if final_data else 0
         for i in range(num_samples):
             sample = {}
-            for name in datasets_spec:
-                if i < len(data[name]):
-                    sample[name] = data[name][i]
+            for name, values in final_data.items():
+                if i < len(values):
+                    sample[name] = values[i]
             writer.enqueue(sample)
 
         writer.stop()
