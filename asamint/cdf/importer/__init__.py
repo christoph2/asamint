@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, Union
@@ -15,6 +16,8 @@ from asamint.calibration.msrsw_db import (Category, DataFile, DisplayName,
                                           UnitDisplayName)
 from asamint.model.calibration import klasses
 
+logger = logging.getLogger(__name__)
+
 
 class DBImporter:
     opened: bool = False
@@ -28,12 +31,12 @@ class DBImporter:
         try:
             db_name.unlink()
         except Exception:
-            pass
+            pass  # nosec: B110
         self.logger.info(f"Creating database {str(db_name)!r}.")
         self.cdf_db = MSRSWDatabase(db_name, debug=False)
         # self.hdf_db = h5py.File(db_name.with_suffix(".h5"), mode="w", libver="latest", locking="best-effort",
         #                         track_order=True)
-        self.hdf_db = CalibrationDB(db_name)
+        self.hdf_db = CalibrationDB(db_name, mode="w")
         self.session = self.cdf_db.session
         self.logger.info("Saving characteristics...")
         self.opened = True
@@ -60,6 +63,7 @@ class DBImporter:
 
         systems = SwSystems()
         self.session.add(systems)
+        msrsw.sw_systems = systems
         system = SwSystem()
 
         self.set_short_name(system, "n/a")
@@ -101,34 +105,33 @@ class DBImporter:
         self.session.add(collection)
 
         collections.sw_cs_collection.append(collection)
-        res = []
         instance_tree.sw_instances = []
         self.logger.info("VALUEs")
-        for key, value in self.parameters.get("VALUE").items():
+        for value in self.parameters.get("VALUE").values():
             instance_tree.sw_instances.append(self.scalar_value(value))
         self.logger.info("ASCIIs")
-        for key, value in self.parameters.get("ASCII").items():
+        for value in self.parameters.get("ASCII").values():
             instance_tree.sw_instances.append(self.scalar_value(value))
         self.logger.info("VAL_BLKs")
-        for key, value in self.parameters.get("VAL_BLK").items():
+        for value in self.parameters.get("VAL_BLK").values():
             instance_tree.sw_instances.append(self.value_block(value))
         self.logger.info("AXIS_PTSs")
-        for key, value in self.parameters.get("AXIS_PTS").items():
+        for value in self.parameters.get("AXIS_PTS").values():
             instance_tree.sw_instances.append(self.axis_pts(value))
         self.logger.info("CURVEs")
-        for key, value in self.parameters.get("CURVE").items():
+        for value in self.parameters.get("CURVE").values():
             instance_tree.sw_instances.append(self.map_curve(value, "CURVE"))
         self.logger.info("MAPs")
-        for key, value in self.parameters.get("MAP").items():
+        for value in self.parameters.get("MAP").values():
             instance_tree.sw_instances.append(self.map_curve(value, "MAP"))
         self.logger.info("CUBOIDs")
-        for key, value in self.parameters.get("CUBOID").items():
+        for value in self.parameters.get("CUBOID").values():
             instance_tree.sw_instances.append(self.map_curve(value, "CUBOID"))
         self.logger.info("CUBE_4s")
-        for key, value in self.parameters.get("CUBE_4").items():
+        for value in self.parameters.get("CUBE_4").values():
             instance_tree.sw_instances.append(self.map_curve(value, "CUBE_4"))
         self.logger.info("CUBE_5s")
-        for key, value in self.parameters.get("CUBE_5").items():
+        for value in self.parameters.get("CUBE_5").values():
             instance_tree.sw_instances.append(self.map_curve(value, "CUBE_5"))
         self.session.commit()
         self.cdf_db.create_indices()
@@ -210,3 +213,6 @@ class DBImporter:
         display_name.content = name
         self.session.add(display_name)
         obj.display_name = display_name
+
+
+from .cdf_importer import CDFImporter, import_cdf_to_db
