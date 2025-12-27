@@ -1,24 +1,21 @@
 import logging
-from pathlib import Path
-from typing import Dict, Any, List
-
 from datetime import datetime
+from pathlib import Path
+from typing import Any
 
 from asamint.calibration.db import CalibrationDB
-from asamint.calibration.msrsw_db import (
-    MSRSWDatabase,
-    SwInstance,
-    SwAxisCont,
-)
+from asamint.calibration.msrsw_db import MSRSWDatabase, SwInstance
 from asamint.utils.templates import do_template
-from asamint.utils.data import read_resource_file
+
 
 class DcmExporter:
     def __init__(self, db: MSRSWDatabase, h5_db: CalibrationDB = None, logger: logging.Logger = None):
         self.db = db
         self.h5_db = h5_db
         self.logger = logger or logging.getLogger(__name__)
-        self.template_path = Path(__file__).parent.parent / "data" / "templates" / "dcm.tmpl"
+        self.template_path = (
+            Path(__file__).parent.parent / "data" / "templates" / "dcm.tmpl"
+        )
 
     def export(self, output_path: str | Path) -> bool:
         self.logger.info(f"Exporting DCM to {output_path}")

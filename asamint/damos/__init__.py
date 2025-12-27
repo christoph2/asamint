@@ -27,6 +27,7 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
+from .dcm_exporter import DcmExporter, export_to_dcm
 from asamint.calibration import CalibrationData
 from asamint.utils.data import read_resource_file
 from asamint.utils.templates import do_template_from_text
