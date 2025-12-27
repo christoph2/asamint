@@ -35,6 +35,7 @@ class AsyncHDF5StreamingWriter:
         max_file_size_mb: int = 512,
         flush_interval: float = 1.0,
         queue_maxsize: int = 10000,
+        use_suffix: bool = True,
     ):
         """
         Parameters
@@ -64,6 +65,7 @@ class AsyncHDF5StreamingWriter:
         self.metadata = metadata or {}
         self.max_file_size_mb = max_file_size_mb
         self.flush_interval = flush_interval
+        self.use_suffix = use_suffix
 
         self.file_index = 0
         self.lock = threading.Lock()
@@ -91,6 +93,13 @@ class AsyncHDF5StreamingWriter:
         if hasattr(self, "file") and self.file:
             self.file.close()
 
+        if self.use_suffix:
+            filename = f"{self.base_filename}_{self.file_index:04d}.h5"
+            self.file_index += 1
+        else:
+            filename = self.base_filename
+            if not filename.lower().endswith(".h5"):
+                filename += ".h5"
 
         self.file = h5py.File(filename, "w")
         self.datasets = {}
