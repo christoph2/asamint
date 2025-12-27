@@ -275,3 +275,114 @@ def build_daq_lists(
 # -------------------------------
 # High-level acquisition (MVP)
 # -------------------------------
+
+def acquire_via_daq_stream(
+    master: "Master",
+    daq_lists: list[DaqList],
+    duration: Optional[float] = None,
+    samples: Optional[int] = None,
+    enable_timestamps: bool = True,
+) -> dict[str, Any]:
+    """
+    Acquire data using pyXCP DAQ with in-process callbacks.
+
+    Returns a dict compatible with MDFCreator.save_measurements():
+    {
+        "TIMESTAMPS": np.ndarray[float]  # seconds (generic timeline for readability),
+        "timestamp{i}": np.ndarray[int64]  # per‑event timelines in nanoseconds,
+        <signal>: np.ndarray,
+        ...
+    }
+    """
+    import time as _time
+
+    import numpy as np
+
+    if (duration is None) == (samples is None):
+        raise ValueError("Provide either duration or samples (exclusively).")
+
+    # Flatten measurement names from DAQ lists for mapping
+    meas_names: list[str] = []
+    for dl in daq_lists:
+        for m in dl.measurements:
+            name = m[0]
+            if name not in meas_names:
+                meas_names.append(name)
+
+    buffers: dict[str, list[Any]] = {n: [] for n in meas_names}
+    # Generic seconds timeline (for readability / CSV primary column)
+    timestamps_sec: list[float] = []
+
+    # Build a stable index per DAQ list to name per‑event timestamp arrays as timestamp0, timestamp1, ...
+    event_to_idx: dict[int, int] = {}
+    for idx, dl in enumerate(daq_lists):
+        # Multiple DAQ lists could theoretically map to the same event number; last one wins deterministically
+        try:
+            event_to_idx[int(dl.event_num)] = idx
+        except Exception:
+            # fallback: still assign index by order if event_num not available
+            event_to_idx[idx] = idx
+
+    # Per‑event timestamp buffers in nanoseconds
+    ts_ns_by_idx: dict[int, list[int]] = {i: [] for i in range(len(daq_lists))}
+
+    t0 = _time.perf_counter()
+
+    # Define record callback
+    def on_record(event_num: int, record_ts: Optional[float], payload: dict[str, Any]):
+        # payload expected as {name: value, ...}
+        if enable_timestamps:
+            # Generic seconds timeline
+            if record_ts is not None and record_ts > 1e6:
+                # Heuristic: treat large values as already in nanoseconds
+                ts_sec = float(record_ts) / 1e9
+            else:
+                # record_ts may be seconds or None; if None, synthesize via perf_counter
+                ts_sec = (
+                    float(record_ts)
+                    if record_ts is not None
+                    else _time.perf_counter() - t0
+                )
+            timestamps_sec.append(ts_sec)
+
+            # Per‑event nanoseconds timeline
+            idx = event_to_idx.get(int(event_num), 0)
+            if record_ts is None:
+                ts_ns = int((_time.perf_counter() - t0) * 1e9)
+            else:
+                # If it looks like seconds (small), convert to ns; if large, assume already ns
+                ts_ns = int(record_ts * 1e9) if record_ts < 1e6 else int(record_ts)
+            ts_ns_by_idx[idx].append(ts_ns)
+
+        for k, v in payload.items():
+            if k in buffers:
+                buffers[k].append(v)
+
+    # Setup DAQ
+    # The master is assumed connected/unlocked by caller; we keep a conservative sequence
+    master.cond_unlock("DAQ")
+    di = master.daq
+    di.setup(daq_lists)
+    # Try to register callback; fall back if not supported
+    registered = False
+    if hasattr(di, "register_record_callback"):
+        try:
+            di.register_record_callback(on_record)  # type: ignore[attr-defined]
+            registered = True
+        except Exception:
+            registered = False
+
+    if not registered:
+        # If streaming callbacks not supported, raise so caller can fall back
+        raise RuntimeError("pyXCP DAQ streaming callbacks not available in this build")
+
+    di.start()
+    try:
+        if samples is not None:
+            # Busy-wait until we collected at least `samples` entries (based on timestamp count)
+            # Note: multiple signals per record; timestamps length is a proxy for record count
+            while len(timestamps_sec) < samples:
+                _time.sleep(0.001)
+        elif duration is not None:
+            _time.sleep(max(0.0, float(duration)))
+    finally:
