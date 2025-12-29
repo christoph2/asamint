@@ -14,6 +14,7 @@ import numpy as np
 from pya2l.api import inspect
 
 from asamint.asam import AsamMC
+from asamint.hdf5.policy import Hdf5OnlinePolicy
 
 
 class AsyncHDF5StreamingWriter:

@@ -40,6 +40,7 @@ from pyxcp.master import Master  # type: ignore
 
 from asamint.config import get_application
 from asamint.hdf5 import HDF5Creator
+from asamint.hdf5.policy import Hdf5OnlinePolicy
 from asamint.mdf import MDFCreator
 
 PYXCP_TYPES = {
@@ -858,6 +859,7 @@ def run(
                     names.append(n)
     if not names:
         raise ValueError("No variable names provided in groups.")
+
     creator.add_measurements(names)
     if not creator.measurement_variables:
         raise ValueError(
@@ -893,58 +895,45 @@ def run(
             else:
                 # Prefer CSV output from pyXCP's DaqToCsv; we'll parse and convert via A2L.
                 from pyxcp.cmdline import ArgumentParser  # type: ignore
+    try:
+        # enrich groups with priority/prescaler defaults
+        daq_groups: list[dict[str, Any]] = []
+        for g in groups:
+            gg = dict(g)
+            gg.setdefault("priority", 0)
+            gg.setdefault("prescaler", 1)
+            daq_groups.append(gg)
+        daq_lists = build_daq_lists(creator.session, daq_groups)
 
-                daq_parser = DaqToCsv(daq_lists)
-                ap = ArgumentParser(description="asamint DAQ run")
-                with ap.run(policy=daq_parser) as x:
-                    x.connect()
-                    if x.slaveProperties.optionalCommMode:
-                        x.getCommModeInfo()
-                    x.cond_unlock("DAQ")
-                    daq_parser.setup()
-                    daq_parser.start()
-                    try:
-                        if samples is not None and period_s:
-                            time.sleep(max(0.0, samples * float(period_s)))
-                        elif duration is not None:
-                            time.sleep(max(0.0, float(duration)))
-                        else:
-                            time.sleep(1.0)
-                    finally:
-                        daq_parser.stop()
-                        x.disconnect()
+        # Prefer CSV output from pyXCP's DaqToCsv; we'll parse and convert via A2L.
+        from pyxcp.cmdline import ArgumentParser  # type: ignore
 
-                # Collect CSV files from the parser and merge to a single data dict (RAW values)
-                csv_files: list[Path] = []
-                if hasattr(daq_parser, "files") and isinstance(daq_parser.files, dict):
-                    for fh in daq_parser.files.values():  # file handles opened by pyXCP
-                        try:
-                            csv_files.append(Path(fh.name))
-                        except Exception:
-                            pass
-                if not csv_files:
-                    raise RuntimeError("pyXCP DaqToCsv did not yield any CSV files")
-                data = _merge_daq_csv_results(csv_files)
-                if not data:
-                    raise RuntimeError("No data parsed from DAQ CSV files")
-        except Exception as e:
-            # Fallback to polling path if DAQ integration fails
-            warnings.warn(
-                f"DAQ path failed ({e}); falling back to polling acquisition."
-            )
-            creator = creator_class(exp_cfg)
-            creator.add_measurements(names)
-            creator.xcp_connect()
+        # daq_parser = DaqToCsv(daq_lists)
+        daq_parser = Hdf5OnlinePolicy(daq_lists)
+
+        ap = ArgumentParser(description="asamint DAQ run")
+        with ap.run(policy=daq_parser) as x:
+            x.connect()
+            if x.slaveProperties.optionalCommMode:
+                x.getCommModeInfo()
+            x.cond_unlock("DAQ")
+            daq_parser.setup()
+            daq_parser.start()
             try:
-                data = creator.acquire_via_pyxcp(
-                    creator.xcp_master,
-                    duration_s=duration,
-                    samples=samples,
-                    period_s=period_s or 0.01,
-                )
+                if samples is not None and period_s:
+                    time.sleep(max(0.0, samples * float(period_s)))
+                elif duration is not None:
+                    time.sleep(max(0.0, float(duration)))
+                else:
+                    time.sleep(1.0)
             finally:
-                creator.close()
-    else:
+                daq_parser.stop()
+                x.disconnect()
+    except Exception as e:
+        # Fallback to polling path if DAQ integration fails
+        warnings.warn(f"DAQ path failed ({e}); falling back to polling acquisition.")
+        creator = creator_class(exp_cfg)
+        creator.add_measurements(names)
         creator.xcp_connect()
         try:
             data = creator.acquire_via_pyxcp(
@@ -955,6 +944,7 @@ def run(
             )
         finally:
             creator.close()
+    return
 
     # Prepare per-signal metadata (units, compu method name, counts)
     meta: dict[str, dict[str, Any]] = {}
