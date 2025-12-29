@@ -25,14 +25,12 @@ __copyright__ = """
 """
 
 import csv
-import json
 import time
 import warnings
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
-
-from collections.abc import Iterable
+from typing import Any, Optional, Union
 
 from pya2l import model
 from pyxcp.daq_stim import DaqList, DaqRecorder, DaqToCsv  # type: ignore
@@ -271,11 +269,6 @@ def build_daq_lists(
             )
         result.append(dl)
     return result
-
-
-# -------------------------------
-# High-level acquisition (MVP)
-# -------------------------------
 
 
 @dataclass
@@ -648,147 +641,6 @@ def _merge_daq_csv_results(files: Iterable[Path]) -> dict[str, Any]:
     return merged
 
 
-# ---------------------------------
-# DAQ streaming (A2) via callbacks
-# ---------------------------------
-
-
-def acquire_via_daq_stream(
-    master: "Master",
-    daq_lists: list[DaqList],
-    duration: Optional[float] = None,
-    samples: Optional[int] = None,
-    enable_timestamps: bool = True,
-) -> dict[str, Any]:
-    """
-    Acquire data using pyXCP DAQ with in-process callbacks.
-
-    Returns a dict compatible with MDFCreator.save_measurements():
-    {
-        "TIMESTAMPS": np.ndarray[float]  # seconds (generic timeline for readability),
-        "timestamp{i}": np.ndarray[int64]  # per‑event timelines in nanoseconds,
-        <signal>: np.ndarray,
-        ...
-    }
-    """
-    import time as _time
-
-    import numpy as np
-
-    if (duration is None) == (samples is None):
-        raise ValueError("Provide either duration or samples (exclusively).")
-
-    # Flatten measurement names from DAQ lists for mapping
-    meas_names: list[str] = []
-    for dl in daq_lists:
-        for m in dl.measurements:
-            name = m[0]
-            if name not in meas_names:
-                meas_names.append(name)
-
-    buffers: dict[str, list[Any]] = {n: [] for n in meas_names}
-    # Generic seconds timeline (for readability / CSV primary column)
-    timestamps_sec: list[float] = []
-
-    # Build a stable index per DAQ list to name per‑event timestamp arrays as timestamp0, timestamp1, ...
-    event_to_idx: dict[int, int] = {}
-    for idx, dl in enumerate(daq_lists):
-        # Multiple DAQ lists could theoretically map to the same event number; last one wins deterministically
-        try:
-            event_to_idx[int(dl.event_num)] = idx
-        except Exception:
-            # fallback: still assign index by order if event_num not available
-            event_to_idx[idx] = idx
-
-    # Per‑event timestamp buffers in nanoseconds
-    ts_ns_by_idx: dict[int, list[int]] = {i: [] for i in range(len(daq_lists))}
-
-    t0 = _time.perf_counter()
-
-    # Define record callback
-    def on_record(event_num: int, record_ts: Optional[float], payload: dict[str, Any]):
-        # payload expected as {name: value, ...}
-        if enable_timestamps:
-            # Generic seconds timeline
-            if record_ts is not None and record_ts > 1e6:
-                # Heuristic: treat large values as already in nanoseconds
-                ts_sec = float(record_ts) / 1e9
-            else:
-                # record_ts may be seconds or None; if None, synthesize via perf_counter
-                ts_sec = (
-                    float(record_ts)
-                    if record_ts is not None
-                    else _time.perf_counter() - t0
-                )
-            timestamps_sec.append(ts_sec)
-
-            # Per‑event nanoseconds timeline
-            idx = event_to_idx.get(int(event_num), 0)
-            if record_ts is None:
-                ts_ns = int((_time.perf_counter() - t0) * 1e9)
-            else:
-                # If it looks like seconds (small), convert to ns; if large, assume already ns
-                ts_ns = int(record_ts * 1e9) if record_ts < 1e6 else int(record_ts)
-            ts_ns_by_idx[idx].append(ts_ns)
-
-        for k, v in payload.items():
-            if k in buffers:
-                buffers[k].append(v)
-
-    # Setup DAQ
-    # The master is assumed connected/unlocked by caller; we keep a conservative sequence
-    master.cond_unlock("DAQ")
-    di = master.daq
-    di.setup(daq_lists)
-    # Try to register callback; fall back if not supported
-    registered = False
-    if hasattr(di, "register_record_callback"):
-        try:
-            di.register_record_callback(on_record)  # type: ignore[attr-defined]
-            registered = True
-        except Exception:
-            registered = False
-
-    if not registered:
-        # If streaming callbacks not supported, raise so caller can fall back
-        raise RuntimeError("pyXCP DAQ streaming callbacks not available in this build")
-
-    di.start()
-    try:
-        if samples is not None:
-            # Busy-wait until we collected at least `samples` entries (based on timestamp count)
-            # Note: multiple signals per record; timestamps length is a proxy for record count
-            while len(timestamps_sec) < samples:
-                _time.sleep(0.001)
-        elif duration is not None:
-            _time.sleep(max(0.0, float(duration)))
-    finally:
-        di.stop()
-        if hasattr(di, "unregister_record_callback"):
-            try:
-                di.unregister_record_callback(on_record)  # type: ignore[attr-defined]
-            except Exception:
-                pass
-
-    # Build result
-    result: dict[str, Any] = {}
-    if enable_timestamps and timestamps_sec:
-        # Generic seconds timeline
-        result["TIMESTAMPS"] = np.asarray(timestamps_sec, dtype=float)
-        # Per‑event nanoseconds timelines
-        for idx, buf in ts_ns_by_idx.items():
-            if buf:
-                result[f"timestamp{idx}"] = np.asarray(buf, dtype=np.int64)
-    # Convert buffers to arrays; they can be ragged if some signals miss records
-    for name, vals in buffers.items():
-        try:
-            result[name] = np.asarray(vals)
-        except Exception:
-            # fallback to object dtype
-            result[name] = np.asarray(vals, dtype=object)
-    return result
-
-
 def run(
     groups: list[dict[str, Any]],
     duration: Optional[float] = None,
@@ -860,6 +712,7 @@ def run(
     if not names:
         raise ValueError("No variable names provided in groups.")
 
+    # valid_measurement = valid_measurements(names)
     creator.add_measurements(names)
     if not creator.measurement_variables:
         raise ValueError(
@@ -868,33 +721,6 @@ def run(
 
     # Acquire via pyXCP polling
     data: dict[str, Any]
-    if use_daq:
-        # Build DAQ lists from provided groups
-        try:
-            # enrich groups with priority/prescaler defaults
-            daq_groups: list[dict[str, Any]] = []
-            for g in groups:
-                gg = dict(g)
-                gg.setdefault("priority", 0)
-                gg.setdefault("prescaler", 1)
-                daq_groups.append(gg)
-            daq_lists = build_daq_lists(creator.session, daq_groups)
-            if streaming:
-                # Use in-process streaming via callbacks
-                creator.xcp_connect()
-                try:
-                    data = acquire_via_daq_stream(
-                        creator.xcp_master,
-                        daq_lists,
-                        duration=duration,
-                        samples=samples,
-                        enable_timestamps=enable_timestamps,
-                    )
-                finally:
-                    creator.close()
-            else:
-                # Prefer CSV output from pyXCP's DaqToCsv; we'll parse and convert via A2L.
-                from pyxcp.cmdline import ArgumentParser  # type: ignore
     try:
         # enrich groups with priority/prescaler defaults
         daq_groups: list[dict[str, Any]] = []
@@ -930,153 +756,15 @@ def run(
                 daq_parser.stop()
                 x.disconnect()
     except Exception as e:
-        # Fallback to polling path if DAQ integration fails
-        warnings.warn(f"DAQ path failed ({e}); falling back to polling acquisition.")
-        creator = creator_class(exp_cfg)
-        creator.add_measurements(names)
-        creator.xcp_connect()
-        try:
-            data = creator.acquire_via_pyxcp(
-                creator.xcp_master,
-                duration_s=duration,
-                samples=samples,
-                period_s=period_s or 0.01,
-            )
-        finally:
-            creator.close()
+        raise from e
+    finally:
+        creator.close()
     return
 
-    # Prepare per-signal metadata (units, compu method name, counts)
-    meta: dict[str, dict[str, Any]] = {}
-    for m in creator.measurement_variables:
-        unit = None
-        if m.compuMethod != "NO_COMPU_METHOD":
-            try:
-                unit = m.compuMethod.unit
-            except Exception:
-                unit = None
-        meta[m.name] = {
-            "units": unit,
-            "compu_method": (
-                None
-                if m.compuMethod == "NO_COMPU_METHOD"
-                else getattr(m.compuMethod, "name", None)
-            ),
-            "sample_count": len(data.get(m.name, [])),
-        }
-
-    # Compute and merge timebase metadata (non-breaking)
-    tb_meta = _compute_timebase_metadata(data, meta.keys())
-    for name, extra in tb_meta.items():
-        if name not in meta:
-            meta[name] = {}
-        meta[name].update(extra)
-
-    # Build timebases summary for RunResult
-    timebases: list[dict[str, Any]] = []
-    # group by group_id
-    groups: dict[int, dict[str, Any]] = {}
-    for sig, m in meta.items():
-        gid = m.get("group_id")
-        if gid is None:
-            continue
-        if gid not in groups:
-            groups[gid] = {
-                "group_id": gid,
-                "timestamp_source": m.get("timestamp_source"),
-                "timebase_s": m.get("timebase_s"),
-                "members": [],
-            }
-        groups[gid]["members"].append(sig)
-        # Prefer non-None values if missing in summary
-        if (
-            groups[gid].get("timestamp_source") is None
-            and m.get("timestamp_source") is not None
-        ):
-            groups[gid]["timestamp_source"] = m.get("timestamp_source")
-        if groups[gid].get("timebase_s") is None and m.get("timebase_s") is not None:
-            groups[gid]["timebase_s"] = m.get("timebase_s")
-    if groups:
-        timebases = [groups[k] for k in sorted(groups.keys())]
-
-    # Save measurements in primary format
-    primary_path: Optional[str] = None
-    csv_path: Optional[str] = None
-    h5_path: Optional[str] = None
-
-    if output_format == "HDF5":
-        primary_ext = ".h5"
-        primary_out = hdf5_out
-    else:
-        primary_ext = ".mf4"
-        primary_out = mdf_out
-
-    primary_file = (
-        Path(primary_out)
-        if primary_out
-        else Path(_auto_filename(app.general.shortname, primary_ext))
-    )
-    if primary_file.exists() and not overwrite:
-        raise FileExistsError(f"File exists and overwrite=False: {primary_file}")
-
-    creator.save_measurements(
-        str(primary_file),
-        data=data,
-        strict=strict_mdf,
-        strict_no_trim=strict_no_trim,
-        strict_no_synth=strict_no_synth,
-    )
-    primary_path = str(primary_file)
-
-    # Optional CSV export of converted values
-    if csv_out is not None:
-        csv_file = Path(csv_out)
-    else:
-        csv_file = None
-    if csv_file is None and csv_out is not None:
-        csv_file = Path(csv_out)
-    if csv_file is None and csv_out is None:
-        # generate alongside primary
-        csv_file = primary_file.with_suffix(".csv")
-    if csv_file is not None:
-        if csv_file.exists() and not overwrite:
-            raise FileExistsError(f"File exists and overwrite=False: {csv_file}")
-        units = {m: meta[m]["units"] for m in meta.keys()}
-        project_meta = {
-            "author": app.general.author,
-            "company": app.general.company,
-            "department": app.general.department,
-            "project": app.general.project,
-            "shortname": app.general.shortname,
-            "subject": exp_cfg.get("SUBJECT"),
-            "time_source": exp_cfg.get("TIME_SOURCE"),
-        }
-        _write_csv(csv_file, data, units, project_meta, meta)
-        csv_path = str(csv_file)
-
-    # Optional HDF5 export of converted values with metadata (only if not primary format)
-    if hdf5_out is not None and output_format != "HDF5":
-        h5_file = Path(hdf5_out)
-        if h5_file.exists() and not overwrite:
-            raise FileExistsError(f"File exists and overwrite=False: {h5_file}")
-        project_meta = {
-            "author": app.general.author,
-            "company": app.general.company,
-            "department": app.general.department,
-            "project": app.general.project,
-            "shortname": app.general.shortname,
-            "subject": exp_cfg.get("SUBJECT"),
-            "time_source": exp_cfg.get("TIME_SOURCE"),
-        }
-        _write_hdf5(h5_file, data, meta, project_meta)
-        h5_path = str(h5_file)
-    elif output_format == "HDF5":
-        h5_path = primary_path
-
-    return RunResult(
-        mdf_path=primary_path if output_format == "MDF" else None,
-        csv_path=csv_path,
-        hdf5_path=h5_path,
-        signals=meta,
-        timebases=timebases or None,
-    )
+    # return RunResult(
+    #     mdf_path=primary_path if output_format == "MDF" else None,
+    #     csv_path=csv_path,
+    #     hdf5_path=h5_path,
+    #     signals=meta,
+    #     timebases=timebases or None,
+    # )
