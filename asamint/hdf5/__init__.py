@@ -6,7 +6,6 @@ from typing import Any
 from pya2l.api import inspect
 
 from asamint.asam import AsamMC
-from asamint.hdf5.policy import Hdf5OnlinePolicy
 
 
 class HDF5Creator(AsamMC):

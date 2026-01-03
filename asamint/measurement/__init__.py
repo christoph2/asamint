@@ -35,10 +35,10 @@ from typing import Any, Optional, Union
 from pya2l import model
 from pyxcp.daq_stim import DaqList, DaqRecorder, DaqToCsv  # type: ignore
 from pyxcp.master import Master  # type: ignore
+from pyxcp.transport.hdf5_policy import Hdf5OnlinePolicy
 
 from asamint.config import get_application
 from asamint.hdf5 import HDF5Creator
-from asamint.hdf5.policy import Hdf5OnlinePolicy
 from asamint.mdf import MDFCreator
 
 PYXCP_TYPES = {
@@ -734,8 +734,12 @@ def run(
         # Prefer CSV output from pyXCP's DaqToCsv; we'll parse and convert via A2L.
         from pyxcp.cmdline import ArgumentParser  # type: ignore
 
+        # If hdf5_out is not provided, generate a default based on the shortname.
+        if hdf5_out is None:
+            hdf5_out = _auto_filename(app.general.shortname or "daq", "h5")
+
         # daq_parser = DaqToCsv(daq_lists)
-        daq_parser = Hdf5OnlinePolicy(daq_lists)
+        daq_parser = Hdf5OnlinePolicy(hdf5_out, daq_lists)
 
         ap = ArgumentParser(description="asamint DAQ run")
         with ap.run(policy=daq_parser) as x:
@@ -756,15 +760,13 @@ def run(
                 daq_parser.stop()
                 x.disconnect()
     except Exception as e:
-        raise from e
+        raise
     finally:
         creator.close()
-    return
 
-    # return RunResult(
-    #     mdf_path=primary_path if output_format == "MDF" else None,
-    #     csv_path=csv_path,
-    #     hdf5_path=h5_path,
-    #     signals=meta,
-    #     timebases=timebases or None,
-    # )
+    return RunResult(
+        mdf_path=None,
+        csv_path=None,
+        hdf5_path=str(hdf5_out) if hdf5_out else None,
+        signals={},
+    )

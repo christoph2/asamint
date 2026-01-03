@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Example: High-level measurement run using asamint.measurement
 
@@ -11,11 +10,12 @@ Prerequisites:
 - Configure asamint via asamint_conf.py (A2L path and pyXCP transport).
 """
 
-from asamint.config import get_application
-from asamint.measurement import run
-from asamint.examples.cli_args import MeasurementArgsParser
-from pathlib import Path
 import json
+from pathlib import Path
+
+from asamint.config import get_application
+from asamint.examples.cli_args import MeasurementArgsParser
+from asamint.measurement import run
 
 
 def parse_args():
@@ -155,9 +155,12 @@ def main() -> None:
         strict_no_synth=strict_no_synth,
     )
 
-    # app.log.info(f"MDF:  {result.mdf_path}")
-    # app.log.info(f"CSV:  {result.csv_path}")
-    # app.log.info(f"HDF5: {result.hdf5_path}")
+    if result.mdf_path:
+        app.log.info(f"MDF:  {result.mdf_path}")
+    if result.csv_path:
+        app.log.info(f"CSV:  {result.csv_path}")
+    if result.hdf5_path:
+        app.log.info(f"HDF5: {result.hdf5_path}")
 
 
 if __name__ == "__main__":
