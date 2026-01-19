@@ -1,6 +1,6 @@
 pybind11
 pip
-bumpversion
+bumpver
 wheel
 watchdog
 flake8
