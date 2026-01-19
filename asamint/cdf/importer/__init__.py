@@ -152,7 +152,7 @@ class DBImporter:
         try:
             self.hdf_db.import_map_curve(value)
         except Exception as e:
-            print(f"map_curve({value.name}): {e} value: {value}")
+            self.logger.error(f"map_curve({value.name}): {e} value: {value}")
         return inst
 
     def value_block(self, value: klasses.ValueBlock) -> SwInstance:
