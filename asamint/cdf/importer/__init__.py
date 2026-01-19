@@ -104,31 +104,31 @@ class DBImporter:
         collections.sw_cs_collection.append(collection)
         instance_tree.sw_instances = []
         self.logger.info("VALUEs")
-        for value in self.parameters.get("VALUE").values():
+        for value in self.parameters.get("VALUE", {}).values():
             instance_tree.sw_instances.append(self.scalar_value(value))
         self.logger.info("ASCIIs")
-        for value in self.parameters.get("ASCII").values():
+        for value in self.parameters.get("ASCII", {}).values():
             instance_tree.sw_instances.append(self.scalar_value(value))
         self.logger.info("VAL_BLKs")
-        for value in self.parameters.get("VAL_BLK").values():
+        for value in self.parameters.get("VAL_BLK", {}).values():
             instance_tree.sw_instances.append(self.value_block(value))
         self.logger.info("AXIS_PTSs")
-        for value in self.parameters.get("AXIS_PTS").values():
+        for value in self.parameters.get("AXIS_PTS", {}).values():
             instance_tree.sw_instances.append(self.axis_pts(value))
         self.logger.info("CURVEs")
-        for value in self.parameters.get("CURVE").values():
+        for value in self.parameters.get("CURVE", {}).values():
             instance_tree.sw_instances.append(self.map_curve(value, "CURVE"))
         self.logger.info("MAPs")
-        for value in self.parameters.get("MAP").values():
+        for value in self.parameters.get("MAP", {}).values():
             instance_tree.sw_instances.append(self.map_curve(value, "MAP"))
         self.logger.info("CUBOIDs")
-        for value in self.parameters.get("CUBOID").values():
+        for value in self.parameters.get("CUBOID", {}).values():
             instance_tree.sw_instances.append(self.map_curve(value, "CUBOID"))
         self.logger.info("CUBE_4s")
-        for value in self.parameters.get("CUBE_4").values():
+        for value in self.parameters.get("CUBE_4", {}).values():
             instance_tree.sw_instances.append(self.map_curve(value, "CUBE_4"))
         self.logger.info("CUBE_5s")
-        for value in self.parameters.get("CUBE_5").values():
+        for value in self.parameters.get("CUBE_5", {}).values():
             instance_tree.sw_instances.append(self.map_curve(value, "CUBE_5"))
         self.session.commit()
         self.cdf_db.create_indices()
