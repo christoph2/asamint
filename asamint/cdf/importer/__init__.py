@@ -199,13 +199,13 @@ class DBImporter:
         self.session.add(long_name)
         obj.long_name = long_name
 
-    def set_category(self, obj, name):
+    def set_category(self, obj: Any, name: str) -> None:
         category = Category()
         category.content = name
         self.session.add(category)
         obj.category = category
 
-    def set_display_name(self, obj, name):
+    def set_display_name(self, obj: Any, name: str) -> None:
         display_name = DisplayName()
         display_name.content = name
         self.session.add(display_name)
