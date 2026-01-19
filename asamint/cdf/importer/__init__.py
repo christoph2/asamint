@@ -135,19 +135,17 @@ class DBImporter:
 
     def scalar_value(self, value: klasses.Value) -> SwInstance:
         inst = self.create_instance(value)
-        self.add_value_container(inst, value.unit if hasattr(value, "unit") else None)
+        self.add_value_container(inst, value.unit)
         self.hdf_db.import_scalar_value(value)
         return inst
 
     def map_curve(
         self,
-        value: (
-            klasses.Curve | klasses.Map | klasses.Cuboid | klasses.Cube4 | klasses.Cube5
-        ),
+        value: klasses.Curve | klasses.Map | klasses.Cuboid | klasses.Cube4 | klasses.Cube5,
         category: str,
     ) -> SwInstance:
         inst = self.create_instance(value)
-        self.add_value_container(inst, value.unit if hasattr(value, "unit") else None)
+        self.add_value_container(inst, value.unit)
 
         try:
             self.hdf_db.import_map_curve(value)
@@ -157,13 +155,13 @@ class DBImporter:
 
     def value_block(self, value: klasses.ValueBlock) -> SwInstance:
         inst = self.create_instance(value)
-        self.add_value_container(inst, value.unit if hasattr(value, "unit") else None)
+        self.add_value_container(inst, value.unit)
         self.hdf_db.import_value_block(value)
         return inst
 
     def axis_pts(self, value: klasses.AxisPts) -> SwInstance:
         inst = self.create_instance(value)
-        self.add_value_container(inst, value.unit if hasattr(value, "unit") else None)
+        self.add_value_container(inst, value.unit)
         self.hdf_db.import_axis_pts(value)
         return inst
 
