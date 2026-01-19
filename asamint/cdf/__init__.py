@@ -270,7 +270,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
 
     def dump_array(self, attribute: str) -> None:
         for key, inst in self._parameters[attribute].items():
-            if list(inst.phys) == []:
+            if not list(inst.phys):
                 self.logger.warning(f"{attribute} {inst.name!r}: has no values.")
                 continue
             axis_conts = self.curve_and_map_header(
