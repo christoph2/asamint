@@ -1518,12 +1518,31 @@ class Calibration:
         Returns:
             ByteOrder: The byte order (BIG_ENDIAN or LITTLE_ENDIAN)
         """
-        return (
-            ByteOrder.BIG_ENDIAN
-            if obj.byteOrder
-            or self.mod_common.byteOrder in ("MSB_FIRST", "LITTLE_ENDIAN")
-            else ByteOrder.LITTLE_ENDIAN
-        )
+        # Resolve explicit byteOrder from the object first; fall back to MOD_COMMON.
+        bo = getattr(obj, "byteOrder", None)
+        if not bo:
+            bo = getattr(self.mod_common, "byteOrder", None)
+
+        # If it's already the ByteOrder enum, return it.
+        if isinstance(bo, ByteOrder):
+            return bo
+
+        # If it's a string, map known keywords (including legacy ones) to enum.
+        if isinstance(bo, str):
+            key = bo.strip().upper()
+            # ASAM note:
+            #   MSB_LAST  <-> Intel format  (equivalent former keyword: BIG_ENDIAN)
+            #   MSB_FIRST <-> Motorola format (equivalent former keyword: LITTLE_ENDIAN)
+            mapping = {
+                "MSB_FIRST": ByteOrder.MSB_FIRST,
+                "MSB_LAST": ByteOrder.MSB_LAST,
+                "LITTLE_ENDIAN": ByteOrder.MSB_FIRST,  # legacy synonym
+                "BIG_ENDIAN": ByteOrder.MSB_LAST,     # legacy synonym
+            }
+            return mapping.get(key, ByteOrder.MSB_LAST)
+
+        # Final fallback if nothing is defined: choose a sensible default.
+        return ByteOrder.MSB_LAST
 
     def update_record_layout(
         self, obj: Union[AxisPts, Characteristic]
