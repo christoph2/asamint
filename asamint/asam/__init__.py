@@ -442,7 +442,9 @@ DATA_TYPES = {
 
 class ByteOrder(IntEnum):
     LITTLE_ENDIAN = 0
+    MSB_FIRST = LITTLE_ENDIAN
     BIG_ENDIAN = 1
+    MSB_LAST = BIG_ENDIAN
 
 
 def get_data_type(datatype: str, byte_order: ByteOrder) -> str:
