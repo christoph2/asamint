@@ -622,6 +622,24 @@ def _write_hdf5(
                 dset.attrs["sample_count"] = int(m["sample_count"])  # type: ignore[arg-type]
 
 
+def _annotate_hdf5_root(h5_path: Path, project_meta: dict[str, Any]) -> None:
+    try:
+        import h5py  # type: ignore
+    except Exception:
+        return
+    if not h5_path.exists():
+        return
+    try:
+        with h5py.File(str(h5_path), "a") as hf:
+            for k, v in project_meta.items():
+                try:
+                    hf.attrs[k] = v if v is not None else ""
+                except Exception as exc:  # pragma: no cover - metadata best-effort
+                    logger.debug("Skipping HDF5 root attr %s: %s", k, exc)
+    except Exception as exc:  # pragma: no cover - best-effort
+        logger.debug("Failed to annotate HDF5 file %s: %s", h5_path, exc)
+
+
 def finalize_measurement_outputs(
     data: dict[str, Any],
     units: Optional[dict[str, Optional[str]]] = None,
@@ -871,6 +889,78 @@ def _run_daq_flow(
     )
 
 
+def _run_daq_flow_wrapper(
+    groups: list[dict[str, Any]],
+    duration: Optional[float],
+    samples: Optional[int],
+    period_s: Optional[float],
+    hdf5_out: Optional[str],
+) -> RunResult:
+    app = get_application()
+    exp_cfg = {
+        "SUBJECT": f"SUBJ_{app.general.shortname}" if app.general.shortname else "",
+        "DESCRIPTION": "",
+        "SHORTNAME": app.general.shortname or "",
+        "TIME_SOURCE": "local PC reference timer",
+        "MEASUREMENTS": [],
+        "FUNCTIONS": [],
+        "GROUPS": [],
+    }
+    creator_class = (
+        HDF5Creator
+        if (hdf5_out or app.general.output_format.upper() == "HDF5")
+        else MDFCreator
+    )
+    creator = creator_class(exp_cfg)
+
+    names = _unique_names_from_groups(groups)
+    for g in groups:
+        grp_name = g.get("group_name")
+        if grp_name:
+            extra = names_from_group(
+                creator.session, grp_name, exclude=g.get("exclude")
+            )
+            for n in extra:
+                if n not in names:
+                    names.append(n)
+    if not names:
+        creator.close()
+        raise ValueError("No variable names provided in groups.")
+    creator.add_measurements(names)
+    if not creator.measurement_variables:
+        creator.close()
+        raise ValueError(
+            "None of the requested measurements could be resolved from A2L."
+        )
+
+    project_meta = {
+        "author": getattr(app.general, "author", None),
+        "company": getattr(app.general, "company", None),
+        "department": getattr(app.general, "department", None),
+        "project": getattr(app.general, "project", None),
+        "shortname": getattr(app.general, "shortname", None),
+        "subject": exp_cfg.get("SUBJECT"),
+        "time_source": exp_cfg.get("TIME_SOURCE"),
+    }
+
+    daq_groups = _prepare_daq_groups(groups)
+    try:
+        result = _run_daq_flow(
+            creator=creator,
+            daq_groups=daq_groups,
+            duration=duration,
+            samples=samples,
+            period_s=period_s,
+            hdf5_out=hdf5_out,
+            shortname=app.general.shortname or "daq",
+        )
+        if result.hdf5_path:
+            _annotate_hdf5_root(Path(result.hdf5_path), project_meta)
+        return result
+    finally:
+        creator.close()
+
+
 def _run_polling_flow(
     creator: Any,
     *,
@@ -936,7 +1026,7 @@ def run(
     strict_mdf: bool = False,
     strict_no_trim: bool = False,
     strict_no_synth: bool = False,
-) -> RunResult:  # noqa: C901
+) -> RunResult:
     """
     High-level measurement runner (MVP, polling acquisition).
 
@@ -954,6 +1044,15 @@ def run(
         raise ValueError("Provide either duration or samples, but not both or neither.")
 
     app = get_application()
+    # DAQ path handled separately to keep this function within lint complexity limits.
+    if use_daq:
+        return _run_daq_flow_wrapper(
+            groups=groups,
+            duration=duration,
+            samples=samples,
+            period_s=period_s,
+            hdf5_out=hdf5_out,
+        )
 
     # Prepare MDF creator with an experiment_config shim
     exp_cfg = {
@@ -1009,19 +1108,7 @@ def run(
         "time_source": exp_cfg.get("TIME_SOURCE"),
     }
 
-    daq_groups = _prepare_daq_groups(groups)
     try:
-        if use_daq:
-            return _run_daq_flow(
-                creator=creator,
-                daq_groups=daq_groups,
-                duration=duration,
-                samples=samples,
-                period_s=period_s,
-                hdf5_out=hdf5_out,
-                shortname=app.general.shortname or "daq",
-            )
-
         return _run_polling_flow(
             creator=creator,
             duration=duration,
