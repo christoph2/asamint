@@ -8,7 +8,7 @@ import warnings
 from dataclasses import dataclass
 from typing import Any, List, Optional
 
-from asamint.config import create_application
+from asamint.config import create_application, get_application
 from asamint.measurement import finalize_from_daq_csv
 
 warnings.simplefilter("always")
@@ -75,6 +75,18 @@ def finalize_daq_csv(
     project_meta: Optional[dict[str, Any]] = None,
 ):
     """CLI-friendly wrapper to finalize DAQ CSV outputs into CSV/HDF5 with metadata."""
+
+    if project_meta is None:
+        app = get_application()
+        project_meta = {
+            "author": getattr(app.general, "author", None),
+            "company": getattr(app.general, "company", None),
+            "department": getattr(app.general, "department", None),
+            "project": getattr(app.general, "project", None),
+            "shortname": getattr(app.general, "shortname", None),
+            "subject": getattr(app.general, "shortname", None),
+            "time_source": "local PC reference timer",
+        }
 
     return finalize_from_daq_csv(
         csv_files,
