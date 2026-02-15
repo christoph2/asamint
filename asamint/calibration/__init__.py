@@ -38,12 +38,11 @@ from enum import IntEnum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
-from pya2l import model
-from pya2l.api.inspect import AxisPts, Characteristic, ModPar
 from pyxcp.checksum import check
 from pyxcp.cpp_ext.cpp_ext import McObject
 from pyxcp.daq_stim.optimize import make_continuous_blocks
 
+from asamint.adapters.a2l import AxisPts, Characteristic, ModPar, model
 from asamint.adapters.objutils import Image, InvalidAddressError, Section, dump, load
 from asamint.asam import AsamMC
 from asamint.asam.epk import Epk

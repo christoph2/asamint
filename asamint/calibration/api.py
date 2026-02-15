@@ -38,10 +38,17 @@ from logging import Logger
 from typing import Any, Optional, Union, cast
 
 import numpy as np
-from pya2l import model
-from pya2l.api.inspect import AxisPts, Characteristic, CompuMethod, asam_type_size
-from pya2l.functions import Formula, fix_axis_par, fix_axis_par_dist
 
+from asamint.adapters.a2l import (
+    AxisPts,
+    Characteristic,
+    CompuMethod,
+    Formula,
+    asam_type_size,
+    fix_axis_par,
+    fix_axis_par_dist,
+    model,
+)
 from asamint.adapters.objutils import Image, InvalidAddressError
 from asamint.asam import AsamMC, ByteOrder, get_data_type
 from asamint.core import CalibrationLimits, CalibrationValue

@@ -34,17 +34,17 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-from pya2l import model
-from pya2l.api.inspect import (
+
+from asamint.adapters.a2l import (
     CompuMethod,
     Group,
     ModCommon,
     ModPar,
     VariantCoding,
     asam_type_size,
+    model,
+    open_a2l_database,
 )
-
-from asamint.adapters.a2l import open_a2l_database
 from asamint.adapters.xcp import create_master
 from asamint.config import (
     get_application,
