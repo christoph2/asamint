@@ -599,6 +599,50 @@ def _write_hdf5(
                 dset.attrs["sample_count"] = int(m["sample_count"])  # type: ignore[arg-type]
 
 
+def finalize_measurement_outputs(
+    data: dict[str, Any],
+    units: Optional[dict[str, Optional[str]]] = None,
+    project_meta: Optional[dict[str, Any]] = None,
+    csv_out: Optional[str | Path] = None,
+    hdf5_out: Optional[str | Path] = None,
+) -> RunResult:
+    """Persist measurement data to CSV/HDF5 with metadata and return paths/meta."""
+
+    if csv_out is None and hdf5_out is None:
+        msg = "At least one of csv_out or hdf5_out must be provided."
+        raise ValueError(msg)
+
+    units = units or {}
+    project_meta = project_meta or {}
+    signal_names = [name for name in data.keys() if name != "TIMESTAMPS"]
+    meta = _compute_timebase_metadata(data, signal_names)
+    meta_with_units = {
+        name: {**meta.get(name, {}), "units": units.get(name)} for name in signal_names
+    }
+
+    csv_path: Path | None = None
+    h5_path: Path | None = None
+
+    if csv_out is not None:
+        csv_path = Path(csv_out)
+        if not csv_path.is_absolute():
+            csv_path = Path.cwd() / csv_path
+        _write_csv(csv_path, data, units, project_meta, meta_with_units)
+
+    if hdf5_out is not None:
+        h5_path = Path(hdf5_out)
+        if not h5_path.is_absolute():
+            h5_path = Path.cwd() / h5_path
+        _write_hdf5(h5_path, data, meta_with_units, project_meta)
+
+    return RunResult(
+        mdf_path=None,
+        csv_path=str(csv_path) if csv_path else None,
+        hdf5_path=str(h5_path) if h5_path else None,
+        signals=meta_with_units,
+    )
+
+
 def _parse_daq_csv(csv_file: Path) -> dict[str, Any]:
     """
     Parse a single CSV produced by pyXCP DaqToCsv.

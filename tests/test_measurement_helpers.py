@@ -18,6 +18,7 @@ from asamint.measurement import (
     _unique_names_from_groups,
     _write_csv,
     _write_hdf5,
+    finalize_measurement_outputs,
 )
 
 
@@ -315,3 +316,31 @@ def test_write_csv_synthesizes_timestamps_and_metadata(tmp_path: Path):
         for line in content
     )
     assert content[-3:] == ["timestamp,sig", "0,1.0", "1,2.0"]
+
+
+def test_finalize_measurement_outputs_writes_files(tmp_path: Path):
+    data = {"TIMESTAMPS": np.array([0.0, 0.5]), "sig": np.array([1.0, 2.0])}
+    units = {"sig": "V"}
+    project_meta = {"shortname": "demo"}
+    csv_path = tmp_path / "final.csv"
+    h5_path = tmp_path / "final.h5"
+
+    result = finalize_measurement_outputs(
+        data,
+        units=units,
+        project_meta=project_meta,
+        csv_out=csv_path,
+        hdf5_out=h5_path,
+    )
+
+    assert Path(result.csv_path) == csv_path
+    assert Path(result.hdf5_path) == h5_path
+    assert result.signals["sig"]["units"] == "V"
+    assert result.signals["sig"]["timebase_s"] == pytest.approx(0.5)
+
+    csv_lines = csv_path.read_text(encoding="utf-8").splitlines()
+    assert "timestamp,sig" in csv_lines
+
+    with h5py.File(h5_path, "r") as hf:
+        npt.assert_array_equal(hf["timestamps"][...], np.array([0.0, 0.5]))
+        npt.assert_array_equal(hf["sig"][...], np.array([1.0, 2.0]))
