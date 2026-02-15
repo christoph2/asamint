@@ -6,9 +6,10 @@ and create a XCP master instance.
 
 import warnings
 from dataclasses import dataclass
-from typing import List
+from typing import Any, List, Optional
 
 from asamint.config import create_application
+from asamint.measurement import finalize_from_daq_csv
 
 warnings.simplefilter("always")
 
@@ -63,3 +64,22 @@ class ArgumentParser:
     @property
     def parser(self):
         return self._parser
+
+
+def finalize_daq_csv(
+    csv_files: list[str],
+    *,
+    csv_out: Optional[str] = None,
+    hdf5_out: Optional[str] = None,
+    units: Optional[dict[str, Optional[str]]] = None,
+    project_meta: Optional[dict[str, Any]] = None,
+):
+    """CLI-friendly wrapper to finalize DAQ CSV outputs into CSV/HDF5 with metadata."""
+
+    return finalize_from_daq_csv(
+        csv_files,
+        units=units,
+        project_meta=project_meta,
+        csv_out=csv_out,
+        hdf5_out=hdf5_out,
+    )
