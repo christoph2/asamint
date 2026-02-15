@@ -18,6 +18,7 @@ from asamint.measurement import (
     _unique_names_from_groups,
     _write_csv,
     _write_hdf5,
+    finalize_from_daq_csv,
     finalize_measurement_outputs,
 )
 
@@ -344,3 +345,28 @@ def test_finalize_measurement_outputs_writes_files(tmp_path: Path):
     with h5py.File(h5_path, "r") as hf:
         npt.assert_array_equal(hf["timestamps"][...], np.array([0.0, 0.5]))
         npt.assert_array_equal(hf["sig"][...], np.array([1.0, 2.0]))
+
+
+def test_finalize_from_daq_csv_merges_and_persists(tmp_path: Path):
+    csv_a = tmp_path / "a.csv"
+    csv_b = tmp_path / "b.csv"
+    csv_a.write_text("timestamp,sig_a\n0,1\n1,2\n", encoding="utf-8")
+    csv_b.write_text("timestamp,sig_b\n0,3\n1,4\n", encoding="utf-8")
+
+    csv_out = tmp_path / "merged.csv"
+    h5_out = tmp_path / "merged.h5"
+
+    result = finalize_from_daq_csv(
+        [csv_a, csv_b],
+        units={"sig_a": "V"},
+        project_meta={"shortname": "demo"},
+        csv_out=csv_out,
+        hdf5_out=h5_out,
+    )
+
+    assert Path(result.csv_path) == csv_out
+    assert Path(result.hdf5_path) == h5_out
+    assert result.signals["sig_a"]["units"] == "V"
+    npt.assert_array_equal(_parse_daq_csv(csv_out)["sig_a"], np.array([1.0, 2.0]))
+    with h5py.File(h5_out, "r") as hf:
+        npt.assert_array_equal(hf["sig_b"][...], np.array([3.0, 4.0]))

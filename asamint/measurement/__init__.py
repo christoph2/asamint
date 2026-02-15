@@ -657,6 +657,30 @@ def finalize_measurement_outputs(
     )
 
 
+def finalize_from_daq_csv(
+    csv_files: Iterable[str | Path],
+    units: Optional[dict[str, Optional[str]]] = None,
+    project_meta: Optional[dict[str, Any]] = None,
+    csv_out: Optional[str | Path] = None,
+    hdf5_out: Optional[str | Path] = None,
+) -> RunResult:
+    """Merge DAQ CSV results, compute metadata, and persist to CSV/HDF5."""
+
+    files = [Path(p) for p in csv_files]
+    if not files:
+        raise ValueError("No CSV files provided for finalization.")
+    data = _merge_daq_csv_results(files)
+    if not data:
+        raise ValueError("No data parsed from DAQ CSV files.")
+    return finalize_measurement_outputs(
+        data=data,
+        units=units,
+        project_meta=project_meta,
+        csv_out=csv_out,
+        hdf5_out=hdf5_out,
+    )
+
+
 def _parse_daq_csv(csv_file: Path) -> dict[str, Any]:
     """
     Parse a single CSV produced by pyXCP DaqToCsv.
