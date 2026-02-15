@@ -16,6 +16,7 @@ from asamint.measurement import (
     _prepare_daq_groups,
     _stride_for_ratio,
     _unique_names_from_groups,
+    _write_csv,
     _write_hdf5,
 )
 
@@ -293,3 +294,24 @@ def test_write_hdf5_persists_data_and_metadata(tmp_path: Path):
         assert hf["sig"].attrs["units"] == "V"
         assert hf["sig"].attrs["compu_method"] == "LINEAR"
         assert hf["sig"].attrs["sample_count"] == 2
+
+
+def test_write_csv_synthesizes_timestamps_and_metadata(tmp_path: Path):
+    target = tmp_path / "out.csv"
+    data = {"sig": np.array([1.0, 2.0])}
+    units = {"sig": "V"}
+    project_meta = {"author": "alice", "shortname": "demo"}
+    meta = {"sig": {"timebase_s": 0.5, "timestamp_source": "TIMESTAMPS", "group_id": 0}}
+
+    _write_csv(target, data, units, project_meta, meta)
+
+    content = target.read_text(encoding="utf-8").splitlines()
+    assert content[0].startswith("# asamint measurement")
+    assert "# author: alice" in content
+    assert "# shortname: demo" in content
+    assert "# sig [V]" in content
+    assert any(
+        line.startswith("# timebase: sig tb≈0.5s src=TIMESTAMPS grp=0")
+        for line in content
+    )
+    assert content[-3:] == ["timestamp,sig", "0,1.0", "1,2.0"]
