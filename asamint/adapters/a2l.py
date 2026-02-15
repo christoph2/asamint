@@ -3,11 +3,13 @@ from __future__ import annotations
 from typing import Any
 
 from pya2l import DB, model
+from pya2l.api import inspect as a2l_inspect
 from pya2l.api.inspect import (
     AxisPts,
     Characteristic,
     CompuMethod,
     Group,
+    Measurement,
     ModCommon,
     ModPar,
     VariantCoding,
@@ -26,11 +28,13 @@ def open_a2l_database(
 
 
 __all__ = [
+    "a2l_inspect",
     "AxisPts",
     "Characteristic",
     "CompuMethod",
     "Formula",
     "Group",
+    "Measurement",
     "ModCommon",
     "ModPar",
     "VariantCoding",

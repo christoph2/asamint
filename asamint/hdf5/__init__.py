@@ -3,8 +3,7 @@
 from collections.abc import Iterable
 from typing import Any
 
-from pya2l.api import inspect
-
+from asamint.adapters.a2l import inspect
 from asamint.asam import AsamMC
 
 
@@ -25,7 +24,7 @@ class HDF5Creator(AsamMC):
             )
 
     def add_measurements(self, names: Iterable[str]) -> None:
-        """Add measurement items by name using pya2l inspect.Measurement."""
+        """Add measurement items by name using A2L inspect.Measurement."""
         for name in names:
             try:
                 meas = inspect.Measurement.get(self.session, name)

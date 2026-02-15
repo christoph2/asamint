@@ -32,9 +32,8 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 from asammdf import MDF, Signal
 from lxml.etree import Element, tostring  # nosec
-from pya2l.api import inspect
-from pya2l.api.inspect import asam_type_size
 
+from asamint.adapters.a2l import asam_type_size, inspect
 from asamint.asam import AsamMC, get_data_type
 from asamint.utils.xml import create_elem
 
@@ -133,7 +132,7 @@ class MDFCreator(AsamMC):
             return tostring(elem_root, encoding="UTF-8", pretty_print=True)
 
     def add_measurements(self, names: Iterable[str]) -> None:
-        """Add measurement items by name using pya2l inspect.Measurement.
+        """Add measurement items by name using A2L inspect.Measurement.
 
         Unknown names will be logged and ignored.
         """
@@ -151,7 +150,7 @@ class MDFCreator(AsamMC):
         if names:
             self.add_measurements(names)
 
-    def save_measurements(
+    def save_measurements(  # noqa: C901
         self,
         mdf_filename: str | None = None,
         data: dict[str, Any] | None = None,
@@ -187,8 +186,8 @@ class MDFCreator(AsamMC):
                     arr = np.asarray(v)
                     if arr.ndim == 1 and arr.size > 0:
                         ts_candidates[k] = arr
-                except Exception:
-                    pass
+                except Exception as exc:
+                    self.logger.debug("Skipping timestamp candidate %s: %s", k, exc)
 
         # If no dedicated timestamp arrays found, we will synthesize later per group
 
@@ -399,7 +398,7 @@ class MDFCreator(AsamMC):
         # 5) Save MDF
         self._mdf_obj.save(dst=mdf_filename, overwrite=True)
 
-    def ccblock(self, compuMethod) -> str | None:
+    def ccblock(self, compuMethod) -> str | None:  # noqa: C901
         """Construct CCBLOCK
 
         Parameters
@@ -493,21 +492,18 @@ class MDFCreator(AsamMC):
 
             else:
                 # Unknown/rare conversion type — log once and proceed without conversion
-                try:
-                    self.logger.warning(
-                        f"Unsupported COMPU_METHOD type '{cm_type}' for MDF CCBLOCK; writing raw values."
-                    )
-                except Exception:
-                    pass
+                self.logger.warning(
+                    "Unsupported COMPU_METHOD type '%s' for MDF CCBLOCK; writing raw values.",
+                    cm_type,
+                )
                 conversion = None
         except (
             Exception
         ) as e:  # defensive: never fail MDF writing due to conversion map
-            try:
-                self.logger.warning(
-                    f"Failed to construct CCBLOCK for {getattr(compuMethod, 'name', compuMethod)}: {e}"
-                )
-            except Exception:
-                pass
+            self.logger.warning(
+                "Failed to construct CCBLOCK for %s: %s",
+                getattr(compuMethod, "name", compuMethod),
+                e,
+            )
             conversion = None
         return conversion

@@ -38,12 +38,9 @@ from enum import IntEnum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
-from pyxcp.checksum import check
-from pyxcp.cpp_ext.cpp_ext import McObject
-from pyxcp.daq_stim.optimize import make_continuous_blocks
-
 from asamint.adapters.a2l import AxisPts, Characteristic, ModPar, model
 from asamint.adapters.objutils import Image, InvalidAddressError, Section, dump, load
+from asamint.adapters.xcp import McObject, compute_checksum, make_continuous_blocks
 from asamint.asam import AsamMC
 from asamint.asam.epk import Epk
 from asamint.calibration import api
@@ -324,7 +321,7 @@ class CalibrationData:
             block = section.data[offset : offset + cs_length]
             self.asam_mc.xcp_master.setMta(address, 0)
             xcp_checksum = self.asam_mc.xcp_master.buildChecksum(cs_length)
-            checksum = check(block, str(xcp_checksum.checksumType))
+            checksum = compute_checksum(block, str(xcp_checksum.checksumType))
             equal = checksum == xcp_checksum.checksum
             self.logger.info(
                 f"Address: 0x{address:08X} XCPChecksum {xcp_checksum.checksum} Checksum: {checksum} ==> {equal}"
@@ -337,7 +334,7 @@ class CalibrationData:
             address = section.address + offset
             self.asam_mc.xcp_master.setMta(address, 0)
             xcp_checksum = self.asam_mc.xcp_master.buildChecksum(remaining_bytes)
-            checksum = check(block, str(xcp_checksum.checksumType))
+            checksum = compute_checksum(block, str(xcp_checksum.checksumType))
             equal = checksum == xcp_checksum.checksum
             self.logger.info(
                 f"Address: 0x{address:08X} XCPChecksum {xcp_checksum.checksum} Checksum: {checksum} ==> {equal}"

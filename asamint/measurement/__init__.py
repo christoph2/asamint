@@ -25,6 +25,7 @@ __copyright__ = """
 """
 
 import csv
+import logging
 import time
 import warnings
 from collections.abc import Iterable
@@ -32,14 +33,19 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional, Union
 
-from pya2l import model
-from pyxcp.daq_stim import DaqList, DaqRecorder, DaqToCsv  # type: ignore
-from pyxcp.master import Master  # type: ignore
-from pyxcp.transport.hdf5_policy import Hdf5OnlinePolicy
-
+from asamint.adapters.a2l import model
+from asamint.adapters.xcp import (
+    ArgumentParser,
+    DaqList,
+    DaqRecorder,
+    DaqToCsv,
+    Hdf5OnlinePolicy,
+)
 from asamint.config import get_application
 from asamint.hdf5 import HDF5Creator
 from asamint.mdf import MDFCreator
+
+logger = logging.getLogger(__name__)
 
 PYXCP_TYPES = {
     "UBYTE": "U8",
@@ -152,9 +158,8 @@ def names_from_group(
             if meas_name in exclude_set:
                 continue
             names.append(meas_name)
-    except Exception:
-        # be permissive; return what we have
-        pass
+    except Exception as exc:
+        logger.debug("Failed to resolve group %s: %s", group_name, exc)
     return names
 
 
@@ -300,6 +305,66 @@ def _unique_names_from_groups(groups: list[dict[str, Any]]) -> list[str]:
     return names
 
 
+def _csv_fieldnames(data: dict[str, Any]) -> list[str]:
+    return ["timestamp"] + sorted([k for k in data.keys() if k != "TIMESTAMPS"])
+
+
+def _write_metadata_headers(
+    fh,
+    units: dict[str, Optional[str]],
+    project_meta: Optional[dict[str, Any]],
+    meta: Optional[dict[str, dict[str, Any]]],
+) -> None:
+    fh.write("# asamint measurement (converted physical values)\n")
+    if project_meta:
+        for key in (
+            "author",
+            "company",
+            "department",
+            "project",
+            "shortname",
+            "subject",
+            "time_source",
+        ):
+            if key in project_meta and project_meta[key] not in (None, ""):
+                fh.write(f"# {key}: {project_meta[key]}\n")
+    for sig, unit in units.items():
+        if unit:
+            fh.write(f"# {sig} [{unit}]\n")
+        else:
+            fh.write(f"# {sig}\n")
+    if meta:
+        fh.write(
+            "# timebase metadata per signal: tb≈<seconds>, src=<timestamp key>, grp=<id>\n"
+        )
+        for sig in sorted(k for k in units.keys()):
+            m = meta.get(sig, {})
+            tb = m.get("timebase_s")
+            src = m.get("timestamp_source")
+            gid = m.get("group_id")
+            if tb is None and src is None and gid is None:
+                continue
+            tb_str = f"{tb:.6g}" if isinstance(tb, (int, float)) else ""
+            src_str = str(src) if src is not None else ""
+            gid_str = str(gid) if gid is not None else ""
+            fh.write(f"# timebase: {sig} tb≈{tb_str}s src={src_str} grp={gid_str}\n")
+    fh.write("#\n")
+
+
+def _iter_csv_rows(
+    timestamps: list[Any], series_keys: list[str], data: dict[str, Any]
+) -> Iterable[list[Any]]:
+    for idx, t_val in enumerate(timestamps):
+        row = [t_val]
+        for key in series_keys:
+            arr = data.get(key)
+            try:
+                row.append(arr[idx])
+            except Exception:
+                row.append("")
+        yield row
+
+
 def _write_csv(
     csv_path: Path,
     data: dict[str, Any],
@@ -307,51 +372,9 @@ def _write_csv(
     project_meta: Optional[dict[str, Any]] = None,
     meta: Optional[dict[str, dict[str, Any]]] = None,
 ) -> None:
-    # Prepare header with timestamp + signal names
-    fieldnames = ["timestamp"] + [k for k in data.keys() if k != "TIMESTAMPS"]
-    # Ensure stable order
-    fieldnames = ["timestamp"] + sorted([k for k in data.keys() if k != "TIMESTAMPS"])
+    fieldnames = _csv_fieldnames(data)
     with csv_path.open("w", newline="", encoding="utf-8") as fh:
-        # Metadata header
-        fh.write("# asamint measurement (converted physical values)\n")
-        if project_meta:
-            # Write project/experiment metadata preamble
-            for key in (
-                "author",
-                "company",
-                "department",
-                "project",
-                "shortname",
-                "subject",
-                "time_source",
-            ):
-                if key in project_meta and project_meta[key] not in (None, ""):
-                    fh.write(f"# {key}: {project_meta[key]}\n")
-        for sig, unit in units.items():
-            if unit:
-                fh.write(f"# {sig} [{unit}]\n")
-            else:
-                fh.write(f"# {sig}\n")
-        # Per-signal timebase metadata (if available)
-        if meta:
-            fh.write(
-                "# timebase metadata per signal: tb≈<seconds>, src=<timestamp key>, grp=<id>\n"
-            )
-            for sig in sorted(k for k in units.keys()):
-                m = meta.get(sig, {})
-                tb = m.get("timebase_s")
-                src = m.get("timestamp_source")
-                gid = m.get("group_id")
-                if tb is None and src is None and gid is None:
-                    continue
-                tb_str = f"{tb:.6g}" if isinstance(tb, (int, float)) else ""
-                src_str = str(src) if src is not None else ""
-                gid_str = str(gid) if gid is not None else ""
-                fh.write(
-                    f"# timebase: {sig} tb≈{tb_str}s src={src_str} grp={gid_str}\n"
-                )
-        # blank line after headers for readability
-        fh.write("#\n")
+        _write_metadata_headers(fh, units, project_meta, meta)
         writer = csv.writer(fh)
         writer.writerow(fieldnames)
         ts = data.get("TIMESTAMPS")
@@ -363,20 +386,11 @@ def _write_csv(
                     continue
                 try:
                     max_len = max(max_len, len(v))
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Cannot determine length for series %s: %s", k, exc)
             ts = list(range(max_len))
-        # Compose rows
-        # Build aligned columns by index
         series_keys = [k for k in fieldnames if k != "timestamp"]
-        for idx in range(len(ts)):
-            row = [ts[idx]]
-            for k in series_keys:
-                arr = data.get(k)
-                try:
-                    row.append(arr[idx])
-                except Exception:
-                    row.append("")
+        for row in _iter_csv_rows(list(ts), series_keys, data):
             writer.writerow(row)
 
 
@@ -392,108 +406,16 @@ def _compute_timebase_metadata(
     """
     import numpy as np
 
-    # 1) Collect timestamp candidates
-    ts_candidates: dict[str, np.ndarray] = {}
-    for k, v in data.items():
-        if not isinstance(k, str):
-            continue
-        kl = k.lower()
-        if kl == "timestamps" or kl.startswith("timestamp"):
-            try:
-                arr = np.asarray(v)
-                if arr.ndim == 1 and arr.size > 0:
-                    ts_candidates[k] = arr
-            except Exception:
-                pass
-
-    # sort by preference: event-specific timestamp* first, then by length desc
-    def _ts_priority(item):
-        name, arr = item
-        lname = name.lower()
-        is_event = (
-            1
-            if (
-                lname.startswith("timestamp")
-                and lname not in ("timestamp", "timestamps")
-            )
-            else 0
-        )
-        return (is_event, int(arr.shape[0]))
-
-    ts_items = sorted(ts_candidates.items(), key=_ts_priority, reverse=True)
-
-    # 2) Map each signal to the best matching timestamp source
+    ts_items = _timestamp_candidates(data)
     result: dict[str, dict[str, Any]] = {}
-    # assign group ids by the chosen_src string
     group_map: dict[str, int] = {}
     next_gid = 0
 
     for name in signal_names:
-        samples = data.get(name)
-        if samples is None:
-            continue
-        try:
-            arr = np.asarray(samples)
-        except Exception:
-            continue
-        n = int(arr.shape[0]) if arr.ndim >= 1 else 0
-        chosen_src: Optional[str] = None
-        chosen_ts: Optional[np.ndarray] = None
-        # exact match first
-        for src, ts in ts_items:
-            if int(ts.shape[0]) == n:
-                chosen_src = src
-                chosen_ts = ts
-                break
-        if chosen_ts is None:
-            # try stride from higher-rate with small tolerance and optional tail trim
-            for src, ts in ts_items:
-                ts_len = int(ts.shape[0])
-                if ts_len > n and n > 0:
-                    ratio = ts_len / float(n)
-                    step = int(round(ratio)) if ratio > 0 else 0
-                    if step <= 0:
-                        continue
-                    target = step * n
-                    # allow small tail trimming up to 1% or at least 1 sample
-                    if target <= ts_len and abs(ts_len - target) <= max(
-                        1, int(0.01 * ts_len)
-                    ):
-                        ts_use = ts[:target]
-                        try:
-                            chosen_ts = ts_use[::step]
-                            trimmed = "(trim)" if target != ts_len else ""
-                            chosen_src = f"{src}[::${step}]{trimmed}"
-                            if int(chosen_ts.shape[0]) == n:
-                                break
-                            else:
-                                chosen_ts = None
-                                chosen_src = None
-                        except Exception:
-                            chosen_ts = None
-                            chosen_src = None
-        # compute timebase
-        tb: Optional[float] = None
-        if chosen_ts is not None and chosen_ts.shape[0] > 1:
-            try:
-                dt = np.diff(chosen_ts.astype(float))
-                if dt.size:
-                    median_dt = float(np.median(dt))
-                    # Treat event-specific timestamp* arrays as nanoseconds and convert to seconds
-                    base_src = (chosen_src or "").lower().split("[")[0]
-                    if base_src.startswith("timestamp") and base_src not in (
-                        "timestamp",
-                        "timestamps",
-                    ):
-                        tb = median_dt / 1e9
-                        # annotate source as ns for clarity if not already annotated
-                        if chosen_src and "(ns)" not in chosen_src:
-                            chosen_src = f"{chosen_src}(ns)"
-                    else:
-                        tb = median_dt
-            except Exception:
-                tb = None
-        # group id
+        chosen_src, chosen_ts, sample_len = _select_timestamp_for_signal(
+            data, name, ts_items
+        )
+        tb = _median_timebase(chosen_src, chosen_ts)
         key = chosen_src or "synthetic"
         if key not in group_map:
             group_map[key] = next_gid
@@ -503,9 +425,130 @@ def _compute_timebase_metadata(
             "timestamp_source": chosen_src,
             "timebase_s": tb,
             "group_id": gid,
+            "sample_count": sample_len,
         }
 
     return result
+
+
+def _timestamp_candidates(data: dict[str, Any]) -> list[tuple[str, Any]]:
+    import numpy as np
+
+    candidates: dict[str, np.ndarray] = {}
+    for key, value in data.items():
+        if not isinstance(key, str):
+            continue
+        lowered = key.lower()
+        if lowered == "timestamps" or lowered.startswith("timestamp"):
+            try:
+                arr = np.asarray(value)
+                if arr.ndim == 1 and arr.size > 0:
+                    candidates[key] = arr
+            except Exception as exc:
+                logger.debug("Skipping timestamp candidate %s: %s", key, exc)
+    return sorted(candidates.items(), key=_ts_priority, reverse=True)
+
+
+def _ts_priority(item: tuple[str, Any]) -> tuple[int, int]:
+    name, arr = item
+    lname = name.lower()
+    is_event = (
+        1
+        if lname.startswith("timestamp") and lname not in ("timestamp", "timestamps")
+        else 0
+    )
+    try:
+        length = int(arr.shape[0])
+    except Exception:
+        length = 0
+    return (is_event, length)
+
+
+def _select_timestamp_for_signal(
+    data: dict[str, Any], name: str, ts_items: list[tuple[str, Any]]
+) -> tuple[Optional[str], Optional[Any], int]:
+    import numpy as np
+
+    samples = data.get(name)
+    if samples is None:
+        return None, None, 0
+    try:
+        arr = np.asarray(samples)
+    except Exception:
+        return None, None, 0
+    n = int(arr.shape[0]) if arr.ndim >= 1 else 0
+    chosen_src, chosen_ts = _exact_timestamp_match(ts_items, n)
+    if chosen_ts is None:
+        chosen_src, chosen_ts = _stride_timestamp_match(ts_items, n)
+    return chosen_src, chosen_ts, n
+
+
+def _exact_timestamp_match(
+    ts_items: list[tuple[str, Any]], sample_len: int
+) -> tuple[Optional[str], Optional[Any]]:
+    for src, ts in ts_items:
+        if int(getattr(ts, "shape", [0])[0]) == sample_len:
+            return src, ts
+    return None, None
+
+
+def _stride_timestamp_match(
+    ts_items: list[tuple[str, Any]], sample_len: int
+) -> tuple[Optional[str], Optional[Any]]:
+    for src, ts in ts_items:
+        ts_len = int(getattr(ts, "shape", [0])[0])
+        if ts_len <= sample_len or sample_len <= 0:
+            continue
+        step = _stride_for_ratio(ts_len, sample_len)
+        if step is None:
+            continue
+        target = step * sample_len
+        ts_use = ts[:target]
+        try:
+            chosen_ts = ts_use[::step]
+            trimmed = "(trim)" if target != ts_len else ""
+            chosen_src = f"{src}[::${step}]{trimmed}"
+            if int(getattr(chosen_ts, "shape", [0])[0]) == sample_len:
+                return chosen_src, chosen_ts
+        except Exception as exc:
+            logger.debug("Failed stride selection for %s: %s", src, exc)
+    return None, None
+
+
+def _stride_for_ratio(ts_len: int, n: int) -> Optional[int]:
+    if ts_len <= 0 or n <= 0:
+        return None
+    ratio = ts_len / float(n)
+    step = int(round(ratio)) if ratio > 0 else 0
+    if step <= 0:
+        return None
+    target = step * n
+    if target > ts_len or abs(ts_len - target) > max(1, int(0.01 * ts_len)):
+        return None
+    return step
+
+
+def _median_timebase(src: Optional[str], ts: Optional[Any]) -> Optional[float]:
+    import numpy as np
+
+    if ts is None:
+        return None
+    try:
+        if getattr(ts, "shape", [0])[0] <= 1:
+            return None
+        dt = np.diff(ts.astype(float))
+        if not dt.size:
+            return None
+        median_dt = float(np.median(dt))
+        base_src = (src or "").lower().split("[")[0]
+        if base_src.startswith("timestamp") and base_src not in (
+            "timestamp",
+            "timestamps",
+        ):
+            return median_dt / 1e9
+        return median_dt
+    except Exception:
+        return None
 
 
 def _write_hdf5(
@@ -525,6 +568,7 @@ def _write_hdf5(
         warnings.warn(
             f"HDF5 export requested but h5py is not available: {e}. Skipping HDF5 write.",
             RuntimeWarning,
+            stacklevel=2,
         )
         return
 
@@ -533,9 +577,8 @@ def _write_hdf5(
         for k, v in project_meta.items():
             try:
                 hf.attrs[k] = v if v is not None else ""
-            except Exception:
-                # ensure attribute assignment doesn't break
-                pass
+            except Exception as exc:
+                logger.debug("Skipping HDF5 root attr %s: %s", k, exc)
         # timestamps dataset
         ts = data.get("TIMESTAMPS")
         if ts is not None:
@@ -564,37 +607,22 @@ def _parse_daq_csv(csv_file: Path) -> dict[str, Any]:
     """
     import numpy as np  # local import to avoid hard dep when not used
 
-    columns: list[str] = []
-    rows: list[list[str]] = []
-    with csv_file.open("r", encoding="utf-8", newline="") as fh:
-        reader = csv.reader(fh)
-        for raw in reader:
-            if not raw:
-                continue
-            if raw[0].startswith("#"):
-                continue
-            if not columns:
-                columns = [c.strip() for c in raw]
-                continue
-            rows.append(raw)
-
+    columns, rows = _read_daq_csv_rows(csv_file)
     if not columns:
         return {}
 
-    # candidate names for timestamp column
-    ts_names = {"timestamp", "time", "TIMESTAMP", "TIME"}
-    # normalize header
     norm = [c.strip() for c in columns]
-    ts_idx = next((i for i, c in enumerate(norm) if c in ts_names), None)
+    ts_idx = _timestamp_index(norm)
 
     col_data: list[list[float]] = [[] for _ in norm]
-    for r in rows:
-        for i, v in enumerate(r):
+    for row in rows:
+        for idx, value in enumerate(row):
             try:
-                col_data[i].append(float(v))
-            except Exception:
-                # best-effort parse; skip non-numeric
-                pass
+                col_data[idx].append(float(value))
+            except Exception as exc:
+                logger.debug(
+                    "Skipping non-numeric value %r at column %s: %s", value, idx, exc
+                )
 
     result: dict[str, Any] = {}
     if ts_idx is not None:
@@ -604,6 +632,26 @@ def _parse_daq_csv(csv_file: Path) -> dict[str, Any]:
             continue
         result[name] = np.asarray(col_data[i])
     return result
+
+
+def _read_daq_csv_rows(csv_file: Path) -> tuple[list[str], list[list[str]]]:
+    columns: list[str] = []
+    rows: list[list[str]] = []
+    with csv_file.open("r", encoding="utf-8", newline="") as fh:
+        reader = csv.reader(fh)
+        for raw in reader:
+            if not raw or raw[0].startswith("#"):
+                continue
+            if not columns:
+                columns = [c.strip() for c in raw]
+                continue
+            rows.append(raw)
+    return columns, rows
+
+
+def _timestamp_index(headers: list[str]) -> Optional[int]:
+    ts_names = {"timestamp", "time", "TIMESTAMP", "TIME"}
+    return next((i for i, col in enumerate(headers) if col in ts_names), None)
 
 
 def _merge_daq_csv_results(files: Iterable[Path]) -> dict[str, Any]:
@@ -619,7 +667,7 @@ def _merge_daq_csv_results(files: Iterable[Path]) -> dict[str, Any]:
         try:
             part = _parse_daq_csv(f)
         except Exception as e:
-            warnings.warn(f"Failed to parse DAQ CSV {f}: {e}")
+            warnings.warn(f"Failed to parse DAQ CSV {f}: {e}", stacklevel=2)
             continue
         if not part:
             continue
@@ -639,6 +687,47 @@ def _merge_daq_csv_results(files: Iterable[Path]) -> dict[str, Any]:
         )
         merged["TIMESTAMPS"] = np.arange(max_len, dtype=float)
     return merged
+
+
+def _prepare_daq_groups(groups: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    prepared: list[dict[str, Any]] = []
+    for group in groups:
+        item = dict(group)
+        item.setdefault("priority", 0)
+        item.setdefault("prescaler", 1)
+        prepared.append(item)
+    return prepared
+
+
+def _execute_daq_capture(
+    daq_lists: list[DaqList],
+    duration: Optional[float],
+    samples: Optional[int],
+    period_s: Optional[float],
+    hdf5_out: Optional[str],
+    shortname: str,
+) -> str:
+    target_hdf5 = hdf5_out or _auto_filename(shortname or "daq", "h5")
+    daq_parser = Hdf5OnlinePolicy(target_hdf5, daq_lists)
+    ap = ArgumentParser(description="asamint DAQ run")
+    with ap.run(policy=daq_parser) as connection:
+        connection.connect()
+        if connection.slaveProperties.optionalCommMode:
+            connection.getCommModeInfo()
+        connection.cond_unlock("DAQ")
+        daq_parser.setup()
+        daq_parser.start()
+        try:
+            if samples is not None and period_s:
+                time.sleep(max(0.0, samples * float(period_s)))
+            elif duration is not None:
+                time.sleep(max(0.0, float(duration)))
+            else:
+                time.sleep(1.0)
+        finally:
+            daq_parser.stop()
+            connection.disconnect()
+    return target_hdf5
 
 
 def run(
@@ -719,47 +808,18 @@ def run(
             "None of the requested measurements could be resolved from A2L."
         )
 
-    # Acquire via pyXCP polling
-    data: dict[str, Any]
+    daq_groups = _prepare_daq_groups(groups)
     try:
-        # enrich groups with priority/prescaler defaults
-        daq_groups: list[dict[str, Any]] = []
-        for g in groups:
-            gg = dict(g)
-            gg.setdefault("priority", 0)
-            gg.setdefault("prescaler", 1)
-            daq_groups.append(gg)
         daq_lists = build_daq_lists(creator.session, daq_groups)
-
-        # Prefer CSV output from pyXCP's DaqToCsv; we'll parse and convert via A2L.
-        from pyxcp.cmdline import ArgumentParser  # type: ignore
-
-        # If hdf5_out is not provided, generate a default based on the shortname.
-        if hdf5_out is None:
-            hdf5_out = _auto_filename(app.general.shortname or "daq", "h5")
-
-        # daq_parser = DaqToCsv(daq_lists)
-        daq_parser = Hdf5OnlinePolicy(hdf5_out, daq_lists)
-
-        ap = ArgumentParser(description="asamint DAQ run")
-        with ap.run(policy=daq_parser) as x:
-            x.connect()
-            if x.slaveProperties.optionalCommMode:
-                x.getCommModeInfo()
-            x.cond_unlock("DAQ")
-            daq_parser.setup()
-            daq_parser.start()
-            try:
-                if samples is not None and period_s:
-                    time.sleep(max(0.0, samples * float(period_s)))
-                elif duration is not None:
-                    time.sleep(max(0.0, float(duration)))
-                else:
-                    time.sleep(1.0)
-            finally:
-                daq_parser.stop()
-                x.disconnect()
-    except Exception as e:
+        hdf5_out = _execute_daq_capture(
+            daq_lists=daq_lists,
+            duration=duration,
+            samples=samples,
+            period_s=period_s,
+            hdf5_out=hdf5_out,
+            shortname=app.general.shortname or "daq",
+        )
+    except Exception:
         raise
     finally:
         creator.close()

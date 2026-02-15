@@ -56,7 +56,7 @@ from asamint.model.calibration import klasses
 from asamint.utils import SINGLE_BITS, ffs
 
 # Define type for calibration values
-ValueType = Union[float, int, bool, str]
+ValueType = Union[float, int, bool, str, CalibrationValue]
 
 # Constants
 BOOLEAN_MAP = {"true": 1, "false": 0}
@@ -215,6 +215,7 @@ class ParameterCache:
         )
         self.axis_pts = DictLike(parent.load_axis_pts)
         self.values = DictLike(parent.load_value)
+        self.value_dtos = DictLike(parent.load_value_dto)
         self.asciis = DictLike(parent.load_ascii)
         self.value_blocks = DictLike(parent.load_value_block)
 
@@ -223,6 +224,7 @@ class ParameterCache:
             "CURVE": self.curves,
             "AXIS_PTS": self.axis_pts,
             "VALUE": self.values,
+            "VALUE_DTO": self.value_dtos,
             "ASCII": self.asciis,
             "MAP": self.maps,
             "VAL_BLK": self.value_blocks,
@@ -241,6 +243,16 @@ class ParameterCache:
             The DictLike cache for the specified parameter type
         """
         return self.dicts.get(item)
+
+    def invalidate(self, characteristic_name: str) -> None:
+        """Invalidate cached entries for a characteristic across known caches."""
+
+        for cache in (
+            getattr(self, "values", None),
+            getattr(self, "value_dtos", None),
+        ):
+            if cache:
+                cache.cache.pop(characteristic_name, None)
 
 
 class Calibration:
@@ -737,7 +749,7 @@ class Calibration:
 
         Args:
             characteristic_name: Name of the value characteristic to save to
-            value: Value to save (float, int, bool, or str)
+            value: Value to save (float, int, bool, str, or CalibrationValue DTO)
             extendedLimits: Whether to check extended limits
             readOnlyPolicy: Policy for handling read-only characteristics
             limitsPolicy: Policy for handling values outside limits
@@ -752,8 +764,10 @@ class Calibration:
             ValueError: If the characteristic is not found, not of type VALUE,
                         or if a string value is not in the allowed set
         """
-        # Normalize: allow wrapper objects from load_value
-        if hasattr(value, "phys"):
+        # Normalize: allow wrapper objects and DTOs from load_value/load_value_dto
+        if isinstance(value, CalibrationValue):
+            value = value.phys if value.phys is not None else value.raw
+        elif hasattr(value, "phys"):
             value = value.phys
         elif hasattr(value, "raw"):
             value = value.raw
@@ -817,6 +831,8 @@ class Calibration:
 
         # Write to memory
         self.image.write_numeric(characteristic.address, phys, dtype)
+        if isinstance(self.parameter_cache, ParameterCache):
+            self.parameter_cache.invalidate(characteristic_name)
         return Status.OK
 
     def load_value_dto(self, characteristic_name: str) -> CalibrationValue:
