@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""HEX file downloader.
-"""
+"""HEX file downloader."""
 
 __copyright__ = """
     pySART - Simplified AUTOSAR-Toolkit for Python.
@@ -28,8 +27,8 @@ from os.path import exists
 
 from create import create_example_hexfile
 from objutils import load
-from pyxcp.cmdline import ArgumentParser
 
+from asamint.adapters.xcp import ArgumentParser
 
 HEX_FILE_NAME = "paged_flash.s28"
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Very basic hello-world example.
-"""
+"""Very basic hello-world example."""
 
 __copyright__ = """
     pySART - Simplified AUTOSAR-Toolkit for Python.
@@ -27,7 +26,7 @@ __copyright__ = """
 
 from pprint import pprint
 
-from pyxcp.cmdline import ArgumentParser
+from asamint.adapters.xcp import ArgumentParser
 
 
 def callout(master, args):

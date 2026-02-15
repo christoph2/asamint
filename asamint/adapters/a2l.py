@@ -17,6 +17,8 @@ from pya2l.api.inspect import (
 )
 from pya2l.functions import Formula, fix_axis_par, fix_axis_par_dist
 
+inspect = a2l_inspect
+
 
 def open_a2l_database(
     a2l_file: str, encoding: str = "latin-1", *, local: bool = True
@@ -43,4 +45,5 @@ __all__ = [
     "fix_axis_par_dist",
     "model",
     "open_a2l_database",
+    "inspect",
 ]
