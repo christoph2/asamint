@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 from collections.abc import Iterable
-from typing import Any
+from pathlib import Path
+from typing import Any, Optional
 
 from asamint.adapters.a2l import inspect
 from asamint.asam import AsamMC
@@ -38,3 +39,66 @@ class HDF5Creator(AsamMC):
         names = self.experiment_config.get("MEASUREMENTS") or []
         if names:
             self.add_measurements(names)
+
+    def save_measurements(
+        self,
+        data: dict[str, Any],
+        *,
+        csv_out: str | Path | None = None,
+        hdf5_out: str | Path | None = None,
+        project_meta: Optional[dict[str, Any]] = None,
+    ):
+        """
+        Persist measurement data into HDF5/CSV using finalize helpers.
+
+        Args:
+            data: Mapping of signal name to samples; may include ``TIMESTAMPS``.
+            csv_out: Optional CSV output path.
+            hdf5_out: Optional HDF5 output path; defaults to an auto-generated filename.
+            project_meta: Optional metadata for embedding into outputs.
+        """
+
+        if not data:
+            from asamint.measurement import RunResult
+
+            return RunResult(
+                mdf_path=None,
+                csv_path=None,
+                hdf5_path=None,
+                signals={},
+                timebases=None,
+            )
+
+        from asamint import measurement
+
+        project_meta = project_meta or {
+            "author": self.config.general.author,
+            "company": self.config.general.company,
+            "department": self.config.general.department,
+            "project": self.config.general.project,
+            "shortname": self.experiment_config.get("SHORTNAME"),
+            "subject": self.experiment_config.get("SUBJECT"),
+            "time_source": self.experiment_config.get("TIME_SOURCE"),
+        }
+
+        units: dict[str, Any] = {}
+        signal_meta: dict[str, dict[str, Any]] = {}
+        for meas in getattr(self, "measurement_variables", []):
+            try:
+                units[meas.name] = getattr(meas.compuMethod, "unit", None)
+                signal_meta[meas.name] = {
+                    "compu_method": getattr(meas.compuMethod, "name", None)
+                }
+            except Exception:
+                units[meas.name] = None
+                signal_meta[meas.name] = {"compu_method": None}
+
+        target_h5 = hdf5_out or self.generate_filename(".h5")
+        return measurement.finalize_measurement_outputs(
+            data=data,
+            units=units,
+            project_meta=project_meta,
+            csv_out=csv_out,
+            hdf5_out=target_h5,
+            signal_metadata=signal_meta,
+        )

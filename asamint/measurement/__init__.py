@@ -1000,11 +1000,11 @@ def run(
         )
 
     project_meta = {
-        "author": app.general.author,
-        "company": app.general.company,
-        "department": app.general.department,
-        "project": app.general.project,
-        "shortname": app.general.shortname,
+        "author": getattr(app.general, "author", None),
+        "company": getattr(app.general, "company", None),
+        "department": getattr(app.general, "department", None),
+        "project": getattr(app.general, "project", None),
+        "shortname": getattr(app.general, "shortname", None),
         "subject": exp_cfg.get("SUBJECT"),
         "time_source": exp_cfg.get("TIME_SOURCE"),
     }
