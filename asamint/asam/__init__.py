@@ -34,7 +34,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-from pya2l import DB, model
+from pya2l import model
 from pya2l.api.inspect import (
     CompuMethod,
     Group,
@@ -44,24 +44,25 @@ from pya2l.api.inspect import (
     asam_type_size,
 )
 
-# from . epk import Epk
-from asamint.config import get_application
+from asamint.adapters.a2l import open_a2l_database
+from asamint.adapters.xcp import create_master
+from asamint.config import (
+    get_application,
+    snapshot_general_config,
+    snapshot_logging_config,
+)
+from asamint.core import ByteOrder
+from asamint.core import byte_order as core_byte_order
+from asamint.core import get_data_type
 from asamint.utils import current_timestamp
 
 
 def create_xcp_master():
-    from pyxcp.master import Master
-
-    from asamint.config import get_application
+    """Create an XCP master via the adapter layer."""
 
     app = get_application()
     xcp_config = app.xcp
-    master = Master(
-        xcp_config.transport.layer,
-        config=xcp_config,
-        # policy=policy, transport_layer_interface=transport_layer_interface
-    )
-    return master
+    return create_master(xcp_config)
 
 
 @dataclass
@@ -122,6 +123,8 @@ class AsamMC:
     def __init__(self, *args, **kws):
         self.config = get_application()
         self.logger = self.config.log
+        self.general_config = snapshot_general_config(self.config)
+        self.logging_config = snapshot_logging_config(self.config)
 
         self.shortname = self.config.general.shortname
         self.a2l_encoding = self.config.general.a2l_encoding
@@ -188,9 +191,8 @@ class AsamMC:
                 os.mkdir(dir_name)
 
     def open_create_session(self, a2l_file, encoding="latin-1"):
-        db = DB()
         self.opened = False
-        self.session = db.open_create(a2l_file, encoding=encoding, local=True)
+        self.session = open_a2l_database(a2l_file, encoding=encoding, local=True)
         self.opened = True
 
     def on_init(self, config, *args, **kws):
@@ -234,40 +236,39 @@ class AsamMC:
     def query(self):
         return self.session.query
 
-    def byte_order(self, obj):
+    def byte_order(self, obj) -> ByteOrder:
         """Get byte-order for A2L element.
 
-        Parameters
-        ----------
-        obj: (`AxisPts` | `AxisDescr` | `Measurement` | `Characteristic`) instance.
-
-        Returns
-        -------
-        `ByteOrder`:
-            If element has no BYTE_ORDER, lookup MOD_COMMON else ByteOrder.BIG_ENDIAN
+        Delegates resolution to the central asamint.core.byte_order helper,
+        using self.mod_common as fallback. If nothing is defined, returns a
+        sensible default (MSB_LAST / Intel / little-endian per ASAM semantics).
         """
-        return (
-            ByteOrder.BIG_ENDIAN
-            if obj.byteOrder
-            or self.mod_common.byteOrder in ("MSB_FIRST", "LITTLE_ENDIAN")
-            else ByteOrder.LITTLE_ENDIAN
-        )
+        bo = core_byte_order(obj, getattr(self, "mod_common", None))
+        return bo or ByteOrder.MSB_LAST
 
-    def _numpy_dtype_for_asam(self, datatype: str, bo: Any) -> np.dtype:
+    def _numpy_dtype_for_asam(self, datatype: str, bo: Any) -> np.dtype:  # noqa: C901
         """Map ASAM data types to numpy dtypes.
 
         Parameters
         ----------
         datatype: str
             ASAM data type name (e.g. 'UBYTE', 'FLOAT32_IEEE')
-        bo: ByteOrder or Any
-            Byte order to use.
+        bo: ByteOrder | Any
+            Byte order to use. Coerced to ByteOrder if possible.
 
         Returns
         -------
         np.dtype:
         """
-        endian = "<" if bo == ByteOrder.LITTLE_ENDIAN else ">"
+        # Coerce bo to ByteOrder enum if necessary; fallback to MSB_LAST.
+        try:
+            if not isinstance(bo, ByteOrder):
+                bo = ByteOrder(int(bo))
+        except Exception:
+            bo = ByteOrder.MSB_LAST
+
+        # Per ASAM semantics: MSB_LAST == Intel == little-endian.
+        endian = "<" if bo == ByteOrder.MSB_LAST else ">"
         match datatype:
             case "UBYTE":
                 return np.dtype(endian + "u1")
@@ -290,10 +291,9 @@ class AsamMC:
             case "FLOAT64_IEEE":
                 return np.dtype(endian + "f8")
             case _:
-                # Fallback: treat as 32-bit unsigned
                 return np.dtype(endian + "u4")
 
-    def acquire_via_pyxcp(
+    def acquire_via_pyxcp(  # noqa: C901
         self,
         master: Any,
         duration_s: float | None = None,
@@ -424,29 +424,3 @@ class AsamMC:
             return calculator.int_to_physical(internal_values)
         except Exception:
             return internal_values
-
-
-DATA_TYPES = {
-    "UBYTE": ("uint8_le", "uint8_be"),
-    "SBYTE": ("int8_le", "int8_be"),
-    "UWORD": ("uint16_le", "uint16_be"),
-    "SWORD": ("int16_le", "int16_be"),
-    "ULONG": ("uint32_le", "uint32_be"),
-    "SLONG": ("int32_le", "int32_be"),
-    "A_UINT64": ("uint64_le", "uint64_be"),
-    "A_INT64": ("int64_le", "int64_be"),
-    "FLOAT32_IEEE": ("float32_le", "float32_be"),
-    "FLOAT64_IEEE": ("float64_le", "float64_be"),
-}
-
-
-class ByteOrder(IntEnum):
-    LITTLE_ENDIAN = 0
-    MSB_FIRST = LITTLE_ENDIAN
-    BIG_ENDIAN = 1
-    MSB_LAST = BIG_ENDIAN
-
-
-def get_data_type(datatype: str, byte_order: ByteOrder) -> str:
-    """ """
-    return DATA_TYPES[datatype][byte_order]

@@ -33,8 +33,11 @@ from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 import numpy as np
-from sqlalchemy.ext.associationproxy import (_AssociationDict,
-                                             _AssociationList, _AssociationSet)
+from sqlalchemy.ext.associationproxy import (
+    _AssociationDict,
+    _AssociationList,
+    _AssociationSet,
+)
 
 # numpy.seterr(all=None, divide=None, over=None, under=None, invalid=None)
 np.seterr(divide="raise")
@@ -43,7 +46,8 @@ np.seterr(divide="raise")
 class JSONEncoder(json.JSONEncoder):
     """JSON serializer for the following dataclasses."""
 
-    def default(self, o):
+    def default(self, o):  # noqa: C901
+        # Serializes dataclasses, datetimes, and numpy arrays to JSON
         if is_dataclass(o):
             try:
                 result = o.asdict()
@@ -88,8 +92,8 @@ class CalibratedObject:
     _raw: np.ndarray
     _phys: np.ndarray
     displayIdentifier: Optional[str] = None
-    unit: Optional[str] = None  # vereinheitlicht: überall verfügbar
-    fnc_unit: Optional[str] = None  # für Funktionswerte-Container
+    unit: Optional[str] = None
+    fnc_unit: Optional[str] = None
     axes: list[dict] | None = None
     is_numeric: bool | None = None
     shape: tuple[int, ...] | None = None

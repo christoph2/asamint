@@ -38,14 +38,13 @@ from logging import Logger
 from typing import Any, Optional, Union, cast
 
 import numpy as np
-from objutils import Image
-from objutils.exceptions import InvalidAddressError
-from pya2l import DB, model
-from pya2l.api.inspect import (AxisPts, Characteristic, CompuMethod,
-                               asam_type_size)
+from pya2l import model
+from pya2l.api.inspect import AxisPts, Characteristic, CompuMethod, asam_type_size
 from pya2l.functions import Formula, fix_axis_par, fix_axis_par_dist
 
+from asamint.adapters.objutils import Image, InvalidAddressError
 from asamint.asam import AsamMC, ByteOrder, get_data_type
+from asamint.core import CalibrationLimits, CalibrationValue
 from asamint.model.calibration import klasses
 from asamint.utils import SINGLE_BITS, ffs
 
@@ -277,7 +276,7 @@ class Calibration:
         """
         pass
 
-    def load(self, name: str) -> Any:
+    def load(self, name: str) -> Any:  # noqa: C901
         """Load a calibration parameter by name.
 
         This method determines the type of the parameter and calls the appropriate
@@ -334,7 +333,7 @@ class Calibration:
 
         return result
 
-    def save(self, name: str, value: Any) -> None:
+    def save(self, name: str, value: Any) -> None:  # noqa: C901
         """Save a value to a calibration parameter.
 
         This method determines the type of the parameter and calls the appropriate
@@ -719,7 +718,7 @@ class Calibration:
             api=self,
         )
 
-    def save_value(
+    def save_value(  # noqa: C901
         self,
         characteristic_name: str,
         value: ValueType,
@@ -813,6 +812,43 @@ class Calibration:
         self.image.write_numeric(characteristic.address, phys, dtype)
         return Status.OK
 
+    def load_value_dto(self, characteristic_name: str) -> CalibrationValue:
+        """Load a scalar characteristic as CalibrationValue DTO."""
+
+        characteristic = self.get_characteristic(characteristic_name, "VALUE", False)
+        dto_limits = CalibrationLimits(
+            lower=characteristic.lowerLimit, upper=characteristic.upperLimit
+        )
+
+        val = self.load_value(characteristic_name)
+        return CalibrationValue(
+            name=val.name,
+            raw=val.raw,
+            phys=val.phys,
+            unit=val.unit,
+            read_only=bool(characteristic.readOnly),
+            limits=dto_limits,
+        )
+
+    def save_value_dto(
+        self,
+        characteristic_name: str,
+        value: CalibrationValue,
+        extendedLimits: bool = False,
+        readOnlyPolicy: ExecutionPolicy = ExecutionPolicy.EXCEPT,
+        limitsPolicy: ExecutionPolicy = ExecutionPolicy.EXCEPT,
+    ) -> Status:
+        """Save a CalibrationValue DTO back to the characteristic."""
+
+        payload: ValueType = value.phys if value.phys is not None else value.raw
+        return self.save_value(
+            characteristic_name=characteristic_name,
+            value=payload,
+            extendedLimits=extendedLimits,
+            readOnlyPolicy=readOnlyPolicy,
+            limitsPolicy=limitsPolicy,
+        )
+
     def load_axis_pts(self, axis_pts_name: str) -> klasses.AxisPts:
         """Load axis points.
 
@@ -878,7 +914,9 @@ class Calibration:
             api=self,
         )
 
-    def save_axis_pts(self, axis_pts_name: str, values: np.ndarray) -> Status:
+    def save_axis_pts(  # noqa: C901
+        self, axis_pts_name: str, values: np.ndarray
+    ) -> Status:
         """Save values to axis points.
 
         Args:
@@ -1082,7 +1120,7 @@ class Calibration:
             api=self,
         )
 
-    def save_curve_or_map(
+    def save_curve_or_map(  # noqa: C901
         self,
         characteristic_name: str,
         values: Union[
@@ -1172,7 +1210,9 @@ class Calibration:
         )
         return Status.OK
 
-    def get_axes(self, characteristic: Characteristic, num_axes: int) -> AxesContainer:
+    def get_axes(  # noqa: C901
+        self, characteristic: Characteristic, num_axes: int
+    ) -> AxesContainer:
         """Get axis information for a characteristic.
 
         This method extracts axis information from a characteristic, including
@@ -1516,12 +1556,13 @@ class Calibration:
             obj: The A2L element (AxisPts, Characteristic, etc.) to get byte order for
 
         Returns:
-            ByteOrder: The byte order (BIG_ENDIAN or LITTLE_ENDIAN)
+            ByteOrder: The byte order (MSB_FIRST or MSB_LAST)
         """
         # Resolve explicit byteOrder from the object first; fall back to MOD_COMMON.
         bo = getattr(obj, "byteOrder", None)
-        if not bo:
-            bo = getattr(self.mod_common, "byteOrder", None)
+        if bo is None:
+            bo = getattr(self, "mod_common", None)
+            bo = getattr(bo, "byteOrder", None) if bo is not None else None
 
         # If it's already the ByteOrder enum, return it.
         if isinstance(bo, ByteOrder):
@@ -1529,7 +1570,7 @@ class Calibration:
 
         # If it's a string, map known keywords (including legacy ones) to enum.
         if isinstance(bo, str):
-            key = bo.strip().upper()
+            key = bo.strip().upper().replace("-", "_").replace(" ", "_")
             # ASAM note:
             #   MSB_LAST  <-> Intel format  (equivalent former keyword: BIG_ENDIAN)
             #   MSB_FIRST <-> Motorola format (equivalent former keyword: LITTLE_ENDIAN)
@@ -1537,14 +1578,14 @@ class Calibration:
                 "MSB_FIRST": ByteOrder.MSB_FIRST,
                 "MSB_LAST": ByteOrder.MSB_LAST,
                 "LITTLE_ENDIAN": ByteOrder.MSB_FIRST,  # legacy synonym
-                "BIG_ENDIAN": ByteOrder.MSB_LAST,     # legacy synonym
+                "BIG_ENDIAN": ByteOrder.MSB_LAST,  # legacy synonym
             }
             return mapping.get(key, ByteOrder.MSB_LAST)
 
         # Final fallback if nothing is defined: choose a sensible default.
         return ByteOrder.MSB_LAST
 
-    def update_record_layout(
+    def update_record_layout(  # noqa: C901
         self, obj: Union[AxisPts, Characteristic]
     ) -> dict[tuple[str, str], int]:
         """Update record layout addresses based on actual element counts.
@@ -1823,7 +1864,7 @@ class OfflineCalibration(Calibration):
 
     def __init__(
         self,
-        a2l_db: DB,
+        a2l_db: Any,
         image: Image,
         hexfile_name: Optional[str] = None,
         hexfile_type: Optional[str] = None,

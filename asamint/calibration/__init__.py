@@ -38,14 +38,13 @@ from enum import IntEnum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
-from objutils import Image, Section, dump, load
-from objutils.exceptions import InvalidAddressError
 from pya2l import model
 from pya2l.api.inspect import AxisPts, Characteristic, ModPar
 from pyxcp.checksum import check
 from pyxcp.cpp_ext.cpp_ext import McObject
 from pyxcp.daq_stim.optimize import make_continuous_blocks
 
+from asamint.adapters.objutils import Image, InvalidAddressError, Section, dump, load
 from asamint.asam import AsamMC
 from asamint.asam.epk import Epk
 from asamint.calibration import api
@@ -317,33 +316,33 @@ class CalibrationData:
         for section in image.sections:
             offset = 0
             section_length = len(section)
-            remaining_bytes = section_length % cs_length
-            block_count = section_length // cs_length
+        remaining_bytes = section_length % cs_length
+        block_count = section_length // cs_length
 
-            # Process full-sized blocks
-            for idx in range(block_count):
-                address = section.address + offset
-                block = section.data[offset : offset + cs_length]
-                self.asam_mc.xcp_master.setMta(address, 0)
-                xcp_checksum = self.asam_mc.xcp_master.buildChecksum(cs_length)
-                checksum = check(block, str(xcp_checksum.checksumType))
-                equal = checksum == xcp_checksum.checksum
-                self.logger.info(
-                    f"Address: 0x{address:08X} XCPChecksum {xcp_checksum.checksum} Checksum: {checksum} ==> {equal}"
-                )
-                offset += cs_length
+        # Process full-sized blocks
+        for _ in range(block_count):
+            address = section.address + offset
+            block = section.data[offset : offset + cs_length]
+            self.asam_mc.xcp_master.setMta(address, 0)
+            xcp_checksum = self.asam_mc.xcp_master.buildChecksum(cs_length)
+            checksum = check(block, str(xcp_checksum.checksumType))
+            equal = checksum == xcp_checksum.checksum
+            self.logger.info(
+                f"Address: 0x{address:08X} XCPChecksum {xcp_checksum.checksum} Checksum: {checksum} ==> {equal}"
+            )
+            offset += cs_length
 
-            # Process remaining bytes (partial block)
-            if remaining_bytes > 0:
-                block = section.data[offset : offset + remaining_bytes]
-                address = section.address + offset
-                self.asam_mc.xcp_master.setMta(address, 0)
-                xcp_checksum = self.asam_mc.xcp_master.buildChecksum(remaining_bytes)
-                checksum = check(block, str(xcp_checksum.checksumType))
-                equal = checksum == xcp_checksum.checksum
-                self.logger.info(
-                    f"Address: 0x{address:08X} XCPChecksum {xcp_checksum.checksum} Checksum: {checksum} ==> {equal}"
-                )
+        # Process remaining bytes (partial block)
+        if remaining_bytes > 0:
+            block = section.data[offset : offset + remaining_bytes]
+            address = section.address + offset
+            self.asam_mc.xcp_master.setMta(address, 0)
+            xcp_checksum = self.asam_mc.xcp_master.buildChecksum(remaining_bytes)
+            checksum = check(block, str(xcp_checksum.checksumType))
+            equal = checksum == xcp_checksum.checksum
+            self.logger.info(
+                f"Address: 0x{address:08X} XCPChecksum {xcp_checksum.checksum} Checksum: {checksum} ==> {equal}"
+            )
 
     # Keep the old method name for backward compatibility
     validata_image = validate_image

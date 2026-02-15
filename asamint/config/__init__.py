@@ -37,6 +37,9 @@ from traitlets import Bool, Dict, Enum, List, Unicode
 from traitlets.config import Application, Configurable, Instance, default
 from traitlets.config.loader import PyFileConfigLoader
 
+from asamint.core.logging import configure_logging
+from asamint.core.models import GeneralConfig, LoggingConfig
+
 
 class General(Configurable):
     """ """
@@ -89,10 +92,10 @@ class ProfileCreate(Application):
         default_value=None, allow_none=True, help="destination file name"
     ).tag(config=True)
     aliases = Dict(  # type:ignore[assignment]
-        dict(
-            d="ProfileCreate.dest_file",
-            o="ProfileCreate.dest_file",
-        )
+        {
+            "d": "ProfileCreate.dest_file",
+            "o": "ProfileCreate.dest_file",
+        }
     )
 
     def start(self):
@@ -113,9 +116,9 @@ class ProfileCreate(Application):
 
 class ProfileApp(Application):
     subcommands = Dict(
-        dict(
-            create=(ProfileCreate, ProfileCreate.description.splitlines()[0]),
-        )
+        {
+            "create": (ProfileCreate, ProfileCreate.description.splitlines()[0]),
+        }
     )
 
     def start(self):
@@ -155,7 +158,7 @@ class XCP(Configurable):
         self.general = pyxcp_config.General(config=self.config, parent=self)
         self.transport = pyxcp_config.Transport(parent=self)
 
-    def _merge_external_pyxcp_config_into_self_config(self) -> None:
+    def _merge_external_pyxcp_config_into_self_config(self) -> None:  # noqa: C901
         """
         Load settings from a standalone pyXCP configuration file and merge them into
         this Configurable's traitlets Config object, so that pyxcp General/Transport
@@ -215,14 +218,14 @@ class Asamint(Application):
 
     classes = List([General, XCP])
 
-    subcommands = dict(
-        profile=(
+    subcommands = {
+        "profile": (
             ProfileApp,
             """
             Profile stuff
             """.strip(),
         )
-    )
+    }
 
     def start(self):
         if self.subapp:
@@ -233,19 +236,19 @@ class Asamint(Application):
             self._setup_logger()
 
     def _setup_logger(self):
-        # Remove any handlers installed by `traitlets`.
-        for hdl in self.log.handlers:
-            self.log.removeHandler(hdl)
+        logger = configure_logging(name="asamint", level=self.log_level)
 
-        # formatter = logging.Formatter(fmt=self.log_format, datefmt=self.log_datefmt)
+        for handler in list(logger.handlers):
+            logger.removeHandler(handler)
+
         rich_handler = RichHandler(
             rich_tracebacks=True,
             tracebacks_show_locals=True,
             log_time_format=self.log_datefmt,
             level=self.log_level,
         )
-        # rich_handler.setFormatter(formatter)
-        self.log.addHandler(rich_handler)
+        logger.addHandler(rich_handler)
+        self.log = logger
 
     def initialize(self, argv=None):
         from asamint import __version__ as asamint_version
@@ -276,9 +279,9 @@ class Asamint(Application):
         # return cfg
 
     flags = Dict(  # type:ignore[assignment]
-        dict(
-            debug=({"Asamint": {"log_level": 10}}, "Set loglevel to DEBUG"),
-        )
+        {
+            "debug": ({"Asamint": {"log_level": 10}}, "Set loglevel to DEBUG"),
+        }
     )
 
     @default("log_level")
@@ -286,11 +289,11 @@ class Asamint(Application):
         return logging.INFO  # traitlets default is logging.WARN
 
     aliases = Dict(  # type:ignore[assignment]
-        dict(
-            c="Asamint.config_file",  # Application
-            log_level="Asamint.log_level",
-            l="Asamint.log_level",
-        )
+        {
+            "c": "Asamint.config_file",  # Application
+            "log_level": "Asamint.log_level",
+            "l": "Asamint.log_level",
+        }
     )
 
     def _iterate_config_class(
@@ -397,3 +400,37 @@ def get_application(
     if application is None:
         application = create_application(options)
     return application
+
+
+def snapshot_general_config(app: typing.Any) -> GeneralConfig:
+    """Create an immutable snapshot of the active General config."""
+
+    general = getattr(app, "general", None)
+    if general is None:
+        return GeneralConfig()
+
+    return GeneralConfig(
+        author=getattr(general, "author", ""),
+        company=getattr(general, "company", ""),
+        department=getattr(general, "department", ""),
+        project=getattr(general, "project", ""),
+        shortname=getattr(general, "shortname", ""),
+        pyxcp_config_file=getattr(general, "pyxcp_config_file", "pyxcp_conf.py"),
+        a2l_file=getattr(general, "a2l_file", ""),
+        a2l_encoding=getattr(general, "a2l_encoding", "latin-1"),
+        a2l_dynamic=bool(getattr(general, "a2l_dynamic", False)),
+        master_hexfile=getattr(general, "master_hexfile", ""),
+        master_hexfile_type=getattr(general, "master_hexfile_type", "ihex"),
+        mdf_version=getattr(general, "mdf_version", "4.20"),
+        output_format=getattr(general, "output_format", "MDF"),
+        experiments=list(getattr(general, "experiments", []) or []),
+    )
+
+
+def snapshot_logging_config(app: typing.Any) -> LoggingConfig:
+    """Create an immutable snapshot of logging configuration."""
+
+    level = getattr(app, "log_level", logging.INFO)
+    logfile = getattr(app, "logfile", None)
+    path_logfile = Path(logfile) if logfile else None
+    return LoggingConfig(level=level, logfile=path_logfile)
