@@ -606,7 +606,21 @@ def finalize_measurement_outputs(
     csv_out: Optional[str | Path] = None,
     hdf5_out: Optional[str | Path] = None,
 ) -> RunResult:
-    """Persist measurement data to CSV/HDF5 with metadata and return paths/meta."""
+    """Persist measurement data to CSV/HDF5 with metadata and return paths/meta.
+
+    Args:
+        data: Mapping of signal name to samples; may include ``TIMESTAMPS``.
+        units: Optional units per signal.
+        project_meta: Optional project-level metadata to embed in outputs.
+        csv_out: Target CSV path (absolute or relative to CWD).
+        hdf5_out: Target HDF5 path (absolute or relative to CWD).
+
+    Returns:
+        RunResult with written CSV/HDF5 paths and per-signal metadata.
+
+    Raises:
+        ValueError: If neither ``csv_out`` nor ``hdf5_out`` is provided.
+    """
 
     if csv_out is None and hdf5_out is None:
         msg = "At least one of csv_out or hdf5_out must be provided."
