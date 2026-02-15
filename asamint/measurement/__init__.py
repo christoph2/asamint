@@ -551,6 +551,29 @@ def _median_timebase(src: Optional[str], ts: Optional[Any]) -> Optional[float]:
         return None
 
 
+def _collect_timebase_summary(meta: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    summary: dict[int, dict[str, Any]] = {}
+    for sig, info in meta.items():
+        gid = info.get("group_id")
+        if gid is None:
+            continue
+        entry = summary.setdefault(
+            int(gid),
+            {
+                "group_id": int(gid),
+                "timestamp_source": info.get("timestamp_source"),
+                "timebase_s": info.get("timebase_s"),
+                "members": [],
+            },
+        )
+        if entry.get("timestamp_source") is None and info.get("timestamp_source"):
+            entry["timestamp_source"] = info["timestamp_source"]
+        if entry.get("timebase_s") is None and info.get("timebase_s") is not None:
+            entry["timebase_s"] = info["timebase_s"]
+        entry["members"].append(sig)
+    return [summary[idx] for idx in sorted(summary.keys())]
+
+
 def _write_hdf5(
     h5_path: Path,
     data: dict[str, Any],
@@ -605,6 +628,7 @@ def finalize_measurement_outputs(
     project_meta: Optional[dict[str, Any]] = None,
     csv_out: Optional[str | Path] = None,
     hdf5_out: Optional[str | Path] = None,
+    signal_metadata: Optional[dict[str, dict[str, Any]]] = None,
 ) -> RunResult:
     """Persist measurement data to CSV/HDF5 with metadata and return paths/meta.
 
@@ -614,6 +638,7 @@ def finalize_measurement_outputs(
         project_meta: Optional project-level metadata to embed in outputs.
         csv_out: Target CSV path (absolute or relative to CWD).
         hdf5_out: Target HDF5 path (absolute or relative to CWD).
+        signal_metadata: Optional per-signal metadata to merge (e.g., compu methods).
 
     Returns:
         RunResult with written CSV/HDF5 paths and per-signal metadata.
@@ -630,6 +655,10 @@ def finalize_measurement_outputs(
     project_meta = project_meta or {}
     signal_names = [name for name in data.keys() if name != "TIMESTAMPS"]
     meta = _compute_timebase_metadata(data, signal_names)
+    if signal_metadata:
+        for name, extra in signal_metadata.items():
+            base = meta.setdefault(name, {})
+            base.update(extra)
     meta_with_units = {
         name: {**meta.get(name, {}), "units": units.get(name)} for name in signal_names
     }
@@ -649,11 +678,14 @@ def finalize_measurement_outputs(
             h5_path = Path.cwd() / h5_path
         _write_hdf5(h5_path, data, meta_with_units, project_meta)
 
+    timebases = _collect_timebase_summary(meta_with_units)
+
     return RunResult(
         mdf_path=None,
         csv_path=str(csv_path) if csv_path else None,
         hdf5_path=str(h5_path) if h5_path else None,
         signals=meta_with_units,
+        timebases=timebases,
     )
 
 
@@ -812,6 +844,83 @@ def _execute_daq_capture(
     return target_hdf5
 
 
+def _run_daq_flow(
+    creator: Any,
+    daq_groups: list[dict[str, Any]],
+    *,
+    duration: Optional[float],
+    samples: Optional[int],
+    period_s: Optional[float],
+    hdf5_out: Optional[str],
+    shortname: str,
+) -> RunResult:
+    daq_lists = build_daq_lists(creator.session, daq_groups)
+    hdf5_path = _execute_daq_capture(
+        daq_lists=daq_lists,
+        duration=duration,
+        samples=samples,
+        period_s=period_s,
+        hdf5_out=hdf5_out,
+        shortname=shortname,
+    )
+    return RunResult(
+        mdf_path=None,
+        csv_path=None,
+        hdf5_path=str(hdf5_path) if hdf5_path else None,
+        signals={},
+    )
+
+
+def _run_polling_flow(
+    creator: Any,
+    *,
+    duration: Optional[float],
+    samples: Optional[int],
+    period_s: Optional[float],
+    mdf_out: Optional[str],
+    csv_out: Optional[str],
+    hdf5_out: Optional[str],
+    strict_mdf: bool,
+    strict_no_trim: bool,
+    strict_no_synth: bool,
+    project_meta: dict[str, Any],
+) -> RunResult:
+    data = creator.acquire_via_pyxcp(
+        master=creator.xcp_master,
+        duration_s=duration,
+        samples=samples,
+        period_s=period_s or 0.01,
+    )
+    if isinstance(creator, MDFCreator):
+        mdf_path = mdf_out or creator.generate_filename(".mf4")
+        return creator.save_measurements(
+            mdf_filename=mdf_path,
+            data=data,
+            csv_out=csv_out,
+            hdf5_out=hdf5_out,
+            strict=strict_mdf,
+            strict_no_trim=strict_no_trim,
+            strict_no_synth=strict_no_synth,
+            project_meta=project_meta,
+        )
+    if isinstance(creator, HDF5Creator):
+        csv_target = csv_out or mdf_out
+        h5_target = hdf5_out or creator.generate_filename(".h5")
+        return finalize_measurement_outputs(
+            data=data,
+            units=None,
+            project_meta=project_meta,
+            csv_out=csv_target,
+            hdf5_out=h5_target,
+        )
+    return RunResult(
+        mdf_path=None,
+        csv_path=None,
+        hdf5_path=hdf5_out,
+        signals={},
+    )
+
+
 def run(
     groups: list[dict[str, Any]],
     duration: Optional[float] = None,
@@ -827,7 +936,7 @@ def run(
     strict_mdf: bool = False,
     strict_no_trim: bool = False,
     strict_no_synth: bool = False,
-) -> RunResult:
+) -> RunResult:  # noqa: C901
     """
     High-level measurement runner (MVP, polling acquisition).
 
@@ -890,25 +999,41 @@ def run(
             "None of the requested measurements could be resolved from A2L."
         )
 
+    project_meta = {
+        "author": app.general.author,
+        "company": app.general.company,
+        "department": app.general.department,
+        "project": app.general.project,
+        "shortname": app.general.shortname,
+        "subject": exp_cfg.get("SUBJECT"),
+        "time_source": exp_cfg.get("TIME_SOURCE"),
+    }
+
     daq_groups = _prepare_daq_groups(groups)
     try:
-        daq_lists = build_daq_lists(creator.session, daq_groups)
-        hdf5_out = _execute_daq_capture(
-            daq_lists=daq_lists,
+        if use_daq:
+            return _run_daq_flow(
+                creator=creator,
+                daq_groups=daq_groups,
+                duration=duration,
+                samples=samples,
+                period_s=period_s,
+                hdf5_out=hdf5_out,
+                shortname=app.general.shortname or "daq",
+            )
+
+        return _run_polling_flow(
+            creator=creator,
             duration=duration,
             samples=samples,
             period_s=period_s,
+            mdf_out=mdf_out,
+            csv_out=csv_out,
             hdf5_out=hdf5_out,
-            shortname=app.general.shortname or "daq",
+            strict_mdf=strict_mdf,
+            strict_no_trim=strict_no_trim,
+            strict_no_synth=strict_no_synth,
+            project_meta=project_meta,
         )
-    except Exception:
-        raise
     finally:
         creator.close()
-
-    return RunResult(
-        mdf_path=None,
-        csv_path=None,
-        hdf5_path=str(hdf5_out) if hdf5_out else None,
-        signals={},
-    )

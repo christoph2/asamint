@@ -27,6 +27,7 @@ __author__ = "Christoph Schueler"
 
 import time
 from collections.abc import Iterable
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import numpy as np
@@ -155,10 +156,13 @@ class MDFCreator(AsamMC):
         mdf_filename: str | None = None,
         data: dict[str, Any] | None = None,
         *,
+        csv_out: str | Path | None = None,
+        hdf5_out: str | Path | None = None,
+        project_meta: Optional[dict[str, Any]] = None,
         strict: bool = False,
         strict_no_trim: bool = False,
         strict_no_synth: bool = False,
-    ) -> None:
+    ):
         """
         Save collected measurements into an MDF4 file.
 
@@ -168,15 +172,32 @@ class MDFCreator(AsamMC):
           (keys like 'TIMESTAMPS', 'timestamp0', 'timestamp1', case-insensitive).
         - Group signals by their sample counts and assign a matching timestamp
           array. If no exact match exists but a higher-rate timestamp length is
-          an integer multiple, it will stride-select timestamps (e.g., ts[::k]).
+            an integer multiple, it will stride-select timestamps (e.g., ts[::k]).
         - Append one channel group per assigned timestamp set.
         """
+        from asamint import measurement as measurement_module
+
         if not data:
-            return
+            return measurement_module.RunResult(
+                mdf_path=None, csv_path=None, hdf5_path=None, signals={}, timebases=None
+            )
+
+        project_meta = project_meta or {
+            "author": self.config.general.author,
+            "company": self.config.general.company,
+            "department": self.config.general.department,
+            "project": self.config.general.project,
+            "shortname": self.experiment_config.get("SHORTNAME"),
+            "subject": self.experiment_config.get("SUBJECT"),
+            "time_source": self.experiment_config.get("TIME_SOURCE"),
+        }
 
         # 1) Collect all candidate timestamp arrays from data
         # Normalize keys for case-insensitive match and prefer event-specific keys
         ts_candidates: dict[str, np.ndarray] = {}
+        finalize_data: dict[str, Any] = {}
+        meta: dict[str, dict[str, Any]] = {}
+        units: dict[str, Optional[str]] = {}
         for k, v in data.items():
             if not isinstance(k, str):
                 continue
@@ -186,6 +207,7 @@ class MDFCreator(AsamMC):
                     arr = np.asarray(v)
                     if arr.ndim == 1 and arr.size > 0:
                         ts_candidates[k] = arr
+                        finalize_data[k] = arr
                 except Exception as exc:
                     self.logger.debug("Skipping timestamp candidate %s: %s", k, exc)
 
@@ -280,7 +302,7 @@ class MDFCreator(AsamMC):
                     f"No compatible timestamps found for sample_len={sample_len}; synthesizing simple indices."
                 )
                 chosen_ts = np.arange(sample_len, dtype=float)
-                chosen_src = "synthetic"
+                chosen_src = f"timestamp_group{group_counter}"
 
             # Estimate timebase (median dt) when possible
             timebase_s: Optional[float] = None
@@ -307,6 +329,8 @@ class MDFCreator(AsamMC):
 
             group_id = group_counter
             group_counter += 1
+            ts_key = chosen_src or f"timestamp_group{group_id}"
+            finalize_data[ts_key] = chosen_ts
 
             # 4) Build Signal objects for this group and append as a separate channel group
             signals: list[Signal] = []
@@ -319,6 +343,7 @@ class MDFCreator(AsamMC):
                 compuMethod = measurement.compuMethod
                 conversion_map = self.ccblock(compuMethod)
                 unit = compuMethod.unit if compuMethod != "NO_COMPU_METHOD" else None
+                units[measurement.name] = unit
 
                 samples = np.array(data.get(measurement.name), copy=False)
 
@@ -355,6 +380,22 @@ class MDFCreator(AsamMC):
                     ts_use = chosen_ts[:n]
                 else:
                     ts_use = chosen_ts
+
+                finalize_data[measurement.name] = samples
+                meta[measurement.name] = {
+                    "timestamp_source": ts_key,
+                    "timebase_s": timebase_s,
+                    "group_id": group_id,
+                    "sample_count": (
+                        int(ts_use.shape[0])
+                        if hasattr(ts_use, "shape")
+                        else samples.shape[0]
+                    ),
+                    "compu_method": (
+                        getattr(compuMethod, "name", None) if compuMethod else None
+                    ),
+                    "units": unit,
+                }
 
                 # Enrich signal comment with timebase metadata (non-breaking)
                 tb_str = (
@@ -397,6 +438,31 @@ class MDFCreator(AsamMC):
 
         # 5) Save MDF
         self._mdf_obj.save(dst=mdf_filename, overwrite=True)
+
+        finalize_result = None
+        if csv_out is not None or hdf5_out is not None:
+            finalize_result = measurement_module.finalize_measurement_outputs(
+                data=finalize_data,
+                units=units,
+                project_meta=project_meta,
+                csv_out=csv_out,
+                hdf5_out=hdf5_out,
+                signal_metadata=meta,
+            )
+
+        timebases = (
+            finalize_result.timebases
+            if finalize_result
+            else measurement_module._collect_timebase_summary(meta)
+        )
+        signals_meta = finalize_result.signals if finalize_result else meta
+        return measurement_module.RunResult(
+            mdf_path=str(mdf_filename) if mdf_filename else None,
+            csv_path=finalize_result.csv_path if finalize_result else None,
+            hdf5_path=finalize_result.hdf5_path if finalize_result else None,
+            signals=signals_meta,
+            timebases=timebases,
+        )
 
     def ccblock(self, compuMethod) -> str | None:  # noqa: C901
         """Construct CCBLOCK
