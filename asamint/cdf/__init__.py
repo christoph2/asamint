@@ -31,6 +31,7 @@ __copyright__ = """
 import sys
 import uuid
 from collections.abc import Mapping
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -42,18 +43,75 @@ from pya2l import model
 
 from asamint import msrsw
 from asamint.calibration import CalibrationData
+from asamint.calibration.db import CalibrationDB
 from asamint.calibration.msrsw_db import MSRSWDatabase
+from asamint.core.exceptions import AdapterError
+from asamint.core.logging import configure_logging
+from asamint.cdf.exporter.cdf_exporter import CDFExporter
+from asamint.cdf.importer.cdf_importer import CDFImporter
 from asamint.utils import add_suffix_to_path
 from asamint.utils.xml import create_elem, xml_comment
 
 from .importer import DBImporter
 
-__all__ = ["DB", "CDFCreator", "DBImporter"]
+__all__ = ["DB", "CDFCreator", "DBImporter", "CdfIOResult", "export_cdf", "import_cdf"]
 
 
 # sns.set_theme("notebook")
 
 sys.setrecursionlimit(2000)
+
+
+@dataclass
+class CdfIOResult:
+    output_path: Path
+    db_path: Path
+
+
+def export_cdf(
+    *,
+    db_path: str | Path,
+    output_path: str | Path,
+    h5_db_path: str | Path | None = None,
+    variant_coding: bool = False,
+    logger: Optional[Any] = None,
+) -> CdfIOResult:
+    log = logger or configure_logging(__name__)
+    db_file = Path(db_path)
+    output = Path(output_path)
+    h5_db = CalibrationDB(h5_db_path, mode="r", logger=log) if h5_db_path else None
+    db = MSRSWDatabase(db_file)
+    try:
+        exporter = CDFExporter(
+            db=db,
+            h5_db=h5_db,
+            variant_coding=variant_coding,
+            logger=log,
+        )
+        success = exporter.export(output)
+        if not success:
+            raise AdapterError(f"CDF export failed for {output}")
+        return CdfIOResult(output_path=output, db_path=db_file)
+    finally:
+        db.close()
+        if h5_db:
+            h5_db.close()
+
+
+def import_cdf(
+    *,
+    xml_path: str | Path,
+    db_path: str | Path,
+    logger: Optional[Any] = None,
+) -> CdfIOResult:
+    log = logger or configure_logging(__name__)
+    importer = CDFImporter(logger=log)
+    xml = Path(xml_path)
+    db_file = Path(db_path)
+    success = importer.import_file(xml, db_file)
+    if not success:
+        raise AdapterError(f"CDF import failed for {xml}")
+    return CdfIOResult(output_path=xml, db_path=db_file)
 
 
 class DB:
