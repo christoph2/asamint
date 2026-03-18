@@ -24,28 +24,78 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
-import csv
-import logging
 import time
-import warnings
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional, Union
 
 from asamint.adapters.a2l import model
-from asamint.adapters.xcp import (
-    ArgumentParser,
-    DaqList,
-    DaqRecorder,
-    DaqToCsv,
-    Hdf5OnlinePolicy,
+from asamint.adapters.measurement import (
+    MeasurementFormat,
+    available_measurement_formats,
+    get_measurement_format,
+    register_measurement_format,
 )
+from asamint.adapters.xcp import ArgumentParser, DaqList, Hdf5OnlinePolicy
 from asamint.config import get_application
-from asamint.hdf5 import HDF5Creator
-from asamint.mdf import MDFCreator
+from asamint.core.logging import configure_logging
+from asamint.measurement.csv import (
+    _csv_fieldnames,
+    _iter_csv_rows,
+    _merge_daq_csv_results,
+    _parse_daq_csv,
+    _read_daq_csv_rows,
+    _timestamp_index,
+    _write_csv,
+    _write_metadata_headers,
+)
+from asamint.measurement.hdf5 import (
+    HDF5Creator,
+    _annotate_daq_hdf5_metadata,
+    _annotate_hdf5_root,
+    _write_hdf5,
+)
+from asamint.measurement.mdf import MDFCreator
 
-logger = logging.getLogger(__name__)
+logger = configure_logging(__name__)
+
+__all__ = [
+    "RunResult",
+    "group_measurements",
+    "resolve_measurements_by_names",
+    "names_from_group",
+    "daq_list_from_names",
+    "daq_list_from_group",
+    "build_daq_lists",
+    "finalize_measurement_outputs",
+    "finalize_from_daq_csv",
+    "run",
+    "_csv_fieldnames",
+    "_write_metadata_headers",
+    "_iter_csv_rows",
+    "_write_csv",
+    "_parse_daq_csv",
+    "_read_daq_csv_rows",
+    "_timestamp_index",
+    "_compute_timebase_metadata",
+    "_median_timebase",
+    "_merge_daq_csv_results",
+    "_stride_for_ratio",
+    "_unique_names_from_groups",
+    "_write_hdf5",
+    "_annotate_hdf5_root",
+    "_annotate_daq_hdf5_metadata",
+    "_prepare_daq_groups",
+    "_collect_timebase_summary",
+    "persist_measurements",
+    "list_measurement_formats",
+    "available_measurement_formats",
+    "register_measurement_format",
+    "get_measurement_format",
+    "HDF5Creator",
+    "MDFCreator",
+]
 
 PYXCP_TYPES = {
     "UBYTE": "U8",
@@ -287,6 +337,14 @@ class RunResult:
     timebases: Optional[list[dict[str, Any]]] = None
 
 
+def _resolve_output_format(preferred: Optional[str], hdf5_out: Optional[str]) -> str:
+    if hdf5_out:
+        return "HDF5"
+    if preferred:
+        return preferred.upper()
+    return "MDF"
+
+
 def _auto_filename(prefix: str, ext: str) -> str:
     ts = time.strftime("%Y%m%d_%H%M%S")
     name = prefix or "asamint"
@@ -303,95 +361,6 @@ def _unique_names_from_groups(groups: list[dict[str, Any]]) -> list[str]:
                     seen.add(n)
                     names.append(n)
     return names
-
-
-def _csv_fieldnames(data: dict[str, Any]) -> list[str]:
-    return ["timestamp"] + sorted([k for k in data.keys() if k != "TIMESTAMPS"])
-
-
-def _write_metadata_headers(
-    fh,
-    units: dict[str, Optional[str]],
-    project_meta: Optional[dict[str, Any]],
-    meta: Optional[dict[str, dict[str, Any]]],
-) -> None:
-    fh.write("# asamint measurement (converted physical values)\n")
-    if project_meta:
-        for key in (
-            "author",
-            "company",
-            "department",
-            "project",
-            "shortname",
-            "subject",
-            "time_source",
-        ):
-            if key in project_meta and project_meta[key] not in (None, ""):
-                fh.write(f"# {key}: {project_meta[key]}\n")
-    for sig, unit in units.items():
-        if unit:
-            fh.write(f"# {sig} [{unit}]\n")
-        else:
-            fh.write(f"# {sig}\n")
-    if meta:
-        fh.write(
-            "# timebase metadata per signal: tb≈<seconds>, src=<timestamp key>, grp=<id>\n"
-        )
-        for sig in sorted(k for k in units.keys()):
-            m = meta.get(sig, {})
-            tb = m.get("timebase_s")
-            src = m.get("timestamp_source")
-            gid = m.get("group_id")
-            if tb is None and src is None and gid is None:
-                continue
-            tb_str = f"{tb:.6g}" if isinstance(tb, (int, float)) else ""
-            src_str = str(src) if src is not None else ""
-            gid_str = str(gid) if gid is not None else ""
-            fh.write(f"# timebase: {sig} tb≈{tb_str}s src={src_str} grp={gid_str}\n")
-    fh.write("#\n")
-
-
-def _iter_csv_rows(
-    timestamps: list[Any], series_keys: list[str], data: dict[str, Any]
-) -> Iterable[list[Any]]:
-    for idx, t_val in enumerate(timestamps):
-        row = [t_val]
-        for key in series_keys:
-            arr = data.get(key)
-            try:
-                row.append(arr[idx])
-            except Exception:
-                row.append("")
-        yield row
-
-
-def _write_csv(
-    csv_path: Path,
-    data: dict[str, Any],
-    units: dict[str, Optional[str]],
-    project_meta: Optional[dict[str, Any]] = None,
-    meta: Optional[dict[str, dict[str, Any]]] = None,
-) -> None:
-    fieldnames = _csv_fieldnames(data)
-    with csv_path.open("w", newline="", encoding="utf-8") as fh:
-        _write_metadata_headers(fh, units, project_meta, meta)
-        writer = csv.writer(fh)
-        writer.writerow(fieldnames)
-        ts = data.get("TIMESTAMPS")
-        if ts is None:
-            # Synthesize simple 0..N-1 if no timestamps
-            max_len = 0
-            for k, v in data.items():
-                if k == "TIMESTAMPS":
-                    continue
-                try:
-                    max_len = max(max_len, len(v))
-                except Exception as exc:
-                    logger.debug("Cannot determine length for series %s: %s", k, exc)
-            ts = list(range(max_len))
-        series_keys = [k for k in fieldnames if k != "timestamp"]
-        for row in _iter_csv_rows(list(ts), series_keys, data):
-            writer.writerow(row)
 
 
 def _compute_timebase_metadata(
@@ -574,70 +543,52 @@ def _collect_timebase_summary(meta: dict[str, dict[str, Any]]) -> list[dict[str,
     return [summary[idx] for idx in sorted(summary.keys())]
 
 
-def _write_hdf5(
-    h5_path: Path,
-    data: dict[str, Any],
-    meta: dict[str, dict[str, Any]],
-    project_meta: dict[str, Any],
-) -> None:
-    """
-    Write converted values to HDF5 with per-signal datasets and metadata attributes.
-    This uses h5py if available; otherwise a warning is emitted and the file is not written.
-    """
-    try:
-        import h5py  # type: ignore
-        import numpy as np  # ensure numpy available
-    except Exception as e:  # pragma: no cover
-        warnings.warn(
-            f"HDF5 export requested but h5py is not available: {e}. Skipping HDF5 write.",
-            RuntimeWarning,
-            stacklevel=2,
+def _collect_daq_timebases(
+    daq_lists: list[DaqList], timebase_hint_s: Optional[float]
+) -> list[dict[str, Any]]:
+    hint = float(timebase_hint_s) if timebase_hint_s is not None else None
+    summary: list[dict[str, Any]] = []
+    for dl in daq_lists:
+        members = [m[0] for m in getattr(dl, "measurements", [])]
+        summary.append(
+            {
+                "group_id": dl.event_num,
+                "timestamp_source": dl.name,
+                "timebase_s": hint,
+                "members": members,
+            }
         )
-        return
-
-    with h5py.File(str(h5_path), "w") as hf:
-        # store a root-level attrs for project metadata
-        for k, v in project_meta.items():
-            try:
-                hf.attrs[k] = v if v is not None else ""
-            except Exception as exc:
-                logger.debug("Skipping HDF5 root attr %s: %s", k, exc)
-        # timestamps dataset
-        ts = data.get("TIMESTAMPS")
-        if ts is not None:
-            dset_ts = hf.create_dataset("timestamps", data=ts)
-            dset_ts.attrs["description"] = "Relative timestamps in seconds"
-        # per-signal datasets
-        for name, values in data.items():
-            if name == "TIMESTAMPS":
-                continue
-            dset = hf.create_dataset(name, data=values)
-            m = meta.get(name, {})
-            # attach useful attributes
-            if m.get("units"):
-                dset.attrs["units"] = m["units"]
-            if m.get("compu_method"):
-                dset.attrs["compu_method"] = m["compu_method"]
-            if m.get("sample_count") is not None:
-                dset.attrs["sample_count"] = int(m["sample_count"])  # type: ignore[arg-type]
+    return summary
 
 
-def _annotate_hdf5_root(h5_path: Path, project_meta: dict[str, Any]) -> None:
-    try:
-        import h5py  # type: ignore
-    except Exception:
-        return
-    if not h5_path.exists():
-        return
-    try:
-        with h5py.File(str(h5_path), "a") as hf:
-            for k, v in project_meta.items():
-                try:
-                    hf.attrs[k] = v if v is not None else ""
-                except Exception as exc:  # pragma: no cover - metadata best-effort
-                    logger.debug("Skipping HDF5 root attr %s: %s", k, exc)
-    except Exception as exc:  # pragma: no cover - best-effort
-        logger.debug("Failed to annotate HDF5 file %s: %s", h5_path, exc)
+def _prepare_daq_metadata(
+    daq_lists: list[DaqList],
+    project_meta: dict[str, Any],
+    *,
+    duration: Optional[float],
+    samples: Optional[int],
+    period_s: Optional[float],
+) -> dict[str, Any]:
+    meta = {k: v for k, v in project_meta.items() if v not in (None, "")}
+    meta["daq_list_count"] = len(daq_lists)
+    meta["daq_event_numbers"] = [dl.event_num for dl in daq_lists]
+    meta["daq_list_names"] = [dl.name for dl in daq_lists]
+    if period_s is not None:
+        try:
+            meta["daq_timebase_hint_s"] = float(period_s)
+        except Exception:
+            pass
+    if duration is not None:
+        try:
+            meta["daq_duration_s"] = float(duration)
+        except Exception:
+            pass
+    if samples is not None:
+        try:
+            meta["daq_samples"] = int(samples)
+        except Exception:
+            pass
+    return meta
 
 
 def finalize_measurement_outputs(
@@ -731,94 +682,128 @@ def finalize_from_daq_csv(
     )
 
 
-def _parse_daq_csv(csv_file: Path) -> dict[str, Any]:
-    """
-    Parse a single CSV produced by pyXCP DaqToCsv.
+def persist_measurements(
+    format_name: str,
+    *,
+    data: dict[str, Any],
+    units: Optional[dict[str, Optional[str]]] = None,
+    project_meta: Optional[dict[str, Any]] = None,
+    output_path: str | Path | None = None,
+    **kwargs: Any,
+) -> RunResult:
+    """Persist measurement data using a registered backend."""
 
-    Returns a dict: {"TIMESTAMPS": np.ndarray | None, <signal>: np.ndarray, ...}
-    """
-    import numpy as np  # local import to avoid hard dep when not used
-
-    columns, rows = _read_daq_csv_rows(csv_file)
-    if not columns:
-        return {}
-
-    norm = [c.strip() for c in columns]
-    ts_idx = _timestamp_index(norm)
-
-    col_data: list[list[float]] = [[] for _ in norm]
-    for row in rows:
-        for idx, value in enumerate(row):
-            try:
-                col_data[idx].append(float(value))
-            except Exception as exc:
-                logger.debug(
-                    "Skipping non-numeric value %r at column %s: %s", value, idx, exc
-                )
-
-    result: dict[str, Any] = {}
-    if ts_idx is not None:
-        result["TIMESTAMPS"] = np.asarray(col_data[ts_idx])
-    for i, name in enumerate(norm):
-        if ts_idx is not None and i == ts_idx:
-            continue
-        result[name] = np.asarray(col_data[i])
-    return result
+    fmt = get_measurement_format(format_name)
+    return fmt.persist(
+        data=data,
+        units=units,
+        project_meta=project_meta,
+        output_path=output_path,
+        **kwargs,
+    )
 
 
-def _read_daq_csv_rows(csv_file: Path) -> tuple[list[str], list[list[str]]]:
-    columns: list[str] = []
-    rows: list[list[str]] = []
-    with csv_file.open("r", encoding="utf-8", newline="") as fh:
-        reader = csv.reader(fh)
-        for raw in reader:
-            if not raw or raw[0].startswith("#"):
-                continue
-            if not columns:
-                columns = [c.strip() for c in raw]
-                continue
-            rows.append(raw)
-    return columns, rows
+def list_measurement_formats() -> list[str]:
+    """Return supported measurement formats."""
+
+    return available_measurement_formats()
 
 
-def _timestamp_index(headers: list[str]) -> Optional[int]:
-    ts_names = {"timestamp", "time", "TIMESTAMP", "TIME"}
-    return next((i for i, col in enumerate(headers) if col in ts_names), None)
+def _persist_csv_format(
+    *,
+    data: dict[str, Any],
+    units: Optional[dict[str, Optional[str]]],
+    project_meta: Optional[dict[str, Any]],
+    output_path: str | Path | None,
+    **_: Any,
+) -> RunResult:
+    target = str(output_path) if output_path is not None else _auto_filename("measurement", ".csv")
+    return finalize_measurement_outputs(
+        data=data, units=units, project_meta=project_meta, csv_out=target, hdf5_out=None
+    )
 
 
-def _merge_daq_csv_results(files: Iterable[Path]) -> dict[str, Any]:
-    """
-    Merge multiple DaqToCsv CSV files into one data dict.
-    Prefer the first file's timestamps if available; warn on length mismatches.
-    """
-    import numpy as np
+def _persist_hdf5_format(
+    *,
+    data: dict[str, Any],
+    units: Optional[dict[str, Optional[str]]],
+    project_meta: Optional[dict[str, Any]],
+    output_path: str | Path | None,
+    **_: Any,
+) -> RunResult:
+    target = str(output_path) if output_path is not None else _auto_filename("measurement", ".h5")
+    return finalize_measurement_outputs(
+        data=data, units=units, project_meta=project_meta, csv_out=None, hdf5_out=target
+    )
 
-    merged: dict[str, Any] = {}
-    base_ts = None
-    for f in files:
-        try:
-            part = _parse_daq_csv(f)
-        except Exception as e:
-            warnings.warn(f"Failed to parse DAQ CSV {f}: {e}", stacklevel=2)
-            continue
-        if not part:
-            continue
-        ts = part.get("TIMESTAMPS")
-        if base_ts is None and ts is not None:
-            base_ts = ts
-            merged["TIMESTAMPS"] = ts
-        for k, v in part.items():
-            if k == "TIMESTAMPS":
-                continue
-            merged[k] = v
-    # Ensure TIMESTAMPS present if any signals exist
-    if "TIMESTAMPS" not in merged and merged:
-        # Synthesize simple 0..N-1 based on the longest series
-        max_len = max(
-            (len(v) for k, v in merged.items() if k != "TIMESTAMPS"), default=0
+
+def _persist_mdf_format(
+    *,
+    data: dict[str, Any],
+    units: Optional[dict[str, Optional[str]]],
+    project_meta: Optional[dict[str, Any]],
+    output_path: str | Path | None,
+    creator: Optional[Any] = None,
+    exp_cfg: Optional[dict[str, Any]] = None,
+    **kwargs: Any,
+) -> RunResult:
+    local_creator = creator
+    created_here = False
+    if local_creator is None:
+        if exp_cfg is None:
+            msg = "MDF persistence requires either an MDFCreator instance or exp_cfg."
+            raise ValueError(msg)
+        local_creator = MDFCreator(exp_cfg)
+        created_here = True
+    try:
+        return local_creator.save_measurements(
+            mdf_filename=str(output_path) if output_path is not None else None,
+            data=data,
+            csv_out=kwargs.get("csv_out"),
+            hdf5_out=kwargs.get("hdf5_out"),
+            project_meta=project_meta,
+            strict=bool(kwargs.get("strict", False)),
+            strict_no_trim=bool(kwargs.get("strict_no_trim", False)),
+            strict_no_synth=bool(kwargs.get("strict_no_synth", False)),
         )
-        merged["TIMESTAMPS"] = np.arange(max_len, dtype=float)
-    return merged
+    finally:
+        if created_here:
+            try:
+                local_creator.close()
+            except Exception:  # pragma: no cover - best-effort cleanup
+                logger.debug("Failed to close temporary MDFCreator", exc_info=True)
+
+
+def _register_default_formats() -> None:
+    register_measurement_format(
+        MeasurementFormat(
+            name="CSV",
+            persist=_persist_csv_format,
+            description="CSV export of physical measurements",
+            default_extension=".csv",
+        )
+    )
+    register_measurement_format(
+        MeasurementFormat(
+            name="HDF5",
+            persist=_persist_hdf5_format,
+            creator_factory=lambda exp_cfg: HDF5Creator(exp_cfg),
+            description="HDF5 export and live capture via HDF5Creator",
+            default_extension=".h5",
+        )
+    )
+    register_measurement_format(
+        MeasurementFormat(
+            name="MDF",
+            persist=_persist_mdf_format,
+            creator_factory=lambda exp_cfg: MDFCreator(exp_cfg),
+            description="ASAM MDF export via asammdf",
+            default_extension=".mf4",
+        )
+    )
+
+
+_register_default_formats()
 
 
 def _prepare_daq_groups(groups: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -838,9 +823,10 @@ def _execute_daq_capture(
     period_s: Optional[float],
     hdf5_out: Optional[str],
     shortname: str,
+    metadata: Optional[dict[str, Any]] = None,
 ) -> str:
     target_hdf5 = hdf5_out or _auto_filename(shortname or "daq", "h5")
-    daq_parser = Hdf5OnlinePolicy(target_hdf5, daq_lists)
+    daq_parser = Hdf5OnlinePolicy(target_hdf5, daq_lists, **(metadata or {}))
     ap = ArgumentParser(description="asamint DAQ run")
     with ap.run(policy=daq_parser) as connection:
         connection.connect()
@@ -866,13 +852,25 @@ def _run_daq_flow(
     creator: Any,
     daq_groups: list[dict[str, Any]],
     *,
+    daq_lists: Optional[list[DaqList]] = None,
     duration: Optional[float],
     samples: Optional[int],
     period_s: Optional[float],
     hdf5_out: Optional[str],
     shortname: str,
+    project_meta: dict[str, Any],
 ) -> RunResult:
-    daq_lists = build_daq_lists(creator.session, daq_groups)
+    daq_lists = (
+        daq_lists if daq_lists is not None else build_daq_lists(creator.session, daq_groups)
+    )
+    timebase_hint_s = float(period_s) if period_s is not None else None
+    metadata = _prepare_daq_metadata(
+        daq_lists,
+        project_meta,
+        duration=duration,
+        samples=samples,
+        period_s=period_s,
+    )
     hdf5_path = _execute_daq_capture(
         daq_lists=daq_lists,
         duration=duration,
@@ -880,12 +878,14 @@ def _run_daq_flow(
         period_s=period_s,
         hdf5_out=hdf5_out,
         shortname=shortname,
+        metadata=metadata,
     )
     return RunResult(
         mdf_path=None,
         csv_path=None,
         hdf5_path=str(hdf5_path) if hdf5_path else None,
         signals={},
+        timebases=_collect_daq_timebases(daq_lists, timebase_hint_s),
     )
 
 
@@ -906,12 +906,11 @@ def _run_daq_flow_wrapper(
         "FUNCTIONS": [],
         "GROUPS": [],
     }
-    creator_class = (
-        HDF5Creator
-        if (hdf5_out or app.general.output_format.upper() == "HDF5")
-        else MDFCreator
-    )
-    creator = creator_class(exp_cfg)
+    format_name = _resolve_output_format(app.general.output_format, hdf5_out)
+    fmt = get_measurement_format(format_name)
+    if not fmt.supports_live_capture or fmt.creator_factory is None:
+        raise ValueError(f"Measurement format '{format_name}' does not support DAQ capture.")
+    creator = fmt.creator_factory(exp_cfg)
 
     names = _unique_names_from_groups(groups)
     for g in groups:
@@ -944,18 +943,27 @@ def _run_daq_flow_wrapper(
     }
 
     daq_groups = _prepare_daq_groups(groups)
+    daq_lists = build_daq_lists(creator.session, daq_groups)
     try:
         result = _run_daq_flow(
             creator=creator,
             daq_groups=daq_groups,
+            daq_lists=daq_lists,
             duration=duration,
             samples=samples,
             period_s=period_s,
             hdf5_out=hdf5_out,
             shortname=app.general.shortname or "daq",
+            project_meta=project_meta,
         )
         if result.hdf5_path:
             _annotate_hdf5_root(Path(result.hdf5_path), project_meta)
+            _annotate_daq_hdf5_metadata(
+                Path(result.hdf5_path),
+                daq_lists,
+                project_meta,
+                timebase_hint_s=result.timebases[0]["timebase_s"] if result.timebases else None,
+            )
         return result
     finally:
         creator.close()
@@ -1067,13 +1075,15 @@ def run(
     }
 
     # Prepare creator based on output format
-    output_format = app.general.output_format.upper()
-    if hdf5_out or output_format == "HDF5":
-        creator_class = HDF5Creator
-    else:
-        creator_class = MDFCreator
-
-    creator = creator_class(exp_cfg)  # AsamMC passes (app_config, exp_cfg) into on_init
+    format_name = _resolve_output_format(app.general.output_format, hdf5_out)
+    fmt = get_measurement_format(format_name)
+    if not fmt.supports_live_capture or fmt.creator_factory is None:
+        raise ValueError(
+            f"Measurement format '{format_name}' does not support polling acquisition."
+        )
+    creator = fmt.creator_factory(
+        exp_cfg
+    )  # AsamMC passes (app_config, exp_cfg) into on_init
 
     # Resolve variable names
     # 1) Collect explicit variables

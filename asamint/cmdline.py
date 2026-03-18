@@ -6,12 +6,16 @@ and create a XCP master instance.
 
 import warnings
 from dataclasses import dataclass
-from typing import Any, List, Optional
+from collections.abc import Iterable
+from pathlib import Path
+from typing import Any, Optional
 
 from asamint.config import create_application, get_application
 from asamint.measurement import finalize_from_daq_csv
 
 warnings.simplefilter("always")
+
+__all__ = ["Option", "FakeParser", "ArgumentParser", "finalize_daq_csv"]
 
 
 @dataclass
@@ -25,8 +29,8 @@ class Option:
 
 
 class FakeParser:
-
-    options: list[Option] = []
+    def __init__(self) -> None:
+        self.options: list[Option] = []
 
     def add_argument(
         self,
@@ -67,13 +71,13 @@ class ArgumentParser:
 
 
 def finalize_daq_csv(
-    csv_files: list[str],
+    csv_files: Iterable[str | Path],
     *,
-    csv_out: Optional[str] = None,
-    hdf5_out: Optional[str] = None,
+    csv_out: Optional[str | Path] = None,
+    hdf5_out: Optional[str | Path] = None,
     units: Optional[dict[str, Optional[str]]] = None,
     project_meta: Optional[dict[str, Any]] = None,
-):
+) -> Any:
     """CLI-friendly wrapper to finalize DAQ CSV outputs into CSV/HDF5 with metadata."""
 
     if project_meta is None:
@@ -88,10 +92,14 @@ def finalize_daq_csv(
             "time_source": "local PC reference timer",
         }
 
+    csv_paths = [Path(path) for path in csv_files]
+    csv_out_path = Path(csv_out) if csv_out is not None else None
+    hdf5_out_path = Path(hdf5_out) if hdf5_out is not None else None
+
     return finalize_from_daq_csv(
-        csv_files,
+        csv_paths,
         units=units,
         project_meta=project_meta,
-        csv_out=csv_out,
-        hdf5_out=hdf5_out,
+        csv_out=csv_out_path,
+        hdf5_out=hdf5_out_path,
     )

@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-from pyxcp.utils.cli import StrippingParser
+from asamint.adapters.xcp import StrippingParser
 
 
 class MeasurementArgsParser(StrippingParser):
