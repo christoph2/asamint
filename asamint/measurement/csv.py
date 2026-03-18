@@ -128,6 +128,66 @@ def _parse_daq_csv(csv_file: Path) -> dict[str, Any]:
 
     Returns a dict: {"TIMESTAMPS": np.ndarray | None, <signal>: np.ndarray, ...}
     """
+    fast = _fast_parse_daq_csv(csv_file)
+    if fast is not None:
+        return fast
+    return _parse_daq_csv_python(csv_file)
+
+
+def _fast_parse_daq_csv(csv_file: Path) -> Optional[dict[str, Any]]:
+    """Fast path using numpy.genfromtxt; returns None to fall back on errors."""
+
+    try:
+        first_non_ws: Optional[str] = None
+        with csv_file.open("r", encoding="utf-8") as fh:
+            for line in fh:
+                stripped = line.lstrip()
+                if not stripped:
+                    continue
+                first_non_ws = stripped[0]
+                break
+        if first_non_ws == "#":
+            return None
+    except Exception as exc:  # pragma: no cover - guarded fallback
+        logger.debug("Fast CSV precheck skipped for %s: %s", csv_file, exc)
+        return None
+
+    try:
+        arr = np.genfromtxt(
+            csv_file,
+            delimiter=",",
+            names=True,
+            autostrip=True,
+            comments="#",
+            dtype=float,
+            invalid_raise=False,
+        )
+    except Exception as exc:  # pragma: no cover - guarded fallback
+        logger.debug("Fast CSV parse skipped for %s: %s", csv_file, exc)
+        return None
+
+    if arr.size == 0:
+        return {}
+    if arr.dtype.names is None:
+        return None
+
+    arr = np.atleast_1d(arr)
+    names = list(arr.dtype.names)
+    ts_idx = _timestamp_index(names)
+
+    result: dict[str, Any] = {}
+    for idx, name in enumerate(names):
+        series = np.asarray(arr[name])
+        if ts_idx is not None and idx == ts_idx:
+            result["TIMESTAMPS"] = series
+        else:
+            result[name] = series
+
+    return result
+
+
+def _parse_daq_csv_python(csv_file: Path) -> dict[str, Any]:
+    """Original Python parser fallback for DAQ CSV files."""
     columns, rows = _read_daq_csv_rows(csv_file)
     if not columns:
         return {}
