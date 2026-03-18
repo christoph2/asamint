@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import csv
 import warnings
+from io import StringIO
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Optional
@@ -81,10 +82,12 @@ def _write_csv(
     project_meta: Optional[dict[str, Any]] = None,
     meta: Optional[dict[str, dict[str, Any]]] = None,
 ) -> None:
+    flush_threshold_bytes = 512 * 1024
     fieldnames = _csv_fieldnames(data)
     with csv_path.open("w", newline="", encoding="utf-8") as fh:
         _write_metadata_headers(fh, units, project_meta, meta)
-        writer = csv.writer(fh)
+        buffer = StringIO()
+        writer = csv.writer(buffer)
         writer.writerow(fieldnames)
         ts = data.get("TIMESTAMPS")
         if ts is None:
@@ -98,8 +101,19 @@ def _write_csv(
                     logger.debug("Cannot determine length for series %s: %s", k, exc)
             ts = list(range(max_len))
         series_keys = [k for k in fieldnames if k != "timestamp"]
+
+        def flush_buffer() -> None:
+            if buffer.tell() == 0:
+                return
+            fh.write(buffer.getvalue())
+            buffer.seek(0)
+            buffer.truncate(0)
+
         for row in _iter_csv_rows(list(ts), series_keys, data):
             writer.writerow(row)
+            if buffer.tell() >= flush_threshold_bytes:
+                flush_buffer()
+        flush_buffer()
 
 
 def _read_daq_csv_rows(csv_file: Path) -> tuple[list[str], list[list[str]]]:

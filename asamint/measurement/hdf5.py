@@ -50,6 +50,7 @@ class HDF5Creator(AsamMC):
         csv_out: str | Path | None = None,
         hdf5_out: str | Path | None = None,
         project_meta: Optional[dict[str, Any]] = None,
+        hdf5_only: bool = False,
     ):
         """
         Persist measurement data into HDF5/CSV using finalize helpers.
@@ -59,6 +60,7 @@ class HDF5Creator(AsamMC):
             csv_out: Optional CSV output path.
             hdf5_out: Optional HDF5 output path; defaults to an auto-generated filename.
             project_meta: Optional metadata for embedding into outputs.
+            hdf5_only: Skip CSV writing even if ``csv_out`` is provided.
         """
 
         if not data:
@@ -101,9 +103,10 @@ class HDF5Creator(AsamMC):
             data=data,
             units=units,
             project_meta=project_meta,
-            csv_out=csv_out,
+            csv_out=None if hdf5_only else csv_out,
             hdf5_out=target_h5,
             signal_metadata=signal_meta,
+            hdf5_only=hdf5_only,
         )
 
 

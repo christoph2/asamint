@@ -598,6 +598,8 @@ def finalize_measurement_outputs(
     csv_out: Optional[str | Path] = None,
     hdf5_out: Optional[str | Path] = None,
     signal_metadata: Optional[dict[str, dict[str, Any]]] = None,
+    *,
+    hdf5_only: bool = False,
 ) -> RunResult:
     """Persist measurement data to CSV/HDF5 with metadata and return paths/meta.
 
@@ -608,6 +610,7 @@ def finalize_measurement_outputs(
         csv_out: Target CSV path (absolute or relative to CWD).
         hdf5_out: Target HDF5 path (absolute or relative to CWD).
         signal_metadata: Optional per-signal metadata to merge (e.g., compu methods).
+        hdf5_only: If True, skip CSV writing even if ``csv_out`` is provided.
 
     Returns:
         RunResult with written CSV/HDF5 paths and per-signal metadata.
@@ -615,6 +618,9 @@ def finalize_measurement_outputs(
     Raises:
         ValueError: If neither ``csv_out`` nor ``hdf5_out`` is provided.
     """
+
+    if hdf5_only:
+        csv_out = None
 
     if csv_out is None and hdf5_out is None:
         msg = "At least one of csv_out or hdf5_out must be provided."
@@ -664,6 +670,8 @@ def finalize_from_daq_csv(
     project_meta: Optional[dict[str, Any]] = None,
     csv_out: Optional[str | Path] = None,
     hdf5_out: Optional[str | Path] = None,
+    *,
+    hdf5_only: bool = False,
 ) -> RunResult:
     """Merge DAQ CSV results, compute metadata, and persist to CSV/HDF5."""
 
@@ -677,8 +685,9 @@ def finalize_from_daq_csv(
         data=data,
         units=units,
         project_meta=project_meta,
-        csv_out=csv_out,
+        csv_out=None if hdf5_only else csv_out,
         hdf5_out=hdf5_out,
+        hdf5_only=hdf5_only,
     )
 
 
@@ -733,7 +742,12 @@ def _persist_hdf5_format(
 ) -> RunResult:
     target = str(output_path) if output_path is not None else _auto_filename("measurement", ".h5")
     return finalize_measurement_outputs(
-        data=data, units=units, project_meta=project_meta, csv_out=None, hdf5_out=target
+        data=data,
+        units=units,
+        project_meta=project_meta,
+        csv_out=None,
+        hdf5_out=target,
+        hdf5_only=True,
     )
 
 
