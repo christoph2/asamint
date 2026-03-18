@@ -32,6 +32,7 @@ import logging
 import operator
 import sys
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import IntEnum
 from functools import partialmethod, reduce
@@ -273,6 +274,9 @@ class Calibration:
         image: Image,
         parameter_cache: Union[dict[str, Any], ParameterCache],
         logger: Logger,
+        *,
+        preload_characteristics: Optional[Iterable[str]] = None,
+        preload_axis_pts: Optional[Iterable[str]] = None,
     ) -> None:
         """Initialize the Calibration object.
 
@@ -292,6 +296,66 @@ class Calibration:
         self.mod_common = asam_mc.mod_common
         self.mod_par = asam_mc.mod_par
         self._definition_cache: dict[tuple[str, str], Any] = {}
+        self._preload_definitions()
+        if preload_characteristics or preload_axis_pts:
+            self.preload_selected(
+                characteristics=preload_characteristics, axis_pts=preload_axis_pts
+            )
+
+    def _preload_definitions(self) -> None:
+        """Preload characteristic types and axis existence to reduce repeated DB hits."""
+
+        try:
+            characteristic_rows = list(
+                self.session.query(model.Characteristic.name, model.Characteristic.type).all()
+            )
+            axis_rows = list(self.session.query(model.AxisPts.name).all())
+        except Exception as exc:
+            self.logger.debug("Skipping A2L preload: %s", exc)
+            return
+
+        for name, type_name in characteristic_rows:
+            self._definition_cache[("TYPE", name)] = type_name
+
+        for (name,) in axis_rows:
+            self._definition_cache[("AXIS_EXISTS", name)] = True
+
+    def preload_selected(
+        self,
+        *,
+        characteristics: Optional[Iterable[str]] = None,
+        axis_pts: Optional[Iterable[str]] = None,
+    ) -> None:
+        """Eagerly cache selected characteristics and axis points (and their compu methods)."""
+
+        if characteristics:
+            for name in characteristics:
+                try:
+                    characteristic = Characteristic.get(self.session, name)
+                except ValueError:
+                    self.logger.debug("Characteristic '%s' not found during preload", name)
+                    continue
+                self._definition_cache[("CHAR", name)] = characteristic
+                self._definition_cache[("TYPE", name)] = characteristic.type
+                try:
+                    cm = self.get_compu_method(characteristic)
+                    self._definition_cache[("CM", cm.name)] = cm
+                except Exception as exc:  # pragma: no cover - best effort
+                    self.logger.debug("Skipping compu preload for %s: %s", name, exc)
+
+        if axis_pts:
+            for name in axis_pts:
+                try:
+                    axis = AxisPts.get(self.session, name)
+                except ValueError:
+                    self.logger.debug("AxisPts '%s' not found during preload", name)
+                    continue
+                self._definition_cache[("AXIS", name)] = axis
+                try:
+                    cm = self.get_compu_method(axis)
+                    self._definition_cache[("CM", cm.name)] = cm
+                except Exception as exc:  # pragma: no cover - best effort
+                    self.logger.debug("Skipping compu preload for axis %s: %s", name, exc)
 
     def update(self) -> None:
         """Perform the actual update of parameters (write to HEX file / XCP).
@@ -316,27 +380,16 @@ class Calibration:
         Raises:
             ValueError: If the parameter is not found
         """
-        # First try to find a characteristic with this name
-        chr = (
-            self.session.query(model.Characteristic)
-            .filter(model.Characteristic.name == name)
-            .first()
-        )
-
-        if chr is None:
-            # If not a characteristic, try to find an axis points object
-            axis_pts = (
-                self.session.query(model.AxisPts)
-                .filter(model.AxisPts.name == name)
-                .first()
-            )
-            if axis_pts:
+        try:
+            chr_type = self.characteristic_category(name)
+        except ValueError:
+            try:
                 return self.load_axis_pts(name)
-            else:
-                raise ValueError(f"Parameter '{name}' not found")
+            except ValueError:
+                raise ValueError(f"Parameter '{name}' not found") from None
 
         # Dispatch to the appropriate loading method based on characteristic type
-        match chr.type:
+        match chr_type:
             case "ASCII":
                 result = self.load_ascii(name)
             case "CUBOID":
@@ -375,25 +428,14 @@ class Calibration:
             ValueError: If the parameter is not found
             TypeError: If the value type doesn't match the parameter type
         """
-        # First try to find a characteristic with this name
-        chr = (
-            self.session.query(model.Characteristic)
-            .filter(model.Characteristic.name == name)
-            .first()
-        )
-
-        if chr is None:
-            # If not a characteristic, try to find an axis points object
-            axis_pts = (
-                self.session.query(model.AxisPts)
-                .filter(model.AxisPts.name == name)
-                .first()
-            )
-            if axis_pts:
-                # save_axis_pts already accepts either an AxisPts-like object or an array
+        try:
+            chr_type = self.characteristic_category(name)
+        except ValueError:
+            try:
                 self.save_axis_pts(name, value)
-            else:
-                raise ValueError(f"Parameter '{name}' not found")
+                return
+            except ValueError:
+                raise ValueError(f"Parameter '{name}' not found") from None
         else:
             # Normalize wrapper objects (from load()) to their underlying values, if needed
             def _normalize_ascii(v: Any) -> str:
@@ -416,7 +458,7 @@ class Calibration:
                 return v
 
             # Dispatch to the appropriate saving method based on characteristic type
-            match chr.type:
+            match chr_type:
                 case "ASCII":
                     self.save_ascii(name, _normalize_ascii(value))
                 case "CUBOID":
@@ -1477,7 +1519,13 @@ class Calibration:
             if characteristic.compuMethod == "NO_COMPU_METHOD"
             else characteristic.compuMethod.name
         )
-        return CompuMethod.get(self.session, cm_name)
+        cache_key = ("CM", cm_name)
+        cached = self._definition_cache.get(cache_key)
+        if cached is not None:
+            return cached
+        compu_method = CompuMethod.get(self.session, cm_name)
+        self._definition_cache[cache_key] = compu_method
+        return compu_method
 
     def get_characteristic(
         self, characteristic_name: str, type_name: str, save: bool = False
@@ -1515,6 +1563,9 @@ class Calibration:
         Raises:
             ValueError: If the characteristic is not found
         """
+        type_cached = self._definition_cache.get(("TYPE", characteristic_name))
+        if type_cached is not None:
+            return type_cached
         cached = self._definition_cache.get(("CHAR", characteristic_name))
         if cached is not None:
             return cached.type
@@ -1525,6 +1576,7 @@ class Calibration:
                 f"Characteristic '{characteristic_name}' not found"
             ) from None
         self._definition_cache[("CHAR", characteristic_name)] = characteristic
+        self._definition_cache[("TYPE", characteristic_name)] = characteristic.type
         return characteristic.type
 
     def _load_characteristic(
@@ -1601,7 +1653,6 @@ class Calibration:
             except ValueError:
                 raise ValueError(f"Axis points '{axis_pts_name}' not found") from None
             self._definition_cache[key] = axis_pts
-
         return axis_pts
 
     def byte_order(self, obj: Union[AxisPts, Characteristic]) -> ByteOrder:
@@ -2128,10 +2179,13 @@ class OfflineCalibration(Calibration):
         self,
         a2l_db: Any,
         image: Image,
-            hexfile_name: Optional[str] = None,
-            hexfile_type: Optional[str] = None,
-            loglevel: str = "WARN",
-        ) -> None:
+        hexfile_name: Optional[str] = None,
+        hexfile_type: Optional[str] = None,
+        loglevel: str = "WARN",
+        *,
+        preload_characteristics: Optional[Iterable[str]] = None,
+        preload_axis_pts: Optional[Iterable[str]] = None,
+    ) -> None:
         """Initialize the OfflineCalibration object.
 
         Args:
@@ -2142,12 +2196,24 @@ class OfflineCalibration(Calibration):
             loglevel: Logging level
         """
         ctx = _build_calibration_context(a2l_db, loglevel)
+        if hasattr(image, "join_sections"):
+            try:
+                image.join_sections()
+            except Exception as exc:
+                ctx.logger.debug("Skipping join_sections(): %s", exc)
         mappings = _infer_address_offset(ctx.session, image)
         mapped_image: Image | _AddressMappedImage = (
             _AddressMappedImage(image, mappings) if mappings else image
         )
         parameter_chache = ParameterCache()
-        super().__init__(ctx, mapped_image, parameter_chache, ctx.logger)
+        super().__init__(
+            ctx,
+            mapped_image,
+            parameter_chache,
+            ctx.logger,
+            preload_characteristics=preload_characteristics,
+            preload_axis_pts=preload_axis_pts,
+        )
         self.hexfile_name = hexfile_name
         self.hexfile_type = hexfile_type
         self.address_offset = mappings
