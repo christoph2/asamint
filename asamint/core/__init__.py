@@ -33,6 +33,99 @@ from .models import (
 )
 
 
+import numpy as np
+from typing import Literal, Dict, List
+
+ByteOrder = Literal[
+    "MSB_FIRST",
+    "MSB_LAST",
+    "MSB_FIRST_MSW_LAST",
+    "MSB_LAST_MSW_FIRST",
+]
+
+class ECUByteOrder:
+    """
+    Utility class to decode ECU-specific byte orders into NumPy arrays.
+    Supports 16/32/64-bit integers and floats.
+    """
+
+    # ------------------------------------------------------------
+    # 1) Byte permutation tables
+    # ------------------------------------------------------------
+    PERMUTATIONS: Dict[str, Dict[int, List[int]]] = {
+        "MSB_FIRST": {
+            2: [0, 1],
+            4: [0, 1, 2, 3],
+            8: [0, 1, 2, 3, 4, 5, 6, 7],
+        },
+        "MSB_LAST": {
+            2: [1, 0],
+            4: [3, 2, 1, 0],
+            8: [7, 6, 5, 4, 3, 2, 1, 0],
+        },
+        "MSB_FIRST_MSW_LAST": {
+            4: [1, 0, 3, 2],
+            8: [1, 0, 3, 2, 5, 4, 7, 6],
+        },
+        "MSB_LAST_MSW_FIRST": {
+            4: [2, 3, 0, 1],
+            8: [6, 7, 4, 5, 2, 3, 0, 1],
+        },
+    }
+
+    # ------------------------------------------------------------
+    # 2) Endianness mapping for NumPy dtype prefixes
+    # ------------------------------------------------------------
+    ENDIAN_PREFIX = {
+        "MSB_FIRST": ">",
+        "MSB_LAST": "<",
+        "MSB_FIRST_MSW_LAST": ">",
+        "MSB_LAST_MSW_FIRST": "<",
+    }
+
+    # ------------------------------------------------------------
+    # 3) Public decode function
+    # ------------------------------------------------------------
+    @classmethod
+    def decode(cls, raw: bytes, byteorder: ByteOrder, dtype: str):
+        """
+        Decode raw ECU bytes into a NumPy array.
+
+        Parameters
+        ----------
+        raw : bytes
+            Raw byte stream from ECU.
+        byteorder : ByteOrder
+            ECU byte order variant.
+        dtype : str
+            NumPy dtype without endianness prefix, e.g. "i2", "u4", "f8".
+
+        Returns
+        -------
+        np.ndarray
+        """
+        size = np.dtype(dtype).itemsize
+        if size not in cls.PERMUTATIONS[byteorder]:
+            raise ValueError(f"Byte order {byteorder} not supported for {size} bytes")
+
+        perm = cls.PERMUTATIONS[byteorder][size]
+        endian = cls.ENDIAN_PREFIX[byteorder]
+
+        # Convert to uint8 array
+        arr = np.frombuffer(raw, dtype=np.uint8)
+
+        if arr.size % size != 0:
+            raise ValueError("Raw data size is not a multiple of dtype size")
+
+        arr = arr.reshape(-1, size)
+
+        # Apply permutation
+        reordered = arr[:, perm].tobytes()
+
+        # Interpret as final dtype
+        final_dtype = np.dtype(endian + dtype)
+        return np.frombuffer(reordered, dtype=final_dtype)
+
 class ByteOrder(IntEnum):
     """ASAM Byte-Order gemäß ASAM 1.2.
 
