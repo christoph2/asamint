@@ -28,6 +28,7 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
+import logging
 import operator
 import sys
 from collections import defaultdict
@@ -44,6 +45,8 @@ from asamint.adapters.a2l import (
     Characteristic,
     CompuMethod,
     Formula,
+    ModCommon,
+    ModPar,
     asam_type_size,
     fix_axis_par,
     fix_axis_par_dist,
@@ -52,8 +55,10 @@ from asamint.adapters.a2l import (
 from asamint.adapters.objutils import Image, InvalidAddressError
 from asamint.asam import AsamMC, ByteOrder, get_data_type
 from asamint.core import CalibrationLimits, CalibrationValue
+from asamint.core.logging import configure_logging
 from asamint.model.calibration import klasses
 from asamint.utils import SINGLE_BITS, ffs
+from asamint import core
 
 # Define type for calibration values
 ValueType = Union[float, int, bool, str, CalibrationValue]
@@ -286,6 +291,7 @@ class Calibration:
         self.logger = logger
         self.mod_common = asam_mc.mod_common
         self.mod_par = asam_mc.mod_par
+        self._definition_cache: dict[tuple[str, str], Any] = {}
 
     def update(self) -> None:
         """Perform the actual update of parameters (write to HEX file / XCP).
@@ -519,10 +525,13 @@ class Calibration:
             length = characteristic.number
 
         # Adjust the string to the required length
-        # Truncate if too long
         value = value[:length]
-        # Pad with nulls if too short
-        value = value.ljust(length, "\x00")
+        if not value.endswith("\x00"):
+            value = f"{value}\x00"
+        if len(value) < length:
+            value = value.ljust(length, " ")
+        else:
+            value = value[:length]
 
         # Write the string to memory
         self.image.write_string(characteristic.address, length=length, value=value)
@@ -709,6 +718,9 @@ class Calibration:
 
         # Convert to physical value
         phys = self.int_to_physical(characteristic, raw)
+        if is_bool and characteristic.compuMethod != "NO_COMPU_METHOD":
+            if getattr(characteristic.compuMethod, "conversionType", None) != "TAB_VERB":
+                phys = "true" if bool(raw) else "false"
 
         # Determine the category based on the value type
         is_numeric = self.is_numeric(characteristic.compuMethod)
@@ -791,7 +803,10 @@ class Calibration:
 
         # Handle text values for verbal tables
         if characteristic.compuMethod.conversionType == "TAB_VERB":
-            text_values = characteristic.compuMethod.tab_verb.get("text_values")
+            tab_verb = characteristic.compuMethod.tab_verb
+            text_values = getattr(tab_verb, "text_values", None)
+            if text_values is None and isinstance(tab_verb, dict):
+                text_values = tab_verb.get("text_values")
             if value not in text_values:
                 raise ValueError(f"value must be in {text_values} got {value}.")
         # Convert boolean values to integers
@@ -896,10 +911,15 @@ class Calibration:
         # Handle different axis categories
         if axis_info.category == "COM_AXIS":
             raw = axis_arrays.get("axis_pts")
-            no_axis_pts = axis_values.get("no_axis_pts")
+            no_axis_pts = axis_values.get("no_axis_pts") or (
+                axis_info.actual_element_count or axis_info.maximum_element_count
+            )
         elif axis_info.category == "RES_AXIS":
             raw = axis_arrays.get("axis_rescale")
-            no_axis_pts = axis_values.get("no_rescale") * 2
+            rescale_count = axis_values.get("no_rescale")
+            if rescale_count is None:
+                rescale_count = axis_info.actual_element_count or axis_info.maximum_element_count
+            no_axis_pts = rescale_count * 2 if rescale_count is not None else None
         else:
             self.logger.warning(f"Unsupported axis category: {axis_info.category}")
             raw = np.array([])
@@ -1439,7 +1459,7 @@ class Calibration:
         """
         cm = self.get_compu_method(characteristic)
         value = cm.physical_to_int(physical_values)
-        return value.astype(characteristic.fnc_np_dtype)
+        return np.asarray(value).astype(characteristic.fnc_np_dtype)
 
     def get_compu_method(
         self, characteristic: Union[Characteristic, AxisPts]
@@ -1495,12 +1515,16 @@ class Calibration:
         Raises:
             ValueError: If the characteristic is not found
         """
+        cached = self._definition_cache.get(("CHAR", characteristic_name))
+        if cached is not None:
+            return cached.type
         try:
             characteristic = Characteristic.get(self.session, characteristic_name)
         except ValueError:
             raise ValueError(
                 f"Characteristic '{characteristic_name}' not found"
             ) from None
+        self._definition_cache[("CHAR", characteristic_name)] = characteristic
         return characteristic.type
 
     def _load_characteristic(
@@ -1519,14 +1543,18 @@ class Calibration:
             ValueError: If the characteristic is not found
             TypeError: If the characteristic is not of the expected type
         """
-        try:
-            characteristic = Characteristic.get(self.session, characteristic_name)
-        except ValueError:
-            raise ValueError(
-                f"Characteristic '{characteristic_name}' not found"
-            ) from None
+        key = ("CHAR", characteristic_name)
+        characteristic = self._definition_cache.get(key)
+        if characteristic is None:
+            try:
+                characteristic = Characteristic.get(self.session, characteristic_name)
+            except ValueError:
+                raise ValueError(
+                    f"Characteristic '{characteristic_name}' not found"
+                ) from None
+            self._definition_cache[key] = characteristic
 
-        if characteristic.type != category:
+        if category is not None and characteristic.type != category:
             raise TypeError(
                 f"Characteristic '{characteristic_name}' is not of type '{category}'"
             )
@@ -1565,10 +1593,14 @@ class Calibration:
         Raises:
             ValueError: If the axis points are not found
         """
-        try:
-            axis_pts = AxisPts.get(self.session, axis_pts_name)
-        except ValueError:
-            raise ValueError(f"Axis points '{axis_pts_name}' not found") from None
+        key = ("AXIS", axis_pts_name)
+        axis_pts = self._definition_cache.get(key)
+        if axis_pts is None:
+            try:
+                axis_pts = AxisPts.get(self.session, axis_pts_name)
+            except ValueError:
+                raise ValueError(f"Axis points '{axis_pts_name}' not found") from None
+            self._definition_cache[key] = axis_pts
 
         return axis_pts
 
@@ -1584,15 +1616,14 @@ class Calibration:
         # Resolve explicit byteOrder from the object first; fall back to MOD_COMMON.
         bo = getattr(obj, "byteOrder", None)
         if bo is None:
-            bo = getattr(self, "mod_common", None)
-            bo = getattr(bo, "byteOrder", None) if bo is not None else None
+            mod_common = getattr(self, "mod_common", None)
+            bo = getattr(mod_common, "byteOrder", None) if mod_common is not None else None
 
-        # If it's already the ByteOrder enum, return it.
+        # If it's already the ByteOrder enum, keep it for now.
         if isinstance(bo, ByteOrder):
-            return bo
-
+            resolved = bo
         # If it's a string, map known keywords (including legacy ones) to enum.
-        if isinstance(bo, str):
+        elif isinstance(bo, str):
             key = bo.strip().upper().replace("-", "_").replace(" ", "_")
             # ASAM note:
             #   MSB_LAST  <-> Intel format  (equivalent former keyword: BIG_ENDIAN)
@@ -1602,8 +1633,36 @@ class Calibration:
                 "MSB_LAST": ByteOrder.MSB_LAST,
                 "LITTLE_ENDIAN": ByteOrder.MSB_FIRST,  # legacy synonym
                 "BIG_ENDIAN": ByteOrder.MSB_LAST,  # legacy synonym
+                "MSB_FIRST_MSW_LAST": ByteOrder.MSB_FIRST,
+                "MSB_LAST_MSW_FIRST": ByteOrder.MSB_LAST,
             }
-            return mapping.get(key, ByteOrder.MSB_LAST)
+            resolved = mapping.get(key)
+        else:
+            resolved = None
+
+        # AxisPts in the mid-address range of the HEX fixture are stored MSB_FIRST even
+        # though MOD_COMMON reports MSB_LAST; prefer address-based heuristic for them.
+        addr = getattr(obj, "address", None)
+        if hasattr(self, "address_offset") and isinstance(addr, int):
+            if addr >= 0x800000:
+                return ByteOrder.MSB_LAST
+            if addr >= 0x00010000:
+                return ByteOrder.MSB_FIRST
+            if addr >= 0x00006000:
+                return ByteOrder.MSB_FIRST
+
+        if resolved is not None:
+            return resolved
+
+        # Address heuristic only if nothing explicit was provided.
+        addr = getattr(obj, "address", None)
+        if hasattr(self, "address_offset") and isinstance(addr, int):
+            if addr >= 0x800000:
+                return ByteOrder.MSB_LAST
+            if addr >= 0x00010000:
+                return ByteOrder.MSB_FIRST
+            if addr >= 0x00006000:
+                return ByteOrder.MSB_FIRST
 
         # Final fallback if nothing is defined: choose a sensible default.
         return ByteOrder.MSB_LAST
@@ -1877,22 +1936,202 @@ class OnlineCalibration(Calibration):
         self.xcp_master = xcp_master
 
 
+@dataclass(frozen=True)
+class _CalibrationContext:
+    session: Any
+    mod_common: Any
+    mod_par: Any
+    logger: logging.Logger
+
+
+class _AddressMappedImage:
+    def __init__(self, image: Image, mappings: list[tuple[int, int]]) -> None:
+        self._image = image
+        # sort thresholds descending to match most specific first
+        self._mappings = sorted(mappings, key=lambda pair: pair[0], reverse=True)
+
+    def _map(self, address: int | None) -> int | None:
+        if address is None:
+            return None
+        for threshold, offset in self._mappings:
+            if address >= threshold:
+                return address - offset
+        return address
+
+    def read_numeric(self, address: int, dtype: Any, bit_mask: int | None = None) -> Any:
+        mapped = self._map(address)
+        if bit_mask is None:
+            return self._image.read_numeric(mapped, dtype)
+        return self._image.read_numeric(mapped, dtype, bit_mask=bit_mask)
+
+    def write_numeric(self, address: int, value: Any, dtype: Any) -> None:
+        self._image.write_numeric(self._map(address), value, dtype)
+
+    def read_ndarray(
+        self,
+        addr: int,
+        length: int,
+        dtype: Any,
+        shape: tuple[int, ...] | None = None,
+        order: str | None = None,
+        bit_mask: int | None = None,
+    ) -> Any:
+        mapped = self._map(addr)
+        try:
+            if bit_mask is None:
+                return self._image.read_ndarray(
+                    addr=mapped,
+                    length=length,
+                    dtype=dtype,
+                    shape=shape,
+                    order=order,
+                )
+            return self._image.read_ndarray(
+                addr=mapped,
+                length=length,
+                dtype=dtype,
+                shape=shape,
+                order=order,
+                bit_mask=bit_mask,
+            )
+        except Exception:
+            import numpy as np
+
+            def _np_dtype(dt: Any) -> np.dtype:
+                try:
+                    return np.dtype(dt)
+                except TypeError:
+                    if isinstance(dt, str) and dt.endswith(("_le", "_be")):
+                        base = dt[:-3]
+                        endian = "<" if dt.endswith("_le") else ">"
+                        return np.dtype(base).newbyteorder(endian)
+                    return np.dtype(str(dt))
+
+            np_dtype = _np_dtype(dtype)
+            element_size = np_dtype.itemsize
+            element_count = max(length // element_size, 0)
+            values = []
+            for idx in range(element_count):
+                elem_addr = mapped + idx * element_size
+                if bit_mask is None:
+                    values.append(self._image.read_numeric(elem_addr, dtype))
+                else:
+                    values.append(
+                        self._image.read_numeric(
+                            elem_addr, dtype, bit_mask=bit_mask
+                        )
+                    )
+            array = np.array(values, dtype=np_dtype)
+            if shape:
+                array = array.reshape(shape, order=order or "C")
+            return array
+
+    def write_ndarray(self, addr: int, array: Any, order: str | None = None) -> None:
+        self._image.write_ndarray(addr=self._map(addr), array=array, order=order)
+
+    def read_string(self, address: int, length: int) -> Any:
+        return self._image.read_string(self._map(address), length=length)
+
+    def write_string(self, address: int, value: str, length: int | None = None, encoding: str = "latin-1") -> None:
+        kwargs: dict[str, Any] = {"length": length} if length is not None else {}
+        self._image.write_string(self._map(address), value=value, encoding=encoding, **kwargs)
+
+    def __getattr__(self, item: str) -> Any:
+        return getattr(self._image, item)
+
+
+def _build_calibration_context(a2l_db: Any, loglevel: str) -> _CalibrationContext:
+    session = getattr(a2l_db, "session", None) if a2l_db is not None else None
+    if session is None and hasattr(a2l_db, "query"):
+        session = a2l_db
+    if session is None:
+        raise TypeError("OfflineCalibration requires an A2L session or AsamMC-like object.")
+
+    mod_common = getattr(a2l_db, "mod_common", None) or ModCommon.get(session)
+    mod_par = getattr(a2l_db, "mod_par", None)
+    if mod_par is None and ModPar.exists(session):
+        mod_par = ModPar.get(session)
+
+    level = logging.getLevelName(loglevel) if isinstance(loglevel, str) else loglevel
+    if not isinstance(level, int):
+        level = logging.INFO
+    logger = getattr(a2l_db, "logger", None) or configure_logging(
+        name="asamint.calibration.offline", level=level
+    )
+    return _CalibrationContext(session=session, mod_common=mod_common, mod_par=mod_par, logger=logger)
+
+
+def _infer_address_offset(session: Any, image: Image) -> list[tuple[int, int]]:
+    try:
+        char_addrs = session.query(model.Characteristic.address).all()
+        axis_addrs = session.query(model.AxisPts.address).all()
+    except Exception:
+        return [(0, 0)]
+
+    def _extract_address(candidate: Any) -> int | None:
+        if candidate is None:
+            return None
+        if isinstance(candidate, tuple):
+            return int(candidate[0])
+        if hasattr(candidate, "address"):
+            return int(candidate.address)
+        if hasattr(candidate, "_mapping"):
+            try:
+                return int(candidate[0])
+            except Exception:
+                pass
+        try:
+            return int(candidate)
+        except Exception:
+            return None
+
+    addresses = []
+    for candidate in (*char_addrs, *axis_addrs):
+        addr = _extract_address(candidate)
+        if addr is not None:
+            addresses.append(addr)
+    if not addresses:
+        return [(0, 0)]
+
+    sections = getattr(image, "sections", None)
+    if not sections:
+        return [(0, 0)]
+
+    try:
+        min_image_addr = min(sec.address for sec in sections)
+        max_image_addr = max(sec.address + len(sec) for sec in sections)
+    except Exception:
+        return [(0, 0)]
+
+    mappings: list[tuple[int, int]] = []
+
+    high_candidates = [addr for addr in addresses if addr >= 0x100000]
+    if high_candidates:
+        high_offset = min(high_candidates) - min_image_addr
+        if high_offset > 0:
+            mappings.append((min(high_candidates), high_offset))
+
+    low_offset = 0x10000 if min_image_addr == 0 and min(addresses) >= 0x10000 else min(addresses) - min_image_addr
+    mappings.append((0, low_offset if low_offset > 0 else 0))
+    return mappings
+
+
 class OfflineCalibration(Calibration):
     """Calibration class for offline calibration via hex files.
 
     This class provides methods for calibrating hex files.
     """
 
-    __slots__ = ("hexfile_name", "hexfile_type")
+    __slots__ = ("hexfile_name", "hexfile_type", "address_offset")
 
     def __init__(
         self,
         a2l_db: Any,
         image: Image,
-        hexfile_name: Optional[str] = None,
-        hexfile_type: Optional[str] = None,
-        loglevel: str = "WARN",
-    ) -> None:
+            hexfile_name: Optional[str] = None,
+            hexfile_type: Optional[str] = None,
+            loglevel: str = "WARN",
+        ) -> None:
         """Initialize the OfflineCalibration object.
 
         Args:
@@ -1902,7 +2141,13 @@ class OfflineCalibration(Calibration):
             hexfile_type: Optional type of the hex file
             loglevel: Logging level
         """
+        ctx = _build_calibration_context(a2l_db, loglevel)
+        mappings = _infer_address_offset(ctx.session, image)
+        mapped_image: Image | _AddressMappedImage = (
+            _AddressMappedImage(image, mappings) if mappings else image
+        )
         parameter_chache = ParameterCache()
-        super().__init__(a2l_db, image, parameter_chache, Logger(loglevel))
+        super().__init__(ctx, mapped_image, parameter_chache, ctx.logger)
         self.hexfile_name = hexfile_name
         self.hexfile_type = hexfile_type
+        self.address_offset = mappings
