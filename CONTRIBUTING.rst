@@ -106,6 +106,19 @@ Before you submit a pull request, check that it meets these guidelines:
    https://github.com/christoph2/asamint/pull_requests
    and make sure that the tests pass for all supported Python versions.
 
+Testing Strategy
+----------------
+
+- Default commands: ``poetry run pytest`` (addopts via ``setup.cfg``), ``poetry run ruff check .``, ``poetry run ruff format .``. Legacy fallbacks: ``tox``/``flake8``/``black`` as declared.
+- Test layers:
+
+  - **Core/unit**: ``asamint.core`` helpers and DTOs; no external I/O. Prefer fast, parametrized cases.
+  - **Adapters**: use fakes/fixtures; do not hit real hardware/network. Keep external libs behind adapter boundaries.
+  - **Calibration/measurement integration**: reuse fixtures under ``tests/*.a2l``/``*.hex``/``*.msrswdb`` and do not relocate them. Offline calibration relies on CDF20demo A2L/HEX; measurement/HDF5 uses DAQ CSV/HDF5 synthesizers.
+  - **CLI/API surface**: validate entrypoints via public ``asamint.api`` exports (e.g., ``finalize_daq_csv``, ``run``) without importing deep internals.
+
+- General rules: no network calls; prefer ``pathlib`` over ``os.path``; use project exceptions rather than bare ``Exception``; keep logs via ``asamint.core.logging.configure_logging``. When adding fixtures, place them under ``tests/`` and reference with ``Path``.
+
 Tips
 ----
 

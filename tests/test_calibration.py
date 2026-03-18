@@ -1,9 +1,17 @@
 #!/usr/bin/env python
+import logging
+from pathlib import Path
+from types import SimpleNamespace
+
 import numpy as np
 import pytest
 from objutils import load
 
 from asamint import calibration
+from asamint.adapters.a2l import ModCommon, ModPar, open_a2l_database
+from asamint.core.logging import configure_logging
+
+FIXTURE_DIR = Path(__file__).parent
 
 
 class Boolean:
@@ -27,24 +35,32 @@ def test_boolean():
 
 
 @pytest.fixture
-def a2l_db():
-    from pya2l import DB
-
-    db = DB()
-    db.open_create(file_name="CDF20demo", encoding="latin1")
-    yield db
-    db.close()
-    del db
+def calibration_context():
+    session = open_a2l_database(
+        str(FIXTURE_DIR / "CDF20demo"), encoding="latin1", local=True
+    )
+    context = SimpleNamespace(
+        session=session,
+        mod_common=ModCommon.get(session),
+        mod_par=ModPar.get(session) if ModPar.exists(session) else None,
+        logger=configure_logging(
+            name="asamint.calibration.tests", level=logging.DEBUG
+        ),
+    )
+    yield context
+    close_fn = getattr(session, "close", None)
+    if callable(close_fn):
+        close_fn()
 
 
 @pytest.fixture
 def image():
-    return load("ihex", "CDF20demo.hex")
+    return load("ihex", str(FIXTURE_DIR / "CDF20demo.hex"))
 
 
 @pytest.fixture
-def offline(a2l_db, image):
-    return calibration.OfflineCalibration(a2l_db, image, loglevel="DEBUG")
+def offline(calibration_context, image):
+    return calibration.OfflineCalibration(calibration_context, image, loglevel="DEBUG")
 
 
 def test_ascii(offline):

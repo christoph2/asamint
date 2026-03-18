@@ -68,7 +68,45 @@ Some examples include (not necessarily in a working condition yet):
 * High-level API to create MDF files.
 
 
+Migration & Compatibility
+-------------------------
+
+* Prefer public imports from ``asamint.api`` (Calibration/OfflineCalibration/OnlineCalibration, ParameterCache, measurement helpers, finalize_daq_csv, config snapshots) instead of deep package paths; consume pyxcp/pya2l/asammdf/objutils only through their adapters.
+* CLI/config: use ``asamint.cmdline.finalize_daq_csv`` for DAQ CSV → CSV/HDF5 finalization; configuration is traitlets-based (``asamint.config``) with ``Path`` and ``configure_logging`` defaults.
+* Fixtures stay under ``tests/`` (A2L/HEX/MSRSW, DAQ CSV/HDF5); external-facing formats (CDF/MDF/HDF5) remain compatible, with new helpers added behind existing facades.
+* When migrating older code, update imports, replace direct adapter usage, and validate with ``poetry run pytest`` plus ``poetry run ruff check .``.
+
 Please refer to `examples <../asamint/examples>`_ directory.
+
+Measurement Formats & Registry
+------------------------------
+
+* CSV, HDF5, and MDF handling lives under ``asamint.measurement.{csv,hdf5,mdf}`` and is registered in the measurement format registry; thin shims stay at ``asamint.hdf5``/``asamint.mdf`` for compatibility.
+* Custom backends can be registered without touching core code. Example (InfluxDB placeholder):
+
+.. code-block:: python
+
+   from pathlib import Path
+   from asamint.adapters.measurement import MeasurementFormat, register_measurement_format
+   from asamint import measurement
+
+   def persist_influx(*, data, units=None, project_meta=None, output_path: str | Path | None = None, **kwargs):
+       return measurement.RunResult(
+           mdf_path=None,
+           csv_path=None,
+           hdf5_path=str(output_path) if output_path else None,
+           signals={},
+           timebases=None,
+       )
+
+   register_measurement_format(
+       MeasurementFormat(
+           name="INFLUX",
+           persist=persist_influx,
+           description="Persist measurements to InfluxDB",
+           default_extension=".influx",
+       )
+   )
 
 
 Further Readings
