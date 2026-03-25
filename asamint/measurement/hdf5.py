@@ -11,14 +11,14 @@ from asamint.core.logging import configure_logging
 
 logger = configure_logging(__name__)
 
+
 class HDF5Creator(AsamMC):
     """
     Create and save HDF5 files from ECU measurements,
     integrating with pya2l and pyxcp. Same interface as MDFCreator.
     """
 
-    def on_init(self, project_config, experiment_config, *args, **kws):
-        self.loadConfig(project_config, experiment_config)
+    def on_init(self, config, *args, **kws):
         self.measurement_variables: list[Any] = []
         try:
             self._resolve_measurements_from_config()
@@ -179,46 +179,69 @@ def _annotate_daq_hdf5_metadata(
     timebase_hint_s: Optional[float] = None,
 ) -> None:
     try:
-        import h5py  # type: ignore
         import json
+
+        import h5py  # type: ignore
     except Exception:
         return
     if not h5_path.exists():
         return
+    try:
+        with h5py.File(str(h5_path), "a") as hf:
+            config = _serialize_daq_lists(daq_lists)
+            _write_daq_hdf5_metadata(
+                hf, h5_path, project_meta, json.dumps(config), timebase_hint_s
+            )
+    except Exception as exc:  # pragma: no cover - best-effort
+        logger.debug("Failed to annotate DAQ HDF5 file %s: %s", h5_path, exc)
+
+
+def _serialize_daq_lists(daq_lists: list[Any]) -> list[dict[str, Any]]:
     config: list[dict[str, Any]] = []
-    for dl in daq_lists:
+    for daq_list in daq_lists:
         try:
             config.append(
                 {
-                    "name": dl.name,
-                    "event_num": dl.event_num,
-                    "stim": bool(getattr(dl, "stim", False)),
-                    "enable_timestamps": bool(getattr(dl, "enable_timestamps", False)),
-                    "measurements": [m[0] for m in getattr(dl, "measurements", [])],
+                    "name": daq_list.name,
+                    "event_num": daq_list.event_num,
+                    "stim": bool(getattr(daq_list, "stim", False)),
+                    "enable_timestamps": bool(
+                        getattr(daq_list, "enable_timestamps", False)
+                    ),
+                    "measurements": [
+                        measurement[0]
+                        for measurement in getattr(daq_list, "measurements", [])
+                    ],
                 }
             )
         except Exception as exc:
             logger.debug(
-                "Failed to serialize DAQ list %s: %s", getattr(dl, "name", "?"), exc
+                "Failed to serialize DAQ list %s: %s",
+                getattr(daq_list, "name", "?"),
+                exc,
             )
+    return config
+
+
+def _write_daq_hdf5_metadata(
+    hf: Any,
+    h5_path: Path,
+    project_meta: dict[str, Any],
+    daq_config_json: str,
+    timebase_hint_s: Optional[float],
+) -> None:
+    _annotate_hdf5_root(h5_path, project_meta)
     try:
-        with h5py.File(str(h5_path), "a") as hf:
-            _annotate_hdf5_root(h5_path, project_meta)
-            try:
-                hf.attrs["daq_config"] = json.dumps(config)
-            except Exception as exc:
-                logger.debug("Failed to write daq_config attribute: %s", exc)
-            if project_meta.get("time_source"):
-                try:
-                    hf.attrs["time_source_hint"] = project_meta["time_source"]
-                except Exception:
-                    pass
-            if timebase_hint_s is not None:
-                try:
-                    hf.attrs["daq_timebase_hint_s"] = float(timebase_hint_s)
-                except Exception:
-                    logger.debug(
-                        "Failed to write daq_timebase_hint_s attribute", exc_info=True
-                    )
-    except Exception as exc:  # pragma: no cover - best-effort
-        logger.debug("Failed to annotate DAQ HDF5 file %s: %s", h5_path, exc)
+        hf.attrs["daq_config"] = daq_config_json
+    except Exception as exc:
+        logger.debug("Failed to write daq_config attribute: %s", exc)
+    if project_meta.get("time_source"):
+        try:
+            hf.attrs["time_source_hint"] = project_meta["time_source"]
+        except Exception as exc:
+            logger.debug("Failed to write time_source_hint attribute: %s", exc)
+    if timebase_hint_s is not None:
+        try:
+            hf.attrs["daq_timebase_hint_s"] = float(timebase_hint_s)
+        except Exception:
+            logger.debug("Failed to write daq_timebase_hint_s attribute", exc_info=True)

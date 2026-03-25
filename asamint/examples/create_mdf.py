@@ -29,7 +29,13 @@ __copyright__ = """
 import numpy as np
 
 from asamint.cmdline import ArgumentParser
-from asamint.mdf import MDFCreator
+from asamint.measurement import MDFCreator
+
+MEASUREMENT_NAMES = [
+    "CDF20.measure.N",
+    "CDF20.measure.T",
+    "ECUCode_omega",
+]
 
 
 def random_data(mdf_obj, num_values=100):
@@ -43,7 +49,7 @@ def random_data(mdf_obj, num_values=100):
             dtype=np.float32,
         )
     }
-    for meas in mdf_obj.measurements:
+    for meas in mdf_obj.measurement_variables:
         if meas.datatype in ("FLOAT32_IEEE", "FLOAT64_IEEE"):
             samples = 200 * np.random.random_sample(num_values) - 100
         elif meas.datatype in ("SBYTE", "SWORD", "SLONG", "A_INT64"):
@@ -56,8 +62,9 @@ def random_data(mdf_obj, num_values=100):
 
 def main():
     ap = ArgumentParser(use_xcp=False)
-
-    mdf = MDFCreator(project_config=ap.project, experiment_config=ap.experiment)
+    ap.run()
+    mdf = MDFCreator()
+    mdf.add_measurements(MEASUREMENT_NAMES)
 
     data = random_data(mdf, 1000)
     mdf.save_measurements("CDF20demo.mf4", data)

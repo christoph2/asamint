@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-"""
-
-"""
+""" """
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
@@ -42,13 +40,14 @@ from lxml import etree  # nosec
 from pya2l import model
 
 from asamint import msrsw
+from asamint.asam import AsamMC
 from asamint.calibration import CalibrationData
 from asamint.calibration.db import CalibrationDB
 from asamint.calibration.msrsw_db import MSRSWDatabase
-from asamint.core.exceptions import AdapterError
-from asamint.core.logging import configure_logging
 from asamint.cdf.exporter.cdf_exporter import CDFExporter
 from asamint.cdf.importer.cdf_importer import CDFImporter
+from asamint.core.exceptions import AdapterError
+from asamint.core.logging import configure_logging
 from asamint.utils import add_suffix_to_path
 from asamint.utils.xml import create_elem, xml_comment
 
@@ -209,13 +208,27 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
     # DTD = get_dtd("cdf_v2.0.0.sl")    # TODO: check!!!
     EXTENSION = ".cdfx"
 
-    def __init__(self, parameters: Mapping[str, dict[str, Any]]) -> None:
-        super().__init__()
+    def __init__(
+        self,
+        parameters: Mapping[str, dict[str, Any]],
+        asam_mc: AsamMC | None = None,
+    ) -> None:
+        self.sub_trees = {}
+        CalibrationData.__init__(self, asam_mc or AsamMC())
         self._parameters = parameters
 
     def on_init(self, config: Any, *args: Any, **kws: Any) -> None:
-        print("CDFCreator", config, *args, **kws)
-        super().on_init(config, *args, **kws)
+        return None
+
+    @property
+    def a2l_file(self) -> Path:
+        return self.asam_mc.a2l_file
+
+    def sub_dir(self, name: str) -> Path:
+        return self.asam_mc.sub_dir(name)
+
+    def generate_filename(self, extension: str, extra: str | None = None) -> str:
+        return self.asam_mc.generate_filename(extension, extra)
 
     def save(self) -> None:
         self.root = self._toplevel_boilerplate()
@@ -274,7 +287,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
     def instances(self) -> None:
         instance_tree = self.sub_trees["SW-INSTANCE-TREE"]
         xml_comment(instance_tree, "    AXIS_PTSs ")
-        for key, inst in self._parameters["AXIS_PTS"].items():
+        for inst in self._parameters["AXIS_PTS"].values():
             variant = self.sw_instance(
                 name=inst.name,
                 descr=inst.comment,
@@ -327,7 +340,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         self.dump_array("CUBE_5")
 
     def dump_array(self, attribute: str) -> None:
-        for key, inst in self._parameters[attribute].items():
+        for inst in self._parameters[attribute].values():
             if not list(inst.phys):
                 self.logger.warning(f"{attribute} {inst.name!r}: has no values.")
                 continue

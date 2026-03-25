@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-"""
-
-"""
+"""Transfer CALRAM segments from a live XCP target into a HEX file."""
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
@@ -27,30 +25,43 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
+from typing import Any
+
+from asamint.asam import AsamMC
+from asamint.calibration import CalibrationData
 from asamint.cmdline import ArgumentParser
 
 
-# def upload_calram(xcp_master, a2ldb_session, module_name: str = None, file_type: str = "ihex"):
+def _prepare_xcp_connection(mc: AsamMC) -> Any:
+    mc.xcp_connect()
+    xcp_master = mc.xcp_master
+    if xcp_master.slaveProperties.optionalCommMode:
+        xcp_master.getCommModeInfo()
+    xcp_general = mc.config.xcp.general
+    if getattr(xcp_general, "seed_n_key_function", None) or getattr(
+        xcp_general, "seed_n_key_dll", None
+    ):
+        xcp_master.cond_unlock()
+    return xcp_master
 
 
-def main():
+def main() -> None:
     ap = ArgumentParser()
-
-    with ap.run() as x:
-        cd = CalibrationData(ap.project, ap.experiment)
-        sk_dll = ap.project.get("SEED_N_KEY_DLL")
-        if sk_dll:
-            x.seedNKeyDLL = sk_dll
-        x.connect()
-        if x.slaveProperties.optionalCommMode:
-            x.getCommModeInfo()
-        if ap.args.unlock:
-            x.cond_unlock()
-        # cd.upload_calram(x)
-        img = cd.upload_parameters(x)
-        print("Now creating CDF...")
-        CDFCreator(cd.session, img)
-        x.disconnect()
+    ap.run()
+    mc = AsamMC()
+    cdm = CalibrationData(mc)
+    try:
+        xcp_master = _prepare_xcp_connection(mc)
+        image = cdm.upload_calram(
+            xcp_master=xcp_master,
+            file_type=mc.master_hexfile_type,
+        )
+        if image is None:
+            mc.logger.info("No CALRAM segment defined in MOD_PAR.")
+        else:
+            mc.logger.info("CALRAM transfer completed.")
+    finally:
+        cdm.close()
 
 
 if __name__ == "__main__":

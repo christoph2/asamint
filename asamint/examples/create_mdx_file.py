@@ -31,7 +31,8 @@ from asamint.cmdline import ArgumentParser
 
 def main():
     ap = ArgumentParser(use_xcp=False)
-    MDXCreator(ap.project, ap.experiment)
+    ap.run()
+    MDXCreator()
 
 
 if __name__ == "__main__":

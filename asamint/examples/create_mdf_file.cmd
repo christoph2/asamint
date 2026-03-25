@@ -1,1 +1,1 @@
-python create_mdf.py -p CDF20demo.apr -e create_mdf.exp
+python create_mdf.py -c .\cdf20demo\cdf20demo_conf.py

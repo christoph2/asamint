@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-"""
-
-"""
+"""Create a CDF export from live XCP calibration data."""
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
@@ -27,29 +25,41 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
+from typing import Any
+
+from asamint.asam import AsamMC
+from asamint.calibration import CalibrationData
 from asamint.cdf import CDFCreator
 from asamint.cmdline import ArgumentParser
 
 
-def main():
-    ap = ArgumentParser()
+def _prepare_xcp_connection(mc: AsamMC) -> Any:
+    mc.xcp_connect()
+    xcp_master = mc.xcp_master
+    if xcp_master.slaveProperties.optionalCommMode:
+        xcp_master.getCommModeInfo()
+    xcp_general = mc.config.xcp.general
+    if getattr(xcp_general, "seed_n_key_function", None) or getattr(
+        xcp_general, "seed_n_key_dll", None
+    ):
+        xcp_master.cond_unlock()
+    return xcp_master
 
-    with ap.run() as x:
-        cd = CDFCreator(ap.project, ap.experiment)
-        sk_dll = ap.project.get("SEED_N_KEY_DLL")
-        if sk_dll:
-            x.seedNKeyDLL = sk_dll
-        x.connect()
-        if x.slaveProperties.optionalCommMode:
-            x.getCommModeInfo()
-        if ap.args.unlock:
-            x.cond_unlock()
-        if ap.project.get("A2L_DYNAMIC"):
-            a2l_data = x.identifier(4)
-            print(a2l_data)
-        # print(cd.check_epk(x))
-        cd.load_characteristics(x)
-        x.disconnect()
+
+def main() -> None:
+    ap = ArgumentParser()
+    ap.run()
+    mc = AsamMC()
+    cdm = CalibrationData(mc)
+    try:
+        xcp_master = _prepare_xcp_connection(mc)
+        if mc.a2l_dynamic:
+            mc.logger.info("A2L identifier: %s", xcp_master.identifier(4))
+        cdm.load_characteristics(xcp_master=xcp_master)
+        cdc = CDFCreator(cdm.parameters, mc)
+        cdc.save()
+    finally:
+        cdm.close()
 
 
 if __name__ == "__main__":

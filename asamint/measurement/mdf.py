@@ -70,8 +70,7 @@ class MDFCreator(AsamMC):
         "GROUPS": (list, False, []),
     }
 
-    def on_init(self, project_config, experiment_config, *args, **kws):
-        self.loadConfig(project_config, experiment_config)
+    def on_init(self, config, *args, **kws):
         self._mdf_obj = MDF(version=self.config.general.mdf_version)
         hd_comment = self.hd_comment()
         self._mdf_obj.md_data = hd_comment
@@ -475,6 +474,16 @@ class MDFCreator(AsamMC):
         -------
         dict: Suitable as MDF CCBLOCK or None (in case of `NO_COMPU_METHOD`).
         """
+
+        def _value_from(source: Any, name: str, default: Any = None) -> Any:
+            if source is None:
+                return default
+            if hasattr(source, name):
+                return getattr(source, name)
+            if hasattr(source, "get"):
+                return source.get(name, default)
+            return default
+
         conversion: dict[str, object] | None = None
         try:
             # Handle missing/no conversion uniformly
@@ -496,27 +505,28 @@ class MDFCreator(AsamMC):
                     conversion = {"formula": formula}
 
             elif cm_type == "LINEAR":
-                a = getattr(compuMethod, "coeffs_linear", {}).get("a", 0.0)
-                b = getattr(compuMethod, "coeffs_linear", {}).get("b", 0.0)
+                coeffs_linear = getattr(compuMethod, "coeffs_linear", None)
+                a = _value_from(coeffs_linear, "a", 0.0)
+                b = _value_from(coeffs_linear, "b", 0.0)
                 conversion = {"a": a, "b": b}
 
             elif cm_type == "RAT_FUNC":
-                coeffs = getattr(compuMethod, "coeffs", {})
+                coeffs = getattr(compuMethod, "coeffs", None)
                 conversion = {
-                    "P1": coeffs.get("a", 0.0),
-                    "P2": coeffs.get("b", 0.0),
-                    "P3": coeffs.get("c", 0.0),
-                    "P4": coeffs.get("d", 0.0),
-                    "P5": coeffs.get("e", 0.0),
-                    "P6": coeffs.get("f", 0.0),
+                    "P1": _value_from(coeffs, "a", 0.0),
+                    "P2": _value_from(coeffs, "b", 0.0),
+                    "P3": _value_from(coeffs, "c", 0.0),
+                    "P4": _value_from(coeffs, "d", 0.0),
+                    "P5": _value_from(coeffs, "e", 0.0),
+                    "P6": _value_from(coeffs, "f", 0.0),
                 }
 
             elif cm_type in ("TAB_INTP", "TAB_NOINTP"):
-                tab = getattr(compuMethod, "tab", {})
-                in_values = list(tab.get("in_values", []))
-                out_values = list(tab.get("out_values", []))
-                default_value = tab.get("default_value")
-                interpolation = tab.get("interpolation")
+                tab = getattr(compuMethod, "tab", None)
+                in_values = list(_value_from(tab, "in_values", []))
+                out_values = list(_value_from(tab, "out_values", []))
+                default_value = _value_from(tab, "default_value")
+                interpolation = _value_from(tab, "interpolation")
                 conversion = {f"raw_{i}": v for i, v in enumerate(in_values)}
                 conversion.update({f"phys_{i}": v for i, v in enumerate(out_values)})
                 if default_value is not None:

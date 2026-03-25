@@ -25,14 +25,21 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
+from asamint import AsamMC
+from asamint.calibration import CalibrationData
 from asamint.cdf import CDFCreator
 from asamint.cmdline import ArgumentParser
 
 
 def main():
     ap = ArgumentParser(use_xcp=False)
-    cd = CDFCreator(ap.project, ap.experiment)
-    cd.load_characteristics(hexfile="CDF20demo.hex")
+    ap.run()
+    mc = AsamMC()
+    cdm = CalibrationData(mc)
+    cdm.load_characteristics()
+    cdc = CDFCreator(cdm.parameters, mc)
+    cdc.save()
+    cdm.close()
 
 
 if __name__ == "__main__":

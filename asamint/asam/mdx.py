@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-"""
-
-"""
+""" """
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
@@ -67,13 +65,39 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
     )
     """
 
-    DOCTYPE = '<!DOCTYPE MSRSW PUBLIC "-//MSR//DTD MSR SOFTWARE DTD:V2.2.0:MSRSW.DTD//EN">'
+    DOCTYPE = (
+        '<!DOCTYPE MSRSW PUBLIC "-//MSR//DTD MSR SOFTWARE DTD:V2.2.0:MSRSW.DTD//EN">'
+    )
     # <!DOCTYPE MSRSW PUBLIC"-//ASAM//DTD MSR SOFTWARE DTD:V3.0.0:LAI:IAI:XML:MSRSW300.XSD//EN" "MSRSW_v3.0.0.DTD">
     DTD = "mdx_v1_0_0.sl.dtd"
     EXTENSION = "_mdx.xml"
 
-    def on_init(self, project_config, experiment_config, *args, **kws):
-        self.loadConfig(project_config, experiment_config)
+    @staticmethod
+    def _matrix_dimensions(matrix_dim):
+        if matrix_dim is None:
+            return None
+        dimensions = (matrix_dim.x, matrix_dim.y, matrix_dim.z)
+        return dimensions if any(dim is not None for dim in dimensions) else None
+
+    @staticmethod
+    def _coeff_value(coeffs, name):
+        if coeffs is None:
+            return None
+        if hasattr(coeffs, name):
+            return getattr(coeffs, name)
+        return coeffs[name]
+
+    @staticmethod
+    def _table_value(table, name):
+        if table is None:
+            return None
+        if hasattr(table, name):
+            return getattr(table, name)
+        if hasattr(table, "__getitem__"):
+            return table[name]
+        return None
+
+    def on_init(self, config, *args, **kws):
         self.root = self._toplevel_boilerplate()
         self.tree = etree.ElementTree(self.root)
         self._units(self.sub_trees["SW-DATA-DICTIONARY-SPEC"])
@@ -113,7 +137,11 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
         PHYSICAL-DIMENSION-REF?
         """
         cm_units = self.query(model.CompuMethod.unit.distinct()).all()
-        self.cm_units = {u[0]: format(f"{replace_non_c_char(u[0])}_{sha1_digest(u[0])}") for u in cm_units if u[0]}
+        self.cm_units = {
+            u[0]: format(f"{replace_non_c_char(u[0])}_{sha1_digest(u[0])}")
+            for u in cm_units
+            if u[0]
+        }
         unit_spec = create_elem(tree, "UNIT-SPEC")
         units = create_elem(unit_spec, "UNITS")
         for k, v in self.cm_units.items():
@@ -133,7 +161,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             compu_method = meas.compuMethod
             constr_name = f"CONSTR_{meas.name}"
             arraySize = (meas.arraySize,) if meas.arraySize else None
-            matrixDim = (meas.matrixDim["x"], meas.matrixDim["y"], meas.matrixDim["z"]) if meas.matrixDim else None
+            matrixDim = self._matrix_dimensions(meas.matrixDim)
             is_array = arraySize or matrixDim
             datatype = meas.datatype
             is_ascii = datatype == "ASCII"
@@ -211,7 +239,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             # print(chx)
             compu_method = chx.compuMethod
             # constr_name = "CONSTR_{}".format(chx.name)
-            matrixDim = (chx.matrixDim["x"], chx.matrixDim["y"], chx.matrixDim["z"]) if chx.matrixDim else None
+            matrixDim = self._matrix_dimensions(chx.matrixDim)
             datatype = chx.fnc_asam_dtype
             is_dependent = True if chx.dependent_characteristic else False
             is_ascii = chx.type == "ASCII"
@@ -219,7 +247,15 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             if is_block:
                 if matrixDim:
                     dim = (m for m in matrixDim if m and m > 1)
-            category = "VALUE_ARRAY" if is_block else ("DEPENDENT_VALUE" if is_dependent else "ASCII" if is_ascii else "VALUE")
+            category = (
+                "VALUE_ARRAY"
+                if is_block
+                else (
+                    "DEPENDENT_VALUE"
+                    if is_dependent
+                    else "ASCII" if is_ascii else "VALUE"
+                )
+            )
             cal_parm = create_elem(cal_parms, "SW-CALPRM", attrib={"ID": ch_name})
             self.common_elements(
                 cal_parm,
@@ -239,16 +275,25 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             )
             if is_ascii:
                 text_props = create_elem(data_def_props, "SW-TEXT-PROPS")
-                size = chx.number if chx.number is not None else matrixDim[0] if matrixDim else 0
+                size = (
+                    chx.number
+                    if chx.number is not None
+                    else matrixDim[0] if matrixDim else 0
+                )
                 create_elem(text_props, "SW-MAX-TEXT-SIZE", text=str(size))
             else:
                 create_elem(data_def_props, "COMPU-METHOD-REF", text=compu_method.name)
             if is_dependent:
                 data_dependency = create_elem(data_def_props, "SW-DATA-DEPENDENCY")
+                dependency_formula = getattr(
+                    chx.dependent_characteristic,
+                    "formula",
+                    chx.dependent_characteristic,
+                )
                 create_elem(
                     data_dependency,
                     "SW-DATA-DEPENDENCY-FORMULA",
-                    text=chx.dependent_characteristic,
+                    text=dependency_formula,
                 )
 
             """
@@ -275,7 +320,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             ("SBYTE", 1, True, True, "2C", "BYTE"),
             ("UWORD", 2, False, True, "2C", "WORD"),
             ("SWORD", 2, True, True, "2C", "WORD"),
-            ("ULONG", 4, False, True, "2C", "DORD"),
+            ("ULONG", 4, False, True, "2C", "DWORD"),
             ("SLONG", 4, True, True, "2C", "DWORD"),
             ("A_UINT64", 8, False, True, "2C", "QWORD"),
             ("A_INT64", 8, True, True, "2C", "QWORD"),
@@ -291,7 +336,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             byteOrder = "MOST-SIGNIFICANT-BYTE-LAST"
         base_types = create_elem(tree, "BASE-TYPES")
         for dtype in dtypes:
-            align = alignments.get(dtype[5])
+            align = alignments.get(dtype[0])
             self._datatype(base_types, dtype, byteOrder, align)
 
     def _data_constrs(self, tree):
@@ -315,7 +360,9 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
 
     def _compu_methods(self, tree):
         cm_tree = create_elem(tree, "COMPU-METHODS")
-        for conversion in [x[0] for x in self.session.query(model.CompuMethod.name).all()]:
+        for conversion in [
+            x[0] for x in self.session.query(model.CompuMethod.name).all()
+        ]:
             cm = CompuMethod.get(self.session, conversion)
             self._compu_method(cm_tree, conversion, cm)
 
@@ -334,99 +381,108 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             create_elem(cm, "UNIT-REF", cm_unit)
         cpti = create_elem(cm, "COMPU-PHYS-TO-INTERNAL")
         scales = create_elem(cpti, "COMPU-SCALES")
-        if cm_type == "IDENTICAL":
+        simple_handlers = {
+            "IDENTICAL": lambda: self._append_rational_scale(
+                scales, ("0", "1"), ("1", "0")
+            ),
+            "FORM": lambda: None,
+            "LINEAR": lambda: self._append_rational_scale(
+                scales,
+                (
+                    self._coeff_value(compu_method.coeffs_linear, "b"),
+                    self._coeff_value(compu_method.coeffs_linear, "a"),
+                ),
+                ("1", "0"),
+            ),
+            "RAT_FUNC": lambda: self._append_rational_scale(
+                scales,
+                (
+                    self._coeff_value(compu_method.coeffs, key)
+                    for key in ("c", "b", "a")
+                ),
+                (
+                    self._coeff_value(compu_method.coeffs, key)
+                    for key in ("f", "e", "d")
+                ),
+            ),
+            "TAB_INTP": lambda: self._append_numeric_table_conversion(
+                cpti, scales, compu_method
+            ),
+            "TAB_NOINTP": lambda: self._append_numeric_table_conversion(
+                cpti, scales, compu_method
+            ),
+            "TAB_VERB": lambda: self._append_text_table_conversion(
+                cpti, scales, compu_method
+            ),
+        }
+        handler = simple_handlers.get(cm_type)
+        if handler:
+            handler()
+
+    def _append_rational_scale(
+        self, scales, numerator_values, denominator_values
+    ) -> None:
+        scale = create_elem(scales, "COMPU-SCALE")
+        coeffs = create_elem(scale, "COMPU-RATIONAL-COEFFS")
+        numerator = create_elem(coeffs, "COMPU-NUMERATOR")
+        denominator = create_elem(coeffs, "COMPU-DENOMINATOR")
+        for value in numerator_values:
+            create_elem(numerator, "V", str(value))
+        for value in denominator_values:
+            create_elem(denominator, "V", str(value))
+
+    @staticmethod
+    def _append_limits(scale, lower_value, upper_value) -> None:
+        create_elem(
+            scale,
+            "LOWER-LIMIT",
+            text=str(lower_value),
+            attrib={"INTERVAL-TYPE": "CLOSED"},
+        )
+        create_elem(
+            scale,
+            "UPPER-LIMIT",
+            text=str(upper_value),
+            attrib={"INTERVAL-TYPE": "CLOSED"},
+        )
+
+    def _append_table_values(
+        self, scales, lower_values, upper_values, out_values, value_tag: str
+    ) -> None:
+        for lower_value, upper_value, out_value in zip(
+            lower_values, upper_values, out_values
+        ):
             scale = create_elem(scales, "COMPU-SCALE")
-            crc = create_elem(scale, "COMPU-RATIONAL-COEFFS")
-            cnum = create_elem(crc, "COMPU-NUMERATOR")
-            create_elem(cnum, "V", "0")
-            create_elem(cnum, "V", "1")
-            cden = create_elem(crc, "COMPU-DENOMINATOR")
-            create_elem(cden, "V", "1")
-            create_elem(cden, "V", "0")
-        elif cm_type == "FORM":
-            pass
-        elif cm_type == "LINEAR":
-            scale = create_elem(scales, "COMPU-SCALE")
-            crc = create_elem(scale, "COMPU-RATIONAL-COEFFS")
-            cnum = create_elem(crc, "COMPU-NUMERATOR")
-            create_elem(cnum, "V", str(compu_method.coeffs_linear["b"]))
-            create_elem(cnum, "V", str(compu_method.coeffs_linear["a"]))
-            cden = create_elem(crc, "COMPU-DENOMINATOR")
-            create_elem(cden, "V", "1")
-            create_elem(cden, "V", "0")
-        elif cm_type == "RAT_FUNC":
-            scale = create_elem(scales, "COMPU-SCALE")
-            crc = create_elem(scale, "COMPU-RATIONAL-COEFFS")
-            cnum = create_elem(crc, "COMPU-NUMERATOR")
-            for key in ["c", "b", "a"]:
-                val = str(compu_method.coeffs[key])
-                create_elem(cnum, "V", val)
-            cden = create_elem(crc, "COMPU-DENOMINATOR")
-            for key in ["f", "e", "d"]:
-                val = str(compu_method.coeffs[key])
-                create_elem(cden, "V", val)
-        elif cm_type in ("TAB_INTP", "TAB_NOINTP"):
-            in_values = compu_method.tab["in_values"]
-            out_values = compu_method.tab["out_values"]
-            for in_value, out_value in zip(in_values, out_values):
-                scale = create_elem(scales, "COMPU-SCALE")
-                create_elem(
-                    scale,
-                    "LOWER-LIMIT",
-                    text=str(in_value),
-                    attrib={"INTERVAL-TYPE": "CLOSED"},
-                )
-                create_elem(
-                    scale,
-                    "UPPER-LIMIT",
-                    text=str(in_value),
-                    attrib={"INTERVAL-TYPE": "CLOSED"},
-                )
-                compu_const = create_elem(scale, "COMPU-CONST")
-                create_elem(compu_const, "V", text=str(out_value))
-            if compu_method.tab["default_value"]:
-                default = create_elem(cpti, "COMPU-DEFAULT-VALUE")
-                create_elem(default, "V", text=str(compu_method.tab["default_value"]))
-        elif cm_type == "TAB_VERB":
-            if compu_method.tab_verb["ranges"]:
-                lower_values = compu_method.tab_verb["lower_values"]
-                upper_values = compu_method.tab_verb["upper_values"]
-                text_values = compu_method.tab_verb["text_values"]
-                for lower_value, upper_value, text_value in zip(lower_values, upper_values, text_values):
-                    scale = create_elem(scales, "COMPU-SCALE")
-                    create_elem(
-                        scale,
-                        "LOWER-LIMIT",
-                        text=str(lower_value),
-                        attrib={"INTERVAL-TYPE": "CLOSED"},
-                    )
-                    create_elem(
-                        scale,
-                        "UPPER-LIMIT",
-                        text=str(upper_value),
-                        attrib={"INTERVAL-TYPE": "CLOSED"},
-                    )
-                    compu_const = create_elem(scale, "COMPU-CONST")
-                    create_elem(compu_const, "VT", text=text_value)
-            else:
-                in_values = compu_method.tab_verb["in_values"]
-                text_values = compu_method.tab_verb["text_values"]
-                for in_value, text_value in zip(in_values, text_values):
-                    scale = create_elem(scales, "COMPU-SCALE")
-                    create_elem(
-                        scale,
-                        "LOWER-LIMIT",
-                        text=str(in_value),
-                        attrib={"INTERVAL-TYPE": "CLOSED"},
-                    )
-                    create_elem(
-                        scale,
-                        "UPPER-LIMIT",
-                        text=str(in_value),
-                        attrib={"INTERVAL-TYPE": "CLOSED"},
-                    )
-                    compu_const = create_elem(scale, "COMPU-CONST")
-                    create_elem(compu_const, "VT", text=text_value)
-            if compu_method.tab_verb["default_value"]:
-                default = create_elem(cpti, "COMPU-DEFAULT-VALUE")
-                create_elem(default, "VT", text=compu_method.tab_verb["default_value"])
+            self._append_limits(scale, lower_value, upper_value)
+            compu_const = create_elem(scale, "COMPU-CONST")
+            create_elem(compu_const, value_tag, text=str(out_value))
+
+    @staticmethod
+    def _append_default_value(parent, tag: str, value) -> None:
+        if value:
+            default = create_elem(parent, "COMPU-DEFAULT-VALUE")
+            create_elem(default, tag, text=str(value))
+
+    def _append_numeric_table_conversion(self, cpti, scales, compu_method) -> None:
+        table = compu_method.tab
+        in_values = self._table_value(table, "in_values")
+        out_values = self._table_value(table, "out_values")
+        default_value = self._table_value(table, "default_value")
+        self._append_table_values(scales, in_values, in_values, out_values, "V")
+        self._append_default_value(cpti, "V", default_value)
+
+    def _append_text_table_conversion(self, cpti, scales, compu_method) -> None:
+        table = compu_method.tab_verb
+        ranges = getattr(compu_method, "tab_verb_ranges", None)
+        if ranges is not None:
+            lower_values = self._table_value(ranges, "lower_values")
+            upper_values = self._table_value(ranges, "upper_values")
+            text_values = self._table_value(ranges, "text_values")
+            default_value = self._table_value(ranges, "default_value")
+        else:
+            lower_values = self._table_value(table, "in_values")
+            upper_values = self._table_value(table, "in_values")
+            text_values = self._table_value(table, "text_values")
+            default_value = self._table_value(table, "default_value")
+        self._append_table_values(scales, lower_values, upper_values, text_values, "VT")
+        self._append_default_value(cpti, "VT", default_value)
