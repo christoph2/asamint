@@ -159,7 +159,7 @@ class AsamMC:
             "FUNCTIONS": [],
             "GROUPS": [],
         }
-        self.xcp_master = create_xcp_master()
+        self.xcp_master = None
         self.xcp_connected = False
         if not self.a2l_dynamic:
             self.open_create_session(
@@ -169,8 +169,10 @@ class AsamMC:
         self.cond_create_directories()
         self.mod_common = ModCommon.get(self.session)
         self.mod_par = ModPar.get(self.session) if ModPar.exists(self.session) else None
-        self.variant_coding = VariantCoding.get(
-            self.session, module_name=self.mod_par.modpar.module.name
+        self.variant_coding = (
+            VariantCoding.get(self.session, module_name=self.mod_par.modpar.module.name)
+            if self.mod_par is not None
+            else None
         )
         self.directory = Directory(self.session)
         self.on_init(self.config, *args, **kws)

@@ -1613,6 +1613,8 @@ class Calibration:
             raise ValueError(
                 f"Characteristic '{characteristic_name}' not found"
             ) from None
+        if characteristic is None:
+            raise ValueError(f"Characteristic '{characteristic_name}' not found")
         self._definition_cache[("CHAR", characteristic_name)] = characteristic
         self._definition_cache[("TYPE", characteristic_name)] = characteristic.type
         return characteristic.type
@@ -1642,6 +1644,8 @@ class Calibration:
                 raise ValueError(
                     f"Characteristic '{characteristic_name}' not found"
                 ) from None
+            if characteristic is None:
+                raise ValueError(f"Characteristic '{characteristic_name}' not found")
             self._definition_cache[key] = characteristic
 
         if category is not None and characteristic.type != category:
@@ -1690,6 +1694,8 @@ class Calibration:
                 axis_pts = AxisPts.get(self.session, axis_pts_name)
             except ValueError:
                 raise ValueError(f"Axis points '{axis_pts_name}' not found") from None
+            if axis_pts is None:
+                raise ValueError(f"Axis points '{axis_pts_name}' not found")
             self._definition_cache[key] = axis_pts
         return axis_pts
 
