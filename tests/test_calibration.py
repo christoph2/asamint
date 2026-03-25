@@ -43,9 +43,7 @@ def calibration_context():
         session=session,
         mod_common=ModCommon.get(session),
         mod_par=ModPar.get(session) if ModPar.exists(session) else None,
-        logger=configure_logging(
-            name="asamint.calibration.tests", level=logging.DEBUG
-        ),
+        logger=configure_logging(name="asamint.calibration.tests", level=logging.DEBUG),
     )
     yield context
     close_fn = getattr(session, "close", None)
@@ -127,23 +125,23 @@ def test_value002(offline):
 
 
 def test_value003(offline):
-    load_save_verify_value(offline, "CDF20.array.Element[0]", 248, 0.2421875)
+    load_save_verify_value(offline, "CDF20.array.Element[0]", -2048, -2.0)
 
 
 def test_value004(offline):
-    load_save_verify_value(offline, "CDF20.array.Element[1]", 16, 0.015625)
+    load_save_verify_value(offline, "CDF20.array.Element[1]", 4096, 4.0)
 
 
 def test_value005(offline):
-    load_save_verify_value(offline, "CDF20.array.Element[2]", 28, 0.02734375)
+    load_save_verify_value(offline, "CDF20.array.Element[2]", 7168, 7.0)
 
 
 def test_value006(offline):
-    load_save_verify_value(offline, "CDF20.array.Element[3]", 40, 0.0390625)
+    load_save_verify_value(offline, "CDF20.array.Element[3]", 10240, 10.0)
 
 
 def test_value007(offline):
-    load_save_verify_value(offline, "CDF20.array.Element[4]", 80, 0.078125)
+    load_save_verify_value(offline, "CDF20.array.Element[4]", 20480, 20.0)
 
 
 def test_value008(offline):
@@ -151,19 +149,19 @@ def test_value008(offline):
 
 
 def test_value009(offline):
-    load_save_verify_value(offline, "DummyAirMass", 2560, 1.25)
+    load_save_verify_value(offline, "DummyAirMass", 10, 0.0048828125)
 
 
 def test_value010(offline):
-    load_save_verify_value(offline, "DummyOmega", 32770, 1024.0625)
+    load_save_verify_value(offline, "DummyOmega", 640, 20.0)
 
 
 def test_value011(offline):
-    load_save_verify_value(offline, "FrequencyPrescaler", 2560, 0.256)
+    load_save_verify_value(offline, "FrequencyPrescaler", 10, 0.001)
 
 
 def test_value012(offline):
-    load_save_verify_value(offline, "SelectColumn", 64, 0.001953125)
+    load_save_verify_value(offline, "SelectColumn", 16384, 0.5)
 
 
 def test_value013(offline):
@@ -171,8 +169,7 @@ def test_value013(offline):
 
 
 def test_value014(offline):
-    with pytest.raises(calibration.RangeError):
-        load_save_verify_value(offline, "SignalAmplitude", -32746, -255.828125)
+    load_save_verify_value(offline, "SignalAmplitude", 5760, 45.0)
 
 
 def test_value015(offline):
@@ -180,7 +177,7 @@ def test_value015(offline):
 
 
 def test_value016(offline):
-    load_save_verify_value(offline, "SignalOffset", 25, 0.1953125)
+    load_save_verify_value(offline, "SignalOffset", 6400, 50.0)
 
 
 def test_value017(offline):
@@ -188,39 +185,39 @@ def test_value017(offline):
 
 
 def test_value018(offline):
-    load_save_verify_value(offline, "ThrottleRefInputTest", 19456, 152.0)
+    load_save_verify_value(offline, "ThrottleRefInputTest", 76, 0.59375)
 
 
 def test_value019(offline):
-    load_save_verify_value(offline, "f_Kd_1", 25104, 0.005985260009765625)
+    load_save_verify_value(offline, "f_Kd_1", 4194, 0.0009999275207519531)
 
 
 def test_value020(offline):
-    load_save_verify_value(offline, "f_Kd_2", 25104, 0.005985260009765625)
+    load_save_verify_value(offline, "f_Kd_2", 4194, 0.0009999275207519531)
 
 
 def test_value021(offline):
-    load_save_verify_value(offline, "f_Ki_1", 16, 0.00390625)
+    load_save_verify_value(offline, "f_Ki_1", 4096, 1.0)
 
 
 def test_value022(offline):
-    load_save_verify_value(offline, "f_Ki_2", 48, 0.01171875)
+    load_save_verify_value(offline, "f_Ki_2", 12288, 3.0)
 
 
 def test_value023(offline):
-    load_save_verify_value(offline, "f_Kp_1", 52236, 1.5941162109375)
+    load_save_verify_value(offline, "f_Kp_1", 3276, 0.0999755859375)
 
 
 def test_value024(offline):
-    load_save_verify_value(offline, "f_Kp_2", 26150, 0.79803466796875)
+    load_save_verify_value(offline, "f_Kp_2", 9830, 0.29998779296875)
 
 
 def test_value025(offline):
-    load_save_verify_value(offline, "inj_offset", -4074, -0.0004856586456298828)
+    load_save_verify_value(offline, "inj_offset", 5872, 0.0006999969482421875)
 
 
 def test_value026(offline):
-    load_save_verify_value(offline, "inv_c_kumsrl", -29127, -1820.4375)
+    load_save_verify_value(offline, "inv_c_kumsrl", 14734, 920.875)
 
 
 def load_save_verify_axis_pts(conn, param_name, expected_rw, expected_cw):
@@ -253,50 +250,50 @@ def test_axis_pts003(offline):
         offline,
         "LUT1D_1_x_table",
         [
-            156,
-            166,
-            176,
-            186,
-            196,
-            206,
-            216,
-            226,
-            236,
-            246,
+            -25600,
+            -23040,
+            -20480,
+            -17920,
+            -15360,
+            -12800,
+            -10240,
+            -7680,
+            -5120,
+            -2560,
             0,
-            10,
-            20,
-            30,
-            40,
-            50,
-            60,
-            70,
-            80,
-            90,
-            100,
+            2560,
+            5120,
+            7680,
+            10240,
+            12800,
+            15360,
+            17920,
+            20480,
+            23040,
+            25600,
         ],
         [
-            1.21875,
-            1.296875,
-            1.375,
-            1.453125,
-            1.53125,
-            1.609375,
-            1.6875,
-            1.765625,
-            1.84375,
-            1.921875,
+            -200.0,
+            -180.0,
+            -160.0,
+            -140.0,
+            -120.0,
+            -100.0,
+            -80.0,
+            -60.0,
+            -40.0,
+            -20.0,
             0.0,
-            0.078125,
-            0.15625,
-            0.234375,
-            0.3125,
-            0.390625,
-            0.46875,
-            0.546875,
-            0.625,
-            0.703125,
-            0.78125,
+            20.0,
+            40.0,
+            60.0,
+            80.0,
+            100.0,
+            120.0,
+            140.0,
+            160.0,
+            180.0,
+            200.0,
         ],
     )
 
@@ -305,24 +302,26 @@ def test_axis_pts004(offline):
     load_save_verify_axis_pts(
         offline,
         "LUT2D_1_x_table",
-        [166, 186, 206, 226, 246, 10, 30, 50, 70, 90],
+        [-23040, -17920, -12800, -7680, -2560, 2560, 7680, 12800, 17920, 23040],
         [
-            1.296875,
-            1.453125,
-            1.609375,
-            1.765625,
-            1.921875,
-            0.078125,
-            0.234375,
-            0.390625,
-            0.546875,
-            0.703125,
+            -180.0,
+            -140.0,
+            -100.0,
+            -60.0,
+            -20.0,
+            20.0,
+            60.0,
+            100.0,
+            140.0,
+            180.0,
         ],
     )
 
 
 def test_axis_pts005(offline):
-    load_save_verify_axis_pts(offline, "LUT2D_1_y_table", [181, 231, 75], [1.4140625, 1.8046875, 0.5859375])
+    load_save_verify_axis_pts(
+        offline, "LUT2D_1_y_table", [-19200, -6400, 19200], [-150.0, -50.0, 150.0]
+    )
 
 
 def test_axis_pts006(offline):
@@ -331,48 +330,47 @@ def test_axis_pts006(offline):
         "Rec2Sine_x_table",
         [
             0,
-            11266,
-            22276,
-            33542,
-            44552,
-            55818,
-            1293,
-            12559,
-            23569,
-            34835,
-            46101,
-            57111,
-            2842,
-            13852,
-            25118,
-            36128,
-            47394,
-            58404,
-            4135,
+            556,
+            1111,
+            1667,
+            2222,
+            2778,
+            3333,
+            3889,
+            4444,
+            5000,
+            5556,
+            6111,
+            6667,
+            7222,
+            7778,
+            8333,
+            8889,
+            9444,
+            10000,
         ],
         [
             0.0,
-            7.07863657,
-            13.99642359,
-            21.07506016,
-            27.99284718,
-            35.07148375,
-            0.81241586,
-            7.89105243,
-            14.80883945,
-            21.88747602,
-            28.96611258,
-            35.88389961,
-            1.78568126,
-            8.70346829,
-            15.78210485,
-            22.69989188,
-            29.77852844,
-            36.69631547,
-            2.59809712,
+            0.34934510306139527,
+            0.6980618875921046,
+            1.0474069906535,
+            1.3961237751842093,
+            1.7454688782456045,
+            2.094185662776314,
+            2.4435307658377092,
+            2.7922475503684185,
+            3.1415926534298135,
+            3.490937756491209,
+            3.8396545410219183,
+            4.188999644083314,
+            4.537716428614023,
+            4.8870615316754185,
+            5.235778316206128,
+            5.585123419267522,
+            5.933840203798232,
+            6.283185306859627,
         ],
     )
-    pass
 
 
 def test_axis_pts0XX(offline):

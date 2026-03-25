@@ -4,13 +4,16 @@ asamint.core — zentrale Typen und Hilfsfunktionen.
 Beinhaltet:
 - ByteOrder (ASAM-1.2-konform: MSB_LAST / MSB_FIRST)
 - get_data_type(datatype, byte_order) -> str (liefert dtype-key z.B. "uint8_le")
+- normalize_asam_byte_order(value) -> Optional[str]
 - byte_order(obj, mod_common=None) -> Optional[ByteOrder]
 """
 
 from __future__ import annotations
 
 from enum import IntEnum
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional
+
+import numpy as np
 
 from .abc import CalibrationAdapter, CalibrationContext, SupportsLogging
 from .exceptions import (
@@ -33,16 +36,6 @@ from .models import (
 )
 
 
-import numpy as np
-from typing import Literal, Dict, List
-
-ByteOrder = Literal[
-    "MSB_FIRST",
-    "MSB_LAST",
-    "MSB_FIRST_MSW_LAST",
-    "MSB_LAST_MSW_FIRST",
-]
-
 class ECUByteOrder:
     """
     Utility class to decode ECU-specific byte orders into NumPy arrays.
@@ -52,7 +45,7 @@ class ECUByteOrder:
     # ------------------------------------------------------------
     # 1) Byte permutation tables
     # ------------------------------------------------------------
-    PERMUTATIONS: Dict[str, Dict[int, List[int]]] = {
+    PERMUTATIONS: dict[str, dict[int, list[int]]] = {
         "MSB_FIRST": {
             2: [0, 1],
             4: [0, 1, 2, 3],
@@ -126,6 +119,7 @@ class ECUByteOrder:
         final_dtype = np.dtype(endian + dtype)
         return np.frombuffer(reordered, dtype=final_dtype)
 
+
 class ByteOrder(IntEnum):
     """ASAM Byte-Order gemäß ASAM 1.2.
 
@@ -136,15 +130,27 @@ class ByteOrder(IntEnum):
     Attributes:
         MSB_LAST: Intel-Format (Little-Endian).
         MSB_FIRST: Motorola-Format (Big-Endian).
-        BIG_ENDIAN: Legacy-Alias für MSB_LAST.
-        LITTLE_ENDIAN: Legacy-Alias für MSB_FIRST.
+        BIG_ENDIAN: Legacy-Alias für MSB_FIRST.
+        LITTLE_ENDIAN: Legacy-Alias für MSB_LAST.
     """
 
     MSB_LAST = 0
     MSB_FIRST = 1
-    BIG_ENDIAN = MSB_LAST
-    LITTLE_ENDIAN = MSB_FIRST
+    BIG_ENDIAN = MSB_FIRST
+    LITTLE_ENDIAN = MSB_LAST
 
+
+ASAM_BYTEORDER_ALIASES = {
+    "LITTLE_ENDIAN": "MSB_LAST",
+    "BIG_ENDIAN": "MSB_FIRST",
+}
+
+_ASAM_BYTEORDER_BASES = {
+    "MSB_FIRST": ByteOrder.MSB_FIRST,
+    "MSB_LAST": ByteOrder.MSB_LAST,
+    "MSB_FIRST_MSW_LAST": ByteOrder.MSB_FIRST,
+    "MSB_LAST_MSW_FIRST": ByteOrder.MSB_LAST,
+}
 
 _DATA_TYPES: dict[str, tuple[str, str]] = {
     "UBYTE": ("uint8_le", "uint8_be"),
@@ -161,84 +167,49 @@ _DATA_TYPES: dict[str, tuple[str, str]] = {
 
 
 def get_data_type(datatype: str, byte_order: ByteOrder) -> str:
-    """Liefert den dtype-Schlüssel für einen ASAM-Datentyp und eine Byte-Order.
+    """Liefert den dtype-Schlüssel für einen ASAM-Datentyp und eine Byte-Order."""
 
-    Args:
-        datatype: ASAM-Datentyp (z. B. "UWORD", "FLOAT32_IEEE").
-        byte_order: ByteOrder-Enum.
-
-    Returns:
-        dtype-Schlüssel wie "uint16_le" oder "float32_be".
-
-    Raises:
-        KeyError: Wenn der Datentyp unbekannt ist und kein Fallback existiert.
-    """
     if datatype not in _DATA_TYPES:
         return _DATA_TYPES["ULONG"][byte_order.value]
     return _DATA_TYPES[datatype][byte_order.value]
 
 
-def byte_order(  # noqa: C901
-    obj: Any, mod_common: Any | None = None
-) -> ByteOrder | None:
-    """Ermittle die Byte-Order eines A2L-Objekts (optional Fallback mod_common).
+def normalize_asam_byte_order(value: Any) -> str | None:
+    """Normalize byte-order values to canonical ASAM string names."""
 
-    Reihenfolge:
-    1. Attribute des Objekts: byte_order, byteOrder, BYTE_ORDER.
-    2. Fallback auf mod_common mit denselben Attributnamen.
-    3. None, wenn nichts definiert.
+    if isinstance(value, ByteOrder):
+        return "MSB_FIRST" if value == ByteOrder.MSB_FIRST else "MSB_LAST"
 
-    Unterstützt Enum-Werte, Strings (MSB_FIRST/MSB_LAST, LITTLE_ENDIAN/BIG_ENDIAN)
-    sowie numerische Werte 0/1.
-
-    Args:
-        obj: A2L-Objekt mit optionalem Byte-Order-Attribut.
-        mod_common: Optionales MOD_COMMON-Objekt als Fallback.
-
-    Returns:
-        Gefundene ByteOrder oder None.
-    """
-    attr_names = ("byte_order", "byteOrder", "BYTE_ORDER")
-    candidate: Any = None
-
-    for name in attr_names:
-        if hasattr(obj, name):
-            candidate = getattr(obj, name)
-            if candidate is not None:
-                break
-
-    if candidate is None and mod_common is not None:
-        for name in attr_names:
-            if hasattr(mod_common, name):
-                candidate = getattr(mod_common, name)
-                if candidate is not None:
-                    break
-
-    if candidate is None:
+    if isinstance(value, str):
+        key = value.strip().upper().replace("-", "_").replace(" ", "_")
+        key = ASAM_BYTEORDER_ALIASES.get(key, key)
+        if key in _ASAM_BYTEORDER_BASES:
+            return key
         return None
-
-    if isinstance(candidate, ByteOrder):
-        return candidate
-
-    if isinstance(candidate, str):
-        key = candidate.strip().upper().replace("-", "_").replace(" ", "_")
-        mapping = {
-            "MSB_FIRST": ByteOrder.MSB_FIRST,
-            "MSB_LAST": ByteOrder.MSB_LAST,
-            "LITTLE_ENDIAN": ByteOrder.LITTLE_ENDIAN,
-            "BIG_ENDIAN": ByteOrder.BIG_ENDIAN,
-        }
-        return mapping.get(key)
 
     try:
-        return ByteOrder(int(candidate))
+        return normalize_asam_byte_order(ByteOrder(int(value)))
     except (ValueError, TypeError):
         return None
+
+
+def byte_order(obj: Any, mod_common: Any | None = None) -> str:  # noqa: C901
+    """Ermittle die Byte-Order eines A2L-Objekts (optional Fallback mod_common)."""
+
+    obj_byte_order: str | None = obj.byteOrder if hasattr(obj, "byteOrder") else None
+    if obj_byte_order is not None:
+        return obj_byte_order
+    obj_byte_order = mod_common.byteOrder if mod_common is not None else None
+    if obj_byte_order is not None:
+        return obj_byte_order
+    else:
+        return "MSB_LAST"
 
 
 __all__ = [
     "ByteOrder",
     "get_data_type",
+    "normalize_asam_byte_order",
     "byte_order",
     "AdapterError",
     "AsamIntError",

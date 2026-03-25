@@ -4,7 +4,6 @@ from asamint.adapters.objutils import load
 
 
 class Epk:
-
     def __init__(self, calibration) -> None:
         self.calibration = calibration
         self.asam_mc = calibration.asam_mc
@@ -33,7 +32,7 @@ class Epk:
             image = load(hexfile_type, open(f"{file_name}", "rb"))
         else:
             image = self.calibration.image
-        value = image.read_string(addr=epk_addr, length=epk_len)
+        value = image.read_asam_string(addr=epk_addr, dtype="ASCII", length=epk_len)
         return value
 
     def from_a2l(self) -> Optional[str]:

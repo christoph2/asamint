@@ -473,7 +473,7 @@ class CalibrationData:
 
             # Open and load the hex file
             with open(f"{hexfile}", "rb") as inf:
-                self.logger.info(f"Loading characteristics from {hexfile!r}.")
+                self.logger.info(f"Loading characteristics from {str(hexfile)!r}.")
                 self.image = load(hexfile_type, inf)
 
         # Validate the image
@@ -520,13 +520,14 @@ class CalibrationData:
             # Load from hex file
             if not hexfile:
                 # Use default from configuration
-                hexfile = self.config.general.master_hexfile
+                hexfile = Path(self.config.general.master_hexfile).absolute()
                 hexfile_type = self.config.general.master_hexfile_type
 
             # Open and load the hex file
             with open(f"{hexfile}", "rb") as inf:
-                self.logger.info(f"Loading characteristics from {hexfile!r}.")
+                self.logger.info(f"Loading characteristics from {str(hexfile)!r}.")
                 self.image = load(hexfile_type, inf)
+                self.image.join_sections()
 
         # Validate the image
         if not self.image:

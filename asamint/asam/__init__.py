@@ -129,13 +129,16 @@ class AsamMC:
         self.shortname = self.config.general.shortname
         self.a2l_encoding = self.config.general.a2l_encoding
         self.a2l_dynamic = self.config.general.a2l_dynamic
-        self.a2l_file = self.config.general.a2l_file
+        self.a2l_file = Path(self.config.general.a2l_file).absolute()
         self.author = self.config.general.author
         self.company = self.config.general.company
         self.department = self.config.general.department
         self.project = self.config.general.project
         self.master_hexfile = self.config.general.master_hexfile
         self.master_hexfile_type = self.config.general.master_hexfile_type
+
+        if not self.a2l_file.exists():
+            raise FileNotFoundError(f"A2L file '{self.a2l_file}' not found.")
 
         # Build a compatibility shim for legacy experiment_config using the new config system.
         # This replaces the old external experiment_config dict and provides reasonable defaults
@@ -236,16 +239,6 @@ class AsamMC:
     def query(self):
         return self.session.query
 
-    def byte_order(self, obj) -> ByteOrder:
-        """Get byte-order for A2L element.
-
-        Delegates resolution to the central asamint.core.byte_order helper,
-        using self.mod_common as fallback. If nothing is defined, returns a
-        sensible default (MSB_LAST / Intel / little-endian per ASAM semantics).
-        """
-        bo = core_byte_order(obj, getattr(self, "mod_common", None))
-        return bo or ByteOrder.MSB_LAST
-
     def _numpy_dtype_for_asam(self, datatype: str, bo: Any) -> np.dtype:  # noqa: C901
         """Map ASAM data types to numpy dtypes.
 
@@ -320,7 +313,11 @@ class AsamMC:
         meas_info: list[dict[str, Any]] = []
         for m in self.measurement_variables:
             try:
-                dtype = self._numpy_dtype_for_asam(m.dataType, self.byte_order(m))
+                bo = (
+                    core_byte_order(m, getattr(self, "mod_common", None))
+                    or ByteOrder.MSB_LAST
+                )
+                dtype = self._numpy_dtype_for_asam(m.dataType, bo)
                 nbytes = int(asam_type_size(m.dataType))
                 addr = m.address
                 info = {
