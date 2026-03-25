@@ -616,7 +616,7 @@ class Calibration:
         phys: np.ndarray = np.array([])
 
         # Calculate shape and size
-        shape = characteristic.fnc_np_shape[::-1]
+        shape = characteristic.fnc_np_shape
         num_func_values = reduce(operator.mul, shape, 1)
         length = num_func_values * asam_type_size(characteristic.fnc_asam_dtype)
         # Read the array from memory
