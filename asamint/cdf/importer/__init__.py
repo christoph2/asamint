@@ -1,19 +1,33 @@
-from collections.abc import Mapping
 import logging
+from collections.abc import Mapping
 from contextlib import suppress
 from pathlib import Path
 from typing import Any
 
 from asamint.calibration.db import CalibrationDB
-from asamint.calibration.msrsw_db import (Category, DataFile, DisplayName,
-                                          LongName, Msrsw, MSRSWDatabase,
-                                          ShortName, SwCsCollection,
-                                          SwCsCollections, SwInstance,
-                                          SwInstanceSpec, SwInstanceTree,
-                                          SwInstanceTreeOrigin, SwSystem,
-                                          SwSystems, SwValueCont, SymbolicFile,
-                                          UnitDisplayName)
+from asamint.calibration.msrsw_db import (
+    Category,
+    DataFile,
+    DisplayName,
+    LongName,
+    Msrsw,
+    MSRSWDatabase,
+    ShortName,
+    SwCsCollection,
+    SwCsCollections,
+    SwInstance,
+    SwInstanceSpec,
+    SwInstanceTree,
+    SwInstanceTreeOrigin,
+    SwSystem,
+    SwSystems,
+    SwValueCont,
+    SymbolicFile,
+    UnitDisplayName,
+)
 from asamint.model.calibration import klasses
+
+from .cdf_importer import CDFImporter, import_cdf_to_db
 
 logger = logging.getLogger(__name__)
 
@@ -141,7 +155,9 @@ class DBImporter:
 
     def map_curve(
         self,
-        value: klasses.Curve | klasses.Map | klasses.Cuboid | klasses.Cube4 | klasses.Cube5,
+        value: (
+            klasses.Curve | klasses.Map | klasses.Cuboid | klasses.Cube4 | klasses.Cube5
+        ),
         category: str,
     ) -> SwInstance:
         inst = self.create_instance(value)
@@ -208,6 +224,3 @@ class DBImporter:
         display_name.content = name
         self.session.add(display_name)
         obj.display_name = display_name
-
-
-from .cdf_importer import CDFImporter, import_cdf_to_db

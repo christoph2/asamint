@@ -24,18 +24,18 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
-from dataclasses import dataclass, field
 import os
+from dataclasses import dataclass, field
 from typing import List
 
-import numpy as np
+import asammdf
 import h5py
-
+import numpy as np
 from pya2l import model
 from pya2l.api import inspect
 
-from asamint.config import get_application
 from asamint.asam import AsamMC
+from asamint.config import get_application
 
 FN = r"C:\Users\HP\PycharmProjects\asamint\asamint\examples\VectorXCP\VectorAutosar_20260106_154305h5.h5"
 
@@ -50,7 +50,7 @@ class Measurement:
 @dataclass
 class Group:
     group: inspect.Group
-    measurements: List[Measurement] = field(default_factory=list)
+    measurements: list[Measurement] = field(default_factory=list)
 
 
 class VectorAutosar(AsamMC):
@@ -60,7 +60,7 @@ class VectorAutosar(AsamMC):
         self.h5 = h5py.File(file_name, mode="r+", libver="latest")
         # h5py.string_dtype(encoding="utf8")
         self.active_group = []
-        self.groups: List[Group] = []
+        self.groups: list[Group] = []
         self.traverse(self.h5)
 
     def read_values(self, attr: h5py.Dataset):
@@ -75,7 +75,7 @@ class VectorAutosar(AsamMC):
         count = total_size // chunk_size
         remaining = total_size % chunk_size
         offset = 0
-        for idx in range(count):
+        for _idx in range(count):
             yield attr[offset : offset + chunk_size]
             offset += chunk_size
         if remaining:
@@ -128,8 +128,6 @@ for group in mc.groups:
     app.log.info(f" Group: {group.group} with {len(group.measurements)} measurements.")
     for meas in group.measurements:
         app.log.info(f"   Measurement: {meas.measurement.name}")
-
-import asammdf
 
 MF = r"C:\Users\Public\Documents\Vector\CANape Examples 21.0\RaceTrackDemo\MeasurementFiles\SummitPoint_09637700.mf4"
 

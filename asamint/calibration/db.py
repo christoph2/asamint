@@ -18,7 +18,9 @@ class CalibrationDB:
     an HDF5 database file.
     """
 
-    def __init__(self, file_name: str, mode: str = "r", logger: Optional[logging.Logger] = None):
+    def __init__(
+        self, file_name: str, mode: str = "r", logger: Optional[logging.Logger] = None
+    ):
         """Initialize the calibration database.
 
         Args:
@@ -31,7 +33,9 @@ class CalibrationDB:
         db_name = Path(file_name).with_suffix(".h5")
         self.logger.info(f"Opening database {str(db_name)!r} in mode {mode!r}")
 
-        self.db = h5py.File(db_name, mode=mode, libver="latest", locking="best-effort", track_order=True)
+        self.db = h5py.File(
+            db_name, mode=mode, libver="latest", locking="best-effort", track_order=True
+        )
 
         self.opened = True
         self.guid = uuid.uuid4()
@@ -78,9 +82,13 @@ class CalibrationDB:
 
             # Set attributes
             ds.attrs["comment"] = value.comment if value.comment is not None else ""
-            ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
+            ds.attrs["display_identifier"] = (
+                value.displayIdentifier if value.displayIdentifier is not None else ""
+            )
             ds.attrs["category"] = value.category
-            ds.attrs["unit"] = value.unit if hasattr(value, "unit") and value.unit is not None else ""
+            ds.attrs["unit"] = (
+                value.unit if hasattr(value, "unit") and value.unit is not None else ""
+            )
 
             # Store raw and physical values
             if raw is not None:
@@ -110,7 +118,9 @@ class CalibrationDB:
             # Set attributes
             ds.attrs["category"] = value.category
             ds.attrs["comment"] = value.comment if value.comment is not None else ""
-            ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
+            ds.attrs["display_identifier"] = (
+                value.displayIdentifier if value.displayIdentifier is not None else ""
+            )
 
             # Store raw values if not empty
             if value.raw.shape != (0,):
@@ -145,7 +155,9 @@ class CalibrationDB:
             # Set attributes
             ds.attrs["category"] = value.category
             ds.attrs["comment"] = value.comment if value.comment is not None else ""
-            ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
+            ds.attrs["display_identifier"] = (
+                value.displayIdentifier if value.displayIdentifier is not None else ""
+            )
 
             # Store raw values if not empty
             if value.raw.shape != (0,):
@@ -163,7 +175,12 @@ class CalibrationDB:
             self.logger.error(f"Error importing axis points {value.name}: {e}")
             raise
 
-    def import_map_curve(self, value: Union[klasses.Curve, klasses.Map, klasses.Cuboid, klasses.Cube4, klasses.Cube5]) -> None:
+    def import_map_curve(
+        self,
+        value: Union[
+            klasses.Curve, klasses.Map, klasses.Cuboid, klasses.Cube4, klasses.Cube5
+        ],
+    ) -> None:
         """Import a map or curve into the database.
 
         Args:
@@ -182,7 +199,9 @@ class CalibrationDB:
             ds.attrs["category"] = value.category
             ds.attrs["unit"] = value.fnc_unit if value.fnc_unit is not None else ""
             ds.attrs["comment"] = value.comment if value.comment is not None else ""
-            ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
+            ds.attrs["display_identifier"] = (
+                value.displayIdentifier if value.displayIdentifier is not None else ""
+            )
 
             # Store raw values if not None
             if value.raw is not None:
@@ -204,7 +223,9 @@ class CalibrationDB:
                 ax.attrs["category"] = category
                 ax.attrs["unit"] = axis.unit if axis.unit else ""
                 ax.attrs["name"] = axis.name if axis.name else ""
-                ax.attrs["input_quantity"] = axis.input_quantity if axis.input_quantity else ""
+                ax.attrs["input_quantity"] = (
+                    axis.input_quantity if axis.input_quantity else ""
+                )
 
                 # Handle different axis types
                 match category:
@@ -221,7 +242,9 @@ class CalibrationDB:
 
             self.logger.debug(f"Imported {value.category.lower()}: {value.name}")
         except Exception as e:
-            self.logger.error(f"Error importing {value.category.lower()} {value.name}: {e}")
+            self.logger.error(
+                f"Error importing {value.category.lower()} {value.name}: {e}"
+            )
             raise
 
     def load(self, name: str) -> xr.DataArray:
@@ -238,103 +261,115 @@ class CalibrationDB:
             TypeError: If an unsupported axis category is encountered
         """
         try:
-            # Get the dataset and its attributes
             ds = self.db[f"/{name}"]
             ds_attrs = dict(ds.attrs.items())
             category = ds_attrs["category"]
-
-            # Create attributes dictionary
-            attrs = {
-                "name": name,
-                "display_identifier": ds_attrs.get("display_identifier") or "",
-                "category": category,
-                "comment": ds_attrs.get("comment") or "",  # Fixed: was "commment"
-            }
-
-            # Get physical values
+            attrs = self._create_data_array_attrs(name, ds_attrs, category)
             values = ds["phys"][()]
-
-            # Handle scalar values and value blocks
-            if category in ("VALUE", "DEPENDENT_VALUE", "BOOLEAN", "ASCII", "TEXT") or category in ("VAL_BLK", "COM_AXIS"):
+            if self._is_scalar_like_category(category):
                 arr = xr.DataArray(values, attrs=attrs)
             else:
-                # Handle maps and curves with axes
-                axes = ds["axes"]
-                dims = []
-                coords = {}
-                shape = []
-
-                # Process each axis
-                # Note: HDF5 stores data in C-order (last dimension varies fastest).
-                # For a 2D map (x, y), HDF5 shape is (len(x), len(y)) if x is first axis and y is second axis.
-                # However, many tools export (y, x) shape for (x, y) maps.
-                # We need to ensure dims and shape are consistent.
-                for idx in range(len(axes)):
-                    ax = axes[str(idx)]
-                    ax_attrs = dict(ax.attrs.items())
-                    ax_name = ax_attrs["name"]
-                    dims.append(ax_name)
-                    ax_category = ax_attrs["category"]
-
-                    # Handle different axis types
-                    if ax_category == "COM_AXIS":
-                        # Referenced axis
-                        ref_axis = ax["reference"]
-                        phys = np.array(ref_axis["phys"])
-                    else:
-                        # Standard or fixed axis
-                        if ax_category not in ("FIX_AXIS", "STD_AXIS"):
-                            raise TypeError(f"Unsupported axis category: {ax_category}")
-                        phys = np.array(ax["phys"])
-
-                    # Store coordinates and shape
-                    coords[ax_name] = ([ax_name], phys)
-                    shape.append(phys.size)
-
-                # Handle empty values array or shape mismatch
-                if values.shape == (0,) or values.size == 0:
-                    values = np.zeros(tuple(shape))
-                elif values.shape != tuple(shape):
-                    # If there's a mismatch, we try to reshape if possible.
-                    # This often happens if the metadata dimensions don't match the actual HDF5 data size.
-                    # Or if the dimension order is reversed (e.g. (y, x) instead of (x, y)).
-                    if values.size == np.prod(shape):
-                        try:
-                            values = values.reshape(tuple(shape))
-                            # self.logger.warning(f"Reshaped {name} from {values.shape} to {tuple(shape)}")
-                        except ValueError:
-                            self.logger.error(f"Cannot reshape {name} from {values.shape} to {tuple(shape)}")
-                            values = np.zeros(tuple(shape))
-                    else:
-                        self.logger.error(f"Size mismatch for {name}: {values.size} != {np.prod(shape)}. Using zero-filled array.")
-                        values = np.zeros(tuple(shape))
-
-                # Create DataArray with dimensions and coordinates
-                try:
-                    arr = xr.DataArray(
-                        data=values,
-                        dims=dims,
-                        coords=coords,
-                        attrs=attrs,
-                        name=name
-                    )
-                except ValueError as e:
-                    self.logger.error(f"Failed to create DataArray for {name}: {e}. Falling back to zero-filled array.")
-                    values = np.zeros(tuple(shape))
-                    arr = xr.DataArray(
-                        data=values,
-                        dims=dims,
-                        coords=coords,
-                        attrs=attrs,
-                        name=name
-                    )
+                dims, coords, shape = self._load_axis_metadata(ds["axes"])
+                values = self._normalize_array_values(name, values, shape)
+                arr = self._create_data_array(name, values, dims, coords, attrs, shape)
 
             self.logger.debug(f"Loaded {category.lower()}: {name}")
             return arr
 
-        except KeyError as e:
+        except KeyError:
             self.logger.error(f"Parameter not found: {name}")
             raise
         except Exception as e:
             self.logger.error(f"Error loading parameter {name}: {e}")
             raise
+
+    @staticmethod
+    def _is_scalar_like_category(category: str) -> bool:
+        return category in (
+            "VALUE",
+            "DEPENDENT_VALUE",
+            "BOOLEAN",
+            "ASCII",
+            "TEXT",
+            "VAL_BLK",
+            "COM_AXIS",
+        )
+
+    @staticmethod
+    def _create_data_array_attrs(
+        name: str, ds_attrs: dict[str, Any], category: str
+    ) -> dict[str, Any]:
+        return {
+            "name": name,
+            "display_identifier": ds_attrs.get("display_identifier") or "",
+            "category": category,
+            "comment": ds_attrs.get("comment") or "",
+        }
+
+    def _read_axis_values(
+        self, axis_group: h5py.Group, axis_category: str
+    ) -> np.ndarray:
+        if axis_category == "COM_AXIS":
+            return np.array(axis_group["reference"]["phys"])
+        if axis_category not in ("FIX_AXIS", "STD_AXIS"):
+            raise TypeError(f"Unsupported axis category: {axis_category}")
+        return np.array(axis_group["phys"])
+
+    def _load_axis_metadata(
+        self, axes: h5py.Group
+    ) -> tuple[list[str], dict[str, Any], list[int]]:
+        dims: list[str] = []
+        coords: dict[str, Any] = {}
+        shape: list[int] = []
+        for idx in range(len(axes)):
+            axis_group = axes[str(idx)]
+            axis_attrs = dict(axis_group.attrs.items())
+            axis_name = axis_attrs["name"]
+            axis_values = self._read_axis_values(axis_group, axis_attrs["category"])
+            dims.append(axis_name)
+            coords[axis_name] = ([axis_name], axis_values)
+            shape.append(axis_values.size)
+        return dims, coords, shape
+
+    def _normalize_array_values(
+        self, name: str, values: np.ndarray, shape: list[int]
+    ) -> np.ndarray:
+        target_shape = tuple(shape)
+        if values.shape == (0,) or values.size == 0:
+            return np.zeros(target_shape)
+        if values.shape == target_shape:
+            return values
+        if values.size == np.prod(shape):
+            try:
+                return values.reshape(target_shape)
+            except ValueError:
+                self.logger.error(
+                    f"Cannot reshape {name} from {values.shape} to {target_shape}"
+                )
+                return np.zeros(target_shape)
+        self.logger.error(
+            f"Size mismatch for {name}: {values.size} != {np.prod(shape)}. Using zero-filled array."
+        )
+        return np.zeros(target_shape)
+
+    def _create_data_array(
+        self,
+        name: str,
+        values: np.ndarray,
+        dims: list[str],
+        coords: dict[str, Any],
+        attrs: dict[str, Any],
+        shape: list[int],
+    ) -> xr.DataArray:
+        try:
+            return xr.DataArray(
+                data=values, dims=dims, coords=coords, attrs=attrs, name=name
+            )
+        except ValueError as e:
+            self.logger.error(
+                f"Failed to create DataArray for {name}: {e}. Falling back to zero-filled array."
+            )
+            zero_values = np.zeros(tuple(shape))
+            return xr.DataArray(
+                data=zero_values, dims=dims, coords=coords, attrs=attrs, name=name
+            )

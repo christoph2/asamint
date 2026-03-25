@@ -66,16 +66,21 @@ class CVXImporter:
             else:
                 i += 1
 
+    def _parse_csv_fields(self, line: str) -> list[str]:
+        reader = csv.reader(
+            [line],
+            delimiter=self.value_separator,
+            quotechar=self.string_delimiter,
+        )
+        return next(reader)
+
     def _parse_function_header(self, lines: list[str], i: int) -> int:
         i += 1
         if i < len(lines):
             f_line = lines[i].strip()
-            f_reader = csv.reader(
-                [f_line],
-                delimiter=self.value_separator,
-                quotechar=self.string_delimiter,
-            )
-            self.functions = [f.strip() for f in next(f_reader) if f.strip()]
+            self.functions = [
+                f.strip() for f in self._parse_csv_fields(f_line) if f.strip()
+            ]
         return i + 1
 
     def _parse_variant_header(self, lines: list[str], i: int) -> int:
@@ -112,40 +117,48 @@ class CVXImporter:
         if i >= len(lines):
             return i, record
 
-        desc_line = lines[i].strip()
-        d_reader = csv.reader(
-            [desc_line],
-            delimiter=self.value_separator,
-            quotechar=self.string_delimiter,
-        )
-        d_fields = next(d_reader)
+        d_fields = self._parse_csv_fields(lines[i].strip())
         if not d_fields:
             return i + 1, record
 
         record["type"] = d_fields[0].strip()
-        rec_type = record["type"]
-
-        if rec_type == "VALUE":
-            if len(d_fields) >= 3:
-                record["values"] = [self._parse_float(d_fields[2])]
-        elif rec_type == "ASCII":
-            if len(d_fields) >= 3:
-                record["values"] = [d_fields[2]]
-        elif rec_type == "VAL_BLK":
-            record["values"] = [self._parse_float(f) for f in d_fields[2:] if f.strip()]
-        elif rec_type == "CURVE":
-            i = self._parse_curve(lines, i, record)
-        elif rec_type == "MAP":
-            i = self._parse_map(lines, i, record)
-        elif rec_type in ("AXIS_PTS", "X_AXIS_PTS", "Y_AXIS_PTS", "Z_AXIS_PTS"):
-            record["values"] = [self._parse_float(f) for f in d_fields[2:] if f.strip()]
-        elif rec_type == "RESCALE_AXIS_PTS":
-            values = [self._parse_float(f) for f in d_fields[2:] if f.strip()]
-            record["values"] = list(zip(values[::2], values[1::2]))
-
-        # After parsing the main body, check for additional attributes
+        i = self._parse_record_values(lines, i, d_fields, record)
         i, record = self._parse_record_attributes(lines, i, record)
         return i, record
+
+    def _parse_numeric_fields(self, fields: list[str], start: int = 2) -> list[float]:
+        return [self._parse_float(field) for field in fields[start:] if field.strip()]
+
+    def _parse_record_values(
+        self, lines: list[str], i: int, fields: list[str], record: dict[str, Any]
+    ) -> int:
+        record_type = record["type"]
+        if record_type == "VALUE":
+            if len(fields) >= 3:
+                record["values"] = [self._parse_float(fields[2])]
+            return i
+        if record_type == "ASCII":
+            if len(fields) >= 3:
+                record["values"] = [fields[2]]
+            return i
+        if record_type in (
+            "VAL_BLK",
+            "AXIS_PTS",
+            "X_AXIS_PTS",
+            "Y_AXIS_PTS",
+            "Z_AXIS_PTS",
+        ):
+            record["values"] = self._parse_numeric_fields(fields)
+            return i
+        if record_type == "RESCALE_AXIS_PTS":
+            values = self._parse_numeric_fields(fields)
+            record["values"] = list(zip(values[::2], values[1::2]))
+            return i
+        if record_type == "CURVE":
+            return self._parse_curve(lines, i, record)
+        if record_type == "MAP":
+            return self._parse_map(lines, i, record)
+        return i
 
     def _parse_curve(self, lines: list[str], i: int, record: dict[str, Any]) -> int:
         i += 1
@@ -248,39 +261,44 @@ class CVXImporter:
             if not next_line:
                 i += 1
                 continue
-            n_reader = csv.reader(
-                [next_line],
-                delimiter=self.value_separator,
-                quotechar=self.string_delimiter,
-            )
-            n_fields = next(n_reader)
+            n_fields = self._parse_csv_fields(next_line)
             if not n_fields:
                 i += 1
                 continue
 
-            tag = n_fields[0].strip()
-            if tag == "FUNCTION":
-                if len(n_fields) >= 3:
-                    record["function"] = n_fields[2].strip()
-                i += 1
-            elif tag == "VARIANT":
-                # VARIANT;; "Car"."Limousine";"Gear"."Manual"
-                for v_spec in n_fields[2:]:
-                    if v_spec.strip():
-                        # Car.Limousine
-                        v_parts = v_spec.strip().split(".")
-                        if len(v_parts) == 2:
-                            record["variants"].append(
-                                (
-                                    v_parts[0].strip(self.string_delimiter),
-                                    v_parts[1].strip(self.string_delimiter),
-                                )
-                            )
-                i += 1
-            elif tag == "DISPLAY_IDENTIFIER":
-                if len(n_fields) >= 3:
-                    record["display_identifier"] = n_fields[2].strip()
-                i += 1
-            else:
+            if not self._apply_record_attribute(n_fields, record):
                 break
+            i += 1
         return i + 1, record
+
+    def _apply_record_attribute(
+        self, fields: list[str], record: dict[str, Any]
+    ) -> bool:
+        tag = fields[0].strip()
+        if tag == "FUNCTION":
+            if len(fields) >= 3:
+                record["function"] = fields[2].strip()
+            return True
+        if tag == "VARIANT":
+            record["variants"].extend(self._parse_variant_specs(fields[2:]))
+            return True
+        if tag == "DISPLAY_IDENTIFIER":
+            if len(fields) >= 3:
+                record["display_identifier"] = fields[2].strip()
+            return True
+        return False
+
+    def _parse_variant_specs(self, specs: list[str]) -> list[tuple[str, str]]:
+        result: list[tuple[str, str]] = []
+        for variant_spec in specs:
+            if not variant_spec.strip():
+                continue
+            variant_parts = variant_spec.strip().split(".")
+            if len(variant_parts) == 2:
+                result.append(
+                    (
+                        variant_parts[0].strip(self.string_delimiter),
+                        variant_parts[1].strip(self.string_delimiter),
+                    )
+                )
+        return result

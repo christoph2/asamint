@@ -1,11 +1,17 @@
 import logging
 from pathlib import Path
 
-from asamint.calibration.db import CalibrationDB
-from asamint.calibration.msrsw_db import (ELEMENTS, Msrsw, MSRSWDatabase,
-                                          SwInstance, SwValueCont)
 from lxml import etree
 from sqlalchemy import inspect
+
+from asamint.calibration.db import CalibrationDB
+from asamint.calibration.msrsw_db import (
+    ELEMENTS,
+    Msrsw,
+    MSRSWDatabase,
+    SwInstance,
+    SwValueCont,
+)
 
 
 class CDFExporter:
@@ -94,152 +100,151 @@ class CDFExporter:
 
     def _to_xml(self, obj, tag_name):
         elem = etree.Element(tag_name)
-        valid_entry: bool = True
-        # Handle attributes
-        if hasattr(obj, "ATTRIBUTES"):
-            for xml_attr, py_attr in obj.ATTRIBUTES.items():
-                value = getattr(obj, py_attr, None)
-                if value is not None:
-                    elem.set(xml_attr, str(value))
-
-        # Handle terminal content
-        if getattr(obj, "TERMINAL", False) and hasattr(obj, "content"):
-            if obj.content is not None:
-                elem.text = str(obj.content)
-
-        # Special handling for values from HDF5
-        if isinstance(obj, SwValueCont) and self.h5_db:
-            # Try to find the parameter name from the parent SwInstance
-            # In our DB model, SwValueCont is linked from SwInstance
-            instance = None
-
-            # Check if this SwValueCont has a parent SwInstance
-            # Usually SwInstance.sw_value_cont links to this
-
-            session = inspect(obj).session
-            if session:
-                instance = (
-                    session.query(SwInstance)
-                    .filter(SwInstance.sw_value_cont == obj)
-                    .first()
-                )
-            if instance and instance.short_name:
-                param_name = instance.short_name.content
-                try:
-                    data = self.h5_db.load(param_name)
-                    self._append_values(elem, data)
-
-                except Exception as e:
-                    self.logger.debug(
-                        f"Could not load values for {param_name} from H5: {e}"
-                    )
-                    valid_entry = False
-
-        # Handle child elements
-        if hasattr(obj, "ELEMENTS") and valid_entry:
-            for tag, (py_attr, elem_tp) in obj.ELEMENTS.items():
-                # Filter based on variant_coding if object is SwInstance
-                if isinstance(obj, SwInstance):
-                    if self.variant_coding:
-                        # VCD mode: data is in SwInstancePropsVariants
-                        if tag in ("SwValueCont", "SwAxisConts"):
-                            continue
-                    else:
-                        # NO_VCD mode: data is direct, skip variants
-                        if tag == "SwInstancePropsVariants":
-                            continue
-
-                child_val = getattr(obj, py_attr, None)
-
-                # Heuristic: if a top-level relationship is missing in Msrsw, try to find it in DB
-                if child_val is None and isinstance(obj, Msrsw):
-                    session = inspect(obj).session
-                    if session:
-                        # Find the class for this tag from ELEMENTS mapping
-                        target_cls = ELEMENTS.get(tag)
-                        if target_cls:
-                            child_val = session.query(target_cls).first()
-                            if child_val:
-                                self.logger.debug(
-                                    f"Found orphaned {tag} for MSRSW root"
-                                )
-
-                if child_val is None:
-                    continue
-
-                if elem_tp == "A":  # Association/List
-                    for item in child_val:
-                        child_tag = self._format_tag(tag)
-                        child_elem = self._to_xml(item, child_tag)
-                        if child_elem is not None:
-                            elem.append(child_elem)
-                else:  # Relationship/Single
-                    child_tag = self._format_tag(tag)
-                    child_elem = self._to_xml(child_val, child_tag)
-                    if child_elem is not None:
-                        elem.append(child_elem)
-
-        if not valid_entry:
+        self._apply_xml_attributes(elem, obj)
+        self._apply_terminal_content(elem, obj)
+        if not self._populate_value_container(elem, obj):
             return None
-
+        self._append_children(elem, obj)
         return elem
 
     def _append_values(self, elem, data):
-
         category = data.attrs.get("category", "")
-
-        # Flatten values if it's more than 1D and we just want a list of values
-        # For maps and curves, CDF often uses <VG> with <V> for values.
-
         if category in ("VALUE", "BOOLEAN", "ASCII", "TEXT"):
-            val = data.values
-            tag = "VT" if category in ("ASCII", "TEXT") else "V"
-            v_elem = etree.SubElement(elem, tag)
-            v_elem.text = str(val)
-        elif category in (
-                "VAL_BLK",
-                "COM_AXIS",
-                "CURVE",
-                "MAP",
-                "CUBOID",
-                "CUBE4",
-                "CUBE5",
+            self._append_scalar_value(
+                elem, data.values, "VT" if category in ("ASCII", "TEXT") else "V"
+            )
+            return
+        if category in (
+            "VAL_BLK",
+            "COM_AXIS",
+            "CURVE",
+            "MAP",
+            "CUBOID",
+            "CUBE4",
+            "CUBE5",
         ):
-            # For multi-dimensional data, we should group by dimension with <VG> elements
-            if (
-                category in ("CURVE", "MAP", "VAL_BLK", "CUBOID", "CUBE4", "CUBE5")
-                and len(data.dims) > 0
-            ):
-                if len(data.dims) == 1:
-                    vg_elem = etree.SubElement(elem, "VG")
-                    for v in data.values:
-                        v_elem = etree.SubElement(vg_elem, "V")
-                        v_elem.text = str(v)
-                else:
-                    # Recursive grouping for N-dimensional data
-                    def _append_recursive(parent_elem, sub_data):
-                        if len(sub_data.shape) == 1:
-                            vg_elem = etree.SubElement(parent_elem, "VG")
-                            for v in sub_data:
-                                v_elem = etree.SubElement(vg_elem, "V")
-                                v_elem.text = str(v)
-                        else:
-                            for sub_part in sub_data:
-                                _append_recursive(parent_elem, sub_part)
+            self._append_array_values(elem, data, category)
+            return
+        self._append_flat_values(elem, data.values.flatten(), "V")
 
-                    _append_recursive(elem, data.values)
-            else:
-                vals = data.values.flatten()
-                tag = "VT" if category == "ASCII" else "V"  # simplified
-                for v in vals:
-                    v_elem = etree.SubElement(elem, tag)
-                    v_elem.text = str(v)
-        else:
-            # Fallback for other types
-            vals = data.values.flatten()
-            for v in vals:
-                v_elem = etree.SubElement(elem, "V")
-                v_elem.text = str(v)
+    def _apply_xml_attributes(self, elem, obj) -> None:
+        if not hasattr(obj, "ATTRIBUTES"):
+            return
+        for xml_attr, py_attr in obj.ATTRIBUTES.items():
+            value = getattr(obj, py_attr, None)
+            if value is not None:
+                elem.set(xml_attr, str(value))
+
+    @staticmethod
+    def _apply_terminal_content(elem, obj) -> None:
+        if (
+            getattr(obj, "TERMINAL", False)
+            and hasattr(obj, "content")
+            and obj.content is not None
+        ):
+            elem.text = str(obj.content)
+
+    def _populate_value_container(self, elem, obj) -> bool:
+        if not isinstance(obj, SwValueCont) or not self.h5_db:
+            return True
+        param_name = self._value_container_name(obj)
+        if not param_name:
+            return True
+        try:
+            self._append_values(elem, self.h5_db.load(param_name))
+            return True
+        except Exception as e:
+            self.logger.debug(f"Could not load values for {param_name} from H5: {e}")
+            return False
+
+    def _value_container_name(self, obj) -> str | None:
+        session = inspect(obj).session
+        if not session:
+            return None
+        instance = (
+            session.query(SwInstance).filter(SwInstance.sw_value_cont == obj).first()
+        )
+        if instance and instance.short_name:
+            return instance.short_name.content
+        return None
+
+    def _append_children(self, elem, obj) -> None:
+        if not hasattr(obj, "ELEMENTS"):
+            return
+        for tag, child_value, elem_type in self._iter_child_mappings(obj):
+            if child_value is None:
+                continue
+            self._append_child_value(elem, tag, child_value, elem_type)
+
+    def _iter_child_mappings(self, obj):
+        for tag, (py_attr, elem_type) in obj.ELEMENTS.items():
+            if self._skip_child_tag(obj, tag):
+                continue
+            yield tag, self._resolve_child_value(obj, tag, py_attr), elem_type
+
+    def _skip_child_tag(self, obj, tag: str) -> bool:
+        if not isinstance(obj, SwInstance):
+            return False
+        if self.variant_coding:
+            return tag in ("SwValueCont", "SwAxisConts")
+        return tag == "SwInstancePropsVariants"
+
+    def _resolve_child_value(self, obj, tag, py_attr):
+        child_value = getattr(obj, py_attr, None)
+        if child_value is not None or not isinstance(obj, Msrsw):
+            return child_value
+        session = inspect(obj).session
+        if not session:
+            return None
+        target_cls = ELEMENTS.get(tag)
+        if not target_cls:
+            return None
+        child_value = session.query(target_cls).first()
+        if child_value:
+            self.logger.debug(f"Found orphaned {tag} for MSRSW root")
+        return child_value
+
+    def _append_child_value(self, elem, tag: str, child_value, elem_type: str) -> None:
+        child_tag = self._format_tag(tag)
+        if elem_type == "A":
+            for item in child_value:
+                child_elem = self._to_xml(item, child_tag)
+                if child_elem is not None:
+                    elem.append(child_elem)
+            return
+        child_elem = self._to_xml(child_value, child_tag)
+        if child_elem is not None:
+            elem.append(child_elem)
+
+    @staticmethod
+    def _append_scalar_value(elem, value, tag: str) -> None:
+        child = etree.SubElement(elem, tag)
+        child.text = str(value)
+
+    def _append_array_values(self, elem, data, category: str) -> None:
+        if (
+            category in ("CURVE", "MAP", "VAL_BLK", "CUBOID", "CUBE4", "CUBE5")
+            and len(data.dims) > 0
+        ):
+            self._append_grouped_values(elem, data.values)
+            return
+        self._append_flat_values(
+            elem, data.values.flatten(), "VT" if category == "ASCII" else "V"
+        )
+
+    def _append_grouped_values(self, elem, values) -> None:
+        if len(values.shape) == 1:
+            group = etree.SubElement(elem, "VG")
+            self._append_flat_values(group, values, "V")
+            return
+        for sub_values in values:
+            self._append_grouped_values(elem, sub_values)
+
+    @staticmethod
+    def _append_flat_values(elem, values, tag: str) -> None:
+        for value in values:
+            child = etree.SubElement(elem, tag)
+            child.text = str(value)
 
 
 def export_to_cdf(

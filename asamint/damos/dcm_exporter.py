@@ -1,4 +1,5 @@
 import logging
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -6,6 +7,41 @@ from typing import Any
 from asamint.calibration.db import CalibrationDB
 from asamint.calibration.msrsw_db import MSRSWDatabase, SwInstance
 from asamint.utils.templates import do_template
+
+
+@dataclass
+class AxisData:
+    category: str
+    unit: str
+    converted_values: Any
+
+
+@dataclass
+class ParamData:
+    name: str
+    category: str
+    comment: str
+    displayIdentifier: str
+    unit: str
+    values: Any
+    axes: list[AxisData] = field(default_factory=list)
+    fnc_unit: str | None = None
+    converted_value: Any = 0
+    converted_values: Any = field(default_factory=list)
+    value: Any = 0
+
+    def __post_init__(self) -> None:
+        if self.values is None:
+            return
+        if self.category in ("VALUE", "BOOLEAN", "TEXT"):
+            self.converted_value = (
+                self.values.values.item()
+                if hasattr(self.values.values, "item")
+                else self.values.values
+            )
+            self.value = self.converted_value
+        else:
+            self.converted_values = self.values.values
 
 
 class DcmExporter:
@@ -25,8 +61,13 @@ class DcmExporter:
     def export(self, output_path: str | Path) -> bool:
         self.logger.info(f"Exporting DCM to {output_path}")
         self.logger.info(f"Using template from {self.template_path}")
+        params = self._collect_params()
+        namespace = self._create_namespace(params)
+        return self._render_template(output_path, namespace)
 
-        params = {
+    @staticmethod
+    def _empty_params() -> dict[str, dict[str, ParamData]]:
+        return {
             "AXIS_PTS": {},
             "VALUE": {},
             "ASCII": {},
@@ -35,35 +76,46 @@ class DcmExporter:
             "MAP": {},
         }
 
-        session = self.db.session
-        instances = session.query(SwInstance).all()
-
+    def _collect_params(self) -> dict[str, dict[str, ParamData]]:
+        params = self._empty_params()
+        instances = self.db.session.query(SwInstance).all()
         for inst in instances:
             param_data = self._prepare_param_data(inst)
-            if not param_data:
-                continue
+            bucket = (
+                self._bucket_for_category(param_data.category) if param_data else None
+            )
+            if bucket and param_data:
+                params[bucket][param_data.name] = param_data
+        return params
 
-            category = param_data.category
-            if category in ("VALUE", "BOOLEAN", "TEXT"):
-                params["VALUE"][param_data.name] = param_data
-            elif category == "ASCII":
-                params["ASCII"][param_data.name] = param_data
-            elif category == "VAL_BLK":
-                params["VAL_BLK"][param_data.name] = param_data
-            elif category == "STUETZSTELLENVERTEILUNG":
-                params["AXIS_PTS"][param_data.name] = param_data
-            elif category == "CURVE":
-                params["CURVE"][param_data.name] = param_data
-            elif category == "MAP":
-                params["MAP"][param_data.name] = param_data
+    @staticmethod
+    def _bucket_for_category(category: str) -> str | None:
+        if category in ("VALUE", "BOOLEAN", "TEXT"):
+            return "VALUE"
+        if category == "ASCII":
+            return "ASCII"
+        if category == "VAL_BLK":
+            return "VAL_BLK"
+        if category == "STUETZSTELLENVERTEILUNG":
+            return "AXIS_PTS"
+        if category == "CURVE":
+            return "CURVE"
+        if category == "MAP":
+            return "MAP"
+        return None
 
-        namespace = {
+    @staticmethod
+    def _create_namespace(params: dict[str, dict[str, ParamData]]) -> dict[str, Any]:
+        return {
             "params": params,
             "dataset": {},
             "experiment": {},
             "current_datetime": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
 
+    def _render_template(
+        self, output_path: str | Path, namespace: dict[str, Any]
+    ) -> bool:
         try:
             res = do_template(
                 str(self.template_path),
@@ -83,105 +135,68 @@ class DcmExporter:
             return False
 
     def _prepare_param_data(self, inst: SwInstance) -> Any:
-        name = inst.short_name.content if inst.short_name else None
+        name = self._instance_name(inst)
         if not name:
             return None
 
-        # Load data from H5
-        data = None
-        if self.h5_db:
-            try:
-                data = self.h5_db.load(name)
-            except Exception as e:
-                self.logger.debug(f"Could not load values for {name} from H5: {e}")
-
-        class ParamData:
-            def __init__(
-                self,
-                name,
-                category,
-                comment,
-                display_id,
-                unit,
-                values,
-                axes=None,
-                fnc_unit=None,
-            ):
-                self.name = name
-                self.category = category
-                self.comment = comment
-                self.displayIdentifier = display_id
-                self.unit = unit
-                self.axes = axes or []
-                self.fnc_unit = fnc_unit
-
-                if values is not None:
-                    # Template expects converted_value for single values and converted_values for arrays
-                    if category in ("VALUE", "BOOLEAN", "TEXT"):
-                        self.converted_value = (
-                            values.values.item()
-                            if hasattr(values.values, "item")
-                            else values.values
-                        )
-                        # For ASCII, it might expect .value
-                        self.value = self.converted_value
-                    else:
-                        self.converted_values = values.values
-                else:
-                    self.converted_value = 0
-                    self.converted_values = []
-
-        category = inst.category.content if inst.category else "VALUE"
-        comment = ""
-        # Find comment in MSRSW DB if available
-        # In our model, SwInstance might have relationships to Desc/Comment
-        # But for now, let's use what's in H5 if MSRSW is empty
-        if data is not None:
-            comment = data.attrs.get("comment", "")
-            display_id = data.attrs.get("display_identifier", "")
-            unit = data.attrs.get("unit", "")
-        else:
-            display_id = ""
-            unit = ""
-
-        # Mapping CDF categories to DCM-friendly ones for the template
-        dcm_category = category
-        if category == "VALUE_ARRAY":
-            dcm_category = "VAL_BLK"
-        elif category == "AXIS_PTS":
-            dcm_category = "STUETZSTELLENVERTEILUNG"
-
-        axes_data = []
-        fnc_unit = unit
-        if data is not None:
-            # Reconstruct axes for the template
-            # The template expects axis objects with category, unit, axis_pts_ref or converted_values
-            for dim_name in data.dims:
-                # In xarray, coords for dim_name contains the axis values
-                if dim_name in data.coords:
-                    axis_vals = data.coords[dim_name].values
-                else:
-                    axis_vals = []
-
-                class AxisData:
-                    def __init__(self, category, unit, values):
-                        self.category = category  # Standard vs Fixed vs Common
-                        self.unit = unit
-                        self.converted_values = values
-
-                # Assume STD_AXIS for now
-                axes_data.append(AxisData("STD_AXIS", "", axis_vals))
-
+        data = self._load_h5_data(name)
+        category = self._normalize_category(
+            inst.category.content if inst.category else "VALUE"
+        )
+        comment, display_id, unit = self._metadata_from_data(data)
         return ParamData(
             name,
-            dcm_category,
+            category,
             comment,
             display_id,
             unit,
             data,
-            axes=axes_data,
-            fnc_unit=fnc_unit,
+            axes=self._build_axes_data(data),
+            fnc_unit=unit,
         )
+
+    @staticmethod
+    def _instance_name(inst: SwInstance) -> str | None:
+        return inst.short_name.content if inst.short_name else None
+
+    def _load_h5_data(self, name: str) -> Any:
+        if not self.h5_db:
+            return None
+        try:
+            return self.h5_db.load(name)
+        except Exception as e:
+            self.logger.debug(f"Could not load values for {name} from H5: {e}")
+            return None
+
+    @staticmethod
+    def _normalize_category(category: str) -> str:
+        if category == "VALUE_ARRAY":
+            return "VAL_BLK"
+        if category == "AXIS_PTS":
+            return "STUETZSTELLENVERTEILUNG"
+        return category
+
+    @staticmethod
+    def _metadata_from_data(data: Any) -> tuple[str, str, str]:
+        if data is None:
+            return "", "", ""
+        return (
+            data.attrs.get("comment", ""),
+            data.attrs.get("display_identifier", ""),
+            data.attrs.get("unit", ""),
+        )
+
+    @staticmethod
+    def _build_axes_data(data: Any) -> list[AxisData]:
+        if data is None:
+            return []
+        axes_data: list[AxisData] = []
+        for dim_name in data.dims:
+            axis_values = (
+                data.coords[dim_name].values if dim_name in data.coords else []
+            )
+            axes_data.append(AxisData("STD_AXIS", "", axis_values))
+        return axes_data
 
 
 def export_to_dcm(

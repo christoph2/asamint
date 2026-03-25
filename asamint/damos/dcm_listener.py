@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Damos DCM 2.0 Parser.
-"""
+"""Damos DCM 2.0 Parser."""
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
@@ -49,7 +48,7 @@ class BaseListener(antlr4.ParseTreeListener):
         return attr().getText() if attr() else ""
 
     def getText(self, attr):
-        return getattr(attr, "text") or ""
+        return attr.text if attr else ""
 
     def getNT(self, attr):
         return attr.phys if attr else None
@@ -95,7 +94,11 @@ class BaseListener(antlr4.ParseTreeListener):
 
 class Dcm20Listener(BaseListener):
     def exitKonservierung(self, ctx):
-        ctx.phys = {"kopf": self.getNT(ctx.kopf), "rumpf": self.getNT(ctx.rumpf), "version": ctx.version.phys}
+        ctx.phys = {
+            "kopf": self.getNT(ctx.kopf),
+            "rumpf": self.getNT(ctx.rumpf),
+            "version": ctx.version.phys,
+        }
 
     def exitFile_format(self, ctx):
         if ctx.version is None:

@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-"""
-
-"""
+""" """
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
@@ -75,8 +73,10 @@ class MSRMixIn:
         if not dtd.validate(self.root):
             pprint(dtd.error_log)
 
-    def output_1darray(self, elem, name=None, values=[], numeric=True, paired=False):
+    def output_1darray(self, elem, name=None, values=None, numeric=True, paired=False):
         """ """
+        if values is None:
+            values = []
         if name:
             cont = create_elem(elem, name)
         else:

@@ -66,12 +66,18 @@ def reshape(arr, dim: tuple[int]):
     return tmp
 
 
-def convert_timestamp(ts: str, fmt: str = "%Y-%m-%dT%H:%M:%S") -> datetime:  # "%Y-%m-%d %H:%M:%S"
+def convert_timestamp(
+    ts: str, fmt: str = "%Y-%m-%dT%H:%M:%S"
+) -> datetime:  # "%Y-%m-%d %H:%M:%S"
     return datetime.strptime(ts, fmt)
 
 
-def get_content(attr: typing.Any, default: typing.Any | None = None, converter: typing.Callable | None = None):
-    value = getattr(attr, "content") if attr else default
+def get_content(
+    attr: typing.Any,
+    default: typing.Any | None = None,
+    converter: typing.Callable | None = None,
+):
+    value = attr.content if attr else default
     if converter is not None:
         try:
             value = converter(value)
@@ -89,7 +95,14 @@ class CdfWalker:
     def on_instance(self, instance: elements.Instance) -> None:
         raise NotImplementedError("CdfWalker::on_instance() must be overriten")
 
-    def on_header(self, shortname: str, a2l_file: str, hex_file: str, references: list, variants: bool):
+    def on_header(
+        self,
+        shortname: str,
+        a2l_file: str,
+        hex_file: str,
+        references: list,
+        variants: bool,
+    ):
         raise NotImplementedError("CdfWalker::on_header() must be overriten")
 
     def do_shortname(self, sn):
@@ -231,7 +244,9 @@ class CdfWalker:
 
     def do_value_cont(self, cont):
         if cont is None:
-            return elements.ValueContainer(unit_display_name=None, array_size=(), values_phys=[], values_int=[])
+            return elements.ValueContainer(
+                unit_display_name=None, array_size=(), values_phys=[], values_int=[]
+            )
         display_name = self.do_unit_display_name(cont.unit_display_name)
         array_size = self.do_array_size(cont.sw_arraysize)
         if cont.sw_values_phys:
@@ -241,7 +256,10 @@ class CdfWalker:
         else:
             values_int = []
         return elements.ValueContainer(
-            unit_display_name=display_name, array_size=array_size, values_phys=values_phys, values_int=values_int
+            unit_display_name=display_name,
+            array_size=array_size,
+            values_phys=values_phys,
+            values_int=values_int,
         )
 
     def do_axis_conts(self, cont):
@@ -286,7 +304,11 @@ class CdfWalker:
                 cspi = get_content(entry.cspi)
                 csdi = get_content(entry.csdi)
                 remark = self.do_remark(entry.remark)
-                result.append(elements.HistoryEntry(state, date, csus, cspr, cswp, csto, cstv, cspi, csdi, remark))
+                result.append(
+                    elements.HistoryEntry(
+                        state, date, csus, cspr, cswp, csto, cstv, cspi, csdi, remark
+                    )
+                )
         return result
 
     def do_sw_vcd_criterion_ref(self, ref):
@@ -307,9 +329,13 @@ class CdfWalker:
         if collections is not None and collections.sw_cs_collection:
             for coll in collections.sw_cs_collection:
                 if coll.category.content == "FEATURE":
-                    sw_collection.append(elements.A2LFunction(coll.sw_feature_ref.content))  # A2L FUNCTION
+                    sw_collection.append(
+                        elements.A2LFunction(coll.sw_feature_ref.content)
+                    )  # A2L FUNCTION
                 elif coll.category.content == "COLLECTION":
-                    sw_collection.append(elements.A2LGroup(coll.sw_collection_ref.content))  # A2L GROUP
+                    sw_collection.append(
+                        elements.A2LGroup(coll.sw_collection_ref.content)
+                    )  # A2L GROUP
         return sw_collection
 
     def do_sw_instance_props_variants(self, variants):
@@ -320,8 +346,14 @@ class CdfWalker:
                 axis_containers = self.do_axis_conts(variant.sw_axis_conts)
                 history = self.do_sw_cs_history(variant.sw_cs_history)
                 flags = self.do_sw_cs_flags(variant.sw_cs_flags)
-                crit_values = self.do_sw_vcd_criterion_values(variant.sw_vcd_criterion_values)
-                result.append(elements.InstancePropsVariant(crit_values, value_container, axis_containers, history, flags))
+                crit_values = self.do_sw_vcd_criterion_values(
+                    variant.sw_vcd_criterion_values
+                )
+                result.append(
+                    elements.InstancePropsVariant(
+                        crit_values, value_container, axis_containers, history, flags
+                    )
+                )
         return result
 
     def do_instance(self, inst):
@@ -336,7 +368,14 @@ class CdfWalker:
         value_container = self.do_value_cont(inst.sw_value_cont)
         axis_containers = self.do_axis_conts(inst.sw_axis_conts)
         cp = elements.CalibrationParameter(
-            shortname, displayname, category, longname, feature_ref, model_link, axis_containers, value_container
+            shortname,
+            displayname,
+            category,
+            longname,
+            feature_ref,
+            model_link,
+            axis_containers,
+            value_container,
         )
 
         history = self.do_sw_cs_history(inst.sw_cs_history)
@@ -379,6 +418,8 @@ class CdfWalker:
 
         sw_collection = self.do_sw_cs_collection(collections)
 
-        self.on_header(shortname.value, a2l_file, hex_file, sw_collection, category.value == "VCD")
+        self.on_header(
+            shortname.value, a2l_file, hex_file, sw_collection, category.value == "VCD"
+        )
         for inst in self.session.query(SwInstance).all():
             self.on_instance(self.do_instance(inst))

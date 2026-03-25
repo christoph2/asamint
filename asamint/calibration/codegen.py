@@ -8,7 +8,7 @@ varying JSON formats observed in examples.
 """
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -20,8 +20,8 @@ class CArray:
     name: str
     c_name: str
     dims: list[int]  # e.g., [len_x] or [rows, cols]
-    c_type: str = "double"
-    comment: str | None = None
+    c_type: str = field(default="double")
+    comment: str | None = field(default=None)
 
 
 @dataclass
@@ -29,15 +29,15 @@ class CString:
     name: str
     c_name: str
     length: int  # not including the terminating NUL we will add in declaration
-    comment: str | None = None
+    comment: str | None = field(default=None)
 
 
 @dataclass
 class CValue:
     name: str
     c_name: str
-    c_type: str = "double"
-    comment: str | None = None
+    c_type: str = field(default="double")
+    comment: str | None = field(default=None)
 
 
 def sanitize_identifier(name: str) -> str:
@@ -217,8 +217,6 @@ def generate_c_structs_from_log(
     Returns:
         Path to the generated header file.
     """
-    logs_dir = Path("logs") if log_path is None else Path(log_path).parent
-
     if log_path is None:
         # Choose latest first_steps_*.json in logs/
         candidates = sorted(
