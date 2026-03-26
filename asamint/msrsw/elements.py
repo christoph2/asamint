@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Dataclass equivalents to MSRSW-XML elements.
-"""
+"""Dataclass equivalents to MSRSW-XML elements."""
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
@@ -83,23 +82,23 @@ class VH:
 
 @dataclass
 class VG:
-    label: str = ""
+    label: str = field(default="")
     values: list[V | VF | VT] = field(default_factory=list)
 
 
 @dataclass
 class A2LFunction:
-    name: str = ""
+    name: str = field(default="")
 
 
 @dataclass
 class A2LGroup:
-    name: str = ""
+    name: str = field(default="")
 
 
 @dataclass
 class InstanceRef:
-    name: str = ""
+    name: str = field(default="")
 
 
 @dataclass
@@ -165,16 +164,16 @@ class Remark:
 
 @dataclass
 class HistoryEntry:
-    state: str | None = None
-    date: datetime | None = None
-    csus: str | None = None
-    cspr: str | None = None
-    cswp: str | None = None
-    csto: str | None = None
-    cstv: str | None = None
-    cspi: str | None = None
-    csdi: str | None = None
-    remark: Remark | None = None
+    state: str | None = field(default=None)
+    date: datetime | None = field(default=None)
+    csus: str | None = field(default=None)
+    cspr: str | None = field(default=None)
+    cswp: str | None = field(default=None)
+    csto: str | None = field(default=None)
+    cstv: str | None = field(default=None)
+    cspi: str | None = field(default=None)
+    csdi: str | None = field(default=None)
+    remark: Remark | None = field(default=None)
 
 
 @dataclass

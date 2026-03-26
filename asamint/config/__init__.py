@@ -68,9 +68,9 @@ class General(Configurable):
     master_hexfile_type = Enum(
         values=["ihex", "srec"], default_value="ihex", help="Choose HEX file type"
     ).tag(config=True)
-    mdf_version = Unicode(default="4.20", help="Version used to write MDF files.").tag(
-        config=True
-    )
+    mdf_version = Unicode(
+        default_value="4.20", help="Version used to write MDF files."
+    ).tag(config=True)
     output_format = Enum(
         values=["MDF", "HDF5"],
         default_value="MDF",
