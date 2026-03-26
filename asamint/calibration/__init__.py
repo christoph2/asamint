@@ -568,44 +568,108 @@ class CalibrationData:
         if file_type not in ("ihex", "srec"):
             raise ValueError("'file_type' must be either 'ihex' or 'srec'")
 
-        # Find RAM segments in the module parameters
-        ram_segments = []
+        # Find calibration-relevant segments. Besides explicit RAM/CALRAM entries,
+        # IF_DATA-paged FLASH segments are also used in the field for calibration pages.
         mod_par = self.asam_mc.mod_par
-        for segment in mod_par.memorySegments:
-            if segment["memoryType"] == "RAM" or segment["name"] == "CALRAM":
-                ram_segments.append(
-                    (
-                        segment["address"],
-                        segment["size"],
-                    )
-                )
+        calram_segments = self._get_calram_segments(mod_par)
 
         # Return if no RAM segments are defined
-        if not ram_segments:
+        if not calram_segments:
             return None  # ECU program doesn't define any RAM segments
 
-        # Set calibration page (TODO: Use paging information from IF_DATA section)
         sections = []
-        xcp_master.setCalPage(0x83, 0, 0)
-        page = 0
+        selected_pages: list[int] = []
 
         # Read each RAM segment
-        for addr, size in ram_segments:
-            xcp_master.setMta(addr)
-            mem = xcp_master.pull(size)
-            sections.append(Section(start_address=addr, data=mem))
+        for segment in calram_segments:
+            logical_segment, page = self._select_cal_page(segment, prefer_write=True)
+            selected_pages.append(page)
+            xcp_master.setCalPage(0x83, logical_segment, page)
+            xcp_master.setMta(segment.address)
+            mem = xcp_master.pull(segment.size)
+            sections.append(Section(start_address=segment.address, data=mem))
 
         # Create image from sections
         img = Image(sections=sections, join=False)
 
         # Save to file
-        file_name = f'CalRAM{current_timestamp()}_P{page}.{"hex" if file_type == "ihex" else "srec"}'
+        page_label = self._format_page_label(selected_pages)
+        file_name = f'CalRAM{current_timestamp()}_P{page_label}.{"hex" if file_type == "ihex" else "srec"}'
         file_name = self.asam_mc.sub_dir("hexfiles") / file_name
         with open(f"{file_name}", "wb") as outf:
             dump(file_type, outf, img, row_length=32)
         self.logger.info(f"CalRAM written to {file_name}")
 
         return img
+
+    @staticmethod
+    def _segment_memory_type_name(segment: Any) -> str:
+        memory_type = getattr(segment, "memoryType", None)
+        if memory_type is None:
+            return ""
+        return getattr(memory_type, "name", str(memory_type))
+
+    @classmethod
+    def _is_calram_segment(cls, segment: Any) -> bool:
+        return (
+            cls._segment_memory_type_name(segment) == "RAM"
+            or getattr(segment, "name", "") == "CALRAM"
+            or bool(cls._extract_segment_pages(segment))
+        )
+
+    @classmethod
+    def _get_calram_segments(cls, mod_par: Any) -> list[Any]:
+        return [
+            segment
+            for segment in getattr(mod_par, "memorySegments", [])
+            if cls._is_calram_segment(segment)
+        ]
+
+    @staticmethod
+    def _extract_segment_pages(segment: Any) -> list[tuple[int, list[Any]]]:
+        if_data = getattr(segment, "if_data", None) or []
+        result: list[tuple[int, list[Any]]] = []
+        for section in if_data:
+            if not isinstance(section, dict):
+                continue
+            for xcp_section in section.get("XCP", []):
+                segment_data = xcp_section.get("SEGMENT")
+                if not isinstance(segment_data, list) or len(segment_data) < 6:
+                    continue
+                logical_segment = segment_data[1]
+                page_section = segment_data[5]
+                if not isinstance(page_section, dict):
+                    continue
+                for page_entry in page_section.get("PAGE", []):
+                    if isinstance(page_entry, list) and page_entry:
+                        result.append((int(logical_segment), page_entry))
+        return result
+
+    @staticmethod
+    def _page_access_allowed(access: Any) -> bool:
+        return "NOT_ALLOWED" not in str(access)
+
+    @classmethod
+    def _select_cal_page(cls, segment: Any, *, prefer_write: bool) -> tuple[int, int]:
+        pages = cls._extract_segment_pages(segment)
+        if not pages:
+            return 0, 0
+        if prefer_write:
+            for logical_segment, page_entry in pages:
+                if len(page_entry) > 3 and cls._page_access_allowed(page_entry[3]):
+                    return logical_segment, int(page_entry[0])
+        for logical_segment, page_entry in pages:
+            if len(page_entry) > 2 and cls._page_access_allowed(page_entry[2]):
+                return logical_segment, int(page_entry[0])
+        logical_segment, page_entry = pages[0]
+        return logical_segment, int(page_entry[0])
+
+    @staticmethod
+    def _format_page_label(selected_pages: list[int]) -> str:
+        if not selected_pages:
+            return "0"
+        unique_pages = list(dict.fromkeys(selected_pages))
+        return "-".join(str(page) for page in unique_pages)
 
     def download_calram(
         self,
@@ -638,19 +702,24 @@ class CalibrationData:
         # Get module parameters
         mp = ModPar(self.session, module_name or None)
 
-        # Get the first memory segment (assuming it's the one we want)
-        segment = mp.memorySegments[0]
+        segments = self._get_calram_segments(mp)
+        if not segments:
+            self.logger.warning("No calibration segment found for download")
+            return
+        segment = segments[0]
 
         # Write data to RAM segment
-        if segment["memoryType"] == "RAM":
-            xcp_master.setMta(segment["address"])
+        logical_segment, page = self._select_cal_page(segment, prefer_write=True)
+        xcp_master.setCalPage(0x83, logical_segment, page)
+        if self._is_calram_segment(segment):
+            xcp_master.setMta(segment.address)
             xcp_master.push(data)
             self.logger.info(
-                f"Downloaded {len(data)} bytes to RAM at address 0x{segment['address']:X}"
+                f"Downloaded {len(data)} bytes to RAM at address 0x{segment.address:X}"
             )
         else:
             self.logger.warning(
-                f"Segment {segment['name']} is not RAM type, skipping download"
+                f"Segment {segment.name} is not RAM type, skipping download"
             )
 
     def upload_parameters(
