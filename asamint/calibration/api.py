@@ -1057,23 +1057,35 @@ class Calibration:
         )
 
     def save_axis_pts(  # noqa: C901
-        self, axis_pts_name: str, values: np.ndarray
+        self,
+        axis_pts_name: str,
+        values: np.ndarray,
+        readOnlyPolicy: ExecutionPolicy = ExecutionPolicy.EXCEPT,
     ) -> Status:
         """Save values to axis points.
 
         Args:
             axis_pts_name: Name of the axis points to save to
             values: Array of values to save (can be a klasses.AxisPts-like with .phys or a numpy array)
+            readOnlyPolicy: Policy for handling read-only axis points
 
         Returns:
             Status indicating success or failure
 
         Raises:
+            ReadOnlyError: If the axis points are read-only and policy is EXCEPT
             TypeError: If the axis points are not physically allocated
             ValueError: If the values array has wrong dimensions or size
         """
         # Get the axis points definition
         ap = self.get_axis_pts(axis_pts_name)
+
+        if getattr(ap, "readOnly", False):
+            self.logger.info(f"Axis-points '{axis_pts_name}' is READ-ONLY!")
+            if readOnlyPolicy == ExecutionPolicy.EXCEPT:
+                raise ReadOnlyError(f"Axis-points '{axis_pts_name}' is read-only.")
+            elif readOnlyPolicy == ExecutionPolicy.RETURN_ERROR:
+                return Status.READ_ONLY_ERROR
 
         # Normalize input to a 1D numpy array of physical values
         phys_vals = None

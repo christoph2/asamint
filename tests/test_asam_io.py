@@ -9,7 +9,14 @@ import pytest
 from objutils import Image, Section
 
 from asamint.adapters.objutils import InvalidAddressError
-from asamint.calibration.api import AxesContainer, Calibration, Status
+from asamint.calibration.api import (
+    AxesContainer,
+    Calibration,
+    ExecutionPolicy,
+    RangeError,
+    ReadOnlyError,
+    Status,
+)
 from asamint.core import byte_order as resolve_byte_order
 from asamint.core.logging import configure_logging
 
@@ -158,7 +165,9 @@ def _make_calibration(image: _RecordingImage, characteristic: Any) -> Calibratio
 
 
 def _make_axis_pts(
-    adjustable: bool = False, category: str = "COM_AXIS"
+    adjustable: bool = False,
+    category: str = "COM_AXIS",
+    read_only: bool = False,
 ) -> SimpleNamespace:
     elements: dict[str, Any] = {
         "axis_pts": SimpleNamespace(address=0x5000),
@@ -168,6 +177,7 @@ def _make_axis_pts(
     return SimpleNamespace(
         name="AXIS_PTS_CHAR",
         maxAxisPoints=4,
+        readOnly=read_only,
         compuMethod=SimpleNamespace(conversionType="LINEAR"),
         record_layout_components={
             "axes": {
@@ -368,6 +378,164 @@ def test_save_value_returns_address_error_on_invalid_address() -> None:
     assert status == Status.ADDRESS_ERROR
 
 
+def test_save_value_read_only_returns_error_status() -> None:
+    image = _RecordingImage()
+    characteristic = SimpleNamespace(
+        address=0x2000,
+        bitMask=None,
+        compuMethod=SimpleNamespace(conversionType="LINEAR"),
+        fnc_asam_dtype="UWORD",
+        byteOrder="BIG_ENDIAN",
+        readOnly=True,
+        lowerLimit=0,
+        upperLimit=65535,
+        name="VALUE_CHAR",
+        longIdentifier="Numeric characteristic",
+        displayIdentifier="DI_VALUE_CHAR",
+    )
+    calibration = _make_calibration(image, characteristic)
+
+    status = Calibration.save_value(
+        calibration,
+        "VALUE_CHAR",
+        34,
+        readOnlyPolicy=ExecutionPolicy.RETURN_ERROR,
+    )
+
+    assert status == Status.READ_ONLY_ERROR
+    assert image.calls == []
+
+
+def test_save_value_read_only_ignore_still_writes() -> None:
+    image = _RecordingImage()
+    characteristic = SimpleNamespace(
+        address=0x2000,
+        bitMask=None,
+        compuMethod=SimpleNamespace(conversionType="LINEAR"),
+        fnc_asam_dtype="UWORD",
+        byteOrder="BIG_ENDIAN",
+        readOnly=True,
+        lowerLimit=0,
+        upperLimit=65535,
+        name="VALUE_CHAR",
+        longIdentifier="Numeric characteristic",
+        displayIdentifier="DI_VALUE_CHAR",
+    )
+    calibration = _make_calibration(image, characteristic)
+
+    status = Calibration.save_value(
+        calibration,
+        "VALUE_CHAR",
+        34,
+        readOnlyPolicy=ExecutionPolicy.IGNORE,
+    )
+
+    assert status == Status.OK
+    assert image.calls == [
+        ("write_asam_numeric", (0x2000, 34, "UWORD", "BIG_ENDIAN"), {}),
+    ]
+
+
+def test_save_value_read_only_except_raises() -> None:
+    image = _RecordingImage()
+    characteristic = SimpleNamespace(
+        address=0x2000,
+        bitMask=None,
+        compuMethod=SimpleNamespace(conversionType="LINEAR"),
+        fnc_asam_dtype="UWORD",
+        byteOrder="BIG_ENDIAN",
+        readOnly=True,
+        lowerLimit=0,
+        upperLimit=65535,
+        name="VALUE_CHAR",
+        longIdentifier="Numeric characteristic",
+        displayIdentifier="DI_VALUE_CHAR",
+    )
+    calibration = _make_calibration(image, characteristic)
+
+    with pytest.raises(ReadOnlyError):
+        Calibration.save_value(calibration, "VALUE_CHAR", 34)
+
+
+def test_save_value_out_of_range_returns_error_status() -> None:
+    image = _RecordingImage()
+    characteristic = SimpleNamespace(
+        address=0x2000,
+        bitMask=None,
+        compuMethod=SimpleNamespace(conversionType="LINEAR"),
+        fnc_asam_dtype="UWORD",
+        byteOrder="BIG_ENDIAN",
+        readOnly=False,
+        lowerLimit=0,
+        upperLimit=10,
+        name="VALUE_CHAR",
+        longIdentifier="Numeric characteristic",
+        displayIdentifier="DI_VALUE_CHAR",
+    )
+    calibration = _make_calibration(image, characteristic)
+
+    status = Calibration.save_value(
+        calibration,
+        "VALUE_CHAR",
+        34,
+        limitsPolicy=ExecutionPolicy.RETURN_ERROR,
+    )
+
+    assert status == Status.RANGE_ERROR
+    assert image.calls == []
+
+
+def test_save_value_out_of_range_ignore_still_writes() -> None:
+    image = _RecordingImage()
+    characteristic = SimpleNamespace(
+        address=0x2000,
+        bitMask=None,
+        compuMethod=SimpleNamespace(conversionType="LINEAR"),
+        fnc_asam_dtype="UWORD",
+        byteOrder="BIG_ENDIAN",
+        readOnly=False,
+        lowerLimit=0,
+        upperLimit=10,
+        name="VALUE_CHAR",
+        longIdentifier="Numeric characteristic",
+        displayIdentifier="DI_VALUE_CHAR",
+    )
+    calibration = _make_calibration(image, characteristic)
+
+    status = Calibration.save_value(
+        calibration,
+        "VALUE_CHAR",
+        34,
+        limitsPolicy=ExecutionPolicy.IGNORE,
+    )
+
+    assert status == Status.OK
+    assert image.calls == [
+        ("write_asam_numeric", (0x2000, 34, "UWORD", "BIG_ENDIAN"), {}),
+    ]
+
+
+def test_save_value_out_of_range_except_raises() -> None:
+    image = _RecordingImage()
+    characteristic = SimpleNamespace(
+        address=0x2000,
+        bitMask=None,
+        compuMethod=SimpleNamespace(conversionType="LINEAR"),
+        fnc_asam_dtype="UWORD",
+        byteOrder="BIG_ENDIAN",
+        readOnly=False,
+        lowerLimit=0,
+        upperLimit=10,
+        name="VALUE_CHAR",
+        longIdentifier="Numeric characteristic",
+        displayIdentifier="DI_VALUE_CHAR",
+    )
+    calibration = _make_calibration(image, characteristic)
+
+    with pytest.raises(RangeError):
+        Calibration.save_value(calibration, "VALUE_CHAR", 34)
+
+
 def test_save_value_block_uses_asam_ndarray_writer() -> None:
     image = _RecordingImage()
     characteristic = SimpleNamespace(
@@ -414,6 +582,72 @@ def test_save_value_block_returns_address_error_on_invalid_address() -> None:
     )
 
     assert status == Status.ADDRESS_ERROR
+
+
+def test_save_value_block_read_only_returns_error_status() -> None:
+    image = _RecordingImage()
+    characteristic = SimpleNamespace(
+        address=0x3000,
+        fnc_asam_dtype="UWORD",
+        fnc_np_shape=(3,),
+        fnc_np_order="C",
+        readOnly=True,
+        name="VALUE_BLOCK",
+    )
+    calibration = _make_calibration(image, characteristic)
+
+    status = Calibration.save_value_block(
+        calibration,
+        "VALUE_BLOCK",
+        np.array([1, 2, 3], dtype=np.uint16),
+        readOnlyPolicy=ExecutionPolicy.RETURN_ERROR,
+    )
+
+    assert status == Status.READ_ONLY_ERROR
+    assert image.calls == []
+
+
+def test_save_value_block_read_only_ignore_still_writes() -> None:
+    image = _RecordingImage()
+    characteristic = SimpleNamespace(
+        address=0x3000,
+        fnc_asam_dtype="UWORD",
+        fnc_np_shape=(3,),
+        fnc_np_order="C",
+        readOnly=True,
+        name="VALUE_BLOCK",
+    )
+    calibration = _make_calibration(image, characteristic)
+
+    status = Calibration.save_value_block(
+        calibration,
+        "VALUE_BLOCK",
+        np.array([1, 2, 3], dtype=np.uint16),
+        readOnlyPolicy=ExecutionPolicy.IGNORE,
+    )
+
+    assert status == Status.OK
+    assert image.calls
+
+
+def test_save_value_block_read_only_except_raises() -> None:
+    image = _RecordingImage()
+    characteristic = SimpleNamespace(
+        address=0x3000,
+        fnc_asam_dtype="UWORD",
+        fnc_np_shape=(3,),
+        fnc_np_order="C",
+        readOnly=True,
+        name="VALUE_BLOCK",
+    )
+    calibration = _make_calibration(image, characteristic)
+
+    with pytest.raises(ReadOnlyError):
+        Calibration.save_value_block(
+            calibration,
+            "VALUE_BLOCK",
+            np.array([1, 2, 3], dtype=np.uint16),
+        )
 
 
 def test_save_curve_or_map_uses_asam_ndarray_writer() -> None:
@@ -482,6 +716,107 @@ def test_save_curve_or_map_returns_address_error_on_invalid_address() -> None:
     assert status == Status.ADDRESS_ERROR
 
 
+def test_save_curve_or_map_read_only_returns_error_status() -> None:
+    image = _RecordingImage()
+    characteristic = SimpleNamespace(
+        type="CURVE",
+        readOnly=True,
+        name="CURVE_CHAR",
+        fnc_np_order="F",
+        byteOrder="BIG_ENDIAN",
+        record_layout_components={
+            "elements": {
+                "fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")
+            }
+        },
+    )
+    values = SimpleNamespace(
+        phys=np.array([10, 20], dtype=np.uint16),
+        raw=np.array([10, 20], dtype=np.uint16),
+    )
+    calibration = _make_calibration(image, characteristic)
+    calibration.get_axes = lambda current_characteristic, num_axes: AxesContainer(
+        axes=[],
+        shape=(2,),
+        flip_axes=[],
+    )
+
+    status = Calibration.save_curve_or_map(
+        calibration,
+        "CURVE_CHAR",
+        values,
+        readOnlyPolicy=ExecutionPolicy.RETURN_ERROR,
+    )
+
+    assert status == Status.READ_ONLY_ERROR
+    assert image.calls == []
+
+
+def test_save_curve_or_map_read_only_ignore_still_writes() -> None:
+    image = _RecordingImage()
+    characteristic = SimpleNamespace(
+        type="CURVE",
+        readOnly=True,
+        name="CURVE_CHAR",
+        fnc_np_order="F",
+        byteOrder="BIG_ENDIAN",
+        record_layout_components={
+            "elements": {
+                "fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")
+            }
+        },
+    )
+    values = SimpleNamespace(
+        phys=np.array([10, 20], dtype=np.uint16),
+        raw=np.array([10, 20], dtype=np.uint16),
+    )
+    calibration = _make_calibration(image, characteristic)
+    calibration.get_axes = lambda current_characteristic, num_axes: AxesContainer(
+        axes=[],
+        shape=(2,),
+        flip_axes=[],
+    )
+
+    status = Calibration.save_curve_or_map(
+        calibration,
+        "CURVE_CHAR",
+        values,
+        readOnlyPolicy=ExecutionPolicy.IGNORE,
+    )
+
+    assert status == Status.OK
+    assert image.calls
+
+
+def test_save_curve_or_map_read_only_except_raises() -> None:
+    image = _RecordingImage()
+    characteristic = SimpleNamespace(
+        type="CURVE",
+        readOnly=True,
+        name="CURVE_CHAR",
+        fnc_np_order="F",
+        byteOrder="BIG_ENDIAN",
+        record_layout_components={
+            "elements": {
+                "fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")
+            }
+        },
+    )
+    values = SimpleNamespace(
+        phys=np.array([10, 20], dtype=np.uint16),
+        raw=np.array([10, 20], dtype=np.uint16),
+    )
+    calibration = _make_calibration(image, characteristic)
+    calibration.get_axes = lambda current_characteristic, num_axes: AxesContainer(
+        axes=[],
+        shape=(2,),
+        flip_axes=[],
+    )
+
+    with pytest.raises(ReadOnlyError):
+        Calibration.save_curve_or_map(calibration, "CURVE_CHAR", values)
+
+
 def test_save_axis_pts_returns_address_error_for_size_write() -> None:
     image = _FailingImage("write_asam_numeric")
     calibration = _make_calibration(image, SimpleNamespace())
@@ -495,6 +830,54 @@ def test_save_axis_pts_returns_address_error_for_size_write() -> None:
     )
 
     assert status == Status.ADDRESS_ERROR
+
+
+def test_save_axis_pts_read_only_returns_error_status() -> None:
+    image = _RecordingImage()
+    calibration = _make_calibration(image, SimpleNamespace())
+    axis_pts = _make_axis_pts(adjustable=False, read_only=True)
+    calibration.get_axis_pts = lambda name: axis_pts
+
+    status = Calibration.save_axis_pts(
+        calibration,
+        "AXIS_PTS_CHAR",
+        np.array([1, 2, 3, 4], dtype=np.int16),
+        readOnlyPolicy=ExecutionPolicy.RETURN_ERROR,
+    )
+
+    assert status == Status.READ_ONLY_ERROR
+    assert image.calls == []
+
+
+def test_save_axis_pts_read_only_ignore_still_writes() -> None:
+    image = _RecordingImage()
+    calibration = _make_calibration(image, SimpleNamespace())
+    axis_pts = _make_axis_pts(adjustable=False, read_only=True)
+    calibration.get_axis_pts = lambda name: axis_pts
+
+    status = Calibration.save_axis_pts(
+        calibration,
+        "AXIS_PTS_CHAR",
+        np.array([1, 2, 3, 4], dtype=np.int16),
+        readOnlyPolicy=ExecutionPolicy.IGNORE,
+    )
+
+    assert status == Status.OK
+    assert image.calls
+
+
+def test_save_axis_pts_read_only_except_raises() -> None:
+    image = _RecordingImage()
+    calibration = _make_calibration(image, SimpleNamespace())
+    axis_pts = _make_axis_pts(adjustable=False, read_only=True)
+    calibration.get_axis_pts = lambda name: axis_pts
+
+    with pytest.raises(ReadOnlyError):
+        Calibration.save_axis_pts(
+            calibration,
+            "AXIS_PTS_CHAR",
+            np.array([1, 2, 3, 4], dtype=np.int16),
+        )
 
 
 def test_save_axis_pts_returns_address_error_for_array_write() -> None:
