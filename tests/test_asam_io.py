@@ -5,8 +5,10 @@ from types import SimpleNamespace
 from typing import Any
 
 import numpy as np
+import pytest
 from objutils import Image, Section
 
+from asamint.adapters.objutils import InvalidAddressError
 from asamint.calibration.api import AxesContainer, Calibration, Status
 from asamint.core import byte_order as resolve_byte_order
 from asamint.core.logging import configure_logging
@@ -98,6 +100,47 @@ class _RecordingImage:
         raise AssertionError("generic write_numeric should not be used")
 
 
+class _FailingInvalidAddressError(InvalidAddressError):
+    pass
+
+
+class _FailingImage(_RecordingImage):
+    def __init__(self, fail_on: str) -> None:
+        super().__init__()
+        self.fail_on = fail_on
+
+    def _maybe_raise(self, method_name: str) -> None:
+        if self.fail_on == method_name:
+            raise _FailingInvalidAddressError("invalid address")
+
+    def write_asam_string(self, addr: int, value: str, dtype: str, **kws: Any) -> None:
+        self._maybe_raise("write_asam_string")
+        super().write_asam_string(addr, value, dtype, **kws)
+
+    def write_asam_numeric(
+        self,
+        addr: int,
+        value: int | float,
+        dtype: str,
+        byte_order: str = "MSB_LAST",
+        **kws: Any,
+    ) -> None:
+        self._maybe_raise("write_asam_numeric")
+        super().write_asam_numeric(addr, value, dtype, byte_order, **kws)
+
+    def write_asam_ndarray(
+        self,
+        addr: int,
+        array: np.ndarray,
+        dtype: str,
+        byte_order: str = "MSB_LAST",
+        order: str | None = None,
+        **kws: Any,
+    ) -> None:
+        self._maybe_raise("write_asam_ndarray")
+        super().write_asam_ndarray(addr, array, dtype, byte_order, order, **kws)
+
+
 def _make_calibration(image: _RecordingImage, characteristic: Any) -> Calibration:
     calibration = Calibration.__new__(Calibration)
     calibration.image = image
@@ -112,6 +155,31 @@ def _make_calibration(image: _RecordingImage, characteristic: Any) -> Calibratio
     calibration.physical_to_int = lambda current_characteristic, value: value
     calibration.is_numeric = lambda compu_method: True
     return calibration
+
+
+def _make_axis_pts(
+    adjustable: bool = False, category: str = "COM_AXIS"
+) -> SimpleNamespace:
+    elements: dict[str, Any] = {
+        "axis_pts": SimpleNamespace(address=0x5000),
+    }
+    if adjustable:
+        elements["no_axis_pts"] = SimpleNamespace(address=0x5004, data_type="UWORD")
+    return SimpleNamespace(
+        name="AXIS_PTS_CHAR",
+        maxAxisPoints=4,
+        compuMethod=SimpleNamespace(conversionType="LINEAR"),
+        record_layout_components={
+            "axes": {
+                "x": SimpleNamespace(
+                    category=category,
+                    elements=elements,
+                    data_type="SWORD",
+                    reversed_storage=False,
+                )
+            }
+        },
+    )
 
 
 def test_core_byte_order_maps_legacy_aliases() -> None:
@@ -207,6 +275,25 @@ def test_save_ascii_falls_back_to_number_for_invalid_matrix_dim() -> None:
     ]
 
 
+def test_save_ascii_returns_address_error_on_invalid_address() -> None:
+    image = _FailingImage("write_asam_string")
+    characteristic = SimpleNamespace(
+        matrixDim=_MatrixDim(8),
+        number=8,
+        address=0x2000,
+        encoding="ASCII",
+        readOnly=False,
+        name="ASCII_CHAR",
+        longIdentifier="ASCII characteristic",
+        displayIdentifier="DI_ASCII_CHAR",
+    )
+    calibration = _make_calibration(image, characteristic)
+
+    status = Calibration.save_ascii(calibration, "ASCII_CHAR", "AB")
+
+    assert status == Status.ADDRESS_ERROR
+
+
 def test_load_value_uses_asam_numeric_reader() -> None:
     image = _RecordingImage()
     characteristic = SimpleNamespace(
@@ -259,6 +346,28 @@ def test_save_value_uses_asam_numeric_writer() -> None:
     ]
 
 
+def test_save_value_returns_address_error_on_invalid_address() -> None:
+    image = _FailingImage("write_asam_numeric")
+    characteristic = SimpleNamespace(
+        address=0x2000,
+        bitMask=None,
+        compuMethod=SimpleNamespace(conversionType="LINEAR"),
+        fnc_asam_dtype="UWORD",
+        byteOrder="BIG_ENDIAN",
+        readOnly=False,
+        lowerLimit=0,
+        upperLimit=65535,
+        name="VALUE_CHAR",
+        longIdentifier="Numeric characteristic",
+        displayIdentifier="DI_VALUE_CHAR",
+    )
+    calibration = _make_calibration(image, characteristic)
+
+    status = Calibration.save_value(calibration, "VALUE_CHAR", 34)
+
+    assert status == Status.ADDRESS_ERROR
+
+
 def test_save_value_block_uses_asam_ndarray_writer() -> None:
     image = _RecordingImage()
     characteristic = SimpleNamespace(
@@ -284,6 +393,27 @@ def test_save_value_block_uses_asam_ndarray_writer() -> None:
     assert np.array_equal(call_args[1], np.array([1, 2, 3], dtype=np.uint16))
     assert call_args[2:] == ("UWORD", "MSB_LAST", "C")
     assert call_kwargs == {}
+
+
+def test_save_value_block_returns_address_error_on_invalid_address() -> None:
+    image = _FailingImage("write_asam_ndarray")
+    characteristic = SimpleNamespace(
+        address=0x3000,
+        fnc_asam_dtype="UWORD",
+        fnc_np_shape=(3,),
+        fnc_np_order="C",
+        readOnly=False,
+        name="VALUE_BLOCK",
+    )
+    calibration = _make_calibration(image, characteristic)
+
+    status = Calibration.save_value_block(
+        calibration,
+        "VALUE_BLOCK",
+        np.array([1, 2, 3], dtype=np.uint16),
+    )
+
+    assert status == Status.ADDRESS_ERROR
 
 
 def test_save_curve_or_map_uses_asam_ndarray_writer() -> None:
@@ -320,6 +450,66 @@ def test_save_curve_or_map_uses_asam_ndarray_writer() -> None:
     assert np.array_equal(call_args[1], np.array([10, 20], dtype=np.uint16))
     assert call_args[2:] == ("UWORD", "BIG_ENDIAN", "F")
     assert call_kwargs == {}
+
+
+def test_save_curve_or_map_returns_address_error_on_invalid_address() -> None:
+    image = _FailingImage("write_asam_ndarray")
+    characteristic = SimpleNamespace(
+        type="CURVE",
+        readOnly=False,
+        name="CURVE_CHAR",
+        fnc_np_order="F",
+        byteOrder="BIG_ENDIAN",
+        record_layout_components={
+            "elements": {
+                "fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")
+            }
+        },
+    )
+    values = SimpleNamespace(
+        phys=np.array([10, 20], dtype=np.uint16),
+        raw=np.array([10, 20], dtype=np.uint16),
+    )
+    calibration = _make_calibration(image, characteristic)
+    calibration.get_axes = lambda current_characteristic, num_axes: AxesContainer(
+        axes=[],
+        shape=(2,),
+        flip_axes=[],
+    )
+
+    status = Calibration.save_curve_or_map(calibration, "CURVE_CHAR", values)
+
+    assert status == Status.ADDRESS_ERROR
+
+
+def test_save_axis_pts_returns_address_error_for_size_write() -> None:
+    image = _FailingImage("write_asam_numeric")
+    calibration = _make_calibration(image, SimpleNamespace())
+    axis_pts = _make_axis_pts(adjustable=True)
+    calibration.get_axis_pts = lambda name: axis_pts
+
+    status = Calibration.save_axis_pts(
+        calibration,
+        "AXIS_PTS_CHAR",
+        np.array([1, 2], dtype=np.int16),
+    )
+
+    assert status == Status.ADDRESS_ERROR
+
+
+def test_save_axis_pts_returns_address_error_for_array_write() -> None:
+    image = _FailingImage("write_asam_ndarray")
+    calibration = _make_calibration(image, SimpleNamespace())
+    axis_pts = _make_axis_pts(adjustable=False)
+    calibration.get_axis_pts = lambda name: axis_pts
+
+    status = Calibration.save_axis_pts(
+        calibration,
+        "AXIS_PTS_CHAR",
+        np.array([1, 2, 3, 4], dtype=np.int16),
+    )
+
+    assert status == Status.ADDRESS_ERROR
 
 
 def test_write_nd_array_uses_asam_ndarray_writer() -> None:

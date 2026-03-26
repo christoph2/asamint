@@ -108,11 +108,13 @@ class Status(IntEnum):
         OK: Operation completed successfully
         READ_ONLY_ERROR: Attempted to write to a read-only parameter
         RANGE_ERROR: Value is outside the allowed range
+        ADDRESS_ERROR: Write target address is invalid
     """
 
     OK = 0
     READ_ONLY_ERROR = 1
     RANGE_ERROR = 2
+    ADDRESS_ERROR = 3
 
 
 class RangeError(Exception):
@@ -582,12 +584,15 @@ class Calibration:
 
         # Write the string to memory
         dtype = characteristic.encoding or "ASCII"
-        self.image.write_asam_string(
-            characteristic.address,
-            value=value,
-            dtype=dtype,
-            length=length,
-        )
+        try:
+            self.image.write_asam_string(
+                characteristic.address,
+                value=value,
+                dtype=dtype,
+                length=length,
+            )
+        except InvalidAddressError as exc:
+            return self._address_error_status(characteristic.name, exc)
         return Status.OK
 
     @staticmethod
@@ -600,6 +605,15 @@ class Calibration:
             if is_valid and length:
                 return int(length)
         return int(characteristic.number)
+
+    def _address_error_status(
+        self,
+        name: str,
+        exc: InvalidAddressError,
+        suffix: str = "",
+    ) -> Status:
+        self.logger.error(f"{name!r}{suffix}: {exc}")
+        return Status.ADDRESS_ERROR
 
     def load_value_block(self, characteristic_name: str) -> klasses.ValueBlock:
         """Load a value block characteristic.
@@ -706,13 +720,16 @@ class Calibration:
 
         # Convert to internal representation and write to memory
         int_vals = self.physical_to_int(characteristic, phys_vals)
-        self.image.write_asam_ndarray(
-            addr=characteristic.address,
-            array=int_vals,
-            dtype=characteristic.fnc_asam_dtype,
-            byte_order=self.asam_byte_order(characteristic),
-            order=characteristic.fnc_np_order,
-        )
+        try:
+            self.image.write_asam_ndarray(
+                addr=characteristic.address,
+                array=int_vals,
+                dtype=characteristic.fnc_asam_dtype,
+                byte_order=self.asam_byte_order(characteristic),
+                order=characteristic.fnc_np_order,
+            )
+        except InvalidAddressError as exc:
+            return self._address_error_status(characteristic.name, exc)
         return Status.OK
 
     def load_value(self, characteristic_name: str) -> klasses.Value:  # noqa: C901
@@ -917,12 +934,15 @@ class Calibration:
             phys <<= ffs(characteristic.bitMask)
 
         # Write to memory
-        self.image.write_asam_numeric(
-            characteristic.address,
-            phys,
-            characteristic.fnc_asam_dtype,
-            self.asam_byte_order(characteristic),
-        )
+        try:
+            self.image.write_asam_numeric(
+                characteristic.address,
+                phys,
+                characteristic.fnc_asam_dtype,
+                self.asam_byte_order(characteristic),
+            )
+        except InvalidAddressError as exc:
+            return self._address_error_status(characteristic.name, exc)
         if isinstance(self.parameter_cache, ParameterCache):
             self.parameter_cache.invalidate(characteristic_name)
         return Status.OK
@@ -1104,12 +1124,15 @@ class Calibration:
             else:
                 # Variable size axis, update the number of points
                 no_axis_pts = axis_info.elements.get("no_axis_pts")
-                self.image.write_asam_numeric(
-                    addr=no_axis_pts.address,
-                    value=phys_vals.size,
-                    dtype=no_axis_pts.data_type,
-                    byte_order=self.asam_byte_order(ap),
-                )
+                try:
+                    self.image.write_asam_numeric(
+                        addr=no_axis_pts.address,
+                        value=phys_vals.size,
+                        dtype=no_axis_pts.data_type,
+                        byte_order=self.asam_byte_order(ap),
+                    )
+                except InvalidAddressError as exc:
+                    return self._address_error_status(ap.name, exc, " x-axis")
         else:
             # RES_AXIS sizing uses no_rescale (number of pairs)
             max_pairs = (
@@ -1122,12 +1145,15 @@ class Calibration:
             # Update the number of rescale pairs if adjustable
             if "no_rescale" in axis_info.elements:
                 no_rescale = axis_info.elements.get("no_rescale")
-                self.image.write_asam_numeric(
-                    addr=no_rescale.address,
-                    value=(phys_vals.size // 2),
-                    dtype=no_rescale.data_type,
-                    byte_order=self.asam_byte_order(ap),
-                )
+                try:
+                    self.image.write_asam_numeric(
+                        addr=no_rescale.address,
+                        value=(phys_vals.size // 2),
+                        dtype=no_rescale.data_type,
+                        byte_order=self.asam_byte_order(ap),
+                    )
+                except InvalidAddressError as exc:
+                    return self._address_error_status(ap.name, exc, " x-axis")
 
         # Convert to internal representation
         int_values = self.physical_to_int(ap, phys_vals)
@@ -1137,7 +1163,10 @@ class Calibration:
             int_values = int_values[::-1]
 
         # Write to memory using the appropriate component
-        self.write_nd_array(ap, "x", component_name, int_values)
+        try:
+            self.write_nd_array(ap, "x", component_name, int_values)
+        except InvalidAddressError as exc:
+            return self._address_error_status(ap.name, exc, " x-axis")
         return Status.OK
 
     def load_curve_or_map(
@@ -1329,13 +1358,16 @@ class Calibration:
         elements = characteristic.record_layout_components.get("elements")
         fnc_values = elements.get("fnc_values")
         address = fnc_values.address
-        self.image.write_asam_ndarray(
-            addr=address,
-            array=int_values,
-            dtype=fnc_values.data_type,
-            byte_order=self.asam_byte_order(characteristic),
-            order=characteristic.fnc_np_order,
-        )
+        try:
+            self.image.write_asam_ndarray(
+                addr=address,
+                array=int_values,
+                dtype=fnc_values.data_type,
+                byte_order=self.asam_byte_order(characteristic),
+                order=characteristic.fnc_np_order,
+            )
+        except InvalidAddressError as exc:
+            return self._address_error_status(characteristic.name, exc)
         return Status.OK
 
     def get_axes(  # noqa: C901
