@@ -1628,7 +1628,60 @@ class Calibration:
         """
         cm = self.get_compu_method(characteristic)
         value = cm.physical_to_int(physical_values)
-        return np.asarray(value).astype(characteristic.fnc_np_dtype)
+        source_values = np.asarray(value)
+        target_dtype = np.dtype(characteristic.fnc_np_dtype)
+        cast_values = source_values.astype(target_dtype)
+        self._warn_on_cast_precision_loss(characteristic, source_values, cast_values)
+        return cast_values
+
+    def _warn_on_cast_precision_loss(
+        self,
+        characteristic: Union[Characteristic, AxisPts],
+        source_values: np.ndarray,
+        cast_values: np.ndarray,
+    ) -> None:
+        source_dtype = source_values.dtype
+        target_dtype = cast_values.dtype
+        if not np.issubdtype(source_dtype, np.number):
+            return
+
+        name = getattr(characteristic, "name", "<unnamed>")
+        source_numeric = source_values.astype(np.float64, copy=False)
+        finite_mask = np.isfinite(source_numeric)
+
+        if np.issubdtype(target_dtype, np.integer):
+            bounds = np.iinfo(target_dtype)
+            out_of_range = finite_mask & (
+                (source_numeric < bounds.min) | (source_numeric > bounds.max)
+            )
+            if np.any(out_of_range):
+                self.logger.warning(
+                    f"{name!r}: physical_to_int overflows {target_dtype} range [{bounds.min}, {bounds.max}]"
+                )
+            fractional = finite_mask & (source_numeric != np.trunc(source_numeric))
+            if np.any(fractional):
+                self.logger.warning(
+                    f"{name!r}: physical_to_int truncates fractional values when casting to {target_dtype}"
+                )
+            return
+
+        if np.issubdtype(target_dtype, np.floating) and np.issubdtype(
+            source_dtype, np.floating
+        ):
+            source_info = np.finfo(source_dtype)
+            target_info = np.finfo(target_dtype)
+            if target_info.max < source_info.max:
+                out_of_range = finite_mask & (np.abs(source_numeric) > target_info.max)
+                if np.any(out_of_range):
+                    self.logger.warning(
+                        f"{name!r}: physical_to_int overflows {target_dtype} range +/-{target_info.max}"
+                    )
+            if target_dtype.itemsize < source_dtype.itemsize:
+                roundtrip = cast_values.astype(source_dtype)
+                if np.any(roundtrip != source_values):
+                    self.logger.warning(
+                        f"{name!r}: physical_to_int loses floating-point precision when casting to {target_dtype}"
+                    )
 
     def get_compu_method(
         self, characteristic: Union[Characteristic, AxisPts]

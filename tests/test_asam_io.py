@@ -164,6 +164,17 @@ def _make_calibration(image: _RecordingImage, characteristic: Any) -> Calibratio
     return calibration
 
 
+def _make_conversion_calibration(warnings: list[str]) -> Calibration:
+    calibration = Calibration.__new__(Calibration)
+    calibration.logger = SimpleNamespace(
+        warning=warnings.append,
+        info=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+    )
+    return calibration
+
+
 def _make_axis_pts(
     adjustable: bool = False,
     category: str = "COM_AXIS",
@@ -1028,3 +1039,77 @@ def test_objutils_image_supports_direct_asam_helpers() -> None:
     assert image.read_asam_numeric(0x810000, "UWORD", "MSB_FIRST") == 0x1122
     assert image.read_asam_numeric(0x810002, "UBYTE", "MSB_FIRST") == 0x7F
     assert image.read_asam_string(0x810010, "ASCII", length=8).startswith("MOTOR")
+
+
+def test_physical_to_int_warns_on_fractional_truncation() -> None:
+    warnings: list[str] = []
+    calibration = _make_conversion_calibration(warnings)
+    calibration.get_compu_method = lambda characteristic: SimpleNamespace(
+        physical_to_int=lambda value: value
+    )
+    characteristic = SimpleNamespace(name="VALUE_CHAR", fnc_np_dtype=np.dtype("uint8"))
+
+    result = Calibration.physical_to_int(
+        calibration,
+        characteristic,
+        np.array([1.25, 2.75], dtype=np.float64),
+    )
+
+    assert np.array_equal(result, np.array([1, 2], dtype=np.uint8))
+    assert any("truncates fractional values" in warning for warning in warnings)
+
+
+def test_physical_to_int_warns_on_integer_overflow() -> None:
+    warnings: list[str] = []
+    calibration = _make_conversion_calibration(warnings)
+    calibration.get_compu_method = lambda characteristic: SimpleNamespace(
+        physical_to_int=lambda value: value
+    )
+    characteristic = SimpleNamespace(name="VALUE_CHAR", fnc_np_dtype=np.dtype("uint8"))
+
+    result = Calibration.physical_to_int(
+        calibration,
+        characteristic,
+        np.array([256.0], dtype=np.float64),
+    )
+
+    assert np.array_equal(result, np.array([0], dtype=np.uint8))
+    assert any("overflows uint8 range" in warning for warning in warnings)
+
+
+def test_physical_to_int_warns_on_float_downcast_precision_loss() -> None:
+    warnings: list[str] = []
+    calibration = _make_conversion_calibration(warnings)
+    calibration.get_compu_method = lambda characteristic: SimpleNamespace(
+        physical_to_int=lambda value: value
+    )
+    characteristic = SimpleNamespace(
+        name="VALUE_CHAR", fnc_np_dtype=np.dtype("float32")
+    )
+
+    result = Calibration.physical_to_int(
+        calibration,
+        characteristic,
+        np.array([1.123456789], dtype=np.float64),
+    )
+
+    assert result.dtype == np.float32
+    assert any("loses floating-point precision" in warning for warning in warnings)
+
+
+def test_physical_to_int_does_not_warn_on_exact_cast() -> None:
+    warnings: list[str] = []
+    calibration = _make_conversion_calibration(warnings)
+    calibration.get_compu_method = lambda characteristic: SimpleNamespace(
+        physical_to_int=lambda value: value
+    )
+    characteristic = SimpleNamespace(name="VALUE_CHAR", fnc_np_dtype=np.dtype("uint16"))
+
+    result = Calibration.physical_to_int(
+        calibration,
+        characteristic,
+        np.array([1, 2, 3], dtype=np.int64),
+    )
+
+    assert np.array_equal(result, np.array([1, 2, 3], dtype=np.uint16))
+    assert warnings == []
