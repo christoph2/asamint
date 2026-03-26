@@ -73,6 +73,7 @@ def export_cdf(
     output_path: str | Path,
     h5_db_path: str | Path | None = None,
     variant_coding: bool = False,
+    validate_dtd: bool = False,
     logger: Optional[Any] = None,
 ) -> CdfIOResult:
     log = logger or configure_logging(__name__)
@@ -87,7 +88,7 @@ def export_cdf(
             variant_coding=variant_coding,
             logger=log,
         )
-        success = exporter.export(output)
+        success = exporter.export(output, validate_dtd=validate_dtd)
         if not success:
             raise AdapterError(f"CDF export failed for {output}")
         return CdfIOResult(output_path=output, db_path=db_file)

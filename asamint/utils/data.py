@@ -30,7 +30,6 @@ import importlib.resources
 import sys
 from collections import defaultdict
 from functools import lru_cache
-from io import FileIO
 from pathlib import Path
 
 pyver = sys.version_info
@@ -66,22 +65,22 @@ def get_template(name: str) -> str:
 
 
 @lru_cache
-def get_dtd(name: str) -> FileIO:
+def get_dtd(name: str) -> Path | None:
     """
-    Retrieves a DTD file from the 'dtds' directory and returns it as a StringIO object.
+    Retrieves a DTD/XSD resource path from the 'dtds' directory.
 
     Parameters:
     name (str): The name of the DTD file to retrieve.
 
     Returns:
-    StringIO: A StringIO object containing the content of the DTD file if found, otherwise an empty StringIO object.
+    Path | None: Path to the DTD/XSD file if found, otherwise None.
     """
     DTDs = _DATA_FILES["dtds"]
 
     if name not in DTDs:
-        return FileIO()
+        return None
     else:
-        return FileIO(DTDs[name])
+        return Path(DTDs[name])
 
 
 if pyver.major == 3 and pyver.minor <= 9:

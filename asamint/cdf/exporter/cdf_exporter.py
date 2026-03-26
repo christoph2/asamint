@@ -12,9 +12,13 @@ from asamint.calibration.msrsw_db import (
     SwInstance,
     SwValueCont,
 )
+from asamint.utils.xml import create_validator
 
 
 class CDFExporter:
+    DOCTYPE = '<!DOCTYPE MSRSW PUBLIC "-//ASAM//DTD CALIBRATION DATA FORMAT:V2.0.0:LAI:IAI:XML:CDF200.XSD//EN" "cdf_v2.0.0.sl.dtd">'
+    DTD_NAME = "cdf_v2.0.0.sl.dtd"
+
     def __init__(
         self,
         db: MSRSWDatabase,
@@ -31,7 +35,7 @@ class CDFExporter:
         if Msrsw not in self.reverse_elements:
             self.reverse_elements[Msrsw] = "MSRSW"
 
-    def export(self, file_path: str | Path):
+    def export(self, file_path: str | Path, validate_dtd: bool = False):
         self.logger.info(f"Exporting database to {file_path}")
         msrsw_obj = self.db.session.query(Msrsw).first()
         if not msrsw_obj:
@@ -43,18 +47,33 @@ class CDFExporter:
 
         tree = etree.ElementTree(root_elem)
 
-        # Add DOCTYPE if possible, though it might depend on the specific version
-        # For now, let's just write the XML.
+        if validate_dtd and not self._validate_tree(tree):
+            return False
 
         with open(file_path, "wb") as f:
             f.write(
                 etree.tostring(
-                    tree, encoding="UTF-8", xml_declaration=True, pretty_print=True
+                    tree,
+                    encoding="UTF-8",
+                    xml_declaration=True,
+                    pretty_print=True,
+                    doctype=self.DOCTYPE,
                 )
             )
 
         self.logger.info("Export completed successfully.")
         return True
+
+    def _validate_tree(self, tree: etree.ElementTree) -> bool:
+        validator = create_validator(self.DTD_NAME)
+        if validator is None:
+            self.logger.error(f"CDF DTD validator {self.DTD_NAME!r} is unavailable.")
+            return False
+        if validator.validate(tree):
+            return True
+        for entry in validator.error_log:
+            self.logger.error(str(entry))
+        return False
 
     def _format_tag(self, tag):
         # Specific overrides for tags that shouldn't be just upper-cased

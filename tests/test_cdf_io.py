@@ -3,8 +3,11 @@ from types import SimpleNamespace
 
 import numpy as np
 import pytest
+from lxml import etree
 
 from asamint import cdf
+from asamint.cdf.exporter.cdf_exporter import CDFExporter
+from asamint.utils.xml import create_validator
 
 
 def test_export_cdf_invokes_export(
@@ -44,8 +47,9 @@ def test_export_cdf_invokes_export(
             calls["h5_db"] = h5_db
             calls["db"] = db
 
-        def export(self, target: str | Path) -> bool:
+        def export(self, target: str | Path, validate_dtd: bool = False) -> bool:
             calls["export_path"] = Path(target)
+            calls["validate_dtd"] = validate_dtd
             return True
 
     monkeypatch.setattr(cdf, "MSRSWDatabase", DummyDB)
@@ -61,12 +65,14 @@ def test_export_cdf_invokes_export(
         output_path=output,
         h5_db_path=h5_path,
         variant_coding=True,
+        validate_dtd=True,
     )
 
     assert result.output_path == output
     assert result.db_path == db_path
     assert calls["export_path"] == output
     assert calls["variant_coding"] is True
+    assert calls["validate_dtd"] is True
     assert calls["db_closed"] is True
     assert calls["h5_closed"] is True
     assert calls["exporter_logger"] is dummy_logger
@@ -161,3 +167,113 @@ def test_db_load_normalizes_empty_axis_backed_values() -> None:
     assert np.array_equal(arr.coords["x"].values, np.array([10.0, 20.0, 30.0]))
     assert np.array_equal(arr.values, np.zeros((3,), dtype=np.float64))
     assert arr.attrs["category"] == "CURVE"
+
+
+def test_create_validator_supports_repeated_cdf_dtd_creation() -> None:
+    validator1 = create_validator("cdf_v2.0.0.sl.dtd")
+    validator2 = create_validator("cdf_v2.0.0.sl.dtd")
+
+    assert validator1 is not None
+    assert validator2 is not None
+
+
+class _DummyQuery:
+    def __init__(self, value: object) -> None:
+        self._value = value
+
+    def first(self) -> object:
+        return self._value
+
+
+class _DummySession:
+    def __init__(self, value: object) -> None:
+        self._value = value
+
+    def query(self, _model: object) -> _DummyQuery:
+        return _DummyQuery(self._value)
+
+
+class _DummyExporterDb:
+    def __init__(self, root_obj: object) -> None:
+        self.session = _DummySession(root_obj)
+
+
+def test_cdf_exporter_writes_doctype_and_validates_when_enabled(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    calls: dict[str, object] = {}
+    exporter = CDFExporter(
+        db=_DummyExporterDb(object()),
+        logger=SimpleNamespace(
+            info=lambda *args, **kwargs: None,
+            error=lambda *args, **kwargs: None,
+            debug=lambda *args, **kwargs: None,
+        ),
+    )
+    monkeypatch.setattr(
+        exporter,
+        "_to_xml",
+        lambda obj, tag_name: etree.Element(tag_name),
+    )
+
+    class DummyValidator:
+        error_log: list[str] = []
+
+        def validate(self, tree: etree.ElementTree) -> bool:
+            calls["root_tag"] = tree.getroot().tag
+            return True
+
+    import asamint.cdf.exporter.cdf_exporter as exporter_module
+
+    monkeypatch.setattr(
+        exporter_module,
+        "create_validator",
+        lambda name: calls.setdefault("dtd_name", name) or DummyValidator(),
+    )
+    monkeypatch.setattr(
+        exporter_module,
+        "create_validator",
+        lambda name: (calls.__setitem__("dtd_name", name) or DummyValidator()),
+    )
+
+    output = tmp_path / "export.cdfx"
+
+    assert exporter.export(output, validate_dtd=True) is True
+    assert calls["dtd_name"] == "cdf_v2.0.0.sl.dtd"
+    assert calls["root_tag"] == "MSRSW"
+    assert "cdf_v2.0.0.sl.dtd" in output.read_text(encoding="utf-8")
+
+
+def test_cdf_exporter_returns_false_when_dtd_validation_fails(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    exporter = CDFExporter(
+        db=_DummyExporterDb(object()),
+        logger=SimpleNamespace(
+            info=lambda *args, **kwargs: None,
+            error=lambda *args, **kwargs: None,
+            debug=lambda *args, **kwargs: None,
+        ),
+    )
+    monkeypatch.setattr(
+        exporter,
+        "_to_xml",
+        lambda obj, tag_name: etree.Element(tag_name),
+    )
+
+    class DummyValidator:
+        error_log = ["invalid tree"]
+
+        def validate(self, tree: etree.ElementTree) -> bool:
+            return False
+
+    import asamint.cdf.exporter.cdf_exporter as exporter_module
+
+    monkeypatch.setattr(
+        exporter_module, "create_validator", lambda name: DummyValidator()
+    )
+
+    output = tmp_path / "export.cdfx"
+
+    assert exporter.export(output, validate_dtd=True) is False
+    assert not output.exists()

@@ -66,10 +66,12 @@ def as_numeric(element):
 
 def create_validator(file_name: str) -> Optional[Union[etree.DTD, etree.XMLSchema]]:
     content = get_dtd(file_name)
+    if content is None:
+        return None
     if file_name.lower().endswith(".dtd"):
-        return etree.DTD(file=content)
+        return etree.DTD(file=str(content))
     elif file_name.lower().endswith(".xsd"):
-        return etree.XMLSchema(file=content, attribute_defaults=True)
+        return etree.XMLSchema(file=str(content), attribute_defaults=True)
     else:
         return None
 
