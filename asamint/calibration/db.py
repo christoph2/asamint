@@ -238,7 +238,10 @@ class CalibrationDB:
                             ax["phys"] = axis.phys
                     case "COM_AXIS" | "RES_AXIS" | "CURVE_AXIS":
                         # Referenced axis: create a soft link to the referenced axis
-                        ax["reference"] = h5py.SoftLink(f"/{axis.axis_pts_ref}")
+                        reference_path = self._validate_axis_reference(
+                            value.name, category, axis.axis_pts_ref
+                        )
+                        ax["reference"] = h5py.SoftLink(reference_path)
 
             self.logger.debug(f"Imported {value.category.lower()}: {value.name}")
         except Exception as e:
@@ -246,6 +249,26 @@ class CalibrationDB:
                 f"Error importing {value.category.lower()} {value.name}: {e}"
             )
             raise
+
+    def _validate_axis_reference(
+        self, value_name: str, axis_category: str, axis_pts_ref: str | None
+    ) -> str:
+        if not axis_pts_ref:
+            raise ValueError(
+                f"{value_name}: {axis_category} axis requires a non-empty axis_pts_ref"
+            )
+        reference_path = f"/{axis_pts_ref}"
+        try:
+            referenced_axis = self.db[reference_path]
+        except KeyError as exc:
+            raise ValueError(
+                f"{value_name}: {axis_category} references missing AXIS_PTS {axis_pts_ref!r}"
+            ) from exc
+        if referenced_axis.attrs.get("category") != "AXIS_PTS":
+            raise ValueError(
+                f"{value_name}: {axis_category} reference {axis_pts_ref!r} is not an AXIS_PTS entry"
+            )
+        return reference_path
 
     def load(self, name: str) -> xr.DataArray:
         """Load a calibration parameter from the database.
@@ -309,11 +332,34 @@ class CalibrationDB:
     def _read_axis_values(
         self, axis_group: h5py.Group, axis_category: str
     ) -> np.ndarray:
-        if axis_category == "COM_AXIS":
-            return np.array(axis_group["reference"]["phys"])
+        if axis_category in ("COM_AXIS", "RES_AXIS", "CURVE_AXIS"):
+            return self._read_referenced_axis_values(axis_group, axis_category)
         if axis_category not in ("FIX_AXIS", "STD_AXIS"):
             raise TypeError(f"Unsupported axis category: {axis_category}")
         return np.array(axis_group["phys"])
+
+    @staticmethod
+    def _read_referenced_axis_values(
+        axis_group: h5py.Group, axis_category: str
+    ) -> np.ndarray:
+        reference_link = axis_group.get("reference", getlink=True)
+        if not isinstance(reference_link, h5py.SoftLink):
+            raise KeyError(
+                f"{axis_category} axis {axis_group.name!r} is missing a soft-link reference"
+            )
+        reference_path = reference_link.path
+        try:
+            referenced_axis = axis_group.file[reference_path]
+        except KeyError as exc:
+            raise KeyError(
+                f"Broken {axis_category} reference {reference_path!r} for axis {axis_group.name!r}"
+            ) from exc
+        try:
+            return np.array(referenced_axis["phys"])
+        except KeyError as exc:
+            raise KeyError(
+                f"Referenced axis {reference_path!r} does not provide 'phys' values"
+            ) from exc
 
     def _load_axis_metadata(
         self, axes: h5py.Group

@@ -216,7 +216,6 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
     DOCTYPE: str = (
         """<!DOCTYPE MSRSW PUBLIC "-//ASAM//DTD CALIBRATION DATA FORMAT:V2.0.0:LAI:IAI:XML:CDF200.XSD//EN" "cdf_v2.0.0.sl.dtd">"""
     )
-    # DTD = get_dtd("cdf_v2.0.0.sl")    # TODO: check!!!
     EXTENSION = ".cdfx"
 
     def __init__(
