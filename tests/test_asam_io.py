@@ -817,6 +817,97 @@ def test_save_curve_or_map_read_only_except_raises() -> None:
         Calibration.save_curve_or_map(calibration, "CURVE_CHAR", values)
 
 
+def test_save_curve_or_map_reports_axis_aware_physical_shape_mismatch() -> None:
+    image = _RecordingImage()
+    characteristic = SimpleNamespace(
+        type="MAP",
+        readOnly=False,
+        name="MAP_CHAR",
+        fnc_np_order="C",
+        byteOrder="BIG_ENDIAN",
+        record_layout_components={
+            "elements": {
+                "fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")
+            }
+        },
+    )
+    values = SimpleNamespace(
+        phys=np.ones((3, 2), dtype=np.uint16),
+        raw=np.ones((3, 2), dtype=np.uint16),
+    )
+    calibration = _make_calibration(image, characteristic)
+    calibration.get_axes = lambda current_characteristic, num_axes: AxesContainer(
+        axes=[],
+        shape=(2, 3),
+        flip_axes=[],
+    )
+
+    with pytest.raises(
+        ValueError, match=r"Physical values shape \(3, 2\).*x=3->2, y=2->3"
+    ):
+        Calibration.save_curve_or_map(calibration, "MAP_CHAR", values)
+
+
+def test_save_curve_or_map_reports_axis_aware_raw_shape_mismatch() -> None:
+    image = _RecordingImage()
+    characteristic = SimpleNamespace(
+        type="MAP",
+        readOnly=False,
+        name="MAP_CHAR",
+        fnc_np_order="C",
+        byteOrder="BIG_ENDIAN",
+        record_layout_components={
+            "elements": {
+                "fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")
+            }
+        },
+    )
+    values = SimpleNamespace(
+        phys=np.ones((2, 3), dtype=np.uint16),
+        raw=np.ones((3, 2), dtype=np.uint16),
+    )
+    calibration = _make_calibration(image, characteristic)
+    calibration.get_axes = lambda current_characteristic, num_axes: AxesContainer(
+        axes=[],
+        shape=(2, 3),
+        flip_axes=[],
+    )
+
+    with pytest.raises(ValueError, match=r"Raw values shape \(3, 2\).*x=3->2, y=2->3"):
+        Calibration.save_curve_or_map(calibration, "MAP_CHAR", values, raw_changed=True)
+
+
+def test_save_curve_or_map_rejects_objects_without_raw_and_phys() -> None:
+    image = _RecordingImage()
+    characteristic = SimpleNamespace(
+        type="CURVE",
+        readOnly=False,
+        name="CURVE_CHAR",
+        fnc_np_order="C",
+        byteOrder="BIG_ENDIAN",
+        record_layout_components={
+            "elements": {
+                "fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")
+            }
+        },
+    )
+    calibration = _make_calibration(image, characteristic)
+    calibration.get_axes = lambda current_characteristic, num_axes: AxesContainer(
+        axes=[],
+        shape=(2,),
+        flip_axes=[],
+    )
+
+    with pytest.raises(
+        TypeError, match="values must provide both 'raw' and 'phys' arrays"
+    ):
+        Calibration.save_curve_or_map(
+            calibration,
+            "CURVE_CHAR",
+            SimpleNamespace(phys=np.array([1, 2], dtype=np.uint16)),
+        )
+
+
 def test_save_axis_pts_returns_address_error_for_size_write() -> None:
     image = _FailingImage("write_asam_numeric")
     calibration = _make_calibration(image, SimpleNamespace())

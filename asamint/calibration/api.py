@@ -615,6 +615,29 @@ class Calibration:
         self.logger.error(f"{name!r}{suffix}: {exc}")
         return Status.ADDRESS_ERROR
 
+    @staticmethod
+    def _shape_error_message(
+        characteristic_name: str,
+        value_kind: str,
+        actual_shape: tuple[int, ...],
+        expected_shape: tuple[int, ...],
+    ) -> str:
+        axis_labels = ("x", "y", "z", "4", "5")
+        axis_details = ", ".join(
+            f"{axis_labels[index]}={actual}->{expected}"
+            for index, (actual, expected) in enumerate(
+                zip(actual_shape, expected_shape, strict=False)
+            )
+        )
+        if len(actual_shape) != len(expected_shape):
+            axis_details = (
+                f"rank {len(actual_shape)}->{len(expected_shape)}; {axis_details}"
+            )
+        return (
+            f"{value_kind} values shape {actual_shape} does not match expected shape "
+            f"{expected_shape} for '{characteristic_name}' ({axis_details})"
+        )
+
     def load_value_block(self, characteristic_name: str) -> klasses.ValueBlock:
         """Load a value block characteristic.
 
@@ -1334,17 +1357,34 @@ class Calibration:
         # Get axes information
         axes_container = self.get_axes(characteristic, num_axes)
 
+        if not hasattr(values, "raw") or not hasattr(values, "phys"):
+            raise TypeError(
+                "values must provide both 'raw' and 'phys' arrays, e.g. a Curve/Map wrapper returned by load_curve_or_map()."
+            )
+
         # Ensure the values object has the correct shape
         expected_shape = axes_container.shape
         if raw_changed:
-            if values.raw.shape != expected_shape:
+            raw_values = np.asarray(values.raw)
+            if raw_values.shape != expected_shape:
                 raise ValueError(
-                    f"Raw values shape {values.raw.shape} does not match expected shape {expected_shape}"
+                    self._shape_error_message(
+                        characteristic_name,
+                        "Raw",
+                        raw_values.shape,
+                        expected_shape,
+                    )
                 )
         else:
-            if values.phys.shape != expected_shape:
+            phys_values = np.asarray(values.phys)
+            if phys_values.shape != expected_shape:
                 raise ValueError(
-                    f"Physical values shape {values.phys.shape} does not match expected shape {expected_shape}"
+                    self._shape_error_message(
+                        characteristic_name,
+                        "Physical",
+                        phys_values.shape,
+                        expected_shape,
+                    )
                 )
 
         self.logger.debug(
