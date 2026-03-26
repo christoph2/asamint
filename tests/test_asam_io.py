@@ -1029,6 +1029,43 @@ def test_write_nd_array_uses_asam_ndarray_writer() -> None:
     assert call_kwargs == {}
 
 
+def test_load_axis_pts_preserves_reversed_storage_metadata() -> None:
+    image = _RecordingImage()
+    axis_pts = _make_axis_pts(category="COM_AXIS")
+    axis_info = axis_pts.record_layout_components["axes"]["x"]
+    axis_info.reversed_storage = True
+    axis_info.actual_element_count = 3
+    axis_info.maximum_element_count = 3
+    axis_pts.longIdentifier = "Axis points"
+    axis_pts.displayIdentifier = "DI_AXIS_PTS_CHAR"
+    axis_pts.compuMethod = SimpleNamespace(
+        conversionType="LINEAR",
+        refUnit="rpm",
+    )
+
+    calibration = Calibration.__new__(Calibration)
+    calibration.image = image
+    calibration.logger = configure_logging(
+        name="asamint.calibration.tests.axis_pts",
+        level=logging.DEBUG,
+    )
+    calibration.mod_common = None
+    calibration.parameter_cache = {}
+    calibration.get_axis_pts = lambda name: axis_pts
+    calibration.read_axes_values = lambda ap, axis_name: {}
+    calibration.read_axes_arrays = lambda ap, axis_name: {
+        "axis_pts": np.array([1, 2, 3], dtype=np.int16)
+    }
+    calibration.int_to_physical = lambda current_axis_pts, raw: raw.astype(np.float64)
+    calibration.is_numeric = lambda compu_method: True
+
+    value = Calibration.load_axis_pts(calibration, "AXIS_PTS_CHAR")
+
+    assert np.array_equal(value.raw, np.array([3, 2, 1], dtype=np.int16))
+    assert np.array_equal(value.phys, np.array([3.0, 2.0, 1.0], dtype=np.float64))
+    assert value.reversed_storage is True
+
+
 def test_objutils_image_supports_direct_asam_helpers() -> None:
     image = Image([Section(0x810000, bytes(32))])
 

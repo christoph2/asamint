@@ -1074,7 +1074,7 @@ class Calibration:
             displayIdentifier=ap.displayIdentifier,
             paired=False,  # Will be removed in future versions
             unit=unit,
-            reversed_storage=False,  # Will be removed in future versions
+            reversed_storage=axis_info.reversed_storage,
             is_numeric=self.is_numeric(ap.compuMethod),
             api=self,
         )
