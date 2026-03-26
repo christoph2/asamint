@@ -137,10 +137,21 @@ class DB:
         self.close()
 
     def close(self) -> None:
-        if self.opened:
+        if getattr(self, "opened", False):
             self.storage.close()
             self.db.close()
             self.opened = False
+
+    @staticmethod
+    def _normalize_array_values(values: np.ndarray, shape: list[int]) -> np.ndarray:
+        target_shape = tuple(shape)
+        if values.shape == (0,) or values.size == 0:
+            return np.zeros(target_shape, dtype=values.dtype)
+        if values.shape == target_shape:
+            return values
+        if values.size == np.prod(shape):
+            return values.reshape(target_shape)
+        return values
 
     def load(self, name: str) -> xr.DataArray:
         # self.session.query(model.ShortName).filter(model.ShortName.content == name)
@@ -188,8 +199,7 @@ class DB:
                     phys = np.array(ax_items["phys"])
                 coords[ax_name] = phys
                 shape.append(phys.size)
-            if values.shape == (0,):  # TODO: fix while saving!?
-                values = np.zeros(tuple(shape))
+            values = self._normalize_array_values(np.asarray(values), shape)
             arr = xr.DataArray(values, dims=dims, coords=coords, attrs=attrs)
         return arr
 

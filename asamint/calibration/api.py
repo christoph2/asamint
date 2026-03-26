@@ -500,10 +500,7 @@ class Calibration:
         characteristic = self.get_characteristic(characteristic_name, "ASCII", False)
 
         # Determine the string length
-        if characteristic.matrixDim.valid():  # TODO: np_dim
-            length = characteristic.matrixDim.x
-        else:
-            length = characteristic.number
+        length = self._ascii_length(characteristic)
 
         # Read the string from memory
         value: Optional[str] = None
@@ -572,10 +569,7 @@ class Calibration:
         value = "" if value is None else str(value)
 
         # Determine the string length
-        if characteristic.matrixDim:  # TODO: np_dim
-            length = characteristic.matrixDim.x
-        else:
-            length = characteristic.number
+        length = self._ascii_length(characteristic)
 
         # Adjust the string to the required length
         value = value[:length]
@@ -595,6 +589,17 @@ class Calibration:
             length=length,
         )
         return Status.OK
+
+    @staticmethod
+    def _ascii_length(characteristic: Characteristic) -> int:
+        matrix_dim = getattr(characteristic, "matrixDim", None)
+        if matrix_dim is not None:
+            valid = getattr(matrix_dim, "valid", None)
+            is_valid = valid() if callable(valid) else bool(matrix_dim)
+            length = getattr(matrix_dim, "x", 0)
+            if is_valid and length:
+                return int(length)
+        return int(characteristic.number)
 
     def load_value_block(self, characteristic_name: str) -> klasses.ValueBlock:
         """Load a value block characteristic.

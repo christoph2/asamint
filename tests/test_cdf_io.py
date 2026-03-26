@@ -1,6 +1,7 @@
 from pathlib import Path
 from types import SimpleNamespace
 
+import numpy as np
 import pytest
 
 from asamint import cdf
@@ -98,3 +99,65 @@ def test_import_cdf_invokes_importer(
     assert result.db_path == db
     assert calls["paths"] == (xml, db)
     assert calls["logger"] is dummy_logger
+
+
+class _FakeAttrs(dict):
+    pass
+
+
+class _FakeValueDataset:
+    def __init__(self, values: np.ndarray) -> None:
+        self._values = values
+
+    def __getitem__(self, key: object) -> np.ndarray:
+        assert key == ()
+        return self._values
+
+
+class _FakeGroup:
+    def __init__(
+        self,
+        attrs: dict[str, object] | None = None,
+        items: dict[str, object] | None = None,
+    ) -> None:
+        self.attrs = _FakeAttrs(attrs or {})
+        self._items = items or {}
+
+    def __getitem__(self, key: str) -> object:
+        return self._items[key]
+
+    def items(self) -> list[tuple[str, object]]:
+        return list(self._items.items())
+
+    def __len__(self) -> int:
+        return len(self._items)
+
+
+def test_db_load_normalizes_empty_axis_backed_values() -> None:
+    parameter = _FakeGroup(
+        attrs={
+            "category": "CURVE",
+            "display_identifier": "DI_CURVE",
+            "comment": "curve comment",
+        },
+        items={
+            "phys": _FakeValueDataset(np.array([], dtype=np.float64)),
+            "axes": _FakeGroup(
+                items={
+                    "0": _FakeGroup(
+                        attrs={"name": "x", "category": "STD_AXIS"},
+                        items={"phys": np.array([10.0, 20.0, 30.0], dtype=np.float64)},
+                    )
+                }
+            ),
+        },
+    )
+    reader = cdf.DB.__new__(cdf.DB)
+    reader.storage = {"/CURVE_PARAM": parameter}
+
+    arr = cdf.DB.load(reader, "CURVE_PARAM")
+
+    assert arr.dims == ("x",)
+    assert np.array_equal(arr.coords["x"].values, np.array([10.0, 20.0, 30.0]))
+    assert np.array_equal(arr.values, np.zeros((3,), dtype=np.float64))
+    assert arr.attrs["category"] == "CURVE"

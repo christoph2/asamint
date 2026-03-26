@@ -165,6 +165,48 @@ def test_save_ascii_uses_asam_string_writer() -> None:
     ]
 
 
+def test_load_ascii_falls_back_to_number_without_matrix_dim() -> None:
+    image = _RecordingImage()
+    characteristic = SimpleNamespace(
+        matrixDim=None,
+        number=12,
+        address=0x2000,
+        encoding="ASCII",
+        name="ASCII_CHAR",
+        longIdentifier="ASCII characteristic",
+        displayIdentifier="DI_ASCII_CHAR",
+    )
+    calibration = _make_calibration(image, characteristic)
+
+    Calibration.load_ascii(calibration, "ASCII_CHAR")
+
+    assert image.calls == [
+        ("read_asam_string", (0x2000, "ASCII", 12), {}),
+    ]
+
+
+def test_save_ascii_falls_back_to_number_for_invalid_matrix_dim() -> None:
+    image = _RecordingImage()
+    characteristic = SimpleNamespace(
+        matrixDim=_MatrixDim(8, is_valid=False),
+        number=12,
+        address=0x2000,
+        encoding="ASCII",
+        readOnly=False,
+        name="ASCII_CHAR",
+        longIdentifier="ASCII characteristic",
+        displayIdentifier="DI_ASCII_CHAR",
+    )
+    calibration = _make_calibration(image, characteristic)
+
+    status = Calibration.save_ascii(calibration, "ASCII_CHAR", "AB")
+
+    assert status == Status.OK
+    assert image.calls == [
+        ("write_asam_string", (0x2000, "AB\x00         ", "ASCII"), {"length": 12}),
+    ]
+
+
 def test_load_value_uses_asam_numeric_reader() -> None:
     image = _RecordingImage()
     characteristic = SimpleNamespace(
