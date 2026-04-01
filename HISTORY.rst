@@ -2,6 +2,21 @@
 History
 =======
 
+0.2.2 (2026-04-01)
+-------------------
+
+- Calibration I/O: Switched to ASAM objutils ``read_asam_*``/``write_asam_*`` helpers for all scalar, string, CURVE, and MAP access; byte order and data type are passed directly from A2L metadata.
+- Calibration DB: Fixed axis soft-link loading so COM_AXIS, RES_AXIS, and CURVE_AXIS are all resolved correctly from HDF5 soft links.
+- Calibration DB: Fixed VAL_BLK matrix dimensions; normalized declarative defaults.
+- Calibration: Preserved axis reversal metadata through DB round-trips.
+- Calibration: Added warning when physical value cast would lose precision.
+- Calibration: Improved CURVE/MAP limit and dimension validation; complete save-policy handling; handle invalid write addresses gracefully.
+- CDF: Added DTD validation on import/export; normalized ASCII and CDF shapes; added CDF API tests.
+- Paging: XCP segment/page information now read from A2L ``IF_DATA XCP`` SEGMENT/PAGE entries (attribute-based access).
+- API stability: Added ``DeprecatedAlias`` mechanism to ``asamint.api``; ``available_measurement_formats`` kept as deprecated alias (removal in 0.10.0, use ``list_measurement_formats``).
+- Code quality: Cleared Ruff backlog; modernized creator examples; stabilized A2L cache reuse.
+- Version: aligned ``pyproject.toml`` version with HISTORY (was stuck at 0.1.5).
+
 0.2.1 (2025-12-16)
 -------------------
 
