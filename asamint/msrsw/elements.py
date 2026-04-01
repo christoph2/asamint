@@ -54,6 +54,10 @@ class Category:
 class UnitDisplayName:
     value: str | None
 
+    @property
+    def phys(self) -> str | None:
+        return self.value
+
 
 @dataclass
 class ModelLink:
@@ -62,22 +66,22 @@ class ModelLink:
 
 @dataclass
 class V:
-    value: int | float
+    phys: int | float
 
 
 @dataclass
 class VF:
-    value: float
+    phys: float
 
 
 @dataclass
 class VT:
-    value: str
+    phys: str
 
 
 @dataclass
 class VH:
-    value: str
+    phys: str
 
 
 @dataclass

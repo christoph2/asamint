@@ -43,8 +43,10 @@ def dump_array(values, level: int = 1, brackets=False) -> str:
     result = []
     for value in values:
         if isinstance(value, list):
-            result.extend(["   " * level, "[" if brackets else ""])
-            result.extend(dump_array(value, level + 1))
+            result.append("   " * level)
+            if brackets:
+                result.append("[")
+            result.append(dump_array(value, level + 1))
             if brackets:
                 result.append("]\n")
             else:
@@ -139,19 +141,19 @@ class CdfWalker:
 
     def do_vs(self, vs):
         if vs:
-            return [elements.V(v.content) for v in vs]
+            return [elements.V(phys=v.content) for v in vs]
         else:
             return []
 
     def do_vfs(self, vfs):
         if vfs:
-            return [elements.VF(v.content) for v in vfs]
+            return [elements.VF(phys=v.content) for v in vfs]
         else:
             return []
 
     def do_vts(self, vts):
         if vts:
-            return [elements.VT(v.content) for v in vts]
+            return [elements.VT(phys=v.content) for v in vts]
         else:
             return []
 
@@ -164,7 +166,7 @@ class CdfWalker:
                     content = binascii.unhexlify(content)
                 except binascii.Error:
                     pass
-                result.append(elements.VH(content))
+                result.append(elements.VH(phys=content))
             return result
         else:
             return []

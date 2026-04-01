@@ -15,7 +15,7 @@
 typedef struct {
 % for a in arrays_by_cat['AXIS_PTS']:
     /* ${a.name}${' - ' + a.comment if a.comment else ''} */
-    ${a.c_type} ${a.c_name}[${'']['.join(str(d) for d in a.dims).replace('][', '][')}];
+    ${a.c_type} ${a.c_name}[${']['.join(str(d) for d in a.dims)}];
 % endfor
 } AXIS_PTS_t;
 % endif
@@ -24,7 +24,7 @@ typedef struct {
 typedef struct {
 % for a in arrays_by_cat['CURVE']:
     /* ${a.name}${' - ' + a.comment if a.comment else ''} */
-    ${a.c_type} ${a.c_name}[${'']['.join(str(d) for d in a.dims).replace('][', '][')}];
+    ${a.c_type} ${a.c_name}[${']['.join(str(d) for d in a.dims)}];
 % endfor
 } CURVE_t;
 % endif
@@ -33,11 +33,7 @@ typedef struct {
 typedef struct {
 % for a in arrays_by_cat['MAP']:
     /* ${a.name}${' - ' + a.comment if a.comment else ''} */
-    ${a.c_type} ${a.c_name}% if len(a.dims) == 1 %
-[${a.dims[0]}]
-% else %
-[${a.dims[0]}][${a.dims[1]}]
-% endif %;
+    ${a.c_type} ${a.c_name}[${']['.join(str(d) for d in a.dims)}];
 % endfor
 } MAP_t;
 % endif
@@ -46,7 +42,7 @@ typedef struct {
 typedef struct {
 % for a in arrays_by_cat['CUBOID']:
     /* ${a.name}${' - ' + a.comment if a.comment else ''} */
-    ${a.c_type} ${a.c_name}[${'']['.join(str(d) for d in a.dims).replace('][', '][')}];
+    ${a.c_type} ${a.c_name}[${']['.join(str(d) for d in a.dims)}];
 % endfor
 } CUBOID_t;
 % endif
@@ -55,7 +51,7 @@ typedef struct {
 typedef struct {
 % for a in arrays_by_cat['CUBE_4']:
     /* ${a.name}${' - ' + a.comment if a.comment else ''} */
-    ${a.c_type} ${a.c_name}[${'']['.join(str(d) for d in a.dims).replace('][', '][')}];
+    ${a.c_type} ${a.c_name}[${']['.join(str(d) for d in a.dims)}];
 % endfor
 } CUBE_4_t;
 % endif
@@ -64,7 +60,7 @@ typedef struct {
 typedef struct {
 % for a in arrays_by_cat['CUBE_5']:
     /* ${a.name}${' - ' + a.comment if a.comment else ''} */
-    ${a.c_type} ${a.c_name}[${'']['.join(str(d) for d in a.dims).replace('][', '][')}];
+    ${a.c_type} ${a.c_name}[${']['.join(str(d) for d in a.dims)}];
 % endfor
 } CUBE_5_t;
 % endif
@@ -73,7 +69,7 @@ typedef struct {
 typedef struct {
 % for a in arrays_by_cat['VAL_BLK']:
     /* ${a.name}${' - ' + a.comment if a.comment else ''} */
-    ${a.c_type} ${a.c_name}[${'']['.join(str(d) for d in a.dims).replace('][', '][')}];
+    ${a.c_type} ${a.c_name}[${']['.join(str(d) for d in a.dims)}];
 % endfor
 } VAL_BLK_t;
 % endif
