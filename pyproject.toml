@@ -83,6 +83,8 @@ exclude = [
     "experimental",
     "asamint/parsers/*",
     "asamint/damos/parsers/*",
+    "asamint/examples/*",
+    "asamint/AUTOSAR_CP_EXP_ModelingShowCases/*",
 ]
 [tool.ruff.lint]
 unfixable = ["B"]
