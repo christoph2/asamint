@@ -31,7 +31,6 @@ from collections.abc import Mapping
 import pya2l.model as model
 from pya2l import DB
 
-
 """
 a2ldb_import [imex]
 
@@ -74,13 +73,20 @@ class CompuMethods(Mapping):
     def __init__(self, session, referenced: bool = True):
         if referenced:
             conversions = (
-                session.query(model.Measurement.conversion).filter(model.Measurement.conversion != "NO_COMPU_METHOD").distinct()
+                session.query(model.Measurement.conversion)
+                .filter(model.Measurement.conversion != "NO_COMPU_METHOD")
+                .distinct()
             )
             self._compu_methods = {
-                item.name: item for item in session.query(model.CompuMethod).filter(model.CompuMethod.name.in_(conversions)).all()
+                item.name: item
+                for item in session.query(model.CompuMethod)
+                .filter(model.CompuMethod.name.in_(conversions))
+                .all()
             }
         else:
-            self._compu_methods = {item.name: item for item in session.query(model.CompuMethod).all()}
+            self._compu_methods = {
+                item.name: item for item in session.query(model.CompuMethod).all()
+            }
         for cm in self._compu_methods.values():
             conversionType = cm.conversionType
             if conversionType == "IDENTICAL":
@@ -114,35 +120,51 @@ class Measurement:
 
     def __init__(self, session, name):
         self.session = session
-        self._meas = session.query(model.Measurement).filter(model.Measurement.name == name).first()
+        self._meas = (
+            session.query(model.Measurement)
+            .filter(model.Measurement.name == name)
+            .first()
+        )
 
 
 def getCM(session, name):
     if name != "NO_COMPU_METHOD":
-        cm = session.query(model.CompuMethod).filter(model.CompuMethod.name == name).first()
+        cm = (
+            session.query(model.CompuMethod)
+            .filter(model.CompuMethod.name == name)
+            .first()
+        )
         return cm
     else:
         return None
 
 
-db = DB()
-session = db.open_existing("ASAP2_Demo_V161")
-measurements = session.query(model.Measurement).order_by(model.Measurement.name).all()
+if __name__ == "__main__":
+    db = DB()
+    session = db.open_existing("ASAP2_Demo_V161")
+    measurements = (
+        session.query(model.Measurement).order_by(model.Measurement.name).all()
+    )
 
-cms = CompuMethods(session)
+    cms = CompuMethods(session)
 
-for m in measurements:
-    print(f"{m.name:48} {m.datatype:12} 0x{m.ecu_address.address:08x}")
-    # print("{:48} {:12} 0x{:08x} [{}]".format(m.name, m.datatype, m.ecu_address.address, m.conversion))
+    for m in measurements:
+        print(f"{m.name:48} {m.datatype:12} 0x{m.ecu_address.address:08x}")
 
-conversions = session.query(model.Measurement.conversion).filter(model.Measurement.conversion != "NO_COMPU_METHOD").distinct()
-# print(conversions)
+    conversions = (
+        session.query(model.Measurement.conversion)
+        .filter(model.Measurement.conversion != "NO_COMPU_METHOD")
+        .distinct()
+    )
 
+    cm = (
+        session.query(model.CompuMethod)
+        .filter(model.CompuMethod.name.in_(conversions))
+        .all()
+    )
+    print("\n\n")
+    for c in cm:
+        print(c)
 
-cm = session.query(model.CompuMethod).filter(model.CompuMethod.name.in_(conversions)).all()
-print("\n\n")
-for c in cm:
-    print(c)
-
-print("\n\n")
-print(list(cms.keys()))
+    print("\n\n")
+    print(list(cms.keys()))
