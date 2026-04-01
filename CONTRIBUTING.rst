@@ -102,7 +102,10 @@ Before you submit a pull request, check that it meets these guidelines:
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
-3. The pull request should work for Python 3.10 and newer. Check
+3. If you rename or remove public API names, add a deprecated alias in
+   ``asamint.api._DEPRECATED_ALIASES`` and cover it in
+   ``tests/test_api_stability.py``.
+4. The pull request should work for Python 3.10 and newer. Check
    https://github.com/christoph2/asamint/pull_requests
    and make sure that the tests pass for all supported Python versions.
 

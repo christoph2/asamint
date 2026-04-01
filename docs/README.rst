@@ -76,6 +76,14 @@ Migration & Compatibility
 * Fixtures stay under ``tests/`` (A2L/HEX/MSRSW, DAQ CSV/HDF5); external-facing formats (CDF/MDF/HDF5) remain compatible, with new helpers added behind existing facades.
 * When migrating older code, update imports, replace direct adapter usage, and validate with ``poetry run pytest`` plus ``poetry run ruff check .``.
 
+API Stability & Deprecation
+---------------------------
+
+* The stable public surface is exported from ``asamint.api``. Prefer these names in application code.
+* Renamed or removed API names are kept as deprecated aliases in ``asamint.api`` and emit ``DeprecationWarning`` when accessed.
+* Deprecated aliases include a removal version in ``asamint.api._DEPRECATED_ALIASES``; remove legacy usage before that version.
+* If you need a new alias for migration, add it to ``asamint.api._DEPRECATED_ALIASES`` and cover it with a small test.
+
 Please refer to `examples <../asamint/examples>`_ directory.
 
 Measurement Formats & Registry
