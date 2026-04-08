@@ -31,10 +31,14 @@ __version__ = "0.9"
 ##
 
 from io import StringIO
+import logging
+from typing import Any
 
 from mako import exceptions
 from mako.runtime import Context
 from mako.template import Template  # nosec
+
+logger = logging.getLogger(__name__)
 
 # from csstuff import strings
 
@@ -59,12 +63,12 @@ def indent_text(text: str, left_margin: int = 0) -> str:
 
 def do_template(
     tmpl: str,
-    namespace: str | None = None,
+    namespace: dict[str, Any] | None = None,
     leftMargin: int = 0,
     rightMargin: int = 80,
     formatExceptions: bool = True,
     encoding: str = "utf-8",
-) -> str:
+) -> str | None:
     namespace = namespace or {}
     buf = StringIO()
     ctx = Context(buf, **namespace)
@@ -74,7 +78,7 @@ def do_template(
         )  # nosec
         tobj.render_context(ctx)
     except (OSError, exceptions.MakoException, UnicodeDecodeError, AttributeError, NameError, TypeError):
-        print(exceptions.text_error_template().render())
+        logger.error("Template rendering failed:\n%s", exceptions.text_error_template().render())
         return None
     # return strings.reformat(buf.getvalue(), leftMargin, rightMargin)
     return buf.getvalue()
@@ -82,12 +86,12 @@ def do_template(
 
 def do_template_from_text(
     tmpl: str,
-    namespace: str = None,
+    namespace: dict[str, Any] | None = None,
     leftMargin: int = 0,
     rightMargin: int = 80,
     formatExceptions: bool = True,
     encoding: str = "utf-8",
-) -> str:
+) -> str | None:
     namespace = namespace or {}
     buf = StringIO()
     ctx = Context(buf, **namespace)
@@ -97,10 +101,10 @@ def do_template_from_text(
         )  # nosec
         tobj.render_context(ctx)
     except (exceptions.MakoException, SyntaxError, UnicodeDecodeError, AttributeError, NameError, TypeError):
-        print(exceptions.text_error_template().render())
+        logger.error("Template rendering failed:\n%s", exceptions.text_error_template().render())
         return None
     return indent_text(buf.getvalue(), leftMargin)  # , rightMargin)
 
 
-def call_def(template, definition, *args, **kwargs):
+def call_def(template: Template, definition: str, *args: Any, **kwargs: Any) -> str:
     return template.get_def(definition).render(*args, **kwargs)

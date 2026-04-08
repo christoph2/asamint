@@ -165,7 +165,7 @@ class DBImporter:
 
         try:
             self.hdf_db.import_map_curve(value)
-        except Exception as e:
+        except (AttributeError, ValueError, KeyError) as e:
             self.logger.error(f"map_curve({value.name}): {e} value: {value}")
         return inst
 

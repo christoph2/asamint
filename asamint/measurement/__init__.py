@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import annotations
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
@@ -113,7 +114,7 @@ PYXCP_TYPES = {
 
 
 def group_measurements(
-    session, group_name: str, exclude: Optional[Union[list[str], set[str]]] = None
+    session: Any, group_name: str, exclude: Optional[Union[list[str], set[str]]] = None
 ) -> list[tuple[str, int, int, str]]:
     result = []
     if exclude:
@@ -145,7 +146,7 @@ def group_measurements(
 
 
 def resolve_measurements_by_names(
-    session,
+    session: Any,
     names: Iterable[str],
     exclude: Optional[Union[list[str], set[str]]] = None,
 ) -> list[tuple[str, int, int, str]]:
@@ -182,7 +183,7 @@ def resolve_measurements_by_names(
 
 
 def names_from_group(
-    session,
+    session: Any,
     group_name: str,
     exclude: Optional[Union[list[str], set[str]]] = None,
 ) -> list[str]:
@@ -214,7 +215,7 @@ def names_from_group(
 
 
 def daq_list_from_names(
-    session,
+    session: Any,
     list_name: str,
     event_num: int,
     stim: bool,
@@ -238,7 +239,7 @@ def daq_list_from_names(
 
 
 def daq_list_from_group(
-    session,
+    session: Any,
     list_name: str,
     event_num: int,
     stim: bool,
@@ -275,7 +276,7 @@ def daq_list_from_group(
 
 
 def build_daq_lists(
-    session,
+    session: Any,
     groups: list[dict[str, Any]],
 ) -> list[DaqList]:
     """

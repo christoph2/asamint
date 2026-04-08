@@ -1,19 +1,23 @@
 #!/usr/bin/env python
 
 import binascii
-import typing
+import logging
+from collections.abc import Callable
 from copy import deepcopy
 from datetime import datetime
 from decimal import Decimal
+from typing import Any
 
 from asamint.calibration.msrsw_db import MSRSWDatabase, SwInstance, SwInstanceSpec
 from asamint.msrsw import elements
 from asamint.msrsw.elements import VG, VT
 from asamint.utils import slicer
 
+logger = logging.getLogger(__name__)
 
-def array_values(values, flatten: bool = False):
-    result = []
+
+def array_values(values: list[Any], flatten: bool = False) -> list[Any]:
+    result: list[Any] = []
     for v in values:
         if isinstance(v, VG):
             if flatten:
@@ -25,21 +29,21 @@ def array_values(values, flatten: bool = False):
     return result
 
 
-def scalar_value(values):
+def scalar_value(values: list[Any]) -> Any:
     value = values[0].phys
     if isinstance(values[0], VT):
         value = f"'{value}'"
     return value
 
 
-def axis_formatter(values):
+def axis_formatter(values: list[Any]) -> str:
     if all(isinstance(v, str) for v in values):
         return "   ".join([f"'{v}'" for v in values])
     else:
         return "   ".join([f"{v:8.3f}" for v in values])
 
 
-def dump_array(values, level: int = 1, brackets=False) -> str:
+def dump_array(values: list[Any], level: int = 1, brackets: bool = False) -> str:
     result = []
     for value in values:
         if isinstance(value, list):
@@ -58,7 +62,7 @@ def dump_array(values, level: int = 1, brackets=False) -> str:
     return " ".join(result)
 
 
-def reshape(arr, dim: tuple[int]):
+def reshape(arr: list[Any], dim: tuple[int, ...]) -> list[Any]:
     if not dim:
         return arr
     tmp = deepcopy(arr)
@@ -75,16 +79,16 @@ def convert_timestamp(
 
 
 def get_content(
-    attr: typing.Any,
-    default: typing.Any | None = None,
-    converter: typing.Callable | None = None,
-):
+    attr: Any,
+    default: Any | None = None,
+    converter: Callable[..., Any] | None = None,
+) -> Any:
     value = attr.content if attr else default
     if converter is not None:
         try:
             value = converter(value)
-        except Exception as e:
-            print(str(e))
+        except (ValueError, TypeError) as e:
+            logger.warning("Converter failed for attr %r: %s", attr, e)
     return value
 
 
@@ -102,62 +106,62 @@ class CdfWalker:
         shortname: str,
         a2l_file: str,
         hex_file: str,
-        references: list,
+        references: list[Any],
         variants: bool,
-    ):
+    ) -> None:
         raise NotImplementedError("CdfWalker::on_header() must be overriten")
 
-    def do_shortname(self, sn):
+    def do_shortname(self, sn: Any) -> elements.ShortName:
         content = get_content(sn, "")
         return elements.ShortName(content)
 
-    def do_longname(self, ln):
+    def do_longname(self, ln: Any) -> elements.LongName:
         content = get_content(ln, "")
         return elements.LongName(content)
 
-    def do_displayname(self, dn):
+    def do_displayname(self, dn: Any) -> elements.DisplayName:
         content = get_content(dn, "")
         return elements.DisplayName(content)
 
-    def do_category(self, cat):
+    def do_category(self, cat: Any) -> elements.Category:
         content = get_content(cat, "")
         return elements.Category(content)
 
-    def do_feature_ref(self, ref):
+    def do_feature_ref(self, ref: Any) -> elements.A2LFunction:
         ref = get_content(ref)
         return elements.A2LFunction(ref)
 
-    def do_instance_ref(self, ref):
+    def do_instance_ref(self, ref: Any) -> elements.InstanceRef:
         ref = get_content(ref)
         return elements.InstanceRef(ref)
 
-    def do_sw_model_link(self, link):
+    def do_sw_model_link(self, link: Any) -> elements.ModelLink:
         link = get_content(link)
         return elements.ModelLink(link)
 
-    def do_unit_display_name(self, name):
+    def do_unit_display_name(self, name: Any) -> elements.UnitDisplayName:
         name = get_content(name, "")
         return elements.UnitDisplayName(name)
 
-    def do_vs(self, vs):
+    def do_vs(self, vs: Any) -> list[elements.V]:
         if vs:
             return [elements.V(phys=v.content) for v in vs]
         else:
             return []
 
-    def do_vfs(self, vfs):
+    def do_vfs(self, vfs: Any) -> list[elements.VF]:
         if vfs:
             return [elements.VF(phys=v.content) for v in vfs]
         else:
             return []
 
-    def do_vts(self, vts):
+    def do_vts(self, vts: Any) -> list[elements.VT]:
         if vts:
             return [elements.VT(phys=v.content) for v in vts]
         else:
             return []
 
-    def do_vhs(self, vhs):
+    def do_vhs(self, vhs: Any) -> list[elements.VH]:
         if vhs:
             result = []
             for v in vhs:
@@ -171,7 +175,7 @@ class CdfWalker:
         else:
             return []
 
-    def do_array_size(self, arr):
+    def do_array_size(self, arr: Any) -> elements.ArraySize:
         if arr:
             values = []
             values.extend(self.do_vfs(arr.vfs))
@@ -180,10 +184,10 @@ class CdfWalker:
         else:
             return elements.ArraySize(())
 
-    def do_array_index(self, arr):
+    def do_array_index(self, arr: Any) -> elements.ArrayIndex:
         return elements.ArrayIndex(get_content(arr))
 
-    def do_sw_cs_flags(self, flags):
+    def do_sw_cs_flags(self, flags: Any) -> elements.Flags | None:
         if flags:
             category = self.do_category(flags.category)
             flag = get_content(flags.flag, None, bool)
@@ -194,7 +198,7 @@ class CdfWalker:
         else:
             return None
 
-    def do_remark(self, remark):
+    def do_remark(self, remark: Any) -> list[elements.P] | elements.Remark:
         if remark.ps:
             result = []
             for p in remark.ps:
@@ -203,7 +207,7 @@ class CdfWalker:
         else:
             return elements.Remark([])
 
-    def do_vgs(self, vgs):
+    def do_vgs(self, vgs: Any) -> list[elements.VG]:
         result = []
         for item in vgs:
             vg = elements.VG()
@@ -222,7 +226,7 @@ class CdfWalker:
             result.append(vg)
         return result
 
-    def do_values(self, values):
+    def do_values(self, values: Any) -> list[Any]:
         if values is None:
             return []
         result = []
@@ -238,13 +242,13 @@ class CdfWalker:
             result.extend(self.do_vhs(values.vhs))
         return result
 
-    def do_sw_values_coded(self, values):
+    def do_sw_values_coded(self, values: Any) -> list[Any]:
         return self.do_values(values)
 
-    def do_sw_values_phys(self, values):
+    def do_sw_values_phys(self, values: Any) -> list[Any]:
         return self.do_values(values)
 
-    def do_value_cont(self, cont):
+    def do_value_cont(self, cont: Any) -> elements.ValueContainer:
         if cont is None:
             return elements.ValueContainer(
                 unit_display_name=None, array_size=(), values_phys=[], values_int=[]
@@ -264,7 +268,7 @@ class CdfWalker:
             values_int=values_int,
         )
 
-    def do_axis_conts(self, cont):
+    def do_axis_conts(self, cont: Any) -> list[elements.AxisContainer]:
         result = []
         if cont:
             for item in cont.sw_axis_cont:
@@ -292,7 +296,7 @@ class CdfWalker:
                 )
         return result
 
-    def do_sw_cs_history(self, history):
+    def do_sw_cs_history(self, history: Any) -> list[elements.HistoryEntry]:
         result = []
         if history is not None:
             for entry in history.cs_entry:
@@ -313,11 +317,11 @@ class CdfWalker:
                 )
         return result
 
-    def do_sw_vcd_criterion_ref(self, ref):
+    def do_sw_vcd_criterion_ref(self, ref: Any) -> elements.CriterionRef:
         ref = get_content(ref)
         return elements.CriterionRef(ref)
 
-    def do_sw_vcd_criterion_values(self, values):
+    def do_sw_vcd_criterion_values(self, values: Any) -> list[elements.CriterionValue]:
         result = []
         if values is not None:
             for value in values.sw_vcd_criterion_value:
@@ -326,7 +330,7 @@ class CdfWalker:
                 result.append(elements.CriterionValue(ref, vt))
         return result
 
-    def do_sw_cs_collection(self, collections):
+    def do_sw_cs_collection(self, collections: Any) -> list[elements.A2LFunction | elements.A2LGroup]:
         sw_collection = []
         if collections is not None and collections.sw_cs_collection:
             for coll in collections.sw_cs_collection:
@@ -340,7 +344,7 @@ class CdfWalker:
                     )  # A2L GROUP
         return sw_collection
 
-    def do_sw_instance_props_variants(self, variants):
+    def do_sw_instance_props_variants(self, variants: Any) -> list[elements.InstancePropsVariant]:
         result = []
         if variants is not None:
             for variant in variants.sw_instance_props_variant:
@@ -358,7 +362,7 @@ class CdfWalker:
                 )
         return result
 
-    def do_instance(self, inst):
+    def do_instance(self, inst: Any) -> elements.CalibrationParameter:
 
         shortname = self.do_shortname(inst.short_name).value
         longname = self.do_longname(inst.short_name).value
@@ -404,7 +408,7 @@ class CdfWalker:
         )
         return cp
 
-    def run(self):
+    def run(self) -> None:
         spec = self.session.query(SwInstanceSpec).first()
         tree = spec.sw_instance_tree[0]
         collections = tree.sw_cs_collections

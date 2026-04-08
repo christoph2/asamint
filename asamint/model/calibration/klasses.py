@@ -26,6 +26,7 @@ __copyright__ = """
 """
 
 import json
+import logging
 from dataclasses import asdict, dataclass, field, is_dataclass
 from datetime import datetime
 from enum import IntEnum
@@ -42,6 +43,8 @@ from sqlalchemy.ext.associationproxy import (
 # numpy.seterr(all=None, divide=None, over=None, under=None, invalid=None)
 np.seterr(divide="raise")
 
+logger = logging.getLogger(__name__)
+
 
 class JSONEncoder(json.JSONEncoder):
     """JSON serializer for the following dataclasses."""
@@ -51,8 +54,8 @@ class JSONEncoder(json.JSONEncoder):
         if is_dataclass(o):
             try:
                 result = o.asdict()
-            except Exception as e:
-                print(f"asdict: {e!r} ==> {type(o)}")
+            except (TypeError, AttributeError) as e:
+                logger.debug("asdict failed: %r ==> %s", e, type(o))
                 return b""
             else:
                 return result
@@ -71,8 +74,8 @@ class JSONEncoder(json.JSONEncoder):
         else:
             try:
                 data = super().default(o)
-            except Exception as e:
-                print(f"JSONEncoder: {e!r} ==> {type(o)}")
+            except TypeError as e:
+                logger.debug("JSONEncoder fallback failed: %r ==> %s", e, type(o))
                 data = ""
         return data
 

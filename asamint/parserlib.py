@@ -29,28 +29,33 @@ __version__ = "0.1.0"
 
 import codecs
 import importlib
-import os
+import logging
 import sys
+from pathlib import Path
+from types import ModuleType
+from typing import Any, Optional
 
 import antlr4
 from antlr4.error.ErrorListener import ErrorListener
+
+logger = logging.getLogger(__name__)
 
 
 # from pya2l import model
 
 
 class MyErrorListener(ErrorListener):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-    def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-        print("line " + str(line) + ":" + str(column) + " " + msg, file=sys.stderr)
+    def syntaxError(self, recognizer: Any, offendingSymbol: Any, line: int, column: int, msg: str, e: Any) -> None:
+        logger.error("line %d:%d %s", line, column, msg)
 
 
 class ParserWrapper:
     """"""
 
-    def __init__(self, grammarName, startSymbol, listener=None, debug=False):
+    def __init__(self, grammarName: str, startSymbol: str, listener: Optional[type] = None, debug: bool = False) -> None:
         self.debug = debug
         self.grammarName = grammarName
         self.startSymbol = startSymbol
@@ -58,7 +63,7 @@ class ParserWrapper:
         self.parserModule, self.parserClass = self._load("Parser")
         self.listener = listener
 
-    def _load(self, name):
+    def _load(self, name: str) -> tuple[ModuleType, type]:
         className = f"{self.grammarName}{name}"
         moduleName = f"asamint.parsers.{className}"
         module = importlib.import_module(moduleName)
@@ -68,7 +73,7 @@ class ParserWrapper:
             klass,
         )
 
-    def parse(self, input, trace=False):
+    def parse(self, input: antlr4.InputStream, trace: bool = False) -> Any:
         lexer = self.lexerClass(input)
         # lexer.removeErrorListeners()
         # lexer.addErrorListener(MyErrorListener())
@@ -87,23 +92,22 @@ class ParserWrapper:
             walker.walk(listener, tree)
             return listener
 
-    def parseFromFile(self, filename, encoding="latin-1", trace=False):
+    def parseFromFile(self, filename: str | Path, encoding: str = "latin-1", trace: bool = False) -> Any:
         if filename == ":memory:":
             self.fnbase = ":memory:"
         else:
-            pth, fname = os.path.split(filename)
-            self.fnbase = os.path.splitext(fname)[0]
+            self.fnbase = Path(filename).stem
         return self.parse(ParserWrapper.stringStream(filename, encoding), trace)
 
-    def parseFromString(self, buf, encoding="latin-1", trace=False, dbname=":memory:"):
+    def parseFromString(self, buf: str, encoding: str = "latin-1", trace: bool = False, dbname: str = ":memory:") -> Any:
         self.fnbase = dbname
         return self.parse(antlr4.InputStream(buf), trace)
 
     @staticmethod
-    def stringStream(fname, encoding="latin-1"):
+    def stringStream(fname: str | Path, encoding: str = "latin-1") -> antlr4.InputStream:
         return antlr4.InputStream(codecs.open(fname, encoding=encoding).read())
 
-    def _getNumberOfSyntaxErrors(self):
+    def _getNumberOfSyntaxErrors(self) -> int:
         return self._syntaxErrors
 
     numberOfSyntaxErrors = property(_getNumberOfSyntaxErrors)

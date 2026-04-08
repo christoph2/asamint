@@ -145,7 +145,7 @@ class XCP(Configurable):
         # external pyXCP defaults.
         try:
             self._merge_external_pyxcp_config_into_self_config()
-        except Exception as exc:
+        except (OSError, ValueError, KeyError, AttributeError) as exc:
             # Don’t abort startup; just log the problem so the user can fix the path
             if hasattr(self, "log"):
                 self.log.warning(f"Failed to load external pyXCP configuration: {exc}")

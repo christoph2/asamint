@@ -1065,7 +1065,7 @@ class CalibrationData:
             try:
                 ap = AxisPts.get(self.session, a.name)
                 yield ap
-            except Exception as e:
+            except (AttributeError, ValueError, KeyError) as e:
                 self.logger.error(f"Error loading axis points '{a.name}': {e}")
                 continue
 
@@ -1087,7 +1087,7 @@ class CalibrationData:
         for characteristic in query.all():
             try:
                 yield Characteristic.get(self.session, characteristic.name)
-            except Exception as e:
+            except (AttributeError, ValueError, KeyError) as e:
                 self.logger.error(
                     f"Error loading {category} '{characteristic.name}': {e}"
                 )

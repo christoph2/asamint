@@ -26,9 +26,13 @@ __copyright__ = """
 __author__ = "Christoph Schueler"
 
 
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
+import logging
+from typing import Any, Optional
 
 from asamint.adapters.a2l import DB, model
+
+logger = logging.getLogger(__name__)
 
 """
 a2ldb_import [imex]
@@ -69,7 +73,7 @@ class CompuMethods(Mapping):
     10 = text to text tabular look-up (translation) 2 x n + 1 0
     """
 
-    def __init__(self, session, referenced: bool = True):
+    def __init__(self, session: Any, referenced: bool = True) -> None:
         if referenced:
             conversions = (
                 session.query(model.Measurement.conversion)
@@ -102,22 +106,22 @@ class CompuMethods(Mapping):
                 pass
             elif conversionType == "TAB_VERB":
                 pass
-        print(self._compu_methods)
+        logger.debug("Loaded compu methods: %s", self._compu_methods)
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> Any:
         return self._compu_methods[name]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         return iter(self._compu_methods)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._compu_methods)
 
 
 class Measurement:
     """Container for Measurement-related data."""
 
-    def __init__(self, session, name):
+    def __init__(self, session: Any, name: str) -> None:
         self.session = session
         self._meas = (
             session.query(model.Measurement)
@@ -126,7 +130,7 @@ class Measurement:
         )
 
 
-def getCM(session, name):
+def getCM(session: Any, name: str) -> Optional[Any]:
     if name != "NO_COMPU_METHOD":
         cm = (
             session.query(model.CompuMethod)

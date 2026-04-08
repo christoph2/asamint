@@ -24,6 +24,7 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
+import logging
 import os
 from dataclasses import dataclass, field
 from typing import List
@@ -35,6 +36,8 @@ from asamint.adapters.a2l import inspect, model
 from asamint.adapters.mdf import MDF
 from asamint.asam import AsamMC
 from asamint.config import get_application
+
+logger = logging.getLogger(__name__)
 
 FN = r"C:\Users\HP\PycharmProjects\asamint\asamint\examples\VectorXCP\VectorAutosar_20260106_154305h5.h5"
 
@@ -90,7 +93,7 @@ class VectorAutosar(AsamMC):
                 self.traverse(attr)
                 self.active_group.pop()
             elif isinstance(attr, h5py.Dataset):
-                print(f"{attr.name} ==> {attr.parent}")
+                logger.debug("%s ==> %s", attr.name, attr.parent)
                 name_parts = attr.name.rsplit("/")
                 if name_parts[-1] in ("timestamp0", "timestamp1"):
                     continue
@@ -131,4 +134,4 @@ for group in mc.groups:
 MF = r"C:\Users\Public\Documents\Vector\CANape Examples 21.0\RaceTrackDemo\MeasurementFiles\SummitPoint_09637700.mf4"
 
 mf = MDF(MF)
-print(mf)
+logger.debug("MDF object: %s", mf)

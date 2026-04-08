@@ -172,7 +172,7 @@ class CDFExporter:
         try:
             self._append_values(elem, self.h5_db.load(param_name))
             return True
-        except Exception as e:
+        except (KeyError, ValueError, TypeError) as e:
             self.logger.debug(f"Could not load values for {param_name} from H5: {e}")
             return False
 

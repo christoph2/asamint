@@ -97,7 +97,7 @@ class CalibrationDB:
                 ds["phys"] = phys
 
             self.logger.debug(f"Imported scalar value: {value.name}")
-        except Exception as e:
+        except (TypeError, ValueError, OSError) as e:
             self.logger.error(f"Error importing scalar value {value.name}: {e}")
             raise
 
@@ -134,7 +134,7 @@ class CalibrationDB:
                     ds["phys"] = value.phys
 
             self.logger.debug(f"Imported value block: {value.name}")
-        except Exception as e:
+        except (TypeError, ValueError, OSError) as e:
             self.logger.error(f"Error importing value block {value.name}: {e}")
             raise
 
@@ -171,7 +171,7 @@ class CalibrationDB:
                     ds["phys"] = value.phys
 
             self.logger.debug(f"Imported axis points: {value.name}")
-        except Exception as e:
+        except (TypeError, ValueError, OSError) as e:
             self.logger.error(f"Error importing axis points {value.name}: {e}")
             raise
 
@@ -244,7 +244,7 @@ class CalibrationDB:
                         ax["reference"] = h5py.SoftLink(reference_path)
 
             self.logger.debug(f"Imported {value.category.lower()}: {value.name}")
-        except Exception as e:
+        except (TypeError, ValueError, OSError) as e:
             self.logger.error(
                 f"Error importing {value.category.lower()} {value.name}: {e}"
             )
@@ -302,7 +302,7 @@ class CalibrationDB:
         except KeyError:
             self.logger.error(f"Parameter not found: {name}")
             raise
-        except Exception as e:
+        except (TypeError, ValueError, OSError) as e:
             self.logger.error(f"Error loading parameter {name}: {e}")
             raise
 

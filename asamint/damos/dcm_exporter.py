@@ -130,7 +130,7 @@ class DcmExporter:
             with open(output_path, "w", encoding="latin-1") as of:
                 of.write(res)
             return True
-        except Exception as e:
+        except (OSError, ValueError, TypeError) as e:
             self.logger.error(f"Error rendering DCM template: {e}")
             return False
 
@@ -164,7 +164,7 @@ class DcmExporter:
             return None
         try:
             return self.h5_db.load(name)
-        except Exception as e:
+        except (KeyError, ValueError, TypeError) as e:
             self.logger.debug(f"Could not load values for {name} from H5: {e}")
             return None
 

@@ -325,7 +325,7 @@ class XCPMeasurement(AsamBaseType):
         xcp_master.setDaqListMode(
             mode=0x10, daqListNumber=0, eventChannelNumber=3, prescaler=1, priority=0
         )
-        print("startStopDaqList #0", xcp_master.startStopDaqList(0x02, 0))
+        self.logger.debug("startStopDaqList #0: %s", xcp_master.startStopDaqList(0x02, 0))
         # xcp_master.setDaqListMode(0x10, 1, 2, 1, 0) # , 2)
         # print("startStopDaqList #1", xcp_master.startStopDaqList(0x02, 1))
 

@@ -29,12 +29,15 @@ __author__ = "Christoph Schueler"
 
 from decimal import Decimal as D
 from decimal import InvalidOperation
+import logging
 from typing import Optional, Union
 
 from lxml import etree  # nosec
 from lxml.etree import Comment, SubElement, _Comment, _ProcessingInstruction  # nosec
 
 from asamint.utils.data import get_dtd
+
+logger = logging.getLogger(__name__)
 
 
 def element_name(tree):
@@ -104,7 +107,7 @@ class XMLTraversor:
             if isinstance(tree, _Comment):
                 return {"_com_ment_": str(tree)}
             elif isinstance(tree, _ProcessingInstruction):
-                print("PI", tree.text, tree.target)
+                logger.debug("PI: text=%s target=%s", tree.text, tree.target)
                 return {
                     "ProcessingInstruction": (
                         tree.text,
