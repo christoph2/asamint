@@ -10,7 +10,7 @@ class CVXImporter:
     Importer for CVX files.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.comment_indicator = "#"
         self.value_separator = ","
         self.string_delimiter = '"'
@@ -38,7 +38,7 @@ class CVXImporter:
         except (ValueError, TypeError):
             return 0.0
 
-    def _parse_lines(self, f: TextIO):
+    def _parse_lines(self, f: TextIO) -> None:
         lines = f.readlines()
         i = 0
         while i < len(lines):

@@ -40,12 +40,12 @@ from asamint.utils.data import get_dtd
 logger = logging.getLogger(__name__)
 
 
-def element_name(tree):
+def element_name(tree) -> str:
     """ """
     return tree.tag.lower().replace("-", "_")
 
 
-def create_elem(parent, name: str, text: str = None, attrib: dict = None):
+def create_elem(parent, name: str, text: str = None, attrib: dict = None) -> etree._Element:
     """ """
     elem = SubElement(parent, name, attrib or {})
     if text:
@@ -58,7 +58,7 @@ def xml_comment(parent, text: str) -> None:
     parent.append(Comment(text))
 
 
-def as_numeric(element):
+def as_numeric(element) -> Union[D, str]:
     """Try to convert ELEMENT text to decimal floating-point."""
     text = element.text
     try:
@@ -82,15 +82,15 @@ def create_validator(file_name: str) -> Optional[Union[etree.DTD, etree.XMLSchem
 class XMLTraversor:
     """Visitable XML tree."""
 
-    def __init__(self, file_name):
+    def __init__(self, file_name) -> None:
         self.doc = etree.parse(file_name)  # nosec
         self.doc_root = self.doc.getroot()
 
     @property
-    def root(self):
+    def root(self) -> etree._Element:
         return self.doc_root
 
-    def generic_visit(self, tree):
+    def generic_visit(self, tree) -> Optional[dict]:
         children = tree.getchildren()
         if not children:
             if not isinstance(tree.text, str):
@@ -102,7 +102,7 @@ class XMLTraversor:
             result.append(self.visit(child))
         return {element_name(tree): result}
 
-    def visit(self, tree):
+    def visit(self, tree) -> Optional[dict]:
         if not isinstance(tree.tag, str):
             if isinstance(tree, _Comment):
                 return {"_com_ment_": str(tree)}
@@ -121,11 +121,11 @@ class XMLTraversor:
         visitor = getattr(self, method, self.generic_visit)
         return visitor(tree)
 
-    def visit_children(self, tree):
+    def visit_children(self, tree) -> list:
         result = []
         for child in tree.getchildren():
             result.append(self.visit(child))
         return result
 
-    def run(self):
+    def run(self) -> Optional[dict]:
         return self.visit(self.root)

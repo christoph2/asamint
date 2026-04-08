@@ -1,3 +1,5 @@
+from typing import Any
+
 from asamint.cdf import walker
 from asamint.msrsw.elements import Instance
 
@@ -10,7 +12,7 @@ par_info.comment ='';
 """
 
 
-def do_axis_containers(conts):
+def do_axis_containers(conts) -> None:
     if conts:
         for cont in conts:
             print(
@@ -32,7 +34,7 @@ class Exporter(walker.CdfWalker):
         hex_file: str,
         references: list,
         variants: bool,
-    ):
+    ) -> None:
         print("HEADER", shortname, a2l_file, hex_file, variants)
 
     def on_instance(self, instance: Instance) -> None:
@@ -77,7 +79,7 @@ class Exporter(walker.CdfWalker):
         value = walker.scalar_value(value_container.values_phys)
         print(f"{name} = {value}; %[{unit}]@CANAPE_ORIGIN@{name}{suffix}")
 
-    def _array_values(self, value_container, category: str):
+    def _array_values(self, value_container, category: str) -> list[Any]:
         if category != "MAP":
             return walker.array_values(value_container.values_phys, flatten=False)
         array_size = value_container.array_size.dimensions

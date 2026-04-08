@@ -6,7 +6,7 @@ from asamint.calibration.msrsw_db import MSRSWDatabase, Parser
 
 def import_cdf_to_db(
     xml_path: str | Path, db_path: str | Path, logger: logging.Logger = None
-):
+) -> bool:
     logger = logger or logging.getLogger(__name__)
     logger.info(f"Importing {xml_path} to {db_path}")
 
@@ -29,8 +29,8 @@ def import_cdf_to_db(
 
 
 class CDFImporter:
-    def __init__(self, logger: logging.Logger = None):
+    def __init__(self, logger: logging.Logger = None) -> None:
         self.logger = logger or logging.getLogger(__name__)
 
-    def import_file(self, xml_path: str | Path, db_path: str | Path):
+    def import_file(self, xml_path: str | Path, db_path: str | Path) -> bool:
         return import_cdf_to_db(xml_path, db_path, self.logger)

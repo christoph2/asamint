@@ -98,7 +98,7 @@ class ProfileCreate(Application):
         }
     )
 
-    def start(self):
+    def start(self) -> None:
         pyxcp = self.parent.parent
         if self.dest_file:
             dest = Path(self.dest_file)
@@ -121,7 +121,7 @@ class ProfileApp(Application):
         }
     )
 
-    def start(self):
+    def start(self) -> None:
         if self.subapp is None:
             print(
                 f"No subcommand specified. Must specify one of: {self.subcommands.keys()}"
@@ -137,7 +137,7 @@ class ProfileApp(Application):
 class XCP(Configurable):
     classes = List([pyxcp_config.General, pyxcp_config.Transport])
 
-    def __init__(self, **kws):
+    def __init__(self, **kws) -> None:
         super().__init__(**kws)
         # Try to load external pyXCP configuration file, if specified, into our Config
         # BEFORE instantiating the traitlets-based pyxcp classes. This way, any
@@ -227,7 +227,7 @@ class Asamint(Application):
         )
     }
 
-    def start(self):
+    def start(self) -> None:
         if self.subapp:
             self.subapp.start()
             exit(2)
@@ -235,7 +235,7 @@ class Asamint(Application):
             self._read_configuration(self.config_file)
             self._setup_logger()
 
-    def _setup_logger(self):
+    def _setup_logger(self) -> None:
         logger = configure_logging(name="asamint", level=self.log_level)
 
         for handler in list(logger.handlers):
@@ -250,7 +250,7 @@ class Asamint(Application):
         logger.addHandler(rich_handler)
         self.log = logger
 
-    def initialize(self, argv=None):
+    def initialize(self, argv=None) -> None:
         from asamint import __version__ as asamint_version
 
         Asamint.version = asamint_version
@@ -263,7 +263,7 @@ class Asamint(Application):
         self.general = General(config=self.config, parent=self)
         self.xcp = XCP(config=self.config, parent=self)
 
-    def read_configuration_file(self, file_name: str, emit_warning: bool = True):
+    def read_configuration_file(self, file_name: str, emit_warning: bool = True) -> None:
         self.legacy_config: bool = False
 
         pth = Path(file_name)
@@ -285,7 +285,7 @@ class Asamint(Application):
     )
 
     @default("log_level")
-    def _default_value(self):
+    def _default_value(self) -> int:
         return logging.INFO  # traitlets default is logging.WARN
 
     aliases = Dict(  # type:ignore[assignment]

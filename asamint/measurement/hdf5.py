@@ -3,13 +3,16 @@
 import warnings
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from asamint.adapters.a2l import inspect
 from asamint.asam import AsamMC
 from asamint.core.logging import configure_logging
 
 logger = configure_logging(__name__)
+
+if TYPE_CHECKING:
+    from asamint.measurement import RunResult
 
 
 class HDF5Creator(AsamMC):
@@ -18,7 +21,7 @@ class HDF5Creator(AsamMC):
     integrating with pya2l and pyxcp. Same interface as MDFCreator.
     """
 
-    def on_init(self, config, *args, **kws):
+    def on_init(self, config, *args, **kws) -> None:
         self.measurement_variables: list[Any] = []
         try:
             self._resolve_measurements_from_config()
@@ -51,7 +54,7 @@ class HDF5Creator(AsamMC):
         hdf5_out: str | Path | None = None,
         project_meta: Optional[dict[str, Any]] = None,
         hdf5_only: bool = False,
-    ):
+    ) -> "RunResult":
         """
         Persist measurement data into HDF5/CSV using finalize helpers.
 

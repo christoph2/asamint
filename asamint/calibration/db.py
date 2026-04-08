@@ -20,7 +20,7 @@ class CalibrationDB:
 
     def __init__(
         self, file_name: str, mode: str = "r", logger: Optional[logging.Logger] = None
-    ):
+    ) -> None:
         """Initialize the calibration database.
 
         Args:

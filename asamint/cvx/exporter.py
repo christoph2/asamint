@@ -16,21 +16,21 @@ class CVXExporter:
         string_delimiter='"',
         float_format="%.9g",
         logger: logging.Logger = None,
-    ):
+    ) -> None:
         self.delimiter = delimiter
         self.string_delimiter = string_delimiter
         self.float_format = float_format
         self.logger = logger or logging.getLogger(__name__)
 
-    def _format_float(self, value):
+    def _format_float(self, value) -> str:
         return self.float_format % value
 
-    def _format_string(self, s):
+    def _format_string(self, s) -> str:
         if s is None:
             return ""
         return f"{self.string_delimiter}{s}{self.string_delimiter}"
 
-    def _write_header(self, f, functions, variants):
+    def _write_header(self, f, functions, variants) -> None:
         f.write("KENNUNGEN\r\n")
         if functions:
             f.write(f"FUNKTIONEN {self.delimiter.join(functions)}\r\n")
@@ -39,21 +39,21 @@ class CVXExporter:
                 f.write(f"VARIANTE {key} {self.delimiter.join(values)}\r\n")
         f.write("END\r\n")
 
-    def _write_record_value(self, f, record):
+    def _write_record_value(self, f, record) -> None:
         f.write("VALUE\r\n")
         value = self._format_float(record.get("values", [0.0])[0])
         f.write(f"WERT {value}\r\n")
         if "display_identifier" in record:
             f.write(f"DISPLAYNAME {record['display_identifier']}\r\n")
 
-    def _write_record_val_blk(self, f, record):
+    def _write_record_val_blk(self, f, record) -> None:
         f.write("VAL_BLK\r\n")
         values = [self._format_float(v) for v in record.get("values", [])]
         f.write(f"WERT {self.delimiter.join(values)}\r\n")
         if "function" in record:
             f.write(f"FUNKTION {record['function']}\r\n")
 
-    def _write_record_curve(self, f, record):
+    def _write_record_curve(self, f, record) -> None:
         f.write("CURVE\r\n")
         # Axis
         x_axis = [self._format_float(v) for v in record.get("axis_x", [])]
@@ -62,7 +62,7 @@ class CVXExporter:
         values = [self._format_float(v) for v in record.get("values", [])]
         f.write(f"WERT {self.delimiter.join(values)}\r\n")
 
-    def _write_record_map(self, f, record):
+    def _write_record_map(self, f, record) -> None:
         f.write("MAP\r\n")
         # X Axis
         x_axis = [self._format_float(v) for v in record.get("axis_x", [])]
@@ -75,7 +75,7 @@ class CVXExporter:
             values_row = [self._format_float(v) for v in row]
             f.write(f"WERT {self.delimiter.join(values_row)}\r\n")
 
-    def _write_record(self, f, record):
+    def _write_record(self, f, record) -> None:
         rec_type = record.get("type")
         if not rec_type:
             return
@@ -97,7 +97,7 @@ class CVXExporter:
 
         f.write("END\r\n")
 
-    def export_file(self, file_path, records, functions=None, variants=None):
+    def export_file(self, file_path, records, functions=None, variants=None) -> None:
         with open(file_path, "w", encoding="latin-1", newline="") as f:
             # Header
             self._write_header(f, functions, variants)
@@ -106,7 +106,7 @@ class CVXExporter:
             for record in records:
                 self._write_record(f, record)
 
-    def export_stream(self, records, functions=None, variants=None):
+    def export_stream(self, records, functions=None, variants=None) -> str:
         string_io = io.StringIO()
         self.export_file(string_io, records, functions, variants)
         return string_io.getvalue()

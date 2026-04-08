@@ -28,7 +28,7 @@ __author__ = "Christoph Schueler"
 import time
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 import numpy as np
 from lxml.etree import Element, tostring  # nosec
@@ -37,6 +37,9 @@ from asamint.adapters.a2l import asam_type_size, inspect
 from asamint.adapters.mdf import MDF, Signal
 from asamint.asam import AsamMC, get_data_type
 from asamint.utils.xml import create_elem
+
+if TYPE_CHECKING:
+    from asamint.measurement import RunResult
 
 
 class Datasource:
@@ -70,7 +73,7 @@ class MDFCreator(AsamMC):
         "GROUPS": (list, False, []),
     }
 
-    def on_init(self, config, *args, **kws):
+    def on_init(self, config, *args, **kws) -> None:
         self._mdf_obj = MDF(version=self.config.general.mdf_version)
         hd_comment = self.hd_comment()
         self._mdf_obj.md_data = hd_comment
@@ -86,7 +89,7 @@ class MDFCreator(AsamMC):
                 f"MDFCreator: could not resolve measurements from config: {e}"
             )
 
-    def hd_comment(self):
+    def hd_comment(self) -> Optional[bytes]:
         """ """
         mdf_ver_major = int(self._mdf_obj.version.split(".")[0])
         if mdf_ver_major < 4:
@@ -161,7 +164,7 @@ class MDFCreator(AsamMC):
         strict: bool = False,
         strict_no_trim: bool = False,
         strict_no_synth: bool = False,
-    ):
+    ) -> "Optional[RunResult]":
         """
         Save collected measurements into an MDF4 file.
 

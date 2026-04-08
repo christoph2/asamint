@@ -1,5 +1,7 @@
 import logging
+from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
 from lxml import etree
 from sqlalchemy import inspect
@@ -25,7 +27,7 @@ class CDFExporter:
         h5_db: CalibrationDB = None,
         variant_coding: bool = False,
         logger: logging.Logger = None,
-    ):
+    ) -> None:
         self.db = db
         self.h5_db = h5_db
         self.variant_coding = variant_coding
@@ -35,7 +37,7 @@ class CDFExporter:
         if Msrsw not in self.reverse_elements:
             self.reverse_elements[Msrsw] = "MSRSW"
 
-    def export(self, file_path: str | Path, validate_dtd: bool = False):
+    def export(self, file_path: str | Path, validate_dtd: bool = False) -> bool:
         self.logger.info(f"Exporting database to {file_path}")
         msrsw_obj = self.db.session.query(Msrsw).first()
         if not msrsw_obj:
@@ -75,7 +77,7 @@ class CDFExporter:
             self.logger.error(str(entry))
         return False
 
-    def _format_tag(self, tag):
+    def _format_tag(self, tag) -> str:
         # Specific overrides for tags that shouldn't be just upper-cased
         overrides = {
             "ShortName": "SHORT-NAME",
@@ -117,7 +119,7 @@ class CDFExporter:
             formatted += char
         return formatted.upper()
 
-    def _to_xml(self, obj, tag_name):
+    def _to_xml(self, obj, tag_name) -> etree._Element | None:
         elem = etree.Element(tag_name)
         self._apply_xml_attributes(elem, obj)
         self._apply_terminal_content(elem, obj)
@@ -126,7 +128,7 @@ class CDFExporter:
         self._append_children(elem, obj)
         return elem
 
-    def _append_values(self, elem, data):
+    def _append_values(self, elem, data) -> None:
         category = data.attrs.get("category", "")
         if category in ("VALUE", "BOOLEAN", "ASCII", "TEXT"):
             self._append_scalar_value(
@@ -195,7 +197,7 @@ class CDFExporter:
                 continue
             self._append_child_value(elem, tag, child_value, elem_type)
 
-    def _iter_child_mappings(self, obj):
+    def _iter_child_mappings(self, obj) -> Iterator[tuple[str, Any, str]]:
         for tag, (py_attr, elem_type) in obj.ELEMENTS.items():
             if self._skip_child_tag(obj, tag):
                 continue
@@ -208,7 +210,7 @@ class CDFExporter:
             return tag in ("SwValueCont", "SwAxisConts")
         return tag == "SwInstancePropsVariants"
 
-    def _resolve_child_value(self, obj, tag, py_attr):
+    def _resolve_child_value(self, obj, tag, py_attr) -> Any:
         child_value = getattr(obj, py_attr, None)
         if child_value is not None or not isinstance(obj, Msrsw):
             return child_value
@@ -271,7 +273,7 @@ def export_to_cdf(
     output_xml_path: str | Path,
     h5_path: str | Path = None,
     variant_coding: bool = False,
-):
+) -> bool:
     db = MSRSWDatabase(db_path)
 
     h5_db = None

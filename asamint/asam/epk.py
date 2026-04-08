@@ -45,7 +45,7 @@ class Epk:
             epk = self.asam_mc.mod_par.epk
             return epk
 
-    def check_epk_xcp(self, xcp_master):
+    def check_epk_xcp(self, xcp_master) -> Optional[bool]:
         """Compare EPK (EPROM Kennung) from A2L with EPK from ECU.
 
         Returns

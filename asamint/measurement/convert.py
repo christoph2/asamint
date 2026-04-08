@@ -26,8 +26,9 @@ __copyright__ = """
 
 import logging
 import os
+from collections.abc import Generator
 from dataclasses import dataclass, field
-from typing import List
+from typing import Any, List
 
 import h5py
 import numpy as np
@@ -56,7 +57,7 @@ class Group:
 
 
 class VectorAutosar(AsamMC):
-    def __init__(self, file_name: str, *args, **kwargs):
+    def __init__(self, file_name: str, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         self.h5 = h5py.File(file_name, mode="r+", libver="latest")
@@ -65,7 +66,7 @@ class VectorAutosar(AsamMC):
         self.groups: list[Group] = []
         self.traverse(self.h5)
 
-    def read_values(self, attr: h5py.Dataset):
+    def read_values(self, attr: h5py.Dataset) -> Generator[Any, None, None]:
         total_size = attr.len()
         if not total_size:
             yield []
@@ -83,7 +84,7 @@ class VectorAutosar(AsamMC):
         if remaining:
             yield attr[offset : offset + remaining]
 
-    def traverse(self, elem):
+    def traverse(self, elem) -> None:
         for attr in elem.values():
             if isinstance(attr, h5py.Group):
                 group_name = attr.name.lstrip("/")

@@ -57,7 +57,7 @@ from asamint.core import get_data_type
 from asamint.utils import current_timestamp
 
 
-def create_xcp_master():
+def create_xcp_master() -> Any:
     """Create an XCP master via the adapter layer."""
 
     app = get_application()
@@ -74,7 +74,7 @@ class Group:
 class Directory:
     """Maintains A2L FUNCTION and  GROUP hierachy."""
 
-    def __init__(self, session):
+    def __init__(self, session) -> None:
         self.session = session
         self.group_by_name = {
             g.groupName: g for g in self.session.query(model.Group).all()
@@ -83,10 +83,10 @@ class Directory:
             f.name: f for f in self.session.query(model.Function).all()
         }
 
-    def get_group(self, name: str):
+    def get_group(self, name: str) -> Any:
         return self.group_by_name.get(name)
 
-    def get_function(self, name: str):
+    def get_function(self, name: str) -> Any:
         return self.function_by_name.get(name)
 
 
@@ -120,7 +120,7 @@ class AsamMC:
         "code": "code",
     }
 
-    def __init__(self, *args, **kws):
+    def __init__(self, *args, **kws) -> None:
         self.config = get_application()
         self.logger = self.config.log
         self.general_config = snapshot_general_config(self.config)
@@ -195,21 +195,21 @@ class AsamMC:
                 self.logger.info(f"Creating directory {dir_name!r}")
                 os.mkdir(dir_name)
 
-    def open_create_session(self, a2l_file, encoding="latin-1"):
+    def open_create_session(self, a2l_file, encoding="latin-1") -> None:
         self.opened = False
         self.session = open_a2l_database(a2l_file, encoding=encoding, local=True)
         self.opened = True
 
-    def on_init(self, config, *args, **kws):
+    def on_init(self, config, *args, **kws) -> None:
         pass
 
-    def loadConfig(self, project_config, experiment_config):
+    def loadConfig(self, project_config, experiment_config) -> None:
         """Load configuration data."""
 
     def sub_dir(self, name) -> Path:
         return Path(self.SUB_DIRS.get(name))
 
-    def generate_filename(self, extension, extra=None):
+    def generate_filename(self, extension, extra=None) -> str:
         """Automatically generate filename from configuration plus timestamp."""
         project = self.shortname
         subject = f"SUBJ_{self.shortname}"  # self.experiment_config.get("SHORTNAME")
@@ -218,14 +218,14 @@ class AsamMC:
         else:
             return f"{project}_{subject}{current_timestamp()}{extension}"
 
-    def xcp_connect(self):
+    def xcp_connect(self) -> None:
         if not self.xcp_connected:
             if self.xcp_master is None:
                 self.xcp_master = create_xcp_master()
             self.xcp_master.connect()
             self.xcp_connected = True
 
-    def close(self):
+    def close(self) -> None:
         if getattr(self, "xcp_connected", False) and self.xcp_master:
             try:
                 self.xcp_master.disconnect()
@@ -238,7 +238,7 @@ class AsamMC:
             self.opened = False
 
     @property
-    def query(self):
+    def query(self) -> Any:
         return self.session.query
 
     def _numpy_dtype_for_asam(self, datatype: str, bo: Any) -> np.dtype:  # noqa: C901
@@ -381,7 +381,7 @@ class AsamMC:
             result[m.name] = raw_vals
         return result
 
-    def calculate_physical_values(self, internal_values, cm_object):
+    def calculate_physical_values(self, internal_values, cm_object) -> Any:
         """Calculate pyhsical value representation from raw, ECU-internal values.
 
         Parameters

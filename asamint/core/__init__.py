@@ -80,7 +80,7 @@ class ECUByteOrder:
     # 3) Public decode function
     # ------------------------------------------------------------
     @classmethod
-    def decode(cls, raw: bytes, byteorder: ByteOrder, dtype: str):
+    def decode(cls, raw: bytes, byteorder: ByteOrder, dtype: str) -> np.ndarray:
         """
         Decode raw ECU bytes into a NumPy array.
 

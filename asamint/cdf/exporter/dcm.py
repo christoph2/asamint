@@ -12,7 +12,7 @@ def array_elements(array_size: ArraySize) -> int:
     return functools.reduce(operator.mul, array_size.dimensions, 1)
 
 
-def axis():
+def axis() -> None:
     """
     STUETZSTELLENVERTEILUNG  ${inst.name} ${len(inst.phys)}\
 ${header(inst)}
@@ -34,7 +34,7 @@ class Exporter(walker.CdfWalker):
         hex_file: str,
         references: list,
         variants: bool,
-    ):
+    ) -> None:
         print("KONSERVIERUNG_FORMAT 2.0\n\n")
 
         # print("* ", shortname, a2l_file, hex_file, variants)
@@ -49,7 +49,7 @@ class Exporter(walker.CdfWalker):
         instance: Instance,
         size_x: Optional[int] = None,
         size_y: Optional[int] = None,
-    ):
+    ) -> None:
         name = instance.short_name
         comment = instance.long_name
         display_name = instance.display_name

@@ -40,7 +40,7 @@ class FakeParser:
         help: str = "",
         type: str = "",
         default: str = "",
-    ):
+    ) -> None:
         warnings.warn(
             "Argument parser extension is currently not supported.",
             DeprecationWarning,
@@ -50,14 +50,14 @@ class FakeParser:
 
 
 class ArgumentParser:
-    def __init__(self, callout=None, *args, **kws):
+    def __init__(self, callout=None, *args, **kws) -> None:
         self._parser = FakeParser()
         if callout is not None:
             warnings.warn(
                 "callout  argument is currently not supported.", DeprecationWarning, stacklevel=2
             )
 
-    def run(self, policy=None, transport_layer_interface=None):
+    def run(self, policy=None, transport_layer_interface=None) -> dict:
         self.application = create_application(self.parser.options)
         # master = Master(
         #    application.transport.layer, config=application, policy=policy, transport_layer_interface=transport_layer_interface
@@ -66,7 +66,7 @@ class ArgumentParser:
         return master
 
     @property
-    def parser(self):
+    def parser(self) -> FakeParser:
         return self._parser
 
 

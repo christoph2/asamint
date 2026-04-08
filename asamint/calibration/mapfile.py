@@ -18,15 +18,15 @@ MT_ABBREVS = {
 
 class MapFile:
 
-    def __init__(self, filename, memory_map: dict, memory_errors: dict):
+    def __init__(self, filename, memory_map: dict, memory_errors: dict) -> None:
         self.memory_map = memory_map
         self.memory_errors = memory_errors
         self.out_file = open(filename, "w")
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.out_file.close()
 
-    def run(self):
+    def run(self) -> None:
         self.header()
         self.allocated_objects()
         self.out_file.write("*" * 96)
@@ -37,12 +37,12 @@ class MapFile:
         self.out_file.write("\n")
         self.error_objects()
 
-    def header(self):
+    def header(self) -> None:
         self.out_file.write(f"{'name':<70s}    address   length  type\n")
         self.out_file.write("=" * 96)
         self.out_file.write("\n")
 
-    def memory_objects(self, mem_objs):
+    def memory_objects(self, mem_objs) -> None:
         prev_address = None
         for address, objs in sorted(mem_objs.items(), key=itemgetter(0)):
             length = max(o.length for o in objs)
@@ -53,8 +53,8 @@ class MapFile:
             self.out_file.write(f"{names:<70s} 0x{address:08X} {length:08d}  {mt}\n")
             prev_address = address + length
 
-    def allocated_objects(self):
+    def allocated_objects(self) -> None:
         self.memory_objects(self.memory_map)
 
-    def error_objects(self):
+    def error_objects(self) -> None:
         self.memory_objects(self.memory_errors)

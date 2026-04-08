@@ -35,6 +35,7 @@ import pathlib
 import re
 import time
 from datetime import datetime
+from collections.abc import Iterator
 from typing import Any
 
 import numpy as np
@@ -53,11 +54,11 @@ def replace_non_c_char(s: str) -> str:
     return re.sub(r"[^.a-zA-Z0-9_]", "_", s)
 
 
-def current_timestamp():
+def current_timestamp() -> str:
     return time.strftime("_%d%m%Y_%H%M%S")
 
 
-def convert_name(name):
+def convert_name(name) -> str:
     """
     ASAP2 permits dotted, 'hierachical' names (like 'ASAM.M.SCALAR.UBYTE.TAB_NOINTP_DEFAULT_VALUE'),
     which may or may not be acceptable by tools.
@@ -70,12 +71,12 @@ def convert_name(name):
 class Bunch(dict):
     """ """
 
-    def __init__(self, *args, **kwds):
+    def __init__(self, *args, **kwds) -> None:
         super().__init__(*args, **kwds)
         self.__dict__ = self
 
 
-def make_2darray(arr):
+def make_2darray(arr) -> np.ndarray:
     """Reshape higher dimensional array to two dimensions.
 
     Probably the most anti-idiomatic Numpy code in the universe...
@@ -96,12 +97,12 @@ def make_2darray(arr):
         return arr
 
 
-def almost_equal(x, y, places=7):
+def almost_equal(x, y, places=7) -> bool:
     """Floating-point comparison done right."""
     return round(abs(x - y), places) == 0
 
 
-def generate_filename(project_config, experiment_config, extension, extra=None):
+def generate_filename(project_config, experiment_config, extension, extra=None) -> str:
     """Automatically generate filename from configuration plus timestamp."""
     project = project_config.get("PROJECT")
     subject = experiment_config.get("SUBJECT")
@@ -111,7 +112,7 @@ def generate_filename(project_config, experiment_config, extension, extra=None):
         return f"{project}_{subject}{current_timestamp()}.{extension}"
 
 
-def recursive_dict(element):
+def recursive_dict(element) -> tuple:
     return element.tag, dict(map(recursive_dict, element)) or element.text
 
 
@@ -120,7 +121,7 @@ def ffs(v: int) -> int:
     return (v & (-v)).bit_length() - 1
 
 
-def ffs_np(v):
+def ffs_np(v) -> int:
     """Find first set bit (numpy)."""
     return np.uint64(np.log2(v & (-v))) if v != 0 else 0
 
@@ -131,7 +132,7 @@ def add_suffix_to_path(path: str, suffix: str) -> str:
     return str(pathlib.Path(path).with_suffix(suffix))
 
 
-def slicer(iterable, sliceLength, converter=None):
+def slicer(iterable, sliceLength, converter=None) -> list:
     if converter is None:
         converter = type(iterable)
     length = len(iterable)
@@ -142,11 +143,11 @@ def int_log2(x: float) -> int:
     return math.ceil(math.log2(x))
 
 
-def current_datetime(locale=None):
+def current_datetime(locale=None) -> str:
     return format_datetime(datetime.utcnow(), locale=locale or default_locale)
 
 
-def chunks(arr, size):
+def chunks(arr, size) -> list:
     """Split an array-like in `size` sub-arrays."""
     return [arr[i : i + size] for i in range(0, len(arr), size)]
 
@@ -161,12 +162,12 @@ def flatten(values: list[Any]) -> list[Any]:
     return result
 
 
-def partition(pred, iterable):
+def partition(pred, iterable) -> tuple[Iterator, Iterator]:
     t1, t2 = itertools.tee(iterable)
     return filter(pred, t2), itertools.filterfalse(pred, t1)
 
 
-def adjust_to_word_boundary(value: int, alignment: int = 2):
+def adjust_to_word_boundary(value: int, alignment: int = 2) -> int:
     if (value % (1 << alignment)) == 0:
         return value
     else:

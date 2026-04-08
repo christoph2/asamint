@@ -48,11 +48,11 @@ class CalibrationData(AsamBaseType):
         "MDF_VERSION": (str, False, "4.10"),
     }
 
-    def on_init(self, project_config, experiment_config, *args, **kws):
+    def on_init(self, project_config, experiment_config, *args, **kws) -> None:
         self.loadConfig(project_config, experiment_config)
         self.a2l_epk = self.epk_from_a2l()
 
-    def check_epk(self, xcp_master):
+    def check_epk(self, xcp_master) -> bool:
         """Compare EPK (EPROM Kennung) from A2L with EPK from ECU.
 
         Returns
@@ -73,7 +73,7 @@ class CalibrationData(AsamBaseType):
             self.logger.info("OK, found matching EPK.")
         return ok
 
-    def epk_from_a2l(self):
+    def epk_from_a2l(self) -> tuple | None:
         """Read EPK from A2L database.
 
         Returns
@@ -90,7 +90,7 @@ class CalibrationData(AsamBaseType):
 
     def save_parameters(
         self, xcp_master=None, hexfile: str = None, hexfile_type: str = "ihex"
-    ):
+    ) -> None:
         """
         Parameters
         ----------
@@ -113,7 +113,7 @@ class CalibrationData(AsamBaseType):
 
     def upload_parameters(
         self, xcp_master, save_to_file: bool = True, hexfile_type: str = "ihex"
-    ):
+    ) -> Image:
         """
         Parameters
         ----------
@@ -175,17 +175,17 @@ DAQ_ID_FIELD_SIZE = {
 }
 
 
-def associate_measurement_to_odt_entry():
+def associate_measurement_to_odt_entry() -> None:
     """ """
 
 
 class XCPMeasurement(AsamBaseType):
     """ """
 
-    def on_init(self, project_config, experiment_config, *args, **kws):
+    def on_init(self, project_config, experiment_config, *args, **kws) -> None:
         self.loadConfig(project_config, experiment_config)
 
-    def setup_groups(self, groups):
+    def setup_groups(self, groups) -> tuple:
         result = []
         measurement_summary = []
         for name in groups:
@@ -197,7 +197,7 @@ class XCPMeasurement(AsamBaseType):
 
     def _collect_group(
         self, name: str, recursive: bool = True, measurement_summary: list = None
-    ):
+    ) -> list[McObject]:
         """ """
         result = []
         gr = Group(self.session, name)
@@ -228,7 +228,7 @@ class XCPMeasurement(AsamBaseType):
                 )
         return result
 
-    def start_measurement(self, xcp_master, groups=None):
+    def start_measurement(self, xcp_master, groups=None) -> None:
         self.uncompressed_size = 0
         self.intermediate_storage = []
 
@@ -343,7 +343,7 @@ class XCPMeasurement(AsamBaseType):
         lc.start()
         lc.join()
 
-    def wockser(self, catagory, *args):
+    def wockser(self, catagory, *args) -> None:
         response, counter, length, timestamp = args
         raw_data = response.tobytes()
         self.intermediate_storage.append(

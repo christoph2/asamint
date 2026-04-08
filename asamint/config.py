@@ -25,12 +25,14 @@ __copyright__ = """
 import io
 import json
 import pathlib
-from collections.abc import MutableMapping
+from collections.abc import Iterator, MutableMapping
 
 import toml
 
+from typing import Any
 
-def read_configuration(conf):
+
+def read_configuration(conf) -> dict:
     """Read a configuration file either in TOML format."""
     if conf:
         if isinstance(conf, io.IOBase):
@@ -57,7 +59,7 @@ def read_configuration(conf):
 class Configuration(MutableMapping):
     """ """
 
-    def __init__(self, parameters, config):
+    def __init__(self, parameters, config) -> None:
         self.parameters = parameters
         self.config = config
         for key, (tp, required, default) in self.parameters.items():
@@ -70,22 +72,22 @@ class Configuration(MutableMapping):
                 else:
                     self.config[key] = default
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> Any:
         return self.config[key]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value) -> None:
         self.config[key] = value
 
-    def __delitem__(self, key):
+    def __delitem__(self, key) -> None:
         del self.config[key]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         return iter(self.config)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.config)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.config}"
 
     __str__ = __repr__

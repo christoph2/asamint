@@ -26,6 +26,8 @@ __copyright__ = """
 """
 
 
+from typing import Any
+
 from lxml import etree  # nosec
 
 from asamint import msrsw
@@ -41,7 +43,7 @@ from asamint.utils import replace_non_c_char, sha1_digest
 from asamint.utils.xml import create_elem
 
 
-def matching_dcis(tree):
+def matching_dcis(tree) -> None:
     dcis = create_elem(tree, "MATCHING-DCIS")
     dci = create_elem(dcis, "MATCHING-DCI")
     create_elem(dci, "LABEL", "Meta Data Exchange Format for Software Module Sharing")
@@ -78,14 +80,14 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
     EXTENSION = "_mdx.xml"
 
     @staticmethod
-    def _matrix_dimensions(matrix_dim):
+    def _matrix_dimensions(matrix_dim) -> tuple[Any, ...] | None:
         if matrix_dim is None:
             return None
         dimensions = (matrix_dim.x, matrix_dim.y, matrix_dim.z)
         return dimensions if any(dim is not None for dim in dimensions) else None
 
     @staticmethod
-    def _coeff_value(coeffs, name):
+    def _coeff_value(coeffs, name) -> Any:
         if coeffs is None:
             return None
         if hasattr(coeffs, name):
@@ -93,7 +95,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
         return coeffs[name]
 
     @staticmethod
-    def _table_value(table, name):
+    def _table_value(table, name) -> Any:
         if table is None:
             return None
         if hasattr(table, name):
@@ -102,7 +104,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             return table[name]
         return None
 
-    def on_init(self, config, *args, **kws):
+    def on_init(self, config, *args, **kws) -> None:
         self.root = self._toplevel_boilerplate()
         self.tree = etree.ElementTree(self.root)
         self._units(self.sub_trees["SW-DATA-DICTIONARY-SPEC"])
@@ -123,7 +125,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
                 )
             )
 
-    def _toplevel_boilerplate(self):
+    def _toplevel_boilerplate(self) -> etree._Element:
         root = self.msrsw_header("MDX", "MDX")
         sw_system = self.sub_trees["SW-SYSTEM"]
         data_dict = create_elem(sw_system, "SW-DATA-DICTIONARY-SPEC")
@@ -131,7 +133,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
         matching_dcis(root)
         return root
 
-    def _units(self, tree):
+    def _units(self, tree) -> None:
         """
         SHORT-NAME ,
         LONG-NAME? ,
@@ -154,7 +156,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             create_elem(unit, "SHORT-NAME", text=replace_non_c_char(k.strip()))
             create_elem(unit, "DISPLAY-NAME", text=k.strip())
 
-    def _sw_variables(self, tree):
+    def _sw_variables(self, tree) -> None:
         self.data_constrs = []
         variables = create_elem(tree, "SW-VARIABLES")
         # data_constrs = []
@@ -233,7 +235,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             )
             self.data_constrs.append(data_constr)
 
-    def _sw_calparms(self, tree):
+    def _sw_calparms(self, tree) -> None:
         self.data_constrs = []
         cal_parms = create_elem(tree, "SW-CALPRMS")
         # data_constrs = []
@@ -319,7 +321,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             </SW-CALPRM>
             """
 
-    def _datatypes(self, tree):
+    def _datatypes(self, tree) -> None:
         dtypes = (
             ("UBYTE", 1, False, True, "2C", "BYTE"),
             ("SBYTE", 1, True, True, "2C", "BYTE"),
@@ -344,11 +346,11 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             align = alignments.get(dtype[0])
             self._datatype(base_types, dtype, byteOrder, align)
 
-    def _data_constrs(self, tree):
+    def _data_constrs(self, tree) -> None:
         constrs = create_elem(tree, "DATA-CONSTRS")
         constrs.extend(self.data_constrs)
 
-    def _datatype(self, tree, dtype, byteOrder, alignment):
+    def _datatype(self, tree, dtype, byteOrder, alignment) -> None:
         name, length, signed, fixed, enc, _ = dtype
         base_type = create_elem(tree, "BASE-TYPE", attrib={"ID": name})
         self.common_elements(
@@ -363,7 +365,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             create_elem(base_type, "MEM-ALIGNMENT", str(alignment))
         create_elem(base_type, "BYTE-ORDER", attrib={"TYPE": byteOrder})
 
-    def _compu_methods(self, tree):
+    def _compu_methods(self, tree) -> None:
         cm_tree = create_elem(tree, "COMPU-METHODS")
         for conversion in [
             x[0] for x in self.session.query(model.CompuMethod.name).all()
@@ -371,7 +373,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             cm = CompuMethod.get(self.session, conversion)
             self._compu_method(cm_tree, conversion, cm)
 
-    def _compu_method(self, tree, name, compu_method):
+    def _compu_method(self, tree, name, compu_method) -> None:
         cm_type = compu_method.conversionType
         cm_longIdentifier = compu_method.longIdentifier
         cm_unit = compu_method.unit

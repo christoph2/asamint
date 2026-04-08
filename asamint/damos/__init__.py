@@ -39,11 +39,11 @@ class DCMCreator(CalibrationData):
     EXTENSION = ".dcm"
     TEMPLATE = read_resource_file("asamint", "data/templates/dcm.tmpl", binary=False)
 
-    def on_init(self, config, *args, **kws):
+    def on_init(self, config, *args, **kws) -> None:
         super().on_init(config, *args, **kws)
         self.loadConfig(config)
 
-    def save(self):
+    def save(self) -> None:
 
         namespace = {
             "params": self._parameters,

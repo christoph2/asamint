@@ -45,11 +45,11 @@ class MSRMixIn:
     DTD = None
     EXTENSION = None
 
-    def __init__(self, *args, **kws):
+    def __init__(self, *args, **kws) -> None:
         self.sub_trees = {}
         super().__init__(*args, **kws)
 
-    def write_tree(self, file_name):
+    def write_tree(self, file_name) -> None:
         """ """
         # print("validating...", file_name)
         # self.validate()
@@ -67,13 +67,13 @@ class MSRMixIn:
                 )
             )
 
-    def validate(self):
+    def validate(self) -> None:
         """ """
         dtd = etree.DTD(self.DTD)
         if not dtd.validate(self.root):
             pprint(dtd.error_log)
 
-    def output_1darray(self, elem, name=None, values=None, numeric=True, paired=False):
+    def output_1darray(self, elem, name=None, values=None, numeric=True, paired=False) -> None:
         """ """
         if values is None:
             values = []
@@ -98,7 +98,7 @@ class MSRMixIn:
             for value in values:
                 create_elem(cont, tag, text=str(value))
 
-    def sdg(self, parent, name, *elements):
+    def sdg(self, parent, name, *elements) -> None:
         """Create a Special Data Group.
 
         Parameters
@@ -115,7 +115,7 @@ class MSRMixIn:
             create_elem(sdg, "SD", text=text, attrib={"GID": tag})
 
     @staticmethod
-    def common_elements(elem, short_name, long_name=None, category=None):
+    def common_elements(elem, short_name, long_name=None, category=None) -> None:
         """ """
         create_elem(elem, "SHORT-NAME", short_name)
         if long_name:
@@ -123,7 +123,7 @@ class MSRMixIn:
         if category:
             create_elem(elem, "CATEGORY", category)
 
-    def msrsw_header(self, category, suffix):
+    def msrsw_header(self, category, suffix) -> etree._Element:
         """ """
         proj = self.query(model.Project).first()
         project_name = proj.name

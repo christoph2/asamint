@@ -26,6 +26,7 @@ __copyright__ = """
 """
 
 from decimal import Decimal as D
+from typing import Any
 
 import antlr4
 
@@ -37,26 +38,26 @@ class BaseListener(antlr4.ParseTreeListener):
 
     value = []
 
-    def __init__(self, *args, **kws):
+    def __init__(self, *args, **kws) -> None:
         super().__init__(*args, **kws)
         self.logger = Logger(__name__)
 
-    def getList(self, attr):
+    def getList(self, attr) -> list:
         return [x.phys for x in attr] if attr else []
 
-    def getTerminal(self, attr):
+    def getTerminal(self, attr) -> str:
         return attr().getText() if attr() else ""
 
-    def getText(self, attr):
+    def getText(self, attr) -> str:
         return attr.text if attr else ""
 
-    def getNT(self, attr):
+    def getNT(self, attr) -> Any:
         return attr.phys if attr else None
 
-    def exitIntegerValue(self, ctx):
+    def exitIntegerValue(self, ctx) -> None:
         ctx.phys = int(ctx.i.text)
 
-    def exitRealzahl(self, ctx):
+    def exitRealzahl(self, ctx) -> None:
         if ctx.f:
             ctx.phys = D(ctx.f.text)
         elif ctx.i:
@@ -64,105 +65,105 @@ class BaseListener(antlr4.ParseTreeListener):
         else:
             ctx.phys = None
 
-    def exitTextValue(self, ctx):
+    def exitTextValue(self, ctx) -> None:
         ctx.phys = ctx.t.text.strip('"') if ctx.t else None
 
-    def exitNameValue(self, ctx):
+    def exitNameValue(self, ctx) -> None:
         ctx.phys = ctx.n.text if ctx.n else None
 
-    def _formatMessage(self, msg, location):
+    def _formatMessage(self, msg, location) -> str:
         return f"[{location.start.line}:{location.start.column + 1}] {msg}"
 
-    def _log(self, method, msg, location=None):
+    def _log(self, method, msg, location=None) -> None:
         if location:
             method(self._formatMessage(msg, location))
         else:
             method(msg)
 
-    def info(self, msg, location=None):
+    def info(self, msg, location=None) -> None:
         self._log(self.logger.info, msg, location)
 
-    def warn(self, msg, location=None):
+    def warn(self, msg, location=None) -> None:
         self._log(self.logger.warn, msg, location)
 
-    def error(self, msg, location=None):
+    def error(self, msg, location=None) -> None:
         self._log(self.logger.error, msg, location)
 
-    def debug(self, msg, location=None):
+    def debug(self, msg, location=None) -> None:
         self._log(self.logger.debug, msg, location)
 
 
 class Dcm20Listener(BaseListener):
-    def exitKonservierung(self, ctx):
+    def exitKonservierung(self, ctx) -> None:
         ctx.phys = {
             "kopf": self.getNT(ctx.kopf),
             "rumpf": self.getNT(ctx.rumpf),
             "version": ctx.version.phys,
         }
 
-    def exitFile_format(self, ctx):
+    def exitFile_format(self, ctx) -> None:
         if ctx.version is None:
             ctx.phys = {}
         else:
             ctx.phys = float(ctx.version.text)
 
-    def exitKons_kopf(self, ctx):
+    def exitKons_kopf(self, ctx) -> None:
         ctx.phys = {
             "info": self.getNT(ctx.info),
             "func_def": self.getNT(ctx.func_def),
             "var_def": self.getNT(ctx.var_def),
         }
 
-    def exitModulkopf_info(self, ctx):
+    def exitModulkopf_info(self, ctx) -> None:
         ctx.phys = self.getList(ctx.m)
 
-    def exitMod_zeile(self, ctx):
+    def exitMod_zeile(self, ctx) -> None:
         ctx.phys = {"anf": self.getNT(ctx.anf), "fort": self.getList(ctx.fort)}
 
-    def exitMod_anf_zeile(self, ctx):
+    def exitMod_anf_zeile(self, ctx) -> None:
         ctx.phys = {"name": self.getNT(ctx.n), "wert": self.getNT(ctx.w)}
 
-    def exitMod_fort_zeile(self, ctx):
+    def exitMod_fort_zeile(self, ctx) -> None:
         ctx.phys = self.getNT(ctx.w)
 
-    def exitMod_ele_name(self, ctx):
+    def exitMod_ele_name(self, ctx) -> None:
         ctx.phys = self.getNT(ctx.n)
 
-    def exitMod_ele_wert(self, ctx):
+    def exitMod_ele_wert(self, ctx) -> None:
         ctx.phys = self.getNT(ctx.t)
 
-    def exitFunktionsdef(self, ctx):
+    def exitFunktionsdef(self, ctx) -> None:
         ctx.phys = self.getList(ctx.f)
 
-    def exitFunktionszeile(self, ctx):
+    def exitFunktionszeile(self, ctx) -> None:
         ctx.phys = {
             "name": self.getNT(ctx.n),
             "version": self.getNT(ctx.v),
             "langname": self.getNT(ctx.l),
         }
 
-    def exitFkt_version(self, ctx):
+    def exitFkt_version(self, ctx) -> None:
         ctx.phys = self.getNT(ctx.t)
 
-    def exitFkt_langname(self, ctx):
+    def exitFkt_langname(self, ctx) -> None:
         ctx.phys = self.getNT(ctx.t)
 
-    def exitVariantendef(self, ctx):
+    def exitVariantendef(self, ctx) -> None:
         ctx.phys = self.getList(ctx.v)
 
-    def exitVariantenkrit(self, ctx):
+    def exitVariantenkrit(self, ctx) -> None:
         ctx.phys = {"name": self.getNT(ctx.n), "werte": self.getList(ctx.w)}
 
-    def exitKrit_name(self, ctx):
+    def exitKrit_name(self, ctx) -> None:
         ctx.phys = self.getNT(ctx.n)
 
-    def exitKrit_wert(self, ctx):
+    def exitKrit_wert(self, ctx) -> None:
         ctx.phys = self.getNT(ctx.n)
 
-    def exitKons_rumpf(self, ctx):
+    def exitKons_rumpf(self, ctx) -> None:
         ctx.phys = self.getList(ctx.k)
 
-    def exitKenngroesse(self, ctx):
+    def exitKenngroesse(self, ctx) -> None:
         ctx.phys = {
             "kw": self.getNT(ctx.kw),
             "kwb": self.getNT(ctx.kwb),
@@ -172,7 +173,7 @@ class Dcm20Listener(BaseListener):
             "kt": self.getNT(ctx.kt),
         }
 
-    def exitKennwert(self, ctx):
+    def exitKennwert(self, ctx) -> None:
         r = self.getNT(ctx.r)
         t = self.getNT(ctx.t)
         if r is None:
@@ -188,7 +189,7 @@ class Dcm20Listener(BaseListener):
             "text": t,
         }
 
-    def exitKennwerteblock(self, ctx):
+    def exitKennwerteblock(self, ctx) -> None:
         ctx.phys = {
             "name": self.getNT(ctx.n),
             "anzahl_x": self.getNT(ctx.ax),
@@ -198,7 +199,7 @@ class Dcm20Listener(BaseListener):
             "werteliste_kwb": self.getList(ctx.w),
         }
 
-    def exitKennlinie(self, ctx):
+    def exitKennlinie(self, ctx) -> None:
         ctx.phys = {
             "category": self.getText(ctx.cat),
             "name": self.getNT(ctx.n),
@@ -210,7 +211,7 @@ class Dcm20Listener(BaseListener):
             "werteliste": self.getList(ctx.wl),
         }
 
-    def exitKennfeld(self, ctx):
+    def exitKennfeld(self, ctx) -> None:
         ctx.phys = {
             "category": self.getText(ctx.cat),
             "name": self.getNT(ctx.n),
@@ -224,7 +225,7 @@ class Dcm20Listener(BaseListener):
             "kf_zeile_liste": ctx.kf.phys,
         }
 
-    def exitGruppenstuetzstellen(self, ctx):
+    def exitGruppenstuetzstellen(self, ctx) -> None:
         ctx.phys = {
             "name": self.getNT(ctx.n),
             "anzahl_x": self.getNT(ctx.nx),
@@ -233,14 +234,14 @@ class Dcm20Listener(BaseListener):
             "sst_liste_x": self.getList(ctx.sl),
         }
 
-    def exitKenntext(self, ctx):
+    def exitKenntext(self, ctx) -> None:
         ctx.phys = {
             "name": self.getNT(ctx.n),
             "info": self.getNT(ctx.info),
             "text": self.getNT(ctx.t),
         }
 
-    def exitKgr_info(self, ctx):
+    def exitKgr_info(self, ctx) -> None:
         ctx.phys = {
             "langname": self.getNT(ctx.lname),
             "displayname": self.getNT(ctx.dname),
@@ -248,42 +249,42 @@ class Dcm20Listener(BaseListener):
             "funktionszugehorigkeit": self.getNT(ctx.fkt),
         }
 
-    def exitEinheit_x(self, ctx):
+    def exitEinheit_x(self, ctx) -> None:
         ctx.phys = ctx.t.phys
 
-    def exitEinheit_y(self, ctx):
+    def exitEinheit_y(self, ctx) -> None:
         ctx.phys = ctx.t.phys
 
-    def exitEinheit_w(self, ctx):
+    def exitEinheit_w(self, ctx) -> None:
         ctx.phys = ctx.t.phys
 
-    def exitLangname(self, ctx):
+    def exitLangname(self, ctx) -> None:
         ctx.phys = ctx.t.phys
 
-    def exitDisplayname(self, ctx):
+    def exitDisplayname(self, ctx) -> None:
         t = self.getNT(ctx.t)  # ctx.t.value
         n = self.getNT(ctx.n)  # ctx.n.value
         ctx.phys = {"name_value": n, "text_value": t}
 
-    def exitVar_abhangigkeiten(self, ctx):
+    def exitVar_abhangigkeiten(self, ctx) -> None:
         ctx.phys = self.getList(ctx.v)
 
-    def exitVar_abh(self, ctx):
+    def exitVar_abh(self, ctx) -> None:
         ctx.phys = self.getNT(ctx.n)
 
-    def exitFunktionszugehorigkeit(self, ctx):
+    def exitFunktionszugehorigkeit(self, ctx) -> None:
         ctx.phys = self.getList(ctx.n)
 
-    def exitAnzahl_x(self, ctx):
+    def exitAnzahl_x(self, ctx) -> None:
         ctx.phys = ctx.i.phys
 
-    def exitAnzahl_y(self, ctx):
+    def exitAnzahl_y(self, ctx) -> None:
         ctx.phys = ctx.i.phys
 
-    def exitWerteliste(self, ctx):
+    def exitWerteliste(self, ctx) -> None:
         ctx.phys = self.getList(ctx.r)
 
-    def exitWerteliste_kwb(self, ctx):
+    def exitWerteliste_kwb(self, ctx) -> None:
         rs = self.getList(ctx.r)
         ts = self.getList(ctx.t)
         if rs:
@@ -292,7 +293,7 @@ class Dcm20Listener(BaseListener):
             category = "TEXT"
         ctx.phys = {"category": category, "rs": rs, "ts": ts}
 
-    def exitSst_liste_x(self, ctx):
+    def exitSst_liste_x(self, ctx) -> None:
         rs = self.getList(ctx.r)
         ts = self.getList(ctx.t)
         if rs:
@@ -301,7 +302,7 @@ class Dcm20Listener(BaseListener):
             category = "TEXT"
         ctx.phys = {"category": category, "rs": rs, "ts": ts}
 
-    def exitKf_zeile_liste(self, ctx):
+    def exitKf_zeile_liste(self, ctx) -> None:
         rs = self.getList(ctx.r)
         ts = self.getList(ctx.t)
         if rs:
@@ -310,8 +311,8 @@ class Dcm20Listener(BaseListener):
             category = "TEXT"
         ctx.phys = {"category": category, "rs": rs, "ts": ts}
 
-    def exitKf_zeile_liste_r(self, ctx):
+    def exitKf_zeile_liste_r(self, ctx) -> None:
         ctx.phys = {"realzahl": ctx.r.phys, "werteliste": self.getList(ctx.w)}
 
-    def exitKf_zeile_liste_tx(self, ctx):
+    def exitKf_zeile_liste_tx(self, ctx) -> None:
         ctx.phys = {"text": ctx.t.phys, "werteliste": self.getList(ctx.w)}

@@ -49,7 +49,7 @@ logger = logging.getLogger(__name__)
 class JSONEncoder(json.JSONEncoder):
     """JSON serializer for the following dataclasses."""
 
-    def default(self, o):  # noqa: C901
+    def default(self, o) -> Any:  # noqa: C901
         # Serializes dataclasses, datetimes, and numpy arrays to JSON
         if is_dataclass(o):
             try:
@@ -104,26 +104,26 @@ class CalibratedObject:
     _characteristic: Optional[Any] = None
 
     @property
-    def raw(self):
+    def raw(self) -> np.ndarray:
         return self._raw
 
     @raw.setter
-    def raw(self, value):
+    def raw(self, value) -> None:
         self._raw = np.asarray(value)
         if self.api and self._characteristic is not None:
             self._phys = self.api.int_to_physical(self._characteristic, self._raw)
 
     @property
-    def phys(self):
+    def phys(self) -> np.ndarray:
         return self._phys
 
     @phys.setter
-    def phys(self, value):
+    def phys(self, value) -> None:
         self._phys = np.asarray(value)
         if self.api and self._characteristic is not None:
             self._raw = self.api.physical_to_int(self._characteristic, self._phys)
 
-    def asdict(self):
+    def asdict(self) -> dict[str, Any]:
         """Custom asdict that ??? fields."""
         result = {}
         for k in self.__dataclass_fields__.keys():
@@ -224,11 +224,11 @@ class AxisContainer:
     axis_pts_ref: Union[str, None] = field(default=None)
     is_numeric: bool = field(default=True)
 
-    def asdict(self):
+    def asdict(self) -> dict[str, Any]:
         return asdict(self)
 
 
-def get_calibration_class(name: str):
+def get_calibration_class(name: str) -> Optional[type[CalibratedObject]]:
     mapping = {
         "ASCII": Ascii,
         "AXIS_PTS": AxisPts,

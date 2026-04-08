@@ -53,7 +53,7 @@ def sanitize_identifier(name: str) -> str:
     return s
 
 
-def _first_present(d: dict[str, Any], keys: list[str], default=None):
+def _first_present(d: dict[str, Any], keys: list[str], default=None) -> Any:
     for k in keys:
         if k in d and d[k] is not None:
             return d[k]

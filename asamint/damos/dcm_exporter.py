@@ -50,7 +50,7 @@ class DcmExporter:
         db: MSRSWDatabase,
         h5_db: CalibrationDB = None,
         logger: logging.Logger = None,
-    ):
+    ) -> None:
         self.db = db
         self.h5_db = h5_db
         self.logger = logger or logging.getLogger(__name__)
@@ -201,7 +201,7 @@ class DcmExporter:
 
 def export_to_dcm(
     db_path: str | Path, output_dcm_path: str | Path, h5_path: str | Path = None
-):
+) -> bool:
     db = MSRSWDatabase(db_path)
 
     h5_db = None
