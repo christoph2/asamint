@@ -37,7 +37,10 @@ from dataclasses import dataclass
 from enum import IntEnum
 from functools import partialmethod, reduce
 from logging import Logger
-from typing import Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
+
+if TYPE_CHECKING:
+    from asamint.calibration.dependent import DependencyEngine, DependencyGraph
 
 import numpy as np
 
@@ -57,6 +60,7 @@ from asamint.adapters.a2l import (
 from asamint.adapters.objutils import Image, InvalidAddressError
 from asamint.asam import AsamMC
 from asamint.core import CalibrationLimits, CalibrationValue
+from asamint.core.exceptions import CalibrationError
 from asamint.core.logging import configure_logging
 from asamint.model.calibration import klasses
 from asamint.utils import SINGLE_BITS, ffs
@@ -253,13 +257,9 @@ class ParameterCache:
         return self.dicts.get(item)
 
     def invalidate(self, characteristic_name: str) -> None:
-        """Invalidate cached entries for a characteristic across known caches."""
-
-        for cache in (
-            getattr(self, "values", None),
-            getattr(self, "value_dtos", None),
-        ):
-            if cache:
+        """Invalidate cached entries for a characteristic across all known caches."""
+        for cache in self.dicts.values():
+            if cache is not None:
                 cache.cache.pop(characteristic_name, None)
 
 
@@ -298,6 +298,8 @@ class Calibration:
         self.mod_common = asam_mc.mod_common
         self.mod_par = asam_mc.mod_par
         self._definition_cache: dict[tuple[str, str], Any] = {}
+        self._dep_graph: Optional["DependencyGraph"] = None
+        self._dep_engine: Optional["DependencyEngine"] = None
         self._preload_definitions()
         if preload_characteristics or preload_axis_pts:
             self.preload_selected(
@@ -364,6 +366,62 @@ class Calibration:
                     self.logger.debug(
                         "Skipping compu preload for axis %s: %s", name, exc
                     )
+
+    # ------------------------------------------------------------------
+    # Dependency graph (lazy)
+    # ------------------------------------------------------------------
+
+    @property
+    def dependency_graph(self) -> "DependencyGraph":
+        """Lazily build and return the dependency graph for this session."""
+        graph = getattr(self, "_dep_graph", None)
+        if graph is None:
+            from asamint.calibration.dependent import DependencyGraph
+
+            graph = DependencyGraph.build(self.session)
+            self._dep_graph = graph
+        return graph
+
+    @property
+    def dependency_engine(self) -> "DependencyEngine":
+        """Lazily build and return the dependency engine."""
+        engine = getattr(self, "_dep_engine", None)
+        if engine is None:
+            from asamint.calibration.dependent import DependencyEngine
+
+            engine = DependencyEngine(self, self.dependency_graph)
+            self._dep_engine = engine
+        return engine
+
+    def recalculate_dependents(self, modified_name: str) -> list:
+        """Recalculate all dependent characteristics affected by *modified_name*.
+
+        DEPENDENT results are written back to the image; VIRTUAL results are
+        cached only.  Returns a list of ``EvaluationResult`` objects.
+        """
+        if not self.dependency_graph.entries:
+            return []
+        return self.dependency_engine.recalculate_dependents(modified_name)
+
+    def _trigger_recalculation(self, characteristic_name: str) -> None:
+        """Trigger recalculation of dependents after a save, if any exist."""
+        if not getattr(self, "session", None):
+            return
+        try:
+            if self.dependency_graph.dependents_of(characteristic_name):
+                results = self.recalculate_dependents(characteristic_name)
+                if results:
+                    self.logger.debug(
+                        "Recalculated %d dependent(s) after saving %r",
+                        len(results),
+                        characteristic_name,
+                    )
+        except (CalibrationError, ValueError, TypeError, AttributeError) as exc:
+            self.logger.warning(
+                "Dependency recalculation failed after saving %r: %s",
+                characteristic_name,
+                exc,
+            )
 
     def update(self) -> None:
         """Perform the actual update of parameters (write to HEX file / XCP).
@@ -763,6 +821,7 @@ class Calibration:
             )
         except InvalidAddressError as exc:
             return self._address_error_status(characteristic.name, exc)
+        self._trigger_recalculation(characteristic_name)
         return Status.OK
 
     def load_value(self, characteristic_name: str) -> klasses.Value:  # noqa: C901
@@ -780,28 +839,11 @@ class Calibration:
         # Get the characteristic definition
         characteristic = self.get_characteristic(characteristic_name, "VALUE", False)
 
-        # Handle virtual characteristics (computed from other characteristics)
-        virtual_characteristic = characteristic.virtual_characteristic
-        raw = 0
-        if virtual_characteristic is not None:
-            vc_values = []
-            formula = virtual_characteristic.formula
-            # Collect values from referenced characteristics
-            for chx_name in virtual_characteristic.characteristics:
-                category = self.characteristic_category(chx_name)
-                chx = self.parameter_cache[category].get(chx_name)
-                vc_values.append(chx.phys)
-            # Apply the formula to compute the value
-            fx = Formula(
-                formula=formula, system_constants=self.asam_mc.mod_par.systemConstants
-            )
-            result = fx.int_to_physical(*vc_values)
-            self.logger.debug(
-                f"Virtual characteristic {characteristic_name} computed value: {result}"
-            )
-
         fnc_asam_dtype = characteristic.fnc_asam_dtype
         byte_order = self.asam_byte_order(characteristic)
+
+        # Read raw value from image (even for virtual — serves as reference)
+        raw = 0
 
         # Handle bit-masked values
         if characteristic.bitMask:
@@ -859,8 +901,26 @@ class Calibration:
         else:
             category = "TEXT"
 
-        # Special case for dependent characteristics
-        if characteristic.dependent_characteristic:
+        # Evaluate via dependency engine for virtual / dependent characteristics
+        if characteristic.virtual_characteristic:
+            category = "VIRTUAL_VALUE"
+            try:
+                entry = self.dependency_graph.entries.get(characteristic_name)
+                if entry is not None:
+                    ev = self.dependency_engine.evaluate(entry)
+                    phys = ev.physical_value
+                    self.logger.debug(
+                        "Virtual characteristic %r computed value: %s",
+                        characteristic_name,
+                        phys,
+                    )
+            except (CalibrationError, ValueError, TypeError, KeyError) as exc:
+                self.logger.warning(
+                    "Could not evaluate virtual characteristic %r: %s",
+                    characteristic_name,
+                    exc,
+                )
+        elif characteristic.dependent_characteristic:
             category = "DEPENDENT_VALUE"
 
         # Create and return the Value object
@@ -978,6 +1038,7 @@ class Calibration:
             return self._address_error_status(characteristic.name, exc)
         if isinstance(self.parameter_cache, ParameterCache):
             self.parameter_cache.invalidate(characteristic_name)
+        self._trigger_recalculation(characteristic_name)
         return Status.OK
 
     def load_value_dto(self, characteristic_name: str) -> CalibrationValue:
@@ -1430,6 +1491,7 @@ class Calibration:
             )
         except InvalidAddressError as exc:
             return self._address_error_status(characteristic.name, exc)
+        self._trigger_recalculation(characteristic_name)
         return Status.OK
 
     def get_axes(  # noqa: C901
