@@ -28,8 +28,7 @@ __author__ = "Christoph Schueler"
 
 from collections.abc import Mapping
 
-import pya2l.model as model
-from pya2l import DB
+from asamint.adapters.a2l import DB, model
 
 """
 a2ldb_import [imex]

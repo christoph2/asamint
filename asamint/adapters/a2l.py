@@ -133,4 +133,6 @@ __all__ = [
     "model",
     "open_a2l_database",
     "inspect",
+    "DB",
+    "path_components",
 ]

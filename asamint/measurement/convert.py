@@ -28,12 +28,11 @@ import os
 from dataclasses import dataclass, field
 from typing import List
 
-import asammdf
 import h5py
 import numpy as np
-from pya2l import model
-from pya2l.api import inspect
 
+from asamint.adapters.a2l import inspect, model
+from asamint.adapters.mdf import MDF
 from asamint.asam import AsamMC
 from asamint.config import get_application
 
@@ -131,5 +130,5 @@ for group in mc.groups:
 
 MF = r"C:\Users\Public\Documents\Vector\CANape Examples 21.0\RaceTrackDemo\MeasurementFiles\SummitPoint_09637700.mf4"
 
-mf = asammdf.MDF(MF)
+mf = MDF(MF)
 print(mf)

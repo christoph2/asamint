@@ -31,9 +31,9 @@ __email__ = "cpu12.gems@googlemail.com"
 from pprint import pprint
 
 import numpy as np
-import pya2l.model as model
 from lxml import etree  # nosec
 
+from asamint.adapters.a2l import model
 from asamint.utils import slicer
 from asamint.utils.xml import create_elem
 

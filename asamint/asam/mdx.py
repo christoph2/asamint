@@ -27,10 +27,15 @@ __copyright__ = """
 
 
 from lxml import etree  # nosec
-from pya2l import model
-from pya2l.api.inspect import Characteristic, CompuMethod, Measurement, ModCommon
 
 from asamint import msrsw
+from asamint.adapters.a2l import (
+    Characteristic,
+    CompuMethod,
+    Measurement,
+    ModCommon,
+    model,
+)
 from asamint.asam import AsamMC
 from asamint.utils import replace_non_c_char, sha1_digest
 from asamint.utils.xml import create_elem

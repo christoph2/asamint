@@ -31,10 +31,10 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import numpy as np
-from asammdf import MDF, Signal
 from lxml.etree import Element, tostring  # nosec
 
 from asamint.adapters.a2l import asam_type_size, inspect
+from asamint.adapters.mdf import MDF, Signal
 from asamint.asam import AsamMC, get_data_type
 from asamint.utils.xml import create_elem
 
