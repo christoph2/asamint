@@ -57,7 +57,7 @@ from asamint.adapters.a2l import (
     fix_axis_par_dist,
     model,
 )
-from asamint.adapters.objutils import Image, InvalidAddressError
+from asamint.adapters.objutils import Image, InvalidAddressError, Section
 from asamint.asam import AsamMC
 from asamint.core import CalibrationLimits, CalibrationValue
 from asamint.core.exceptions import CalibrationError
@@ -261,6 +261,12 @@ class ParameterCache:
         for cache in self.dicts.values():
             if cache is not None:
                 cache.cache.pop(characteristic_name, None)
+
+    def clear(self) -> None:
+        """Clear all cached parameters across all types."""
+        for cache in self.dicts.values():
+            if cache is not None:
+                cache.cache.clear()
 
 
 class Calibration:
@@ -2180,20 +2186,340 @@ class Calibration:
 
 
 class OnlineCalibration(Calibration):
-    """Calibration class for online calibration via XCP.
+    """Online calibration with live XCP write-back to ECU.
 
-    This class provides methods for calibrating ECUs via XCP protocol.
+    Extends the base ``Calibration`` with transparent ECU synchronisation:
+    every ``save_*`` call writes to the local memory image **and** pushes
+    the modified bytes to the ECU via XCP.
+
+    Parameters
+    ----------
+    asam_mc
+        An ``AsamMC`` instance (or any object with ``session``,
+        ``mod_common``, ``mod_par``, ``logger`` attributes).
+    xcp_master
+        Active pyXCP ``Master`` connected to the ECU.
+    image
+        Optional pre-built memory ``Image``.  When *None* (default),
+        all calibration parameters are uploaded from the ECU automatically.
+    auto_flush : bool
+        If *True* (default), each ``save_*`` call pushes the changed
+        bytes to the ECU immediately.  Set to *False* and call
+        :meth:`flush` or :meth:`update` manually for batch writes.
+    loglevel : str
+        Logging level for the calibration logger.
+
+    Examples
+    --------
+    >>> from asamint.api import OnlineCalibration
+    >>> cal = OnlineCalibration(asam_mc, xcp_master)
+    >>> val = cal.load_value("MyParam")
+    >>> cal.save_value("MyParam", val.phys * 2)   # writes to image + ECU
     """
 
-    __slots__ = "xcp_master"
+    __slots__ = ("xcp_master", "_dirty_regions", "_auto_flush")
 
-    def __init__(self, xcp_master: Any) -> None:
-        """Initialize the OnlineCalibration object.
-
-        Args:
-            xcp_master: XCP master object for communication with the ECU
-        """
+    def __init__(
+        self,
+        asam_mc: Any,
+        xcp_master: Any,
+        image: Optional[Image] = None,
+        *,
+        auto_flush: bool = True,
+        loglevel: str = "INFO",
+    ) -> None:
         self.xcp_master = xcp_master
+        self._dirty_regions: list[tuple[int, int]] = []
+        self._auto_flush = auto_flush
+
+        ctx = _build_calibration_context(asam_mc, loglevel)
+
+        if image is None:
+            image = _upload_parameters_xcp(ctx.session, xcp_master, ctx.logger)
+
+        if hasattr(image, "join_sections"):
+            try:
+                image.join_sections()
+            except (OSError, AttributeError, ValueError) as exc:
+                ctx.logger.debug("Skipping join_sections(): %s", exc)
+
+        super().__init__(ctx, image, ParameterCache(), ctx.logger)
+
+    # ------------------------------------------------------------------
+    # Save overrides — mark dirty + optional auto-flush
+    # ------------------------------------------------------------------
+
+    def save_value(
+        self,
+        characteristic_name: str,
+        value: ValueType,
+        extendedLimits: bool = False,
+        readOnlyPolicy: ExecutionPolicy = ExecutionPolicy.EXCEPT,
+        limitsPolicy: ExecutionPolicy = ExecutionPolicy.EXCEPT,
+    ) -> Status:
+        """Save a scalar value and push to ECU if *auto_flush* is enabled."""
+        status = super().save_value(
+            characteristic_name,
+            value,
+            extendedLimits=extendedLimits,
+            readOnlyPolicy=readOnlyPolicy,
+            limitsPolicy=limitsPolicy,
+        )
+        if status == Status.OK:
+            self._mark_dirty_characteristic(characteristic_name)
+            if self._auto_flush:
+                self.flush()
+        return status
+
+    def save_value_block(
+        self,
+        characteristic_name: str,
+        values: np.ndarray,
+        readOnlyPolicy: ExecutionPolicy = ExecutionPolicy.EXCEPT,
+    ) -> Status:
+        """Save a value block and push to ECU if *auto_flush* is enabled."""
+        status = super().save_value_block(
+            characteristic_name,
+            values,
+            readOnlyPolicy=readOnlyPolicy,
+        )
+        if status == Status.OK:
+            self._mark_dirty_characteristic(characteristic_name)
+            if self._auto_flush:
+                self.flush()
+        return status
+
+    def save_curve_or_map(
+        self,
+        characteristic_name: str,
+        values: Union[
+            klasses.Cube4, klasses.Cube5, klasses.Cuboid, klasses.Curve, klasses.Map
+        ],
+        readOnlyPolicy: ExecutionPolicy = ExecutionPolicy.EXCEPT,
+        raw_changed: bool = False,
+    ) -> Status:
+        """Save a curve/map and push to ECU if *auto_flush* is enabled."""
+        status = super().save_curve_or_map(
+            characteristic_name,
+            values,
+            readOnlyPolicy=readOnlyPolicy,
+            raw_changed=raw_changed,
+        )
+        if status == Status.OK:
+            self._mark_dirty_characteristic(characteristic_name)
+            if self._auto_flush:
+                self.flush()
+        return status
+
+    # ------------------------------------------------------------------
+    # Recalculation override — batch flushes during dependency chain
+    # ------------------------------------------------------------------
+
+    def _trigger_recalculation(self, characteristic_name: str) -> None:
+        """Suppress auto-flush during dependency chain; caller flushes."""
+        saved = self._auto_flush
+        self._auto_flush = False
+        try:
+            super()._trigger_recalculation(characteristic_name)
+        finally:
+            self._auto_flush = saved
+
+    # ------------------------------------------------------------------
+    # Dirty-region tracking + XCP flush
+    # ------------------------------------------------------------------
+
+    def _mark_dirty_characteristic(self, name: str) -> None:
+        """Record a characteristic's full memory footprint as dirty."""
+        try:
+            char = self.get_characteristic(name, None, False)
+            if char is not None:
+                self._dirty_regions.append(
+                    (char.address, char.total_allocated_memory)
+                )
+        except (ValueError, AttributeError):
+            pass
+
+    def flush(self) -> int:
+        """Push all dirty memory regions to the ECU.
+
+        Merges overlapping regions for efficient transfer.
+
+        Returns
+        -------
+        int
+            Total number of bytes written to the ECU.
+        """
+        if not self._dirty_regions:
+            return 0
+
+        regions = _merge_regions(self._dirty_regions)
+        total = 0
+        for addr, length in regions:
+            data = self.image.read(addr, length)
+            self.xcp_master.setMta(addr)
+            self.xcp_master.push(data)
+            total += length
+
+        self.logger.debug(
+            "Flushed %d bytes in %d region(s) to ECU",
+            total,
+            len(regions),
+        )
+        self._dirty_regions.clear()
+        return total
+
+    def update(self) -> None:
+        """Push all pending changes to the ECU (alias for :meth:`flush`)."""
+        self.flush()
+
+    # ------------------------------------------------------------------
+    # Bulk transfer
+    # ------------------------------------------------------------------
+
+    def upload_image(self) -> Image:
+        """Re-upload all calibration parameters from the ECU.
+
+        Replaces the local image and clears all caches.
+        """
+        self.image = _upload_parameters_xcp(
+            self.session, self.xcp_master, self.logger
+        )
+        if hasattr(self.image, "join_sections"):
+            try:
+                self.image.join_sections()
+            except (OSError, AttributeError, ValueError):
+                pass
+        if isinstance(self.parameter_cache, ParameterCache):
+            self.parameter_cache.clear()
+        self._dirty_regions.clear()
+        self._dep_graph = None
+        self._dep_engine = None
+        return self.image
+
+    def download_image(self) -> int:
+        """Push the entire local memory image to the ECU.
+
+        Returns
+        -------
+        int
+            Total number of bytes written.
+        """
+        total = 0
+        for section in self.image.sections:
+            data = bytes(section.data)
+            self.xcp_master.setMta(section.start_address)
+            self.xcp_master.push(data)
+            total += len(data)
+
+        self.logger.info(
+            "Downloaded %.2f KBytes to ECU (%d sections)",
+            total / 1024,
+            len(self.image.sections),
+        )
+        self._dirty_regions.clear()
+        return total
+
+
+# ---------------------------------------------------------------------------
+# Helper: upload calibration parameters via XCP
+# ---------------------------------------------------------------------------
+
+
+def _upload_parameters_xcp(
+    session: Any,
+    xcp_master: Any,
+    logger: Logger,
+) -> Image:
+    """Upload all calibration parameters from ECU via XCP.
+
+    Queries the A2L session for all axis points and characteristics,
+    merges their memory ranges into continuous blocks, and reads the
+    data from the ECU.
+
+    Args:
+        session: pya2l database session
+        xcp_master: XCP master instance for ECU communication
+        logger: Logger for progress information
+
+    Returns:
+        Image containing all calibration parameter data
+
+    Raises:
+        ValueError: If no calibration parameters are found in A2L
+    """
+    from asamint.adapters.xcp import McObject, make_continuous_blocks
+
+    result: list[Any] = []
+
+    # Collect all axis points
+    for row in session.query(model.AxisPts).order_by(model.AxisPts.address).all():
+        ax = AxisPts.get(session, row.name)
+        try:
+            mem_size = ax.total_allocated_memory
+        except (AttributeError, TypeError):
+            continue
+        result.append(McObject(ax.name, ax.address, 0, mem_size, ""))
+
+    # Collect all characteristics
+    for row in (
+        session.query(model.Characteristic)
+        .order_by(model.Characteristic.type, model.Characteristic.address)
+        .all()
+    ):
+        ch = Characteristic.get(session, row.name)
+        try:
+            mem_size = ch.total_allocated_memory
+        except (AttributeError, TypeError):
+            continue
+        result.append(
+            McObject(ch.name, ch.address, 0, mem_size, "")
+        )
+
+    if not result:
+        raise ValueError("No calibration parameters found in A2L.")
+
+    # Merge adjacent memory blocks for efficient transfer
+    blocks = make_continuous_blocks(result)
+
+    total_size = sum(b.length for b in blocks)
+    logger.info(
+        "Uploading %.2f KBytes in %d blocks from XCP slave",
+        total_size / 1024,
+        len(blocks),
+    )
+
+    # Read each block from ECU
+    sections: list[Section] = []
+    for block in blocks:
+        xcp_master.setMta(block.address)
+        mem = xcp_master.pull(block.length)
+        sections.append(Section(start_address=block.address, data=mem[: block.length]))
+
+    return Image(sections=sections, join=True)
+
+
+def _merge_regions(regions: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    """Merge overlapping or adjacent (address, length) memory regions.
+
+    Returns a sorted list of non-overlapping ``(address, length)`` tuples.
+    """
+    if not regions:
+        return []
+
+    # Convert to (start, end) intervals, sort, and merge
+    intervals = sorted((addr, addr + length) for addr, length in regions)
+    merged: list[tuple[int, int]] = []
+    current_start, current_end = intervals[0]
+
+    for start, end in intervals[1:]:
+        if start <= current_end:
+            current_end = max(current_end, end)
+        else:
+            merged.append((current_start, current_end - current_start))
+            current_start, current_end = start, end
+
+    merged.append((current_start, current_end - current_start))
+    return merged
 
 
 @dataclass(frozen=True)
