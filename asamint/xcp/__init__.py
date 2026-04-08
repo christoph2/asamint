@@ -304,12 +304,12 @@ class XCPMeasurement(AsamBaseType):
                     for requ in chunks(odt, maxWriteDaqMultipleElements):
                         xcp_master.writeDaqMultiple(
                             [
-                                dict(
-                                    bitOffset=r.bitoff,
-                                    size=r.length,
-                                    address=r.address,
-                                    addressExt=r.ext,
-                                )
+                                {
+                                    "bitOffset": r.bitoff,
+                                    "size": r.length,
+                                    "address": r.address,
+                                    "addressExt": r.ext,
+                                }
                                 for r in requ
                             ]
                         )

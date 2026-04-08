@@ -44,7 +44,7 @@ class FakeParser:
         warnings.warn(
             "Argument parser extension is currently not supported.",
             DeprecationWarning,
-            2,
+            stacklevel=2,
         )
         self.options.append(Option(short_opt, long_opt, dest, help, type, default))
 
@@ -54,7 +54,7 @@ class ArgumentParser:
         self._parser = FakeParser()
         if callout is not None:
             warnings.warn(
-                "callout  argument is currently not supported.", DeprecationWarning, 2
+                "callout  argument is currently not supported.", DeprecationWarning, stacklevel=2
             )
 
     def run(self, policy=None, transport_layer_interface=None):
