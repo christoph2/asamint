@@ -288,6 +288,8 @@ class MDFCreator(AsamMC):
                                     # reset if mismatch and continue searching
                                     chosen_ts = None
                                     chosen_src = None
+                            except ValueError:
+                                raise
                             except Exception:
                                 chosen_ts = None
                                 chosen_src = None

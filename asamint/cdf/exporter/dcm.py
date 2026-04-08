@@ -98,7 +98,8 @@ class Exporter(walker.CdfWalker):
             elif category == "BOOLEAN":
                 print(f"  WERT {1 if value == 'true' else 0}")
             else:
-                print(f'  TEXT "{value.replace("'", "")}"')
+                cleaned = value.replace("'", "")
+                print(f'  TEXT "{cleaned}"')
         print("END\n")
 
     def _emit_rows(self, prefix: str, values: list[object]) -> None:

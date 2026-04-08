@@ -507,7 +507,7 @@ class Calibration:
         # Read the string from memory
         value: Optional[str] = None
         try:
-            dtype = characteristic.encoding or "ASCII"
+            dtype = getattr(characteristic, "encoding", None) or "ASCII"
             value = self.image.read_asam_string(
                 characteristic.address,
                 dtype=dtype,
@@ -583,7 +583,7 @@ class Calibration:
             value = value[:length]
 
         # Write the string to memory
-        dtype = characteristic.encoding or "ASCII"
+        dtype = getattr(characteristic, "encoding", None) or "ASCII"
         try:
             self.image.write_asam_string(
                 characteristic.address,
@@ -675,8 +675,15 @@ class Calibration:
         except Exception as e:
             self.logger.error(f"{characteristic.name!r}: {e}")
         else:
+            # Convert from internal ASAM dimension order (x, y, z) to
+            # user-facing order (z, y, x) and drop trivial dimensions,
+            # consistent with save_value_block which uses fnc_np_shape[::-1].
+            raw = np.squeeze(raw.transpose())
             # Convert to physical values if read was successful
             phys = self.int_to_physical(characteristic, raw)
+
+        # External shape matches what save_value_block expects.
+        external_shape = tuple(d for d in shape[::-1] if d > 1) or (1,)
 
         # Create and return the ValueBlock object
         return klasses.ValueBlock(
@@ -686,7 +693,7 @@ class Calibration:
             _raw=raw,
             _phys=phys,
             displayIdentifier=characteristic.displayIdentifier,
-            shape=shape,
+            shape=external_shape,
             unit=characteristic.physUnit,
             is_numeric=self.is_numeric(characteristic.compuMethod),
             api=self,
@@ -733,7 +740,8 @@ class Calibration:
             phys_vals = np.asarray(values)
 
         # Expected external shape matches what load_value_block returns
-        expected_shape = characteristic.fnc_np_shape[::-1]
+        # (reversed ASAM dimension order with trivial dimensions removed)
+        expected_shape = tuple(d for d in characteristic.fnc_np_shape[::-1] if d > 1) or (1,)
 
         # Verify that the shape of the values matches the expected shape
         if phys_vals.shape != expected_shape:
@@ -742,7 +750,9 @@ class Calibration:
             )
 
         # Convert to internal representation and write to memory
+        # Restore internal ASAM dimension order for write_asam_ndarray
         int_vals = self.physical_to_int(characteristic, phys_vals)
+        int_vals = np.squeeze(int_vals.transpose()).reshape(characteristic.fnc_np_shape)
         try:
             self.image.write_asam_ndarray(
                 addr=characteristic.address,
