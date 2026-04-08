@@ -37,6 +37,7 @@ from dataclasses import dataclass
 from enum import IntEnum
 from functools import partialmethod, reduce
 from logging import Logger
+from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 if TYPE_CHECKING:
@@ -436,6 +437,25 @@ class Calibration:
         writing of calibration data to the target.
         """
         pass
+
+    def interpolate(self, characteristic_name: str, *raw_inputs: float) -> float:
+        """Interpolate a CURVE/MAP/CUBOID/CUBE_4/CUBE_5 at the given inputs.
+
+        For axes of type CURVE_AXIS the inputs are first passed through the
+        normalisation curves (ASAM MCD-2MC Appendix B).  For STD_AXIS,
+        COM_AXIS, and FIX_AXIS axes the inputs are mapped to floating-point
+        indices via regular linear interpolation.
+
+        Args:
+            characteristic_name: Name of the characteristic.
+            *raw_inputs: One raw physical input per axis (x, y, z, …).
+
+        Returns:
+            The interpolated Z value.
+        """
+        from asamint.calibration.curve_axis import lookup_normalized_map
+
+        return lookup_normalized_map(self, characteristic_name, *raw_inputs)
 
     def load(self, name: str) -> Any:  # noqa: C901
         """Load a calibration parameter by name.
@@ -1578,16 +1598,23 @@ class Calibration:
                         converted_axis_values = np.array([])
 
                 case "CURVE_AXIS":
-                    # Axis referencing a curve
+                    # Axis referencing a normalisation curve (Appendix B).
+                    # The curve maps raw input values → floating-point map indices.
+                    # For display purposes: raw = integer indices [0..N-1],
+                    # phys = curve Y-output values.
                     ref_obj = self.parameter_cache["CURVE"][
                         axis_descr.curveAxisRef.name
                     ]
                     axis_pts_ref = axis_descr.curveAxisRef.name
-                    raw_axis_values = []
-                    converted_axis_values = None
+                    no_axis_points = characteristic.record_layout_components.get(
+                        "axes", {}
+                    ).get(axis_name, SimpleNamespace(maximum_element_count=0)).maximum_element_count
+                    if not no_axis_points:
+                        no_axis_points = getattr(axis_descr, "maxAxisPoints", 0)
+                    raw_axis_values = np.arange(no_axis_points, dtype=np.float64)
+                    converted_axis_values = np.asarray(ref_obj.phys, dtype=np.float64)
                     axis_unit = None
-                    no_axis_points = len(ref_obj.raw)
-                    reversed_storage = ref_obj.axes[0].reversed_storage
+                    reversed_storage = False
 
                 case "COM_AXIS":
                     # Axis referencing axis points
