@@ -70,7 +70,7 @@ def _iter_csv_rows(
             arr = data.get(key)
             try:
                 row.append(arr[idx])
-            except Exception:
+            except (IndexError, TypeError):
                 row.append("")
         yield row
 
@@ -97,7 +97,7 @@ def _write_csv(
                     continue
                 try:
                     max_len = max(max_len, len(v))
-                except Exception as exc:
+                except TypeError as exc:
                     logger.debug("Cannot determine length for series %s: %s", k, exc)
             ts = list(range(max_len))
         series_keys = [k for k in fieldnames if k != "timestamp"]
@@ -162,7 +162,7 @@ def _fast_parse_daq_csv(csv_file: Path) -> Optional[dict[str, Any]]:
                 break
         if first_non_ws == "#":
             return None
-    except Exception as exc:  # pragma: no cover - guarded fallback
+    except (OSError, UnicodeDecodeError) as exc:  # pragma: no cover - guarded fallback
         logger.debug("Fast CSV precheck skipped for %s: %s", csv_file, exc)
         return None
 
@@ -176,7 +176,7 @@ def _fast_parse_daq_csv(csv_file: Path) -> Optional[dict[str, Any]]:
             dtype=float,
             invalid_raise=False,
         )
-    except Exception as exc:  # pragma: no cover - guarded fallback
+    except (OSError, ValueError, TypeError) as exc:  # pragma: no cover - guarded fallback
         logger.debug("Fast CSV parse skipped for %s: %s", csv_file, exc)
         return None
 
@@ -214,7 +214,7 @@ def _parse_daq_csv_python(csv_file: Path) -> dict[str, Any]:
         for idx, value in enumerate(row):
             try:
                 col_data[idx].append(float(value))
-            except Exception as exc:
+            except (ValueError, TypeError, IndexError) as exc:
                 logger.debug(
                     "Skipping non-numeric value %r at column %s: %s", value, idx, exc
                 )
@@ -239,7 +239,7 @@ def _merge_daq_csv_results(files: Iterable[Path]) -> dict[str, Any]:
     for f in files:
         try:
             part = _parse_daq_csv(f)
-        except Exception as e:
+        except (OSError, ValueError, TypeError) as e:
             warnings.warn(f"Failed to parse DAQ CSV {f}: {e}", stacklevel=2)
             continue
         if not part:

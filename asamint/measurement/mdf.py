@@ -80,7 +80,7 @@ class MDFCreator(AsamMC):
         # Try to auto-select measurements from config
         try:
             self._resolve_measurements_from_config()
-        except Exception as e:
+        except (AttributeError, ValueError, KeyError) as e:
             # Non-fatal, user can add measurements later via add_measurements()
             self.logger.debug(
                 f"MDFCreator: could not resolve measurements from config: {e}"
@@ -141,7 +141,7 @@ class MDFCreator(AsamMC):
                 meas = inspect.Measurement.get(self.session, name)
                 if meas is not None:
                     self.measurement_variables.append(meas)
-            except Exception as e:
+            except (AttributeError, ValueError, KeyError) as e:
                 self.logger.warning(f"Unknown measurement '{name}': {e}")
 
     def _resolve_measurements_from_config(self) -> None:
@@ -207,7 +207,7 @@ class MDFCreator(AsamMC):
                     if arr.ndim == 1 and arr.size > 0:
                         ts_candidates[k] = arr
                         finalize_data[k] = arr
-                except Exception as exc:
+                except (TypeError, ValueError) as exc:
                     self.logger.debug("Skipping timestamp candidate %s: %s", k, exc)
 
         # If no dedicated timestamp arrays found, we will synthesize later per group
@@ -290,7 +290,7 @@ class MDFCreator(AsamMC):
                                     chosen_src = None
                             except ValueError:
                                 raise
-                            except Exception:
+                            except (IndexError, AttributeError, TypeError):
                                 chosen_ts = None
                                 chosen_src = None
             if chosen_ts is None:
@@ -325,7 +325,7 @@ class MDFCreator(AsamMC):
                                 is_event_ts = True
                         median_dt = float(np.median(dt))
                         timebase_s = median_dt / 1e9 if is_event_ts else median_dt
-            except Exception:
+            except (TypeError, AttributeError, ValueError):
                 timebase_s = None
 
             group_id = group_counter
@@ -415,7 +415,7 @@ class MDFCreator(AsamMC):
                         ):
                             if "(ns)" not in chosen_src:
                                 annotated_src = f"{chosen_src}(ns)"
-                except Exception:
+                except AttributeError:
                     annotated_src = chosen_src
                 src_str = f" src={annotated_src}" if annotated_src is not None else ""
                 grp_str = f" grp={group_id}"
@@ -501,7 +501,7 @@ class MDFCreator(AsamMC):
                 formula = None
                 try:
                     formula = compuMethod.formula.get("formula")
-                except Exception:
+                except (AttributeError, KeyError, TypeError):
                     formula = None
                 if formula is not None:
                     conversion = {"formula": formula}
@@ -557,7 +557,7 @@ class MDFCreator(AsamMC):
                             conversion.update(
                                 default=bytes(default_value, encoding="utf-8")
                             )
-                        except Exception:
+                        except (TypeError, UnicodeDecodeError, AttributeError):
                             conversion.update(default=b"")
                 else:  # must be CompuTabVerb instance.
                     in_values = tv.in_values

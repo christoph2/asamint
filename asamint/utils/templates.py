@@ -73,7 +73,7 @@ def do_template(
             filename=tmpl, output_encoding=encoding, format_exceptions=formatExceptions
         )  # nosec
         tobj.render_context(ctx)
-    except Exception:
+    except (OSError, exceptions.MakoException, UnicodeDecodeError, AttributeError, NameError, TypeError):
         print(exceptions.text_error_template().render())
         return None
     # return strings.reformat(buf.getvalue(), leftMargin, rightMargin)
@@ -96,7 +96,7 @@ def do_template_from_text(
             text=tmpl, output_encoding=encoding, format_exceptions=formatExceptions
         )  # nosec
         tobj.render_context(ctx)
-    except Exception:
+    except (exceptions.MakoException, SyntaxError, UnicodeDecodeError, AttributeError, NameError, TypeError):
         print(exceptions.text_error_template().render())
         return None
     return indent_text(buf.getvalue(), leftMargin)  # , rightMargin)

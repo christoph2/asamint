@@ -208,7 +208,7 @@ def names_from_group(
             if meas_name in exclude_set:
                 continue
             names.append(meas_name)
-    except Exception as exc:
+    except (AttributeError, TypeError, ValueError) as exc:
         logger.debug("Failed to resolve group %s: %s", group_name, exc)
     return names
 
@@ -413,7 +413,7 @@ def _timestamp_candidates(data: dict[str, Any]) -> list[tuple[str, Any]]:
                 arr = np.asarray(value)
                 if arr.ndim == 1 and arr.size > 0:
                     candidates[key] = arr
-            except Exception as exc:
+            except (TypeError, ValueError) as exc:
                 logger.debug("Skipping timestamp candidate %s: %s", key, exc)
     return sorted(candidates.items(), key=_ts_priority, reverse=True)
 
@@ -428,7 +428,7 @@ def _ts_priority(item: tuple[str, Any]) -> tuple[int, int]:
     )
     try:
         length = int(arr.shape[0])
-    except Exception:
+    except (AttributeError, IndexError, TypeError):
         length = 0
     return (is_event, length)
 
@@ -443,7 +443,7 @@ def _select_timestamp_for_signal(
         return None, None, 0
     try:
         arr = np.asarray(samples)
-    except Exception:
+    except (TypeError, ValueError):
         return None, None, 0
     n = int(arr.shape[0]) if arr.ndim >= 1 else 0
     chosen_src, chosen_ts = _exact_timestamp_match(ts_items, n)
@@ -479,7 +479,7 @@ def _stride_timestamp_match(
             chosen_src = f"{src}[::${step}]{trimmed}"
             if int(getattr(chosen_ts, "shape", [0])[0]) == sample_len:
                 return chosen_src, chosen_ts
-        except Exception as exc:
+        except (IndexError, AttributeError, TypeError) as exc:
             logger.debug("Failed stride selection for %s: %s", src, exc)
     return None, None
 
@@ -516,7 +516,7 @@ def _median_timebase(src: Optional[str], ts: Optional[Any]) -> Optional[float]:
         ):
             return median_dt / 1e9
         return median_dt
-    except Exception:
+    except (TypeError, AttributeError, ZeroDivisionError):
         return None
 
 
@@ -576,17 +576,17 @@ def _prepare_daq_metadata(
     if period_s is not None:
         try:
             meta["daq_timebase_hint_s"] = float(period_s)
-        except Exception:
+        except (ValueError, TypeError):
             pass
     if duration is not None:
         try:
             meta["daq_duration_s"] = float(duration)
-        except Exception:
+        except (ValueError, TypeError):
             pass
     if samples is not None:
         try:
             meta["daq_samples"] = int(samples)
-        except Exception:
+        except (ValueError, TypeError):
             pass
     return meta
 
@@ -784,7 +784,7 @@ def _persist_mdf_format(
         if created_here:
             try:
                 local_creator.close()
-            except Exception:  # pragma: no cover - best-effort cleanup
+            except (OSError, AttributeError):  # pragma: no cover - best-effort cleanup
                 logger.debug("Failed to close temporary MDFCreator", exc_info=True)
 
 

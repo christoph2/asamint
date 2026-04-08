@@ -145,7 +145,7 @@ class AsamMC:
         # sourced from the new traitlets-based config where possible.
         try:
             default_subject = f"SUBJ_{self.shortname}" if self.shortname else ""
-        except Exception:
+        except (TypeError, AttributeError):
             default_subject = ""
         self.experiment_config = {
             # Common experiment metadata
@@ -259,7 +259,7 @@ class AsamMC:
         try:
             if not isinstance(bo, ByteOrder):
                 bo = ByteOrder(int(bo))
-        except Exception:
+        except (ValueError, TypeError):
             bo = ByteOrder.MSB_LAST
 
         # Per ASAM semantics: MSB_LAST == Intel == little-endian.
@@ -332,7 +332,7 @@ class AsamMC:
                     "compuMethod": m.compuMethod,
                 }
                 meas_info.append(info)
-            except Exception as e:
+            except (AttributeError, TypeError, ValueError, KeyError) as e:
                 self.logger.error(
                     f"Cannot prepare measurement '{getattr(m, 'name', '?')}': {e}"
                 )
@@ -364,7 +364,7 @@ class AsamMC:
                         else:
                             val = val >> amount
                     buffers[mi["name"]].append(val)
-                except Exception as e:
+                except (OSError, IndexError, KeyError, TypeError, ValueError) as e:
                     self.logger.error(f"pyxcp upload failed for {mi['name']}: {e}")
                     buffers[mi["name"]].append(np.nan)
             # Sleep remaining time in period
@@ -421,5 +421,5 @@ class AsamMC:
 
             calculator = CompuMethod(self.session, name)
             return calculator.int_to_physical(internal_values)
-        except Exception:
+        except (AttributeError, ValueError, KeyError):
             return internal_values

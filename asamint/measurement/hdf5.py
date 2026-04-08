@@ -22,7 +22,7 @@ class HDF5Creator(AsamMC):
         self.measurement_variables: list[Any] = []
         try:
             self._resolve_measurements_from_config()
-        except Exception as e:
+        except (AttributeError, ValueError, KeyError) as e:
             self.logger.debug(
                 f"HDF5Creator: could not resolve measurements from config: {e}"
             )
@@ -34,7 +34,7 @@ class HDF5Creator(AsamMC):
                 meas = inspect.Measurement.get(self.session, name)
                 if meas is not None:
                     self.measurement_variables.append(meas)
-            except Exception as e:
+            except (AttributeError, ValueError, KeyError) as e:
                 self.logger.warning(f"Unknown measurement '{name}': {e}")
 
     def _resolve_measurements_from_config(self) -> None:
@@ -94,7 +94,7 @@ class HDF5Creator(AsamMC):
                 signal_meta[meas.name] = {
                     "compu_method": getattr(meas.compuMethod, "name", None)
                 }
-            except Exception:
+            except AttributeError:
                 units[meas.name] = None
                 signal_meta[meas.name] = {"compu_method": None}
 
@@ -123,7 +123,7 @@ def _write_hdf5(
     try:
         import h5py  # type: ignore
         import numpy as np  # ensure numpy available
-    except Exception as e:  # pragma: no cover
+    except ImportError as e:  # pragma: no cover
         warnings.warn(
             f"HDF5 export requested but h5py is not available: {e}. Skipping HDF5 write.",
             RuntimeWarning,
@@ -135,7 +135,7 @@ def _write_hdf5(
         for k, v in project_meta.items():
             try:
                 hf.attrs[k] = v if v is not None else ""
-            except Exception as exc:
+            except (TypeError, ValueError) as exc:
                 logger.debug("Skipping HDF5 root attr %s: %s", k, exc)
         ts = data.get("TIMESTAMPS")
         if ts is not None:
@@ -157,7 +157,7 @@ def _write_hdf5(
 def _annotate_hdf5_root(h5_path: Path, project_meta: dict[str, Any]) -> None:
     try:
         import h5py  # type: ignore
-    except Exception:
+    except ImportError:
         return
     if not h5_path.exists():
         return
@@ -166,9 +166,9 @@ def _annotate_hdf5_root(h5_path: Path, project_meta: dict[str, Any]) -> None:
             for k, v in project_meta.items():
                 try:
                     hf.attrs[k] = v if v is not None else ""
-                except Exception as exc:
+                except (TypeError, ValueError) as exc:
                     logger.debug("Skipping HDF5 root attr %s: %s", k, exc)
-    except Exception as exc:  # pragma: no cover - best-effort
+    except OSError as exc:  # pragma: no cover - best-effort
         logger.debug("Failed to annotate HDF5 file %s: %s", h5_path, exc)
 
 
@@ -182,7 +182,7 @@ def _annotate_daq_hdf5_metadata(
         import json
 
         import h5py  # type: ignore
-    except Exception:
+    except ImportError:
         return
     if not h5_path.exists():
         return
@@ -192,7 +192,7 @@ def _annotate_daq_hdf5_metadata(
             _write_daq_hdf5_metadata(
                 hf, h5_path, project_meta, json.dumps(config), timebase_hint_s
             )
-    except Exception as exc:  # pragma: no cover - best-effort
+    except OSError as exc:  # pragma: no cover - best-effort
         logger.debug("Failed to annotate DAQ HDF5 file %s: %s", h5_path, exc)
 
 
@@ -214,7 +214,7 @@ def _serialize_daq_lists(daq_lists: list[Any]) -> list[dict[str, Any]]:
                     ],
                 }
             )
-        except Exception as exc:
+        except (AttributeError, TypeError, IndexError) as exc:
             logger.debug(
                 "Failed to serialize DAQ list %s: %s",
                 getattr(daq_list, "name", "?"),
@@ -233,15 +233,15 @@ def _write_daq_hdf5_metadata(
     _annotate_hdf5_root(h5_path, project_meta)
     try:
         hf.attrs["daq_config"] = daq_config_json
-    except Exception as exc:
+    except (TypeError, ValueError) as exc:
         logger.debug("Failed to write daq_config attribute: %s", exc)
     if project_meta.get("time_source"):
         try:
             hf.attrs["time_source_hint"] = project_meta["time_source"]
-        except Exception as exc:
+        except (TypeError, ValueError) as exc:
             logger.debug("Failed to write time_source_hint attribute: %s", exc)
     if timebase_hint_s is not None:
         try:
             hf.attrs["daq_timebase_hint_s"] = float(timebase_hint_s)
-        except Exception:
+        except (ValueError, TypeError):
             logger.debug("Failed to write daq_timebase_hint_s attribute", exc_info=True)

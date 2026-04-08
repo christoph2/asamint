@@ -314,7 +314,7 @@ class Calibration:
                 ).all()
             )
             axis_rows = list(self.session.query(model.AxisPts.name).all())
-        except Exception as exc:
+        except (AttributeError, ValueError, KeyError) as exc:
             self.logger.debug("Skipping A2L preload: %s", exc)
             return
 
@@ -346,7 +346,7 @@ class Calibration:
                 try:
                     cm = self.get_compu_method(characteristic)
                     self._definition_cache[("CM", cm.name)] = cm
-                except Exception as exc:  # pragma: no cover - best effort
+                except (AttributeError, ValueError, KeyError) as exc:  # pragma: no cover - best effort
                     self.logger.debug("Skipping compu preload for %s: %s", name, exc)
 
         if axis_pts:
@@ -360,7 +360,7 @@ class Calibration:
                 try:
                     cm = self.get_compu_method(axis)
                     self._definition_cache[("CM", cm.name)] = cm
-                except Exception as exc:  # pragma: no cover - best effort
+                except (AttributeError, ValueError, KeyError) as exc:  # pragma: no cover - best effort
                     self.logger.debug(
                         "Skipping compu preload for axis %s: %s", name, exc
                     )
@@ -513,7 +513,7 @@ class Calibration:
                 dtype=dtype,
                 length=length,
             )
-        except Exception as e:
+        except (InvalidAddressError, AttributeError, ValueError) as e:
             self.logger.error(f"{characteristic.name!r}: {e}")
             value = None
 
@@ -672,7 +672,7 @@ class Calibration:
                 order=characteristic.fnc_np_order,
                 bit_mask=characteristic.bitMask,
             )
-        except Exception as e:
+        except (InvalidAddressError, ValueError, AttributeError) as e:
             self.logger.error(f"{characteristic.name!r}: {e}")
         else:
             # Convert from internal ASAM dimension order (x, y, z) to
@@ -812,7 +812,7 @@ class Calibration:
                     byte_order=byte_order,
                     bit_mask=characteristic.bitMask,
                 )
-            except Exception as e:
+            except (InvalidAddressError, ValueError, TypeError) as e:
                 self.logger.error(f"{characteristic.name!r}: {e}")
                 raw = 0
             # Right-shift to get rid of trailing zeros (s. ASAM 2-MC spec)
@@ -826,7 +826,7 @@ class Calibration:
                     dtype=fnc_asam_dtype,
                     byte_order=byte_order,
                 )
-            except Exception as e:
+            except (InvalidAddressError, ValueError, TypeError) as e:
                 self.logger.error(f"{characteristic.name!r}: {e}")
                 raw = 0
             is_bool = False
@@ -1280,7 +1280,7 @@ class Calibration:
                 shape=axes_container.shape,
                 order=order,
             )
-        except Exception as e:
+        except (InvalidAddressError, ValueError, AttributeError, TypeError) as e:
             self.logger.error(f"{characteristic.name!r}: {e}")
             raw = np.array([])
             phys = np.array([])
@@ -1292,7 +1292,7 @@ class Calibration:
             # Convert to physical values
             try:
                 phys = chr_cm.int_to_physical(raw)
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError, ZeroDivisionError) as e:
                 self.logger.error(
                     f"Exception converting values for {characteristic.name!r}: {e}"
                 )
@@ -2199,7 +2199,7 @@ class OfflineCalibration(Calibration):
         if hasattr(image, "join_sections"):
             try:
                 image.join_sections()
-            except Exception as exc:
+            except (OSError, AttributeError, ValueError) as exc:
                 ctx.logger.debug("Skipping join_sections(): %s", exc)
         parameter_chache = ParameterCache()
         super().__init__(

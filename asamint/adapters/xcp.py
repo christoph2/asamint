@@ -80,7 +80,7 @@ def make_continuous_blocks(blocks: Sequence[Any]) -> list[Any]:
 # MAP_TO_ARRAY is used by recorder examples; gracefully fall back if pyarrow extras are missing.
 try:  # pragma: no cover - optional recorder extras
     from pyxcp.recorder.converter import MAP_TO_ARRAY
-except Exception:  # pragma: no cover - dependency (pyarrow) may be missing
+except ImportError:  # pragma: no cover - dependency (pyarrow) may be missing
     MAP_TO_ARRAY = {
         "U8": "B",
         "I8": "b",
