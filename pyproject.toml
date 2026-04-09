@@ -22,6 +22,8 @@ classifiers = [
 include = [
     { path = "asamint/data/*.*", format = "wheel" },
     { path = "asamint/data/*.*", format = "sdist" },
+    { path = "asamint/py.typed", format = "wheel" },
+    { path = "asamint/py.typed", format = "sdist" },
 ]
 
 
