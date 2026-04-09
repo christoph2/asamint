@@ -2,7 +2,7 @@
 History
 =======
 
-0.2.2 (2026-04-01)
+0.2.2 (2026-04-09)
 -------------------
 
 - Calibration I/O: Switched to ASAM objutils ``read_asam_*``/``write_asam_*`` helpers for all scalar, string, CURVE, and MAP access; byte order and data type are passed directly from A2L metadata.
@@ -11,10 +11,21 @@ History
 - Calibration: Preserved axis reversal metadata through DB round-trips.
 - Calibration: Added warning when physical value cast would lose precision.
 - Calibration: Improved CURVE/MAP limit and dimension validation; complete save-policy handling; handle invalid write addresses gracefully.
+- Calibration: Implemented DEPENDENT_CHARACTERISTIC and VIRTUAL_CHARACTERISTIC engine (ASAM Appendix G).
+- Calibration: Implemented OnlineCalibration with live XCP write-back and dirty-region flushing.
+- Calibration: Implemented CURVE_AXIS normalization per ASAM MCD-2MC Appendix B.
 - CDF: Added DTD validation on import/export; normalized ASCII and CDF shapes; added CDF API tests.
+- CDF/DCM/CVX: Added DEPENDENT_VALUE support in exports; CVX repair and round-trip tests.
+- DCM: Implemented ``import_dcm()`` API with ANTLR parser and integration tests.
 - Paging: XCP segment/page information now read from A2L ``IF_DATA XCP`` SEGMENT/PAGE entries (attribute-based access).
-- API stability: Added ``DeprecatedAlias`` mechanism to ``asamint.api``; ``available_measurement_formats`` kept as deprecated alias (removal in 0.10.0, use ``list_measurement_formats``).
-- Code quality: Cleared Ruff backlog; modernized creator examples; stabilized A2L cache reuse.
+- API stability: Added ``DeprecatedAlias`` mechanism to ``asamint.api``; shared deprecation hooks across all subpackages.
+- Code quality: Cleared Ruff backlog; removed dead code and unused stubs; ``print()`` → ``logging`` migration across all production code.
+- Type annotations: Added return types to all library methods; replaced ``Any`` with concrete types across public API; added docstrings to all public functions.
+- Tooling: Added mypy configuration (310-error baseline); added ``py.typed`` marker (PEP 561).
+- Packaging: Modernized CI — added test matrix (Python 3.10–3.13 × Ubuntu/Windows), tag-gated PyPI publish, updated all action versions.
+- Packaging: Removed 7 legacy files (``tox.ini``, ``setup.cfg``, ``appveyor.yml``, ``MANIFEST.in``, ``requirements_*.txt``).
+- Pre-commit: Replaced 17 obsolete local hooks with 2 official repos (``pre-commit-hooks`` + ``ruff-pre-commit``).
+- Docs: Modernized Sphinx config, fixed module imports, added napoleon/intersphinx, wrote real usage guide and API reference.
 - Version: aligned ``pyproject.toml`` version with HISTORY (was stuck at 0.1.5).
 
 0.2.1 (2025-12-16)
