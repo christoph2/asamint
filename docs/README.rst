@@ -5,8 +5,8 @@ ASAM Integration Package
 .. image:: http://img.shields.io/badge/license-GPL-blue.svg
    :target: http://opensource.org/licenses/GPL-2.0
 
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-    :target: https://github.com/psf/black
+.. image:: https://img.shields.io/badge/code%20style-ruff-261230.svg
+    :target: https://github.com/astral-sh/ruff
 
 
 
@@ -35,17 +35,13 @@ And yes, all listed projects are `Raspberry PI <https://raspberrypi.org>`_ teste
 Installation
 ------------
 
-clone / fork / download from `here. <https://github.com/christoph2/asamint>`_
+Install from source using `Poetry <https://python-poetry.org/>`_::
 
-Then run
+    git clone https://github.com/christoph2/asamint.git
+    cd asamint
+    poetry install
 
-.. code-block:: python
-
-   python setup.py develop
-
-Dependencies
-~~~~~~~~~~~~
-**asamint** currently doesn't specify dependencies on its own -- installing the above listed projects should be sufficient.
+Dependencies are managed via ``pyproject.toml`` and installed automatically by Poetry.
 
 License
 -------
@@ -54,8 +50,6 @@ License
 
 Features
 --------
-
- Note: At this stage, the project is highly experimental and hacky, so don't expect stable APIs and tons of features!
 
 Functions are basically orchestrated using ASAM MCD-2MC (A2L) files.
 

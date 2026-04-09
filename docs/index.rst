@@ -1,17 +1,24 @@
-Welcome to ASAM Integration Package's documentation!
-======================================
+asamint
+=======
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
    readme
-   installation
    usage
-   modules
+   further_readings
    contributing
    authors
    history
+
+API Reference
+=============
+
+.. toctree::
+   :maxdepth: 2
+
+   api
 
 Indices and tables
 ==================
