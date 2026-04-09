@@ -27,7 +27,6 @@ __author__ = "Christoph Schueler"
 __version__ = "0.1.0"
 
 
-import codecs
 import importlib
 import logging
 import sys
@@ -75,14 +74,9 @@ class ParserWrapper:
 
     def parse(self, input: antlr4.InputStream, trace: bool = False) -> Any:
         lexer = self.lexerClass(input)
-        # lexer.removeErrorListeners()
-        # lexer.addErrorListener(MyErrorListener())
         tokenStream = antlr4.CommonTokenStream(lexer)
-        #        tokenStream = BufferedTokenStream(lexer)
         parser = self.parserClass(tokenStream)
         parser.setTrace(trace)
-        # parser.removeErrorListeners()
-        # parser.addErrorListener(MyErrorListener())
         meth = getattr(parser, self.startSymbol)
         self._syntaxErrors = parser._syntaxErrors
         tree = meth()
@@ -90,6 +84,7 @@ class ParserWrapper:
             listener = self.listener()
             walker = antlr4.ParseTreeWalker()
             walker.walk(listener, tree)
+            listener.result = getattr(tree, "phys", None)
             return listener
 
     def parseFromFile(self, filename: str | Path, encoding: str = "latin-1", trace: bool = False) -> Any:
@@ -105,7 +100,8 @@ class ParserWrapper:
 
     @staticmethod
     def stringStream(fname: str | Path, encoding: str = "latin-1") -> antlr4.InputStream:
-        return antlr4.InputStream(codecs.open(fname, encoding=encoding).read())
+        with open(fname, encoding=encoding) as fh:
+            return antlr4.InputStream(fh.read())
 
     def _getNumberOfSyntaxErrors(self) -> int:
         return self._syntaxErrors

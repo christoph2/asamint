@@ -36,11 +36,10 @@ from asamint.logger import Logger
 class BaseListener(antlr4.ParseTreeListener):
     """"""
 
-    value = []
-
     def __init__(self, *args, **kws) -> None:
         super().__init__(*args, **kws)
         self.logger = Logger(__name__)
+        self.result: Any = None
 
     def getList(self, attr) -> list:
         return [x.phys for x in attr] if attr else []
