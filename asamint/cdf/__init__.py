@@ -26,12 +26,13 @@ __copyright__ = """
    s. FLOSS-EXCEPTION.txt
 """
 
+import logging
 import sys
 import uuid
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import h5py
 import numpy as np
@@ -72,7 +73,7 @@ def export_cdf(
     h5_db_path: str | Path | None = None,
     variant_coding: bool = False,
     validate_dtd: bool = False,
-    logger: Optional[Any] = None,
+    logger: logging.Logger | None = None,
 ) -> CdfIOResult:
     log = logger or configure_logging(__name__)
     db_file = Path(db_path)
@@ -100,7 +101,7 @@ def import_cdf(
     *,
     xml_path: str | Path,
     db_path: str | Path,
-    logger: Optional[Any] = None,
+    logger: logging.Logger | None = None,
 ) -> CdfIOResult:
     log = logger or configure_logging(__name__)
     importer = CDFImporter(logger=log)
@@ -239,7 +240,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         self.instances()
         self.write_tree("CDF20demo")
 
-    def _toplevel_boilerplate(self) -> Any:
+    def _toplevel_boilerplate(self) -> etree._Element:
         root = self.msrsw_header("CDF20", "CDF")
         sw_system = self.sub_trees["SW-SYSTEM"]
         instance_spec = create_elem(sw_system, "SW-INSTANCE-SPEC")
@@ -258,7 +259,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         return root
 
     def cs_collection(
-        self, name: str, category: str, tree: Any, is_group: bool
+        self, name: str, category: str, tree: etree._Element, is_group: bool
     ) -> None:
         collection = create_elem(tree, "SW-CS-COLLECTION")
         create_elem(collection, "CATEGORY", text=category)
@@ -384,7 +385,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         self,
         name: str,
         descr: str | None,
-        value: Any,
+        value: float | int | str,
         category: str,
         unit: str | None = "",
         displayIdentifier: str | None = None,
@@ -412,7 +413,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
             create_elem(values, "V", text=str(value))
 
     def add_axis(
-        self, axis_conts: Any, axis_values: np.ndarray, category: str, unit: str = ""
+        self, axis_conts: etree._Element, axis_values: np.ndarray, category: str, unit: str = ""
     ) -> None:
         axis_cont = create_elem(axis_conts, "SW-AXIS-CONT")
         create_elem(axis_cont, "CATEGORY", text=category)
@@ -428,7 +429,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         unit: str = "",
         displayIdentifier: str | None = None,
         feature_ref: str | None = None,
-    ) -> tuple[Any, Any]:
+    ) -> tuple[etree._Element, etree._Element]:
         variant = self.sw_instance(
             name,
             descr,
@@ -451,7 +452,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         fnc_unit: str = "",
         displayIdentifier: str | None = None,
         feature_ref: str | None = None,
-    ) -> Any:
+    ) -> etree._Element:
         value_cont, axis_conts = self.instance_container(
             name,
             descr,
@@ -466,7 +467,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         self.output_value_array(fnc_values, vph)
         return axis_conts
 
-    def output_value_array(self, values: np.ndarray, value_group: Any) -> None:
+    def output_value_array(self, values: np.ndarray, value_group: etree._Element) -> None:
         """Write an ndarray into nested VG/V elements according to CDF structure."""
         if values.ndim == 1:
             self.output_1darray(value_group, None, values)
@@ -503,7 +504,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         category: str,
         displayIdentifier: str | None = None,
         feature_ref: str | None = None,
-    ) -> Any:
+    ) -> etree._Element:
         instance_tree = self.sub_trees["SW-INSTANCE-TREE"]
         instance = create_elem(instance_tree, "SW-INSTANCE")
         create_elem(instance, "SHORT-NAME", text=name)
@@ -526,7 +527,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         unit: str = "",
         displayIdentifier: str | None = None,
         feature_ref: str | None = None,
-    ) -> Any:
+    ) -> etree._Element:
         variant = self.sw_instance(
             name,
             descr,

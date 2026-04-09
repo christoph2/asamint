@@ -29,9 +29,11 @@ import time
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, TypedDict, Union
 
-from asamint.adapters.a2l import model
+import numpy as np
+
+from asamint.adapters.a2l import A2LDBSession, model
 from asamint.adapters.measurement import (
     MeasurementFormat,
     available_measurement_formats,
@@ -61,7 +63,31 @@ from asamint.measurement.mdf import MDFCreator
 
 logger = configure_logging(__name__)
 
+
+class _DaqGroupBase(TypedDict):
+    """Required fields for a DAQ group specification."""
+
+    name: str
+    event_num: int
+
+
+class DaqGroupSpec(_DaqGroupBase, total=False):
+    """Full DAQ group specification for :func:`build_daq_lists` / :func:`run`.
+
+    Must supply either *group_name* (A2L group) or *variables* (explicit list).
+    """
+
+    stim: bool
+    enable_timestamps: bool
+    group_name: str
+    variables: list[str]
+    exclude: list[str] | set[str]
+    priority: int
+    prescaler: int
+
+
 __all__ = [
+    "DaqGroupSpec",
     "RunResult",
     "group_measurements",
     "resolve_measurements_by_names",
@@ -114,7 +140,7 @@ PYXCP_TYPES = {
 
 
 def group_measurements(
-    session: Any, group_name: str, exclude: Optional[Union[list[str], set[str]]] = None
+    session: A2LDBSession, group_name: str, exclude: Optional[Union[list[str], set[str]]] = None
 ) -> list[tuple[str, int, int, str]]:
     result = []
     if exclude:
@@ -146,7 +172,7 @@ def group_measurements(
 
 
 def resolve_measurements_by_names(
-    session: Any,
+    session: A2LDBSession,
     names: Iterable[str],
     exclude: Optional[Union[list[str], set[str]]] = None,
 ) -> list[tuple[str, int, int, str]]:
@@ -183,7 +209,7 @@ def resolve_measurements_by_names(
 
 
 def names_from_group(
-    session: Any,
+    session: A2LDBSession,
     group_name: str,
     exclude: Optional[Union[list[str], set[str]]] = None,
 ) -> list[str]:
@@ -215,7 +241,7 @@ def names_from_group(
 
 
 def daq_list_from_names(
-    session: Any,
+    session: A2LDBSession,
     list_name: str,
     event_num: int,
     stim: bool,
@@ -239,7 +265,7 @@ def daq_list_from_names(
 
 
 def daq_list_from_group(
-    session: Any,
+    session: A2LDBSession,
     list_name: str,
     event_num: int,
     stim: bool,
@@ -276,8 +302,8 @@ def daq_list_from_group(
 
 
 def build_daq_lists(
-    session: Any,
-    groups: list[dict[str, Any]],
+    session: A2LDBSession,
+    groups: list[DaqGroupSpec],
 ) -> list[DaqList]:
     """
     Build multiple DaqList objects from a group specification.
@@ -352,7 +378,7 @@ def _auto_filename(prefix: str, ext: str) -> str:
     return f"{name}_{ts}{ext}"
 
 
-def _unique_names_from_groups(groups: list[dict[str, Any]]) -> list[str]:
+def _unique_names_from_groups(groups: list[DaqGroupSpec]) -> list[str]:
     names: list[str] = []
     seen: set[str] = set()
     for g in groups:
@@ -498,7 +524,7 @@ def _stride_for_ratio(ts_len: int, n: int) -> Optional[int]:
     return step
 
 
-def _median_timebase(src: Optional[str], ts: Optional[Any]) -> Optional[float]:
+def _median_timebase(src: Optional[str], ts: np.ndarray | None) -> Optional[float]:
     import numpy as np
 
     if ts is None:
@@ -758,8 +784,8 @@ def _persist_mdf_format(
     units: Optional[dict[str, Optional[str]]],
     project_meta: Optional[dict[str, Any]],
     output_path: str | Path | None,
-    creator: Optional[Any] = None,
-    exp_cfg: Optional[dict[str, Any]] = None,
+    creator: MDFCreator | None = None,
+    exp_cfg: dict[str, Any] | None = None,
     **kwargs: Any,
 ) -> RunResult:
     local_creator = creator
@@ -821,8 +847,8 @@ def _register_default_formats() -> None:
 _register_default_formats()
 
 
-def _prepare_daq_groups(groups: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    prepared: list[dict[str, Any]] = []
+def _prepare_daq_groups(groups: list[DaqGroupSpec]) -> list[DaqGroupSpec]:
+    prepared: list[DaqGroupSpec] = []
     for group in groups:
         item = dict(group)
         item.setdefault("priority", 0)
@@ -864,8 +890,8 @@ def _execute_daq_capture(
 
 
 def _run_daq_flow(
-    creator: Any,
-    daq_groups: list[dict[str, Any]],
+    creator: MDFCreator | HDF5Creator,
+    daq_groups: list[DaqGroupSpec],
     *,
     daq_lists: Optional[list[DaqList]] = None,
     duration: Optional[float],
@@ -905,7 +931,7 @@ def _run_daq_flow(
 
 
 def _run_daq_flow_wrapper(
-    groups: list[dict[str, Any]],
+    groups: list[DaqGroupSpec],
     duration: Optional[float],
     samples: Optional[int],
     period_s: Optional[float],
@@ -985,7 +1011,7 @@ def _run_daq_flow_wrapper(
 
 
 def _run_polling_flow(
-    creator: Any,
+    creator: MDFCreator | HDF5Creator,
     *,
     duration: Optional[float],
     samples: Optional[int],
@@ -1035,7 +1061,7 @@ def _run_polling_flow(
 
 
 def run(
-    groups: list[dict[str, Any]],
+    groups: list[DaqGroupSpec],
     duration: Optional[float] = None,
     samples: Optional[int] = None,
     period_s: Optional[float] = 0.01,

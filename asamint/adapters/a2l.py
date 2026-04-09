@@ -4,7 +4,7 @@ import shutil
 import sqlite3
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeAlias
 from uuid import uuid4
 
 from pya2l import DB, model, path_components
@@ -21,6 +21,8 @@ from pya2l.api.inspect import (
     asam_type_size,
 )
 from pya2l.functions import Formula, fix_axis_par, fix_axis_par_dist
+
+A2LDBSession: TypeAlias = Any  # pya2l DB session (SQLAlchemy ORM Session)
 
 inspect = a2l_inspect
 
@@ -100,7 +102,7 @@ def _import_a2l_fresh(
 
 def open_a2l_database(
     a2l_file: str, encoding: str = "latin-1", *, local: bool = True
-) -> Any:
+) -> A2LDBSession:
     """Open an A2L database via pya2l.DB and return the session."""
 
     a2l_path, db_path = _a2l_database_paths(a2l_file, local=local)
@@ -117,6 +119,7 @@ def open_a2l_database(
 
 
 __all__ = [
+    "A2LDBSession",
     "a2l_inspect",
     "AxisPts",
     "Characteristic",

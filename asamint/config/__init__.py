@@ -378,7 +378,7 @@ application: typing.Optional[Asamint] = None
 
 
 def create_application(
-    options: typing.Optional[list[typing.Any]] = None,
+    options: typing.Optional[list[str]] = None,
 ) -> Asamint:
     global application
     if options is None:
@@ -392,7 +392,7 @@ def create_application(
 
 
 def get_application(
-    options: typing.Optional[list[typing.Any]] = None,
+    options: typing.Optional[list[str]] = None,
 ) -> Asamint:
     if options is None:
         options = []
@@ -402,7 +402,7 @@ def get_application(
     return application
 
 
-def snapshot_general_config(app: typing.Any) -> GeneralConfig:
+def snapshot_general_config(app: Asamint) -> GeneralConfig:
     """Create an immutable snapshot of the active General config."""
 
     general = getattr(app, "general", None)
@@ -427,7 +427,7 @@ def snapshot_general_config(app: typing.Any) -> GeneralConfig:
     )
 
 
-def snapshot_logging_config(app: typing.Any) -> LoggingConfig:
+def snapshot_logging_config(app: Asamint) -> LoggingConfig:
     """Create an immutable snapshot of logging configuration."""
 
     level = getattr(app, "log_level", logging.INFO)

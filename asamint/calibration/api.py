@@ -38,10 +38,10 @@ from enum import IntEnum
 from functools import partialmethod, reduce
 from logging import Logger
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union, cast
 
 if TYPE_CHECKING:
-    from asamint.calibration.dependent import DependencyEngine, DependencyGraph
+    from asamint.calibration.dependent import DependencyEngine, DependencyGraph, EvaluationResult
 
 import numpy as np
 
@@ -167,7 +167,7 @@ class DictLike:
     using a getter method and cached for subsequent access.
     """
 
-    def __init__(self, getter_method: callable) -> None:
+    def __init__(self, getter_method: Callable[[str], Any]) -> None:
         """Initialize the DictLike object.
 
         Args:
@@ -401,7 +401,7 @@ class Calibration:
             self._dep_engine = engine
         return engine
 
-    def recalculate_dependents(self, modified_name: str) -> list:
+    def recalculate_dependents(self, modified_name: str) -> "list[EvaluationResult]":
         """Recalculate all dependent characteristics affected by *modified_name*.
 
         DEPENDENT results are written back to the image; VIRTUAL results are
