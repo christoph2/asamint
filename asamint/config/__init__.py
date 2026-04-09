@@ -93,7 +93,7 @@ class ProfileCreate(Application):
     dest_file = Unicode(
         default_value=None, allow_none=True, help="destination file name"
     ).tag(config=True)
-    aliases = Dict(  # type:ignore[assignment]
+    aliases = Dict(
         {
             "d": "ProfileCreate.dest_file",
             "o": "ProfileCreate.dest_file",
@@ -208,14 +208,14 @@ class XCP(Configurable):
                 self.config.General = {}
             for k, v in cfg["General"].items():
                 # Do not override values already provided by asamint config
-                if k not in self.config.General:  # type: ignore[operator]
-                    self.config.General[k] = v  # type: ignore[index]
+                if k not in self.config.General:
+                    self.config.General[k] = v
         if "Transport" in cfg:
             if not hasattr(self.config, "Transport"):
                 self.config.Transport = {}
             for k, v in cfg["Transport"].items():
-                if k not in self.config.Transport:  # type: ignore[operator]
-                    self.config.Transport[k] = v  # type: ignore[index]
+                if k not in self.config.Transport:
+                    self.config.Transport[k] = v
 
 
 class Asamint(Application):
@@ -291,7 +291,7 @@ class Asamint(Application):
             raise TypeError("Configuration file must be a Python (.py) file.")
         # return cfg
 
-    flags = Dict(  # type:ignore[assignment]
+    flags = Dict(
         {
             "debug": ({"Asamint": {"log_level": 10}}, "Set loglevel to DEBUG"),
         }
@@ -301,7 +301,7 @@ class Asamint(Application):
     def _default_value(self) -> int:
         return logging.INFO  # traitlets default is logging.WARN
 
-    aliases = Dict(  # type:ignore[assignment]
+    aliases = Dict(
         {
             "c": "Asamint.config_file",  # Application
             "log_level": "Asamint.log_level",

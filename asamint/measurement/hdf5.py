@@ -124,7 +124,7 @@ def _write_hdf5(
     This uses h5py if available; otherwise a warning is emitted and the file is not written.
     """
     try:
-        import h5py  # type: ignore
+        import h5py
         import numpy as np  # ensure numpy available
     except ImportError as e:  # pragma: no cover
         warnings.warn(
@@ -154,12 +154,12 @@ def _write_hdf5(
             if m.get("compu_method"):
                 dset.attrs["compu_method"] = m["compu_method"]
             if m.get("sample_count") is not None:
-                dset.attrs["sample_count"] = int(m["sample_count"])  # type: ignore[arg-type]
+                dset.attrs["sample_count"] = int(m["sample_count"])
 
 
 def _annotate_hdf5_root(h5_path: Path, project_meta: dict[str, Any]) -> None:
     try:
-        import h5py  # type: ignore
+        import h5py
     except ImportError:
         return
     if not h5_path.exists():
@@ -184,7 +184,7 @@ def _annotate_daq_hdf5_metadata(
     try:
         import json
 
-        import h5py  # type: ignore
+        import h5py
     except ImportError:
         return
     if not h5_path.exists():

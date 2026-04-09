@@ -339,7 +339,7 @@ class AsamMC:
 
         # Determine number of samples
         if samples is None:
-            samples = max(1, int(round(duration_s / period_s)))  # type: ignore[arg-type]
+            samples = max(1, int(round(duration_s / period_s)))
 
         # Buffers
         buffers: dict[str, list[Any]] = {mi["name"]: [] for mi in meas_info}

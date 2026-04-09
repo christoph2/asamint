@@ -17,7 +17,7 @@ except ImportError:
         from pyxcp.recorder import XcpLogFileDecoder  # type: ignore
     except ImportError:  # pragma: no cover - absent recorder support
 
-        class XcpLogFileDecoder:  # type: ignore[misc]
+        class XcpLogFileDecoder:
             def __init__(self, *args: Any, **kwargs: Any) -> None:
                 msg = "pyxcp recorder support is unavailable; install pyxcp with recorder extras."
                 raise ImportError(msg)
@@ -27,7 +27,7 @@ try:  # pragma: no cover - optional HDF5 policy
     from pyxcp.transport.hdf5_policy import Hdf5OnlinePolicy
 except ImportError:  # pragma: no cover - absent HDF5 policy
 
-    class Hdf5OnlinePolicy:  # type: ignore[misc]
+    class Hdf5OnlinePolicy:
         def __init__(self, *args: Any, **kwargs: Any) -> None:
             msg = (
                 "pyxcp Hdf5OnlinePolicy is unavailable; install pyxcp with HDF5 extras."
