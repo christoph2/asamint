@@ -18,7 +18,8 @@ class _ME(Exporter):
     """Exporter subclass that skips DB __init__ for unit testing."""
 
     def __init__(self) -> None:  # noqa: D107
-        pass  # skip super().__init__()
+        # skip super().__init__() to avoid DB; _out=None defers to sys.stdout
+        self._out = None
 
 
 @pytest.fixture()
@@ -323,7 +324,6 @@ def test_on_instance_ascii(exp: _ME, capsys) -> None:
     )
     exp.on_instance(inst)
     out = capsys.readouterr().out
-    assert "ACI!!!" in out
     assert "'hello'" in out
     assert " -- ASCII" in out
 
@@ -410,7 +410,7 @@ def test_do_axis_containers_none(capsys) -> None:
     assert capsys.readouterr().out == ""
 
 
-def test_do_axis_containers_single(capsys) -> None:
+def test_do_axis_containers_single(caplog) -> None:
     cont = _ns(
         category=_ns(phys="COM_AXIS"),
         unit_display_name="rpm",
@@ -418,14 +418,25 @@ def test_do_axis_containers_single(capsys) -> None:
         instance_ref=_ns(name="MyRef"),
         values=[V(phys=float(i)) for i in range(3)],
     )
-    do_axis_containers([cont])
-    out = capsys.readouterr().out
-    assert "AX:" in out
-    assert "COM_AXIS" in out
-    assert "MyRef" in out
+    import logging
+
+    target = logging.getLogger("asamint.cdf.exporter.matlab")
+    handler = caplog.handler
+    target.addHandler(handler)
+    old_level = target.level
+    target.setLevel(logging.DEBUG)
+    try:
+        caplog.clear()
+        do_axis_containers([cont])
+        assert "AX:" in caplog.text
+        assert "COM_AXIS" in caplog.text
+        assert "MyRef" in caplog.text
+    finally:
+        target.removeHandler(handler)
+        target.setLevel(old_level)
 
 
-def test_do_axis_containers_multiple(capsys) -> None:
+def test_do_axis_containers_multiple(caplog) -> None:
     def _cont(cat, ref):
         return _ns(
             category=_ns(phys=cat),
@@ -435,8 +446,19 @@ def test_do_axis_containers_multiple(capsys) -> None:
             values=[V(phys=1.0), V(phys=2.0)],
         )
 
-    do_axis_containers([_cont("COM_AXIS", "Ref1"), _cont("RES_AXIS", "Ref2")])
-    out = capsys.readouterr().out
-    assert "Ref1" in out
-    assert "Ref2" in out
-    assert out.count("AX:") == 2
+    import logging
+
+    target = logging.getLogger("asamint.cdf.exporter.matlab")
+    handler = caplog.handler
+    target.addHandler(handler)
+    old_level = target.level
+    target.setLevel(logging.DEBUG)
+    try:
+        caplog.clear()
+        do_axis_containers([_cont("COM_AXIS", "Ref1"), _cont("RES_AXIS", "Ref2")])
+        assert "Ref1" in caplog.text
+        assert "Ref2" in caplog.text
+        assert caplog.text.count("AX:") == 2
+    finally:
+        target.removeHandler(handler)
+        target.setLevel(old_level)

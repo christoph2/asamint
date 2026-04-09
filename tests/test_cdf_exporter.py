@@ -22,7 +22,7 @@ class _E(Exporter):
     """Exporter subclass that skips DB __init__ for unit testing."""
 
     def __init__(self) -> None:  # noqa: D107
-        pass  # skip super().__init__()
+        self._out = None  # skip super().__init__(); defers to sys.stdout
 
 
 @pytest.fixture
@@ -364,10 +364,11 @@ def test_on_instance_skipped_categories(exporter: _E, capsys) -> None:
     assert out == ""
 
 
-def test_on_instance_unknown_category_prints_warning(exporter: _E, capsys) -> None:
-    exporter.on_instance(_inst(category="WEIRD_CAT", values=_ns(values_phys=[])))
-    out = capsys.readouterr().out
-    assert "CATEGORY!?" in out
+def test_on_instance_unknown_category_prints_warning(exporter: _E, caplog) -> None:
+    with caplog.at_level("WARNING", logger="asamint.cdf.exporter.dcm"):
+        exporter.on_instance(_inst(category="WEIRD_CAT", values=_ns(values_phys=[])))
+    assert "Unknown category" in caplog.text
+    assert "WEIRD_CAT" in caplog.text
 
 
 def test_on_instance_curve_category(exporter: _E, capsys) -> None:

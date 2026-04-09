@@ -87,4 +87,3 @@ class DCMCreator(CalibrationData):
         self.logger.info(f"Saving tree to {file_name}")
         with open(f"{file_name}", "w") as of:
             of.write(res)
-        print(res)

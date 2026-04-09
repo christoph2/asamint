@@ -1,11 +1,15 @@
 import functools
+import logging
 import operator
+import sys
 from decimal import Decimal
-from typing import Optional
+from typing import IO, Optional
 
 from asamint import utils
 from asamint.cdf import walker
 from asamint.msrsw.elements import ArraySize, Instance
+
+logger = logging.getLogger(__name__)
 
 
 def array_elements(array_size: ArraySize) -> int:
@@ -27,6 +31,15 @@ END
 
 class Exporter(walker.CdfWalker):
 
+    def __init__(self, db_name: str, output: IO[str] | None = None) -> None:
+        super().__init__(db_name)
+        self._out = output
+
+    def _write(self, text: str) -> None:
+        out = self._out or sys.stdout
+        out.write(text)
+        out.write("\n")
+
     def on_header(
         self,
         shortname: str,
@@ -35,7 +48,7 @@ class Exporter(walker.CdfWalker):
         references: list,
         variants: bool,
     ) -> None:
-        print("KONSERVIERUNG_FORMAT 2.0\n\n")
+        self._write("KONSERVIERUNG_FORMAT 2.0\n\n")
 
         # print("* ", shortname, a2l_file, hex_file, variants)
         # print("FUNKTIONEN")
@@ -57,19 +70,19 @@ class Exporter(walker.CdfWalker):
         unit = instance.values.unit_display_name.phys
         if size_x is not None:
             if size_y is not None:
-                print(f"{type_name} {name} {size_x} {size_y}")
+                self._write(f"{type_name} {name} {size_x} {size_y}")
             else:
-                print(f"{type_name} {name} {size_x}")
+                self._write(f"{type_name} {name} {size_x}")
         else:
-            print(f"{type_name} {name}")
+            self._write(f"{type_name} {name}")
         if comment:
-            print(f'  LANGNAME "{comment}"')
+            self._write(f'  LANGNAME "{comment}"')
         if display_name:
-            print(f'  DISPLAYNAME "{display_name}"')
+            self._write(f'  DISPLAYNAME "{display_name}"')
         if function:
-            print(f"  FUNKTION {function}")
+            self._write(f"  FUNKTION {function}")
         if unit:
-            print(f'  EINHEIT_W "{unit}"')
+            self._write(f'  EINHEIT_W "{unit}"')
 
     def on_instance(self, instance: Instance) -> None:
         category = instance.category
@@ -87,24 +100,24 @@ class Exporter(walker.CdfWalker):
         elif category == "CURVE":
             self._emit_curve(instance, value_container, axes)
         else:
-            print("\t\t\tCATEGORY!?", category)
+            logger.warning("Unknown category: %s", category)
 
     def _emit_scalar(self, instance: Instance, category: str, value_container) -> None:
         value = value_container.values_phys[0].phys
         self.value_header("FESTWERT", instance)
         if value:
             if isinstance(value, Decimal):
-                print(f"  WERT {value}")
+                self._write(f"  WERT {value}")
             elif category == "BOOLEAN":
-                print(f"  WERT {1 if value == 'true' else 0}")
+                self._write(f"  WERT {1 if value == 'true' else 0}")
             else:
                 cleaned = value.replace("'", "")
-                print(f'  TEXT "{cleaned}"')
-        print("END\n")
+                self._write(f'  TEXT "{cleaned}"')
+        self._write("END\n")
 
     def _emit_rows(self, prefix: str, values: list[object]) -> None:
         for row in utils.slicer(values, 6):
-            print(f"  {prefix} {walker.dump_array(row)}")
+            self._write(f"  {prefix} {walker.dump_array(row)}")
 
     def _emit_axis_distribution(self, instance: Instance, value_container) -> None:
         element_count = array_elements(value_container.array_size)
@@ -112,7 +125,7 @@ class Exporter(walker.CdfWalker):
         self._emit_rows(
             "ST/X", walker.array_values(value_container.values_phys, flatten=True)
         )
-        print("END\n")
+        self._write("END\n")
 
     def _emit_value_block(self, instance: Instance, value_container) -> None:
         element_count = array_elements(value_container.array_size)
@@ -120,7 +133,7 @@ class Exporter(walker.CdfWalker):
         self._emit_rows(
             "WERT", walker.array_values(value_container.values_phys, flatten=True)
         )
-        print("END\n")
+        self._write("END\n")
 
     @staticmethod
     def _curve_type_name(axis_category: str) -> str:
@@ -135,10 +148,10 @@ class Exporter(walker.CdfWalker):
         element_count = len(value_container.values_phys)
         self.value_header(self._curve_type_name(axis.category), instance, element_count)
         if axis.category == "COM_AXIS":
-            print(f"  *SSTX {axis.instance_ref.name}")
+            self._write(f"  *SSTX {axis.instance_ref.name}")
         else:
             self._emit_rows("ST/X", walker.array_values(axis.values_phys, flatten=True))
         self._emit_rows(
             "WERT", walker.array_values(value_container.values_phys, flatten=True)
         )
-        print("END\n")
+        self._write("END\n")

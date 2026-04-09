@@ -1,5 +1,6 @@
 import binascii
 import datetime
+import logging
 import mmap
 import re
 import sqlite3
@@ -28735,6 +28736,7 @@ class Parser:
     def __init__(
         self, file_name: str, db: MSRSWDatabase, root_elem: str = ROOT_ELEMENT
     ):
+        self.logger = logging.getLogger(f"{__name__}.Parser")
         self.validator = create_validator("cdf_v2.0.0.sl.dtd")
         self.schema_version = 0
         self.variant = "MSRSW"
@@ -28744,10 +28746,10 @@ class Parser:
 
         validate_result = self.validator.validate(self.msrsw)
         if not validate_result:
-            print("Validation failed:", validate_result)
-            print(self.validator.error_log)
+            self.logger.warning("Validation failed: %s", validate_result)
+            self.logger.warning("%s", self.validator.error_log)
         else:
-            print("Validation passed")
+            self.logger.info("Validation passed")
 
         self.root = self.msrsw.getroot()
         self.parse(self.root)
@@ -28761,7 +28763,7 @@ class Parser:
             return tree
         element = ELEMENTS.get(tree.tag)
         if not element:
-            print(f"invalid tag: {tree.tag}")
+            self.logger.warning("invalid tag: %s", tree.tag)
             return []
         obj = self._create_element_object(element, tree)
         self._apply_child_results(obj, self._parse_children(tree), element.SELF_REF)
@@ -28796,18 +28798,18 @@ class Parser:
             try:
                 setattr(obj, attrib, items if elem_tp == "A" else items[0])
             except Exception as e:
-                print(str(e), obj)
-                print("	SELF-REF:", self_ref)
+                self.logger.error("%s %s", e, obj)
+                self.logger.error("\tSELF-REF: %s", self_ref)
 
     def _resolve_child_target(self, obj, key, self_ref):
         if key not in obj.ELEMENTS:
-            print(f"unknown key: {key}")
+            self.logger.warning("unknown key: %s", key)
             return None
         attrib, elem_tp = obj.ELEMENTS[key]
         if self_ref and (attrib[:-1] == obj.__tablename__):
             attrib = "children"
         if not hasattr(obj, attrib):
-            print(f"unknown attribute: {attrib}")
+            self.logger.warning("unknown attribute: %s", attrib)
             return None
         return attrib, elem_tp
 

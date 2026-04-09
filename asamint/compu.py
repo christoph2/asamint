@@ -143,6 +143,9 @@ def getCM(session: Any, name: str) -> Optional[Any]:
 
 
 if __name__ == "__main__":
+    _logger = logging.getLogger(__name__)
+    logging.basicConfig(level=logging.DEBUG)
+
     db = DB()
     session = db.open_existing("ASAP2_Demo_V161")
     measurements = (
@@ -152,7 +155,7 @@ if __name__ == "__main__":
     cms = CompuMethods(session)
 
     for m in measurements:
-        print(f"{m.name:48} {m.datatype:12} 0x{m.ecu_address.address:08x}")
+        _logger.info("%48s %12s 0x%08x", m.name, m.datatype, m.ecu_address.address)
 
     conversions = (
         session.query(model.Measurement.conversion)
@@ -165,9 +168,7 @@ if __name__ == "__main__":
         .filter(model.CompuMethod.name.in_(conversions))
         .all()
     )
-    print("\n\n")
     for c in cm:
-        print(c)
+        _logger.info("%s", c)
 
-    print("\n\n")
-    print(list(cms.keys()))
+    _logger.info("Keys: %s", list(cms.keys()))

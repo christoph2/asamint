@@ -106,7 +106,7 @@ class ProfileCreate(Application):
                 if not Confirm.ask(
                     f"Destination file [green]{dest.name!r}[/green] already exists. Do you want to overwrite it?"
                 ):
-                    print("Aborting...")
+                    self.log.info("Aborting...")
                     self.exit(1)
             with dest.open("w", encoding="latin1") as out_file:
                 pyxcp.generate_config_file(out_file)
@@ -123,10 +123,10 @@ class ProfileApp(Application):
 
     def start(self) -> None:
         if self.subapp is None:
-            print(
-                f"No subcommand specified. Must specify one of: {self.subcommands.keys()}"
+            self.log.error(
+                "No subcommand specified. Must specify one of: %s",
+                list(self.subcommands.keys()),
             )
-            print()
             self.print_description()
             self.print_subcommands()
             self.exit(1)
