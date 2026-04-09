@@ -946,6 +946,7 @@ class Calibration:
 
         # Read raw value from image (even for virtual — serves as reference)
         raw = 0
+        is_virtual = bool(getattr(characteristic, "virtual_characteristic", None))
 
         # Handle bit-masked values
         if characteristic.bitMask:
@@ -957,7 +958,8 @@ class Calibration:
                     bit_mask=characteristic.bitMask,
                 )
             except (InvalidAddressError, ValueError, TypeError) as e:
-                self.logger.error(f"{characteristic.name!r}: {e}")
+                if not is_virtual:
+                    self.logger.error(f"{characteristic.name!r}: {e}")
                 raw = 0
             # Right-shift to get rid of trailing zeros (s. ASAM 2-MC spec)
             raw >>= ffs(characteristic.bitMask)
@@ -971,7 +973,8 @@ class Calibration:
                     byte_order=byte_order,
                 )
             except (InvalidAddressError, ValueError, TypeError) as e:
-                self.logger.error(f"{characteristic.name!r}: {e}")
+                if not is_virtual:
+                    self.logger.error(f"{characteristic.name!r}: {e}")
                 raw = 0
             is_bool = False
 
@@ -1253,7 +1256,7 @@ class Calibration:
         return klasses.AxisPts(
             name=ap.name,
             comment=ap.longIdentifier,
-            category=axis_info.category,
+            category="AXIS_PTS",
             _raw=raw,
             _phys=phys,
             displayIdentifier=ap.displayIdentifier,
