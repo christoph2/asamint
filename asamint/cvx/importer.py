@@ -134,7 +134,7 @@ class CVXImporter:
         self, lines: list[str], i: int, fields: list[str], record: dict[str, Any]
     ) -> int:
         record_type = record["type"]
-        if record_type == "VALUE":
+        if record_type in ("VALUE", "DEPENDENT_VALUE"):
             if len(fields) >= 3:
                 record["values"] = [self._parse_float(fields[2])]
             return i

@@ -324,6 +324,44 @@ class TestCVXExporter:
 
 
 # ---------------------------------------------------------------------------
+# DEPENDENT_VALUE support
+# ---------------------------------------------------------------------------
+
+
+class TestDependentValue:
+    """DEPENDENT_VALUE is treated as a scalar VALUE in both import and export."""
+
+    def test_import_dependent_value(self, tmp_path: Path) -> None:
+        p = _write_cvx(tmp_path, """\
+            ,depParam
+            DEPENDENT_VALUE,,99.5
+        """)
+        records = CVXImporter().import_file(str(p))
+        rec = next(r for r in records if r["identifier"] == "depParam")
+        assert rec["type"] == "DEPENDENT_VALUE"
+        assert rec["values"] == [99.5]
+
+    def test_export_dependent_value(self) -> None:
+        exp = CVXExporter(delimiter=";")
+        out = exp.export_stream(
+            [{"identifier": "dep1", "type": "DEPENDENT_VALUE", "values": [7.5]}]
+        )
+        assert "KENNUNG dep1" in out
+        assert "WERT 7.5" in out
+
+    def test_dependent_value_round_trip_structure(self, tmp_path: Path) -> None:
+        records = [
+            {"identifier": "dep_rt", "type": "DEPENDENT_VALUE", "values": [3.14]},
+        ]
+        out = tmp_path / "dep.cvx"
+        CVXExporter(delimiter=",").export_file(str(out), records)
+        content = out.read_text(encoding="latin-1")
+        assert "KENNUNG dep_rt" in content
+        assert "DEPENDENT_VALUE" in content
+        assert "WERT" in content
+
+
+# ---------------------------------------------------------------------------
 # Round-trip: import → export → re-import
 # ---------------------------------------------------------------------------
 

@@ -41,7 +41,7 @@ class CVXExporter:
         f.write("END\r\n")
 
     def _write_record_value(self, f, record) -> None:
-        f.write("VALUE\r\n")
+        f.write(f"{record.get('type', 'VALUE')}\r\n")
         value = self._format_float(record.get("values", [0.0])[0])
         f.write(f"WERT {value}\r\n")
         if "display_identifier" in record:
@@ -83,7 +83,7 @@ class CVXExporter:
 
         f.write(f"KENNUNG {record['identifier']}\r\n")
 
-        if rec_type == "VALUE":
+        if rec_type in ("VALUE", "DEPENDENT_VALUE"):
             self._write_record_value(f, record)
         elif rec_type == "VAL_BLK":
             self._write_record_val_blk(f, record)
