@@ -25,7 +25,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from importlib import import_module
-from typing import Dict
 from warnings import warn
 
 from asamint.calibration.api import (

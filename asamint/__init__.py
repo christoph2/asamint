@@ -35,9 +35,6 @@ from asamint.calibration.api import (Calibration, ExecutionPolicy,
 
 pretty.install()
 
-# from .master import Master  # noqa: F401, E402
-# from .transport import Can, Eth, SxI, Usb  # noqa: F401, E402
-
 
 console = Console()
 tb_install(show_locals=True, max_frames=3)  # Install custom exception handler.

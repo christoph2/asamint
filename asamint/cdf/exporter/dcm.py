@@ -50,12 +50,6 @@ class Exporter(walker.CdfWalker):
     ) -> None:
         self._write("KONSERVIERUNG_FORMAT 2.0\n\n")
 
-        # print("* ", shortname, a2l_file, hex_file, variants)
-        # print("FUNKTIONEN")
-        # for ref in references:
-        #    print(f'  FKT {ref.name} "" ""')
-        # print("END\n")
-
     def value_header(
         self,
         type_name: str,

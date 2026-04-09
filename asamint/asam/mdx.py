@@ -159,12 +159,10 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
     def _sw_variables(self, tree) -> None:
         self.data_constrs = []
         variables = create_elem(tree, "SW-VARIABLES")
-        # data_constrs = []
         measurements = self.query(model.Measurement.name).all()
         for meas_name in measurements:
             meas_name = meas_name[0]
             meas = Measurement.get(self.session, meas_name)
-            # print(meas)
             compu_method = meas.compuMethod
             constr_name = f"CONSTR_{meas.name}"
             arraySize = (meas.arraySize,) if meas.arraySize else None
@@ -183,7 +181,6 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             if is_array:
                 if matrixDim:
                     dim = (m for m in matrixDim if m > 1)
-                    # dim = matrixDim
                 elif arraySize:
                     dim = arraySize
                 self.output_1darray(variable, "SW-ARRAYSIZE", dim)
@@ -238,14 +235,11 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
     def _sw_calparms(self, tree) -> None:
         self.data_constrs = []
         cal_parms = create_elem(tree, "SW-CALPRMS")
-        # data_constrs = []
         characteristics = self.query(model.Characteristic.name).all()
         for ch_name in characteristics:
             ch_name = ch_name[0]
             chx = Characteristic.get(self.session, ch_name)
-            # print(chx)
             compu_method = chx.compuMethod
-            # constr_name = "CONSTR_{}".format(chx.name)
             matrixDim = self._matrix_dimensions(chx.matrixDim)
             datatype = chx.fnc_asam_dtype
             is_dependent = True if chx.dependent_characteristic else False

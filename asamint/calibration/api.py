@@ -1303,7 +1303,6 @@ class Calibration:
             phys_vals = np.asarray(values)
 
         # Read axis values and info
-        # axis_values = self.read_axes_values(ap, "x")
         axes = ap.record_layout_components.get("axes")
         axis_info = axes.get("x")
 
@@ -1807,7 +1806,6 @@ class Calibration:
             axes.append(
                 klasses.AxisContainer(
                     name=axis_name,
-                    # comment="", # axis_descr.comment,
                     input_quantity=axis_descr.inputQuantity,
                     category=axis_category,
                     unit=axis_unit,
@@ -1816,7 +1814,6 @@ class Calibration:
                     phys=converted_axis_values,
                     axis_pts_ref=axis_pts_ref,
                     is_numeric=self.is_numeric(axis_cm),
-                    # api=self,
                 )
             )
 

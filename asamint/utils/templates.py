@@ -40,8 +40,6 @@ from mako.template import Template  # nosec
 
 logger = logging.getLogger(__name__)
 
-# from csstuff import strings
-
 
 def indent_text(text: str, left_margin: int = 0) -> str:
     """

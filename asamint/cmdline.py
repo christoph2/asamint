@@ -59,9 +59,6 @@ class ArgumentParser:
 
     def run(self, policy=None, transport_layer_interface=None) -> dict:
         self.application = create_application(self.parser.options)
-        # master = Master(
-        #    application.transport.layer, config=application, policy=policy, transport_layer_interface=transport_layer_interface
-        # )
         master = {"hello": "world! 2.0.0-alpha.14 (development)"}
         return master
 

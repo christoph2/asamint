@@ -31,7 +31,7 @@ import uuid
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import h5py
 import numpy as np
@@ -55,8 +55,6 @@ from .importer import DBImporter
 
 __all__ = ["DB", "CDFCreator", "DBImporter", "CdfIOResult", "export_cdf", "import_cdf"]
 
-
-# sns.set_theme("notebook")
 
 sys.setrecursionlimit(2000)
 
@@ -155,10 +153,6 @@ class DB:
         return values
 
     def load(self, name: str) -> xr.DataArray:
-        # self.session.query(model.ShortName).filter(model.ShortName.content == name)
-        # inst = self.session.query(model.SwInstance).join(model.ShortName).filter(model.ShortName.content == name).first()
-        # category = inst.category.content
-
         ds = self.storage[f"/{name}"]
         ds_attrs = dict(ds.attrs.items())
         category = ds_attrs["category"]
@@ -179,7 +173,6 @@ class DB:
             arr = xr.DataArray(values, attrs=attrs)
         else:
             axes = ds["axes"]
-            # axes_attrs = dict(axes.attrs.items())
             dims = []
             coords = {}
             shape = []
@@ -192,7 +185,6 @@ class DB:
                 category = ax_attrs["category"]
                 if category == "COM_AXIS":
                     ref_axis = ax_items["reference"]
-                    # raw = np.array(ref_axis["raw"])
                     phys = np.array(ref_axis["phys"])
                 else:
                     if category not in ("FIX_AXIS", "STD_AXIS"):
@@ -248,7 +240,6 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         self.write_tree("CDF20demo")
 
     def _toplevel_boilerplate(self) -> Any:
-        # print(f"A2L: {self.a2l_file}")
         root = self.msrsw_header("CDF20", "CDF")
         sw_system = self.sub_trees["SW-SYSTEM"]
         instance_spec = create_elem(sw_system, "SW-INSTANCE-SPEC")
@@ -264,9 +255,6 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
             "SYMBOLIC-FILE",
             add_suffix_to_path(self.a2l_file, ".a2l"),
         )
-        # data_file_name = self.image.file_name
-        # if data_file_name:
-        #    create_elem(instance_tree_origin, "DATA-FILE", data_file_name)
         return root
 
     def cs_collection(

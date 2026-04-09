@@ -40,9 +40,6 @@ from antlr4.error.ErrorListener import ErrorListener
 logger = logging.getLogger(__name__)
 
 
-# from pya2l import model
-
-
 class MyErrorListener(ErrorListener):
     def __init__(self) -> None:
         super().__init__()
