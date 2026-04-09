@@ -23,6 +23,10 @@ class ReadOnlyError(CalibrationError):
     """Schreibzugriff auf ein schreibgeschütztes Objekt."""
 
 
+class VirtualWriteError(CalibrationError):
+    """Schreibversuch auf eine virtuelle Characteristic (nur Laufzeit)."""
+
+
 class RangeError(CalibrationError):
     """Wert außerhalb der spezifizierten Grenzen."""
 

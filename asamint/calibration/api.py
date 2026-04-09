@@ -61,7 +61,7 @@ from asamint.adapters.a2l import (
 from asamint.adapters.objutils import Image, InvalidAddressError, Section
 from asamint.asam import AsamMC
 from asamint.core import CalibrationLimits, CalibrationValue
-from asamint.core.exceptions import CalibrationError
+from asamint.core.exceptions import CalibrationError, VirtualWriteError
 from asamint.core.logging import configure_logging
 from asamint.model.calibration import klasses
 from asamint.utils import SINGLE_BITS, ffs
@@ -305,6 +305,7 @@ class Calibration:
         self.mod_common = asam_mc.mod_common
         self.mod_par = asam_mc.mod_par
         self._definition_cache: dict[tuple[str, str], Any] = {}
+        self._virtual_store: dict[str, Any] = {}
         self._dep_graph: Optional["DependencyGraph"] = None
         self._dep_engine: Optional["DependencyEngine"] = None
         self._preload_definitions()
@@ -410,12 +411,54 @@ class Calibration:
             return []
         return self.dependency_engine.recalculate_dependents(modified_name)
 
+    # ------------------------------------------------------------------
+    # Virtual characteristics — bulk API
+    # ------------------------------------------------------------------
+
+    def list_virtual(self) -> list[str]:
+        """Return the names of all VIRTUAL characteristics in the A2L session."""
+        from asamint.calibration.dependent import DependencyKind
+
+        return [
+            name
+            for name, entry in self.dependency_graph.entries.items()
+            if entry.kind == DependencyKind.VIRTUAL
+        ]
+
+    def evaluate_all_virtual(self) -> dict[str, Any]:
+        """Evaluate every VIRTUAL characteristic and return the results.
+
+        Returns a dict mapping characteristic name → physical value.
+        Results are also stored in the dedicated ``_virtual_store``.
+        """
+        from asamint.calibration.dependent import DependencyKind
+
+        results: dict[str, Any] = {}
+        for name, entry in self.dependency_graph.entries.items():
+            if entry.kind != DependencyKind.VIRTUAL:
+                continue
+            try:
+                ev = self.dependency_engine.evaluate(entry)
+                self._virtual_store[name] = ev.physical_value
+                results[name] = ev.physical_value
+            except (CalibrationError, ValueError, TypeError, KeyError) as exc:
+                self.logger.warning(
+                    "Could not evaluate virtual characteristic %r: %s",
+                    name,
+                    exc,
+                )
+        return results
+
     def _trigger_recalculation(self, characteristic_name: str) -> None:
         """Trigger recalculation of dependents after a save, if any exist."""
         if not getattr(self, "session", None):
             return
         try:
-            if self.dependency_graph.dependents_of(characteristic_name):
+            dependents = self.dependency_graph.dependents_of(characteristic_name)
+            if dependents:
+                # Invalidate stale virtual store entries before recalculation
+                for dep_name in dependents:
+                    self._virtual_store.pop(dep_name, None)
                 results = self.recalculate_dependents(characteristic_name)
                 if results:
                     self.logger.debug(
@@ -769,11 +812,38 @@ class Calibration:
         # External shape matches what save_value_block expects.
         external_shape = tuple(d for d in shape[::-1] if d > 1) or (1,)
 
+        # Evaluate via dependency engine for virtual characteristics
+        category = "VAL_BLK"
+        if getattr(characteristic, "virtual_characteristic", None):
+            category = "VIRTUAL_VAL_BLK"
+            cached_phys = self._virtual_store.get(characteristic_name)
+            if cached_phys is not None:
+                phys = np.asarray(cached_phys)
+            else:
+                try:
+                    entry = self.dependency_graph.entries.get(characteristic_name)
+                    if entry is not None:
+                        ev = self.dependency_engine.evaluate(entry)
+                        phys = np.asarray(ev.physical_value)
+                        self._virtual_store[characteristic_name] = phys
+                        self.logger.debug(
+                            "Virtual characteristic %r computed VAL_BLK value",
+                            characteristic_name,
+                        )
+                except (CalibrationError, ValueError, TypeError, KeyError) as exc:
+                    self.logger.warning(
+                        "Could not evaluate virtual characteristic %r: %s",
+                        characteristic_name,
+                        exc,
+                    )
+        elif characteristic.dependent_characteristic:
+            category = "DEPENDENT_VAL_BLK"
+
         # Create and return the ValueBlock object
         return klasses.ValueBlock(
             name=characteristic.name,
             comment=characteristic.longIdentifier,
-            category="VAL_BLK",
+            category=category,
             _raw=raw,
             _phys=phys,
             displayIdentifier=characteristic.displayIdentifier,
@@ -806,6 +876,12 @@ class Calibration:
         """
         # Get the characteristic definition
         characteristic = self.get_characteristic(characteristic_name, "VAL_BLK", True)
+
+        # Virtual characteristics are runtime-only — never written to image
+        if getattr(characteristic, "virtual_characteristic", None):
+            raise VirtualWriteError(
+                f"Cannot write to virtual characteristic '{characteristic_name}'"
+            )
 
         # Check if the characteristic is read-only
         if characteristic.readOnly:
@@ -928,24 +1004,30 @@ class Calibration:
             category = "TEXT"
 
         # Evaluate via dependency engine for virtual / dependent characteristics
-        if characteristic.virtual_characteristic:
+        if getattr(characteristic, "virtual_characteristic", None):
             category = "VIRTUAL_VALUE"
-            try:
-                entry = self.dependency_graph.entries.get(characteristic_name)
-                if entry is not None:
-                    ev = self.dependency_engine.evaluate(entry)
-                    phys = ev.physical_value
-                    self.logger.debug(
-                        "Virtual characteristic %r computed value: %s",
+            # Check dedicated virtual store first
+            cached_phys = self._virtual_store.get(characteristic_name)
+            if cached_phys is not None:
+                phys = cached_phys
+            else:
+                try:
+                    entry = self.dependency_graph.entries.get(characteristic_name)
+                    if entry is not None:
+                        ev = self.dependency_engine.evaluate(entry)
+                        phys = ev.physical_value
+                        self._virtual_store[characteristic_name] = phys
+                        self.logger.debug(
+                            "Virtual characteristic %r computed value: %s",
+                            characteristic_name,
+                            phys,
+                        )
+                except (CalibrationError, ValueError, TypeError, KeyError) as exc:
+                    self.logger.warning(
+                        "Could not evaluate virtual characteristic %r: %s",
                         characteristic_name,
-                        phys,
+                        exc,
                     )
-            except (CalibrationError, ValueError, TypeError, KeyError) as exc:
-                self.logger.warning(
-                    "Could not evaluate virtual characteristic %r: %s",
-                    characteristic_name,
-                    exc,
-                )
         elif characteristic.dependent_characteristic:
             category = "DEPENDENT_VALUE"
 
@@ -1003,6 +1085,12 @@ class Calibration:
 
         # Get the characteristic definition
         characteristic = self.get_characteristic(characteristic_name, "VALUE", True)
+
+        # Virtual characteristics are runtime-only — never written to image
+        if getattr(characteristic, "virtual_characteristic", None):
+            raise VirtualWriteError(
+                f"Cannot write to virtual characteristic '{characteristic_name}'"
+            )
 
         # Check if the characteristic is read-only
         if characteristic.readOnly:
@@ -1301,7 +1389,7 @@ class Calibration:
             return self._address_error_status(ap.name, exc, " x-axis")
         return Status.OK
 
-    def load_curve_or_map(
+    def load_curve_or_map(  # noqa: C901
         self, characteristic_name: str, category: str, num_axes: int
     ) -> Union[
         klasses.Cube4, klasses.Cube5, klasses.Cuboid, klasses.Curve, klasses.Map
@@ -1391,6 +1479,33 @@ class Calibration:
                     phys = np.zeros_like(raw, dtype=float)
                 else:
                     phys = np.array([])
+        # Evaluate via dependency engine for virtual characteristics
+        if getattr(characteristic, "virtual_characteristic", None):
+            category = f"VIRTUAL_{category}"
+            cached_phys = self._virtual_store.get(characteristic_name)
+            if cached_phys is not None:
+                phys = np.asarray(cached_phys)
+            else:
+                try:
+                    entry = self.dependency_graph.entries.get(characteristic_name)
+                    if entry is not None:
+                        ev = self.dependency_engine.evaluate(entry)
+                        phys = np.asarray(ev.physical_value)
+                        self._virtual_store[characteristic_name] = phys
+                        self.logger.debug(
+                            "Virtual characteristic %r computed %s value",
+                            characteristic_name,
+                            category,
+                        )
+                except (CalibrationError, ValueError, TypeError, KeyError) as exc:
+                    self.logger.warning(
+                        "Could not evaluate virtual characteristic %r: %s",
+                        characteristic_name,
+                        exc,
+                    )
+        elif characteristic.dependent_characteristic:
+            category = f"DEPENDENT_{category}"
+
         # Create and return the appropriate calibration object
         return klass(
             name=characteristic.name,
@@ -1433,6 +1548,12 @@ class Calibration:
         characteristic = self.get_characteristic(characteristic_name, None, True)
         if characteristic is None:
             raise ValueError(f"Characteristic '{characteristic_name}' not found")
+
+        # Virtual characteristics are runtime-only — never written to image
+        if getattr(characteristic, "virtual_characteristic", None):
+            raise VirtualWriteError(
+                f"Cannot write to virtual characteristic '{characteristic_name}'"
+            )
 
         # Determine category and number of axes from the characteristic definition
         category = characteristic.type
@@ -2356,13 +2477,20 @@ class OnlineCalibration(Calibration):
     # ------------------------------------------------------------------
 
     def _mark_dirty_characteristic(self, name: str) -> None:
-        """Record a characteristic's full memory footprint as dirty."""
+        """Record a characteristic's full memory footprint as dirty.
+
+        Virtual characteristics are runtime-only and have no ECU address,
+        so they are silently skipped.
+        """
         try:
             char = self.get_characteristic(name, None, False)
-            if char is not None:
-                self._dirty_regions.append(
-                    (char.address, char.total_allocated_memory)
-                )
+            if char is None:
+                return
+            if char.virtual_characteristic:
+                return
+            self._dirty_regions.append(
+                (char.address, char.total_allocated_memory)
+            )
         except (ValueError, AttributeError):
             pass
 

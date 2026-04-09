@@ -25,6 +25,7 @@ from .exceptions import (
     LimitViolation,
     RangeError,
     ReadOnlyError,
+    VirtualWriteError,
 )
 from .logging import configure_logging
 from .models import (

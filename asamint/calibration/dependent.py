@@ -758,7 +758,17 @@ class DependencyEngine:
             )
 
     def _update_cache(self, entry: DependencyEntry, result: EvaluationResult) -> None:
-        """Update the parameter cache after evaluation."""
+        """Update the parameter cache after evaluation.
+
+        For VIRTUAL entries the computed physical value is stored in the
+        dedicated ``_virtual_store`` so that subsequent loads can return
+        the cached result without re-evaluating.  For DEPENDENT entries
+        the regular parameter cache is invalidated (the image was already
+        updated by ``_write_back``).
+        """
+        if entry.kind == DependencyKind.VIRTUAL:
+            self._cal._virtual_store[entry.name] = result.physical_value
+
         from asamint.calibration.api import ParameterCache
 
         cache = self._cal.parameter_cache
