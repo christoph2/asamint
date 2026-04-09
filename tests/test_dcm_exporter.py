@@ -152,6 +152,7 @@ def test_empty_params_all_dicts_empty() -> None:
         ("VALUE", "VALUE"),
         ("BOOLEAN", "VALUE"),
         ("TEXT", "VALUE"),
+        ("DEPENDENT_VALUE", "VALUE"),
         ("ASCII", "ASCII"),
         ("VAL_BLK", "VAL_BLK"),
         ("STUETZSTELLENVERTEILUNG", "AXIS_PTS"),

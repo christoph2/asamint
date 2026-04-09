@@ -39,6 +39,7 @@ from asamint.calibration.api import (
 from asamint.calibration.codegen import generate_c_structs_from_log
 from asamint.cdf import CdfIOResult, export_cdf, import_cdf
 from asamint.cmdline import finalize_daq_csv
+from asamint.cvx import CVXExporter, CVXImporter, export_cvx, import_cvx
 from asamint.config import (
     create_application,
     get_application,
@@ -139,6 +140,10 @@ __all__ = [
     "export_cdf",
     "import_cdf",
     "CdfIOResult",
+    "export_cvx",
+    "import_cvx",
+    "CVXImporter",
+    "CVXExporter",
     "create_application",
     "get_application",
     "snapshot_general_config",

@@ -90,7 +90,7 @@ class DcmExporter:
 
     @staticmethod
     def _bucket_for_category(category: str) -> str | None:
-        if category in ("VALUE", "BOOLEAN", "TEXT"):
+        if category in ("VALUE", "DEPENDENT_VALUE", "BOOLEAN", "TEXT"):
             return "VALUE"
         if category == "ASCII":
             return "ASCII"

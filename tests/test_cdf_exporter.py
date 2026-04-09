@@ -332,6 +332,15 @@ def test_on_instance_value_category(exporter: _E, capsys) -> None:
     assert "FESTWERT" in out
 
 
+def test_on_instance_dependent_value_category(exporter: _E, capsys) -> None:
+    """DEPENDENT_VALUE is emitted as FESTWERT, same as VALUE."""
+    vc = _ns(values_phys=[V(phys=Decimal("42.0"))], unit_display_name=_ns(phys=""))
+    inst = _inst(category="DEPENDENT_VALUE", values=vc)
+    exporter.on_instance(inst)
+    out = capsys.readouterr().out
+    assert "FESTWERT" in out
+
+
 def test_on_instance_com_axis_category(exporter: _E, capsys) -> None:
     vc = _vc([1.0, 2.0], dims=(2,))
     inst = _inst(category="COM_AXIS", values=vc)

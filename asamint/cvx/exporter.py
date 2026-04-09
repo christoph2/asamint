@@ -2,20 +2,21 @@ import csv
 import io
 import logging
 from pathlib import Path
+from typing import Any
 
 
 class CVXExporter:
-    """
-    Exporter for Calibration Values Exchange (CVX) format.
+    """Exporter for Calibration Values Exchange (CVX) format.
+
     Generates CSV-based CVX files according to ASAM specification.
     """
 
     def __init__(
         self,
-        delimiter=";",
-        string_delimiter='"',
-        float_format="%.9g",
-        logger: logging.Logger = None,
+        delimiter: str = ";",
+        string_delimiter: str = '"',
+        float_format: str = "%.9g",
+        logger: logging.Logger | None = None,
     ) -> None:
         self.delimiter = delimiter
         self.string_delimiter = string_delimiter
@@ -97,16 +98,17 @@ class CVXExporter:
 
         f.write("END\r\n")
 
+    def _write_to(self, f: io.IOBase, records, functions=None, variants=None) -> None:
+        """Write CVX content to a file-like object."""
+        self._write_header(f, functions, variants)
+        for record in records:
+            self._write_record(f, record)
+
     def export_file(self, file_path, records, functions=None, variants=None) -> None:
         with open(file_path, "w", encoding="latin-1", newline="") as f:
-            # Header
-            self._write_header(f, functions, variants)
-
-            # Records
-            for record in records:
-                self._write_record(f, record)
+            self._write_to(f, records, functions, variants)
 
     def export_stream(self, records, functions=None, variants=None) -> str:
         string_io = io.StringIO()
-        self.export_file(string_io, records, functions, variants)
+        self._write_to(string_io, records, functions, variants)
         return string_io.getvalue()

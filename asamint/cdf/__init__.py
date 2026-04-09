@@ -319,6 +319,16 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
                 displayIdentifier=inst.displayIdentifier,
                 category=inst.category,
             )
+        xml_comment(instance_tree, "    DEPENDENT_VALUEs ")
+        for key, inst in self._parameters.get("DEPENDENT_VALUE", {}).items():
+            self.instance_scalar(
+                name=key,
+                descr=inst.comment,
+                value=inst.phys,
+                unit=inst.unit,
+                displayIdentifier=inst.displayIdentifier,
+                category="DEPENDENT_VALUE",
+            )
         xml_comment(instance_tree, "    ASCIIs    ")
         for key, inst in self._parameters["ASCII"].items():
             self.instance_scalar(

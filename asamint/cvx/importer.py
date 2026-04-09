@@ -1,19 +1,20 @@
 import csv
 import logging
-from typing import Any, Dict, List, TextIO, Tuple
-
-from .constants import CVX_TYPES
+from typing import Any, TextIO
 
 
 class CVXImporter:
-    """
-    Importer for CVX files.
-    """
+    """Importer for CVX files."""
 
-    def __init__(self) -> None:
-        self.comment_indicator = "#"
-        self.value_separator = ","
-        self.string_delimiter = '"'
+    def __init__(
+        self,
+        delimiter: str = ",",
+        comment_indicator: str = "#",
+        string_delimiter: str = '"',
+    ) -> None:
+        self.comment_indicator = comment_indicator
+        self.value_separator = delimiter
+        self.string_delimiter = string_delimiter
         self.functions: list[str] = []
         self.variants: dict[str, list[str]] = {}
         self.records: list[dict[str, Any]] = []

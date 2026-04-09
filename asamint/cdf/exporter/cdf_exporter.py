@@ -130,7 +130,7 @@ class CDFExporter:
 
     def _append_values(self, elem, data) -> None:
         category = data.attrs.get("category", "")
-        if category in ("VALUE", "BOOLEAN", "ASCII", "TEXT"):
+        if category in ("VALUE", "DEPENDENT_VALUE", "BOOLEAN", "ASCII", "TEXT"):
             self._append_scalar_value(
                 elem, data.values, "VT" if category in ("ASCII", "TEXT") else "V"
             )
