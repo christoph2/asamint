@@ -47,6 +47,7 @@ from asamint.calibration.db import CalibrationDB
 from asamint.calibration.msrsw_db import MSRSWDatabase
 from asamint.cdf.exporter.cdf_exporter import CDFExporter
 from asamint.cdf.importer.cdf_importer import CDFImporter
+from asamint.core.deprecation import DeprecatedAlias, deprecated_dir, deprecated_getattr
 from asamint.core.exceptions import AdapterError
 from asamint.core.logging import configure_logging
 from asamint.utils import add_suffix_to_path
@@ -55,6 +56,16 @@ from asamint.utils.xml import create_elem, xml_comment
 from .importer import DBImporter
 
 __all__ = ["DB", "CDFCreator", "DBImporter", "CdfIOResult", "export_cdf", "import_cdf"]
+
+_DEPRECATED_ALIASES: dict[str, DeprecatedAlias] = {}
+
+
+def __getattr__(name: str) -> object:
+    return deprecated_getattr(name, _DEPRECATED_ALIASES, globals(), __name__)
+
+
+def __dir__() -> list[str]:
+    return deprecated_dir(_DEPRECATED_ALIASES, globals())
 
 
 sys.setrecursionlimit(2000)

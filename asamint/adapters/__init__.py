@@ -6,6 +6,7 @@ from asamint.adapters.objutils import open_image
 from asamint.adapters.xcp import McObject, compute_checksum
 from asamint.adapters.xcp import create_master as create_xcp_master
 from asamint.adapters.xcp import make_continuous_blocks
+from asamint.core.deprecation import DeprecatedAlias, deprecated_dir, deprecated_getattr
 
 __all__ = [
     "create_xcp_master",
@@ -18,3 +19,13 @@ __all__ = [
     "save_mdf",
     "mdf_channels",
 ]
+
+_DEPRECATED_ALIASES: dict[str, DeprecatedAlias] = {}
+
+
+def __getattr__(name: str) -> object:
+    return deprecated_getattr(name, _DEPRECATED_ALIASES, globals(), __name__)
+
+
+def __dir__() -> list[str]:
+    return deprecated_dir(_DEPRECATED_ALIASES, globals())

@@ -42,6 +42,7 @@ from asamint.adapters.measurement import (
 )
 from asamint.adapters.xcp import ArgumentParser, DaqList, Hdf5OnlinePolicy
 from asamint.config import get_application
+from asamint.core.deprecation import DeprecatedAlias, deprecated_dir, deprecated_getattr
 from asamint.core.logging import configure_logging
 from asamint.measurement.csv import (
     _csv_fieldnames,
@@ -123,6 +124,16 @@ __all__ = [
     "HDF5Creator",
     "MDFCreator",
 ]
+
+_DEPRECATED_ALIASES: dict[str, DeprecatedAlias] = {}
+
+
+def __getattr__(name: str) -> object:
+    return deprecated_getattr(name, _DEPRECATED_ALIASES, globals(), __name__)
+
+
+def __dir__() -> list[str]:
+    return deprecated_dir(_DEPRECATED_ALIASES, globals())
 
 PYXCP_TYPES = {
     "UBYTE": "U8",

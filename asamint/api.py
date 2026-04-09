@@ -23,10 +23,6 @@ api.save("SomeCharacteristic", val)
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
-from importlib import import_module
-from warnings import warn
-
 from asamint.calibration.api import (
     Calibration,
     ExecutionPolicy,
@@ -46,6 +42,7 @@ from asamint.config import (
     snapshot_general_config,
     snapshot_logging_config,
 )
+from asamint.core.deprecation import DeprecatedAlias, deprecated_dir, deprecated_getattr
 from asamint.measurement import (
     HDF5Creator,
     MDFCreator,
@@ -65,15 +62,6 @@ from asamint.measurement import (
 )
 
 
-@dataclass(frozen=True)
-class DeprecatedAlias:
-    """Descriptor for deprecated names re-exported by this module."""
-
-    target: str
-    remove_in_version: str
-    replacement: str | None = None
-
-
 _DEPRECATED_ALIASES: dict[str, DeprecatedAlias] = {
     "available_measurement_formats": DeprecatedAlias(
         target="asamint.measurement:available_measurement_formats",
@@ -84,33 +72,11 @@ _DEPRECATED_ALIASES: dict[str, DeprecatedAlias] = {
 
 
 def __getattr__(name: str) -> object:
-    alias = _DEPRECATED_ALIASES.get(name)
-    if alias is None:
-        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-
-    replacement = alias.replacement or alias.target
-    warn(
-        (
-            f"{name!r} is deprecated. Use {replacement!r} instead. "
-            f"It will be removed in {alias.remove_in_version}."
-        ),
-        category=DeprecationWarning,
-        stacklevel=2,
-    )
-    return _resolve_deprecated_target(alias.target)
+    return deprecated_getattr(name, _DEPRECATED_ALIASES, globals(), __name__)
 
 
 def __dir__() -> list[str]:
-    return sorted(set(globals()) | set(_DEPRECATED_ALIASES))
-
-
-def _resolve_deprecated_target(target: str) -> object:
-    if ":" in target:
-        module_name, attr_name = target.split(":", 1)
-        module = import_module(module_name)
-        return getattr(module, attr_name)
-
-    return globals()[target]
+    return deprecated_dir(_DEPRECATED_ALIASES, globals())
 
 
 __all__ = [
@@ -151,4 +117,5 @@ __all__ = [
     "get_application",
     "snapshot_general_config",
     "snapshot_logging_config",
+    "DeprecatedAlias",
 ]

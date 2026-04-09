@@ -2,6 +2,8 @@
 """API stability tests for asamint.api."""
 from __future__ import annotations
 
+import importlib
+
 import pytest
 
 
@@ -44,3 +46,60 @@ def test_api_deprecated_alias_resolves(monkeypatch: pytest.MonkeyPatch) -> None:
         resolved = getattr(api_module, alias_name)
 
     assert resolved is api_module.Calibration
+
+
+# ------------------------------------------------------------------
+# Subpackage deprecation hooks
+# ------------------------------------------------------------------
+
+_SUBPACKAGES_WITH_HOOKS = [
+    "asamint.adapters",
+    "asamint.cdf",
+    "asamint.core",
+    "asamint.cvx",
+    "asamint.hdf5",
+    "asamint.mdf",
+    "asamint.measurement",
+]
+
+
+@pytest.mark.parametrize("module_path", _SUBPACKAGES_WITH_HOOKS)
+def test_subpackage_has_deprecation_hook(module_path: str) -> None:
+    mod = importlib.import_module(module_path)
+    assert hasattr(mod, "_DEPRECATED_ALIASES"), f"{module_path} missing _DEPRECATED_ALIASES"
+    assert isinstance(mod._DEPRECATED_ALIASES, dict)
+
+
+@pytest.mark.parametrize("module_path", _SUBPACKAGES_WITH_HOOKS)
+def test_subpackage_unknown_attribute_raises(module_path: str) -> None:
+    mod = importlib.import_module(module_path)
+    with pytest.raises(AttributeError, match="has no attribute"):
+        getattr(mod, "_nonexistent_symbol_42_")  # noqa: B009
+
+
+@pytest.mark.parametrize("module_path", _SUBPACKAGES_WITH_HOOKS)
+def test_subpackage_dir_includes_all(module_path: str) -> None:
+    mod = importlib.import_module(module_path)
+    d = dir(mod)
+    for name in getattr(mod, "__all__", []):
+        assert name in d, f"{name} not in dir({module_path})"
+
+
+@pytest.mark.parametrize("module_path", _SUBPACKAGES_WITH_HOOKS)
+def test_subpackage_deprecated_alias_warns(module_path: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    from asamint.core.deprecation import DeprecatedAlias
+
+    mod = importlib.import_module(module_path)
+    sentinel = object()
+    monkeypatch.setattr(mod, "_test_sentinel_", sentinel, raising=False)
+    alias = DeprecatedAlias(
+        target="_test_sentinel_",
+        remove_in_version="99.0.0",
+        replacement="_test_sentinel_",
+    )
+    monkeypatch.setitem(mod._DEPRECATED_ALIASES, "_old_name_", alias)
+
+    with pytest.warns(DeprecationWarning, match="_old_name_"):
+        resolved = getattr(mod, "_old_name_")  # noqa: B009
+
+    assert resolved is sentinel

@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 
 from .abc import CalibrationAdapter, CalibrationContext, SupportsLogging
+from .deprecation import DeprecatedAlias, deprecated_dir, deprecated_getattr
 from .exceptions import (
     AdapterError,
     AsamIntError,
@@ -229,4 +230,15 @@ __all__ = [
     "CalibrationLimits",
     "CalibrationValue",
     "MeasurementChannel",
+    "DeprecatedAlias",
 ]
+
+_DEPRECATED_ALIASES: dict[str, DeprecatedAlias] = {}
+
+
+def __getattr__(name: str) -> object:
+    return deprecated_getattr(name, _DEPRECATED_ALIASES, globals(), __name__)
+
+
+def __dir__() -> list[str]:
+    return deprecated_dir(_DEPRECATED_ALIASES, globals())

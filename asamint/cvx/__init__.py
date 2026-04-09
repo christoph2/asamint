@@ -16,6 +16,7 @@ from typing import Any
 
 from .exporter import CVXExporter
 from .importer import CVXImporter
+from asamint.core.deprecation import DeprecatedAlias, deprecated_dir, deprecated_getattr
 
 __all__ = [
     "CVXExporter",
@@ -23,6 +24,16 @@ __all__ = [
     "export_cvx",
     "import_cvx",
 ]
+
+_DEPRECATED_ALIASES: dict[str, DeprecatedAlias] = {}
+
+
+def __getattr__(name: str) -> object:
+    return deprecated_getattr(name, _DEPRECATED_ALIASES, globals(), __name__)
+
+
+def __dir__() -> list[str]:
+    return deprecated_dir(_DEPRECATED_ALIASES, globals())
 
 
 def import_cvx(
