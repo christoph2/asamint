@@ -239,7 +239,6 @@ class TestSaveMeasurements:
         monkeypatch.setattr(creator, "calculate_physical_values", lambda s, cm: s)
 
         captured = {}
-        orig_append = creator._mdf_obj.append
 
         def spy_append(signals):
             captured["samples"] = signals[0].samples.copy()
