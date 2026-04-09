@@ -62,6 +62,8 @@ sys.setrecursionlimit(2000)
 
 @dataclass
 class CdfIOResult:
+    """Result of a CDF import or export operation."""
+
     output_path: Path
     db_path: Path
 
@@ -75,6 +77,22 @@ def export_cdf(
     validate_dtd: bool = False,
     logger: logging.Logger | None = None,
 ) -> CdfIOResult:
+    """Export calibration parameters from an MSRSW database to ASAM CDF20 XML.
+
+    Args:
+        db_path: Path to the MSRSW database (``.msrswdb``).
+        output_path: Destination path for the CDF XML file.
+        h5_db_path: Optional CalibrationDB HDF5 file for supplementary data.
+        variant_coding: Include variant-coding parameters.
+        validate_dtd: Validate the output against the CDF DTD.
+        logger: Optional logger; one is created if not provided.
+
+    Returns:
+        :class:`CdfIOResult` with the written output and database paths.
+
+    Raises:
+        AdapterError: If the export fails.
+    """
     log = logger or configure_logging(__name__)
     db_file = Path(db_path)
     output = Path(output_path)
@@ -103,6 +121,19 @@ def import_cdf(
     db_path: str | Path,
     logger: logging.Logger | None = None,
 ) -> CdfIOResult:
+    """Import calibration parameters from a CDF20 XML file into an MSRSW database.
+
+    Args:
+        xml_path: Path to the CDF XML file.
+        db_path: Destination path for the MSRSW database (``.msrswdb``).
+        logger: Optional logger; one is created if not provided.
+
+    Returns:
+        :class:`CdfIOResult` with the XML and database paths.
+
+    Raises:
+        AdapterError: If the import fails.
+    """
     log = logger or configure_logging(__name__)
     importer = CDFImporter(logger=log)
     xml = Path(xml_path)
@@ -137,6 +168,7 @@ class DB:
         self.close()
 
     def close(self) -> None:
+        """Close the HDF5 storage and MSRSW database connections."""
         if getattr(self, "opened", False):
             self.storage.close()
             self.db.close()
@@ -154,6 +186,12 @@ class DB:
         return values
 
     def load(self, name: str) -> xr.DataArray:
+        """Load a calibration parameter as an :class:`xarray.DataArray`.
+
+        The returned array carries axes/coordinates for multi-dimensional
+        parameters (CURVE, MAP, etc.) and metadata attributes (category,
+        display_identifier, comment).
+        """
         ds = self.storage[f"/{name}"]
         ds_attrs = dict(ds.attrs.items())
         category = ds_attrs["category"]
@@ -221,19 +259,24 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         self._parameters = parameters
 
     def on_init(self, config: Any, *args: Any, **kws: Any) -> None:
+        """Lifecycle hook called during CalibrationData initialisation (no-op)."""
         return None
 
     @property
     def a2l_file(self) -> Path:
+        """Path to the A2L description file."""
         return self.asam_mc.a2l_file
 
     def sub_dir(self, name: str) -> Path:
+        """Return a named sub-directory from the AsamMC workspace."""
         return self.asam_mc.sub_dir(name)
 
     def generate_filename(self, extension: str, extra: str | None = None) -> str:
+        """Generate an output filename using the AsamMC naming scheme."""
         return self.asam_mc.generate_filename(extension, extra)
 
     def save(self) -> None:
+        """Build the complete CDF20 XML document and write it to disk."""
         self.root = self._toplevel_boilerplate()
         self.tree = etree.ElementTree(self.root)
         self.cs_collections()
@@ -261,6 +304,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
     def cs_collection(
         self, name: str, category: str, tree: etree._Element, is_group: bool
     ) -> None:
+        """Create a single SW-CS-COLLECTION element (feature or group reference)."""
         collection = create_elem(tree, "SW-CS-COLLECTION")
         create_elem(collection, "CATEGORY", text=category)
         if is_group:
@@ -269,6 +313,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
             create_elem(collection, "SW-FEATURE-REF", text=name)
 
     def cs_collections(self) -> None:
+        """Populate SW-CS-COLLECTIONS with all A2L functions and groups."""
         instance_tree = self.sub_trees["SW-INSTANCE-TREE"]
         collections = create_elem(instance_tree, "SW-CS-COLLECTIONS")
         functions = self.query(model.Function).all()
@@ -284,6 +329,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
             self.cs_collection(g.groupName, "COLLECTION", collections, True)
 
     def instances(self) -> None:
+        """Generate SW-INSTANCE elements for all calibration parameters."""
         instance_tree = self.sub_trees["SW-INSTANCE-TREE"]
         xml_comment(instance_tree, "    AXIS_PTSs ")
         for inst in self._parameters["AXIS_PTS"].values():
@@ -349,6 +395,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         self.dump_array("CUBE_5")
 
     def dump_array(self, attribute: str) -> None:
+        """Write all CURVE/MAP/CUBOID/CUBE_4/CUBE_5 instances for *attribute*."""
         for inst in self._parameters[attribute].values():
             if not list(inst.phys):
                 self.logger.warning(f"{attribute} {inst.name!r}: has no values.")
@@ -391,6 +438,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         displayIdentifier: str | None = None,
         feature_ref: str | None = None,
     ) -> None:
+        """Create a scalar SW-INSTANCE (VALUE, ASCII, BOOLEAN, or TEXT)."""
         if category == "TEXT":
             is_text = True
             category = "VALUE"
@@ -415,6 +463,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
     def add_axis(
         self, axis_conts: etree._Element, axis_values: np.ndarray, category: str, unit: str = ""
     ) -> None:
+        """Append an axis container with values and optional unit to *axis_conts*."""
         axis_cont = create_elem(axis_conts, "SW-AXIS-CONT")
         create_elem(axis_cont, "CATEGORY", text=category)
         if unit:
@@ -430,6 +479,11 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         displayIdentifier: str | None = None,
         feature_ref: str | None = None,
     ) -> tuple[etree._Element, etree._Element]:
+        """Create a variant instance with value and axis containers.
+
+        Returns:
+            Tuple of ``(value_cont, axis_conts)`` elements.
+        """
         variant = self.sw_instance(
             name,
             descr,
@@ -453,6 +507,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         displayIdentifier: str | None = None,
         feature_ref: str | None = None,
     ) -> etree._Element:
+        """Build header structure for a CURVE or MAP and return the axis_conts element."""
         value_cont, axis_conts = self.instance_container(
             name,
             descr,
@@ -505,6 +560,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         displayIdentifier: str | None = None,
         feature_ref: str | None = None,
     ) -> etree._Element:
+        """Create a SW-INSTANCE element with metadata and a properties variant."""
         instance_tree = self.sub_trees["SW-INSTANCE-TREE"]
         instance = create_elem(instance_tree, "SW-INSTANCE")
         create_elem(instance, "SHORT-NAME", text=name)
@@ -528,6 +584,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         displayIdentifier: str | None = None,
         feature_ref: str | None = None,
     ) -> etree._Element:
+        """Create a variant instance for a scalar parameter (no axis containers)."""
         variant = self.sw_instance(
             name,
             descr,

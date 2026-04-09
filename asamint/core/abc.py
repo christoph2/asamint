@@ -12,6 +12,7 @@ class SupportsLogging(Protocol):
     @property
     @abstractmethod
     def logger(self) -> Any:  # pragma: no cover - Interface
+        """Logger instance provided by the implementing component."""
         raise NotImplementedError
 
 

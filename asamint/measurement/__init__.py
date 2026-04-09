@@ -142,6 +142,11 @@ PYXCP_TYPES = {
 def group_measurements(
     session: A2LDBSession, group_name: str, exclude: Optional[Union[list[str], set[str]]] = None
 ) -> list[tuple[str, int, int, str]]:
+    """Resolve all measurements in an A2L Group to pyXCP DAQ tuples.
+
+    Returns:
+        List of ``(name, address, extension, type_str)`` tuples.
+    """
     result = []
     if exclude:
         exclude = set(exclude)
@@ -355,6 +360,8 @@ def build_daq_lists(
 
 @dataclass
 class RunResult:
+    """Result of a measurement run — holds output paths and signal metadata."""
+
     mdf_path: Optional[str]
     csv_path: Optional[str]
     hdf5_path: Optional[str]

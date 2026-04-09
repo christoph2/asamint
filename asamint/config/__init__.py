@@ -42,7 +42,7 @@ from asamint.core.models import GeneralConfig, LoggingConfig
 
 
 class General(Configurable):
-    """ """
+    """General project settings (author, A2L file, output format, etc.)."""
 
     author = Unicode(default_value="", help="Author of the project").tag(config=True)
     company = Unicode(default_value="", help="Company of the project").tag(config=True)
@@ -86,6 +86,8 @@ class General(Configurable):
 
 
 class ProfileCreate(Application):
+    """Subcommand that creates a new asamint configuration profile."""
+
     description = "\nCreate a new profile"
 
     dest_file = Unicode(
@@ -99,6 +101,7 @@ class ProfileCreate(Application):
     )
 
     def start(self) -> None:
+        """Prompt for a destination and write the generated configuration file."""
         pyxcp = self.parent.parent
         if self.dest_file:
             dest = Path(self.dest_file)
@@ -115,6 +118,8 @@ class ProfileCreate(Application):
 
 
 class ProfileApp(Application):
+    """Subcommand handler for profile-related operations."""
+
     subcommands = Dict(
         {
             "create": (ProfileCreate, ProfileCreate.description.splitlines()[0]),
@@ -122,6 +127,7 @@ class ProfileApp(Application):
     )
 
     def start(self) -> None:
+        """Route to the selected profile subcommand or show usage."""
         if self.subapp is None:
             self.log.error(
                 "No subcommand specified. Must specify one of: %s",
@@ -135,6 +141,8 @@ class ProfileApp(Application):
 
 
 class XCP(Configurable):
+    """pyXCP transport configuration; merges external pyXCP config when available."""
+
     classes = List([pyxcp_config.General, pyxcp_config.Transport])
 
     def __init__(self, **kws) -> None:
@@ -211,6 +219,8 @@ class XCP(Configurable):
 
 
 class Asamint(Application):
+    """Main asamint CLI application — manages configuration, logging, and subcommands."""
+
     description = "ASAMInt application"
     config_file = Unicode(
         default_value="asamint_conf.py", help="base name of config file"
@@ -228,6 +238,7 @@ class Asamint(Application):
     }
 
     def start(self) -> None:
+        """Start the application: delegate to subcommand or load config and logging."""
         if self.subapp:
             self.subapp.start()
             exit(2)
@@ -251,6 +262,7 @@ class Asamint(Application):
         self.log = logger
 
     def initialize(self, argv=None) -> None:
+        """Parse command-line arguments and set the application version."""
         from asamint import __version__ as asamint_version
 
         Asamint.version = asamint_version
@@ -264,6 +276,7 @@ class Asamint(Application):
         self.xcp = XCP(config=self.config, parent=self)
 
     def read_configuration_file(self, file_name: str, emit_warning: bool = True) -> None:
+        """Load and parse a Python-format asamint configuration file."""
         self.legacy_config: bool = False
 
         pth = Path(file_name)
@@ -360,6 +373,7 @@ class Asamint(Application):
             )
 
     def generate_config_file(self, file_like: io.IOBase, config=None) -> None:
+        """Write a template configuration file with all available options."""
         print("#", file=file_like)
         print("# Configuration file for Asamint.", file=file_like)
         print("#", file=file_like)
@@ -380,6 +394,7 @@ application: typing.Optional[Asamint] = None
 def create_application(
     options: typing.Optional[list[str]] = None,
 ) -> Asamint:
+    """Create and initialise the global :class:`Asamint` application singleton."""
     global application
     if options is None:
         options = []
@@ -394,6 +409,7 @@ def create_application(
 def get_application(
     options: typing.Optional[list[str]] = None,
 ) -> Asamint:
+    """Return the global :class:`Asamint` application, creating one if needed."""
     if options is None:
         options = []
     global application
