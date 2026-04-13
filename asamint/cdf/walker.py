@@ -72,9 +72,7 @@ def reshape(arr: list[Any], dim: tuple[int, ...]) -> list[Any]:
     return tmp
 
 
-def convert_timestamp(
-    ts: str, fmt: str = "%Y-%m-%dT%H:%M:%S"
-) -> datetime:  # "%Y-%m-%d %H:%M:%S"
+def convert_timestamp(ts: str, fmt: str = "%Y-%m-%dT%H:%M:%S") -> datetime:  # "%Y-%m-%d %H:%M:%S"
     return datetime.strptime(ts, fmt)
 
 
@@ -93,7 +91,6 @@ def get_content(
 
 
 class CdfWalker:
-
     def __init__(self, db_name: str) -> None:
         self.db = MSRSWDatabase(db_name)
         self.session = self.db.session
@@ -250,9 +247,7 @@ class CdfWalker:
 
     def do_value_cont(self, cont: Any) -> elements.ValueContainer:
         if cont is None:
-            return elements.ValueContainer(
-                unit_display_name=None, array_size=(), values_phys=[], values_int=[]
-            )
+            return elements.ValueContainer(unit_display_name=None, array_size=(), values_phys=[], values_int=[])
         display_name = self.do_unit_display_name(cont.unit_display_name)
         array_size = self.do_array_size(cont.sw_arraysize)
         if cont.sw_values_phys:
@@ -310,11 +305,7 @@ class CdfWalker:
                 cspi = get_content(entry.cspi)
                 csdi = get_content(entry.csdi)
                 remark = self.do_remark(entry.remark)
-                result.append(
-                    elements.HistoryEntry(
-                        state, date, csus, cspr, cswp, csto, cstv, cspi, csdi, remark
-                    )
-                )
+                result.append(elements.HistoryEntry(state, date, csus, cspr, cswp, csto, cstv, cspi, csdi, remark))
         return result
 
     def do_sw_vcd_criterion_ref(self, ref: Any) -> elements.CriterionRef:
@@ -335,13 +326,9 @@ class CdfWalker:
         if collections is not None and collections.sw_cs_collection:
             for coll in collections.sw_cs_collection:
                 if coll.category.content == "FEATURE":
-                    sw_collection.append(
-                        elements.A2LFunction(coll.sw_feature_ref.content)
-                    )  # A2L FUNCTION
+                    sw_collection.append(elements.A2LFunction(coll.sw_feature_ref.content))  # A2L FUNCTION
                 elif coll.category.content == "COLLECTION":
-                    sw_collection.append(
-                        elements.A2LGroup(coll.sw_collection_ref.content)
-                    )  # A2L GROUP
+                    sw_collection.append(elements.A2LGroup(coll.sw_collection_ref.content))  # A2L GROUP
         return sw_collection
 
     def do_sw_instance_props_variants(self, variants: Any) -> list[elements.InstancePropsVariant]:
@@ -352,14 +339,8 @@ class CdfWalker:
                 axis_containers = self.do_axis_conts(variant.sw_axis_conts)
                 history = self.do_sw_cs_history(variant.sw_cs_history)
                 flags = self.do_sw_cs_flags(variant.sw_cs_flags)
-                crit_values = self.do_sw_vcd_criterion_values(
-                    variant.sw_vcd_criterion_values
-                )
-                result.append(
-                    elements.InstancePropsVariant(
-                        crit_values, value_container, axis_containers, history, flags
-                    )
-                )
+                crit_values = self.do_sw_vcd_criterion_values(variant.sw_vcd_criterion_values)
+                result.append(elements.InstancePropsVariant(crit_values, value_container, axis_containers, history, flags))
         return result
 
     def do_instance(self, inst: Any) -> elements.CalibrationParameter:
@@ -424,8 +405,6 @@ class CdfWalker:
 
         sw_collection = self.do_sw_cs_collection(collections)
 
-        self.on_header(
-            shortname.value, a2l_file, hex_file, sw_collection, category.value == "VCD"
-        )
+        self.on_header(shortname.value, a2l_file, hex_file, sw_collection, category.value == "VCD")
         for inst in self.session.query(SwInstance).all():
             self.on_instance(self.do_instance(inst))

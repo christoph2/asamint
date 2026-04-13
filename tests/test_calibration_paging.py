@@ -46,9 +46,7 @@ def _make_segment(
 
 
 def _make_calibration_data(tmp_path: Path) -> calibration_module.CalibrationData:
-    instance = calibration_module.CalibrationData.__new__(
-        calibration_module.CalibrationData
-    )
+    instance = calibration_module.CalibrationData.__new__(calibration_module.CalibrationData)
     instance.asam_mc = SimpleNamespace(
         mod_par=None,
         session=object(),
@@ -92,9 +90,7 @@ def test_upload_calram_uses_if_data_page_selection(tmp_path: Path, monkeypatch) 
         lambda: "20260326_131800",
     )
 
-    def _fake_dump(
-        file_type: str, outf: Any, image: Any, row_length: int = 0, **_kwargs: Any
-    ) -> None:
+    def _fake_dump(file_type: str, outf: Any, image: Any, row_length: int = 0, **_kwargs: Any) -> None:
         written["file_type"] = file_type
         written["row_length"] = row_length
         written["sections"] = list(image.sections)
@@ -119,9 +115,7 @@ def test_upload_calram_uses_if_data_page_selection(tmp_path: Path, monkeypatch) 
     assert (tmp_path / "CalRAM20260326_131800_P1.hex").exists()
 
 
-def test_download_calram_uses_if_data_writable_page(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_download_calram_uses_if_data_writable_page(tmp_path: Path, monkeypatch) -> None:
     calibration_data = _make_calibration_data(tmp_path)
     paged_segment = _make_segment(
         pages=[
@@ -144,9 +138,7 @@ def test_download_calram_uses_if_data_writable_page(
     monkeypatch.setattr(
         calibration_module,
         "ModPar",
-        lambda session, module_name=None: SimpleNamespace(
-            memorySegments=[paged_segment]
-        ),
+        lambda session, module_name=None: SimpleNamespace(memorySegments=[paged_segment]),
     )
 
     calibration_module.CalibrationData.download_calram(

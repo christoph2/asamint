@@ -33,9 +33,7 @@ FIXTURE_DIR = Path(__file__).parent
 
 @pytest.fixture(scope="module")
 def cdf20_session():
-    session = open_a2l_database(
-        str(FIXTURE_DIR / "CDF20demo"), encoding="latin1", local=True
-    )
+    session = open_a2l_database(str(FIXTURE_DIR / "CDF20demo"), encoding="latin1", local=True)
     yield session
     close_fn = getattr(session, "close", None)
     if callable(close_fn):
@@ -248,9 +246,7 @@ class TestSaveAndFlush:
         new_val = 42.0
         mock_xcp_master.reset_mock()
 
-        cdf20_online.save_value(
-            name, new_val, limitsPolicy=ExecutionPolicy.IGNORE
-        )
+        cdf20_online.save_value(name, new_val, limitsPolicy=ExecutionPolicy.IGNORE)
 
         # Verify push was called with bytes from the image
         push_call = mock_xcp_master.push.call_args_list[-1]
@@ -287,9 +283,7 @@ class TestDependencyFlush:
         # and potentially one for the dependent characteristic
         assert mock_xcp_master.push.call_count >= 1
 
-    def test_trigger_recalculation_batches_flush(
-        self, cdf20_session, cdf20_image, mock_xcp_master
-    ):
+    def test_trigger_recalculation_batches_flush(self, cdf20_session, cdf20_image, mock_xcp_master):
         """During _trigger_recalculation, auto_flush should be suppressed."""
         cal = OnlineCalibration(
             cdf20_session,

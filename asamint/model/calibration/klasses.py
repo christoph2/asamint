@@ -82,9 +82,7 @@ class JSONEncoder(json.JSONEncoder):
 
 def dump_characteristics(chs) -> bytes:
     """JSON representation of characteristic values."""
-    return json.dumps(
-        chs, cls=JSONEncoder, indent=4, separators=(",", ": "), ensure_ascii=False
-    ).encode("utf-8")
+    return json.dumps(chs, cls=JSONEncoder, indent=4, separators=(",", ": "), ensure_ascii=False).encode("utf-8")
 
 
 @dataclass(kw_only=True)

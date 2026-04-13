@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Read / export XCP raw measurement files.
-"""
+"""Read / export XCP raw measurement files."""
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.

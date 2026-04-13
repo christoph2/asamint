@@ -26,9 +26,7 @@ class HDF5Creator(AsamMC):
         try:
             self._resolve_measurements_from_config()
         except (AttributeError, ValueError, KeyError) as e:
-            self.logger.debug(
-                f"HDF5Creator: could not resolve measurements from config: {e}"
-            )
+            self.logger.debug(f"HDF5Creator: could not resolve measurements from config: {e}")
 
     def add_measurements(self, names: Iterable[str]) -> None:
         """Add measurement items by name using A2L inspect.Measurement."""
@@ -94,9 +92,7 @@ class HDF5Creator(AsamMC):
         for meas in getattr(self, "measurement_variables", []):
             try:
                 units[meas.name] = getattr(meas.compuMethod, "unit", None)
-                signal_meta[meas.name] = {
-                    "compu_method": getattr(meas.compuMethod, "name", None)
-                }
+                signal_meta[meas.name] = {"compu_method": getattr(meas.compuMethod, "name", None)}
             except AttributeError:
                 units[meas.name] = None
                 signal_meta[meas.name] = {"compu_method": None}
@@ -192,9 +188,7 @@ def _annotate_daq_hdf5_metadata(
     try:
         with h5py.File(str(h5_path), "a") as hf:
             config = _serialize_daq_lists(daq_lists)
-            _write_daq_hdf5_metadata(
-                hf, h5_path, project_meta, json.dumps(config), timebase_hint_s
-            )
+            _write_daq_hdf5_metadata(hf, h5_path, project_meta, json.dumps(config), timebase_hint_s)
     except OSError as exc:  # pragma: no cover - best-effort
         logger.debug("Failed to annotate DAQ HDF5 file %s: %s", h5_path, exc)
 
@@ -208,13 +202,8 @@ def _serialize_daq_lists(daq_lists: list[Any]) -> list[dict[str, Any]]:
                     "name": daq_list.name,
                     "event_num": daq_list.event_num,
                     "stim": bool(getattr(daq_list, "stim", False)),
-                    "enable_timestamps": bool(
-                        getattr(daq_list, "enable_timestamps", False)
-                    ),
-                    "measurements": [
-                        measurement[0]
-                        for measurement in getattr(daq_list, "measurements", [])
-                    ],
+                    "enable_timestamps": bool(getattr(daq_list, "enable_timestamps", False)),
+                    "measurements": [measurement[0] for measurement in getattr(daq_list, "measurements", [])],
                 }
             )
         except (AttributeError, TypeError, IndexError) as exc:

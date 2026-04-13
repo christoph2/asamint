@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Tests for asamint.utils.templates – Mako wrapper functions."""
+
 from __future__ import annotations
 
 from mako.template import Template

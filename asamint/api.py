@@ -21,6 +21,7 @@ val = api.load("SomeCharacteristic")
 val.phys *= 2
 api.save("SomeCharacteristic", val)
 """
+
 from __future__ import annotations
 
 from asamint.calibration.api import (

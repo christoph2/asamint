@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Tests for asamint.utils.xml – helper functions and XMLTraversor."""
+
 from __future__ import annotations
 
 from decimal import Decimal

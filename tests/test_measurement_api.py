@@ -36,9 +36,7 @@ def test_run_returns_paths(tmp_path: Path, monkeypatch, dummy_groups):
 
     monkeypatch.setattr(api, "run", fake_run)
 
-    result = api.run(
-        dummy_groups, duration=0.1, csv_out=str(target_csv), hdf5_out=str(target_hdf5)
-    )
+    result = api.run(dummy_groups, duration=0.1, csv_out=str(target_csv), hdf5_out=str(target_hdf5))
 
     assert result.mdf_path == str(target_csv)
     assert result.csv_path == str(target_csv)

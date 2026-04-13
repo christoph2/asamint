@@ -50,9 +50,7 @@ def test_strict_no_trim_raises(monkeypatch):
     data = _make_data_need_trim()
 
     with pytest.raises(ValueError):
-        creator.save_measurements(
-            "/tmp/strict_no_trim.mf4", data=data, strict_no_trim=True
-        )
+        creator.save_measurements("/tmp/strict_no_trim.mf4", data=data, strict_no_trim=True)
 
 
 def test_strict_no_synth_raises(monkeypatch):
@@ -74,6 +72,4 @@ def test_strict_no_synth_raises(monkeypatch):
     data = _make_data_need_synth()
 
     with pytest.raises(ValueError):
-        creator.save_measurements(
-            "/tmp/strict_no_synth.mf4", data=data, strict_no_synth=True
-        )
+        creator.save_measurements("/tmp/strict_no_synth.mf4", data=data, strict_no_synth=True)

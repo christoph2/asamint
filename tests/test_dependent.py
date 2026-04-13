@@ -35,9 +35,7 @@ FIXTURE_DIR = Path(__file__).parent
 
 @pytest.fixture(scope="module")
 def cdf20_session():
-    session = open_a2l_database(
-        str(FIXTURE_DIR / "CDF20demo"), encoding="latin1", local=True
-    )
+    session = open_a2l_database(str(FIXTURE_DIR / "CDF20demo"), encoding="latin1", local=True)
     yield session
     close_fn = getattr(session, "close", None)
     if callable(close_fn):
@@ -46,9 +44,7 @@ def cdf20_session():
 
 @pytest.fixture(scope="module")
 def asap2_session():
-    session = open_a2l_database(
-        str(FIXTURE_DIR / "ASAP2_Demo_V161"), encoding="latin1", local=True
-    )
+    session = open_a2l_database(str(FIXTURE_DIR / "ASAP2_Demo_V161"), encoding="latin1", local=True)
     yield session
     close_fn = getattr(session, "close", None)
     if callable(close_fn):
@@ -83,16 +79,8 @@ class TestDependencyGraph:
     def test_build_from_asap2(self, asap2_session):
         """ASAP2_Demo_V161 has 5 DEPENDENT + 5 VIRTUAL characteristics."""
         graph = DependencyGraph.build(asap2_session)
-        dep_count = sum(
-            1
-            for e in graph.entries.values()
-            if e.kind == DependencyKind.DEPENDENT
-        )
-        virt_count = sum(
-            1
-            for e in graph.entries.values()
-            if e.kind == DependencyKind.VIRTUAL
-        )
+        dep_count = sum(1 for e in graph.entries.values() if e.kind == DependencyKind.DEPENDENT)
+        virt_count = sum(1 for e in graph.entries.values() if e.kind == DependencyKind.VIRTUAL)
         assert dep_count == 5
         # 4 virtual (ASAM.C.VIRTUAL.ASCII is type ASCII → excluded by G.1.2)
         assert virt_count == 4
@@ -304,9 +292,7 @@ class TestCDF20DependentIntegration:
 
     def test_recalculate_dependents_api(self, cdf20_offline):
         """Explicit call to recalculate_dependents works."""
-        results = cdf20_offline.recalculate_dependents(
-            "CDF20.Dependent.Base.FW_wU16"
-        )
+        results = cdf20_offline.recalculate_dependents("CDF20.Dependent.Base.FW_wU16")
         assert len(results) == 1
         assert results[0].name == "CDF20.Dependent.Ref_1.FW_wU16"
         assert results[0].kind == DependencyKind.DEPENDENT
@@ -374,9 +360,7 @@ class TestASAP2DependencyChain:
 
         # REF_4 depends on REF_1
         if "ASAM.C.DEPENDENT.REF_4.FLOAT64_IEEE" in names:
-            assert names.index("ASAM.C.DEPENDENT.REF_1.SWORD") < names.index(
-                "ASAM.C.DEPENDENT.REF_4.FLOAT64_IEEE"
-            )
+            assert names.index("ASAM.C.DEPENDENT.REF_1.SWORD") < names.index("ASAM.C.DEPENDENT.REF_4.FLOAT64_IEEE")
 
     def test_virtual_chain_topology(self, asap2_session):
         """VIRTUAL.REF_3 depends on VIRTUAL.REF_1 and VIRTUAL.REF_2.
@@ -388,9 +372,7 @@ class TestASAP2DependencyChain:
         names = [e.name for e in order]
 
         if "ASAM.C.VIRTUAL.REF_1.SWORD" in names and "ASAM.C.VIRTUAL.REF_3.SWORD" in names:
-            assert names.index("ASAM.C.VIRTUAL.REF_1.SWORD") < names.index(
-                "ASAM.C.VIRTUAL.REF_3.SWORD"
-            )
+            assert names.index("ASAM.C.VIRTUAL.REF_1.SWORD") < names.index("ASAM.C.VIRTUAL.REF_3.SWORD")
 
 
 # ---------------------------------------------------------------------------

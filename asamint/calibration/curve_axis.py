@@ -99,10 +99,7 @@ def interpolate_normalized(
     values = np.asarray(map_values, dtype=np.float64)
 
     if len(indices) != values.ndim:
-        raise ValueError(
-            f"Expected {values.ndim} indices for a {values.ndim}-D map, "
-            f"got {len(indices)}."
-        )
+        raise ValueError(f"Expected {values.ndim} indices for a {values.ndim}-D map, got {len(indices)}.")
 
     # Reverse indices: ASAM axis order [x, y, z, …] → numpy dim order
     # [outermost … rows, cols].  Processing from last dim to first ensures
@@ -179,16 +176,10 @@ def lookup_normalized_map(
     axes_map = {"CURVE": 1, "MAP": 2, "CUBOID": 3, "CUBE_4": 4, "CUBE_5": 5}
     num_axes = axes_map.get(chr_type)
     if num_axes is None:
-        raise ValueError(
-            f"interpolate() requires a CURVE/MAP/CUBOID/CUBE_4/CUBE_5, "
-            f"got {chr_type!r} for {characteristic_name!r}."
-        )
+        raise ValueError(f"interpolate() requires a CURVE/MAP/CUBOID/CUBE_4/CUBE_5, got {chr_type!r} for {characteristic_name!r}.")
 
     if len(raw_inputs) != num_axes:
-        raise ValueError(
-            f"{characteristic_name!r} has {num_axes} axis/axes, "
-            f"but {len(raw_inputs)} input(s) were given."
-        )
+        raise ValueError(f"{characteristic_name!r} has {num_axes} axis/axes, but {len(raw_inputs)} input(s) were given.")
 
     # Load the characteristic (populates axes and function values)
     obj = calibration.load_curve_or_map(characteristic_name, chr_type, num_axes)
@@ -213,8 +204,6 @@ def lookup_normalized_map(
                 float_indices.append(0.0)
             else:
                 index_array = np.arange(size, dtype=np.float64)
-                float_indices.append(
-                    float(np.interp(inp, axis_vals, index_array))
-                )
+                float_indices.append(float(np.interp(inp, axis_vals, index_array)))
 
     return interpolate_normalized(np.asarray(obj.phys), float_indices)

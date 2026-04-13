@@ -17,7 +17,6 @@ MT_ABBREVS = {
 
 
 class MapFile:
-
     def __init__(self, filename, memory_map: dict, memory_errors: dict) -> None:
         self.memory_map = memory_map
         self.memory_errors = memory_errors

@@ -35,9 +35,7 @@ class Logger:
     FORMAT = "[%(levelname)s (%(name)s)]: %(message)s"
 
     def __init__(self, name: str, level: int = logging.WARN) -> None:
-        self.logger = configure_logging(
-            name=f"{self.LOGGER_BASE_NAME}.{name}", level=level
-        )
+        self.logger = configure_logging(name=f"{self.LOGGER_BASE_NAME}.{name}", level=level)
         self.lastMessage: str | None = None
         self.lastSeverity: int | None = None
 

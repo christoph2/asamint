@@ -173,7 +173,7 @@ class DependencyGraph:
 
     def _topological_sort(self, affected: set[str]) -> list[DependencyEntry]:
         """Kahn's algorithm restricted to *affected* nodes."""
-        in_degree: dict[str, int] = {n: 0 for n in affected}
+        in_degree: dict[str, int] = dict.fromkeys(affected, 0)
         for name in affected:
             for inp in self.entries[name].input_names:
                 if inp in affected:
@@ -199,7 +199,7 @@ class DependencyGraph:
     def _detect_cycles(self) -> None:
         """Raise ``CalibrationError`` if the graph contains a cycle."""
         WHITE, GRAY, BLACK = 0, 1, 2
-        colour: dict[str, int] = {n: WHITE for n in self.entries}
+        colour: dict[str, int] = dict.fromkeys(self.entries, WHITE)
 
         def visit(name: str, path: list[str]) -> None:
             colour[name] = GRAY
@@ -209,9 +209,7 @@ class DependencyGraph:
                 if inp in colour:
                     if colour[inp] == GRAY:
                         cycle = path[path.index(inp) :]
-                        raise CalibrationError(
-                            f"Circular dependency detected: {' → '.join(cycle)} → {inp}"
-                        )
+                        raise CalibrationError(f"Circular dependency detected: {' → '.join(cycle)} → {inp}")
                     if colour[inp] == WHITE:
                         visit(inp, path)
             path.pop()
@@ -271,9 +269,7 @@ def validate_dependency_types(
     return result
 
 
-def _validate_entry(
-    entry: DependencyEntry, session: Any, result: ValidationResult
-) -> None:
+def _validate_entry(entry: DependencyEntry, session: Any, result: ValidationResult) -> None:
     """Validate a single dependency entry."""
     dep_type = entry.dependent_type
 
@@ -293,9 +289,7 @@ def _validate_entry(
     _check_axis_types(entry, session, result)
 
 
-def _resolve_input_types(
-    entry: DependencyEntry, session: Any, result: ValidationResult
-) -> list[str]:
+def _resolve_input_types(entry: DependencyEntry, session: Any, result: ValidationResult) -> list[str]:
     """Resolve the type of each input characteristic."""
     input_types: list[str] = []
     for inp_name in entry.input_names:
@@ -308,44 +302,31 @@ def _resolve_input_types(
     return input_types
 
 
-def _check_input_types(
-    entry: DependencyEntry, input_types: list[str], result: ValidationResult
-) -> None:
+def _check_input_types(entry: DependencyEntry, input_types: list[str], result: ValidationResult) -> None:
     """Check that each input type is supported and not ASCII."""
     for inp_name, inp_type in zip(entry.input_names, input_types):
         if inp_type not in SUPPORTED_TYPES:
             result.valid = False
-            result.errors.append(
-                f"{entry.name}: input '{inp_name}' has unsupported type '{inp_type}'"
-            )
+            result.errors.append(f"{entry.name}: input '{inp_name}' has unsupported type '{inp_type}'")
         if inp_type == "ASCII":
             result.valid = False
-            result.errors.append(
-                f"{entry.name}: input '{inp_name}' is ASCII (not allowed)"
-            )
+            result.errors.append(f"{entry.name}: input '{inp_name}' is ASCII (not allowed)")
 
     # G.1.2: no mixing CURVE_LIKE and VAL_BLK
     norm_inputs = {_normalise_type(t) for t in input_types}
     if "CURVE_LIKE" in norm_inputs and "VAL_BLK" in norm_inputs:
         result.valid = False
-        result.errors.append(
-            f"{entry.name}: CURVE and VAL_BLK must not be mixed in the same formula"
-        )
+        result.errors.append(f"{entry.name}: CURVE and VAL_BLK must not be mixed in the same formula")
 
 
-def _check_type_combinations(
-    entry: DependencyEntry, input_types: list[str], result: ValidationResult
-) -> None:
+def _check_type_combinations(entry: DependencyEntry, input_types: list[str], result: ValidationResult) -> None:
     """Check input/dependent combinations per Tables 29/30."""
     norm_dep = _normalise_type(entry.dependent_type)
     for inp_type in input_types:
         norm_inp = _normalise_type(inp_type)
         if (norm_inp, norm_dep) not in _SINGLE_INPUT_COMBOS:
             result.valid = False
-            result.errors.append(
-                f"{entry.name}: unsupported combination "
-                f"input={inp_type} → dependent={entry.dependent_type}"
-            )
+            result.errors.append(f"{entry.name}: unsupported combination input={inp_type} → dependent={entry.dependent_type}")
 
 
 def _check_axis_compatibility(
@@ -356,9 +337,7 @@ def _check_axis_compatibility(
 ) -> None:
     """Check axis count/size for multi-CURVE or multi-VAL_BLK inputs."""
     # CURVE_LIKE inputs: same #axes and shape
-    curve_inputs = [
-        (n, t) for n, t in zip(entry.input_names, input_types) if t in CURVE_LIKE_TYPES
-    ]
+    curve_inputs = [(n, t) for n, t in zip(entry.input_names, input_types) if t in CURVE_LIKE_TYPES]
     if len(curve_inputs) > 1:
         try:
             first = Characteristic.get(session, curve_inputs[0][0])
@@ -366,20 +345,12 @@ def _check_axis_compatibility(
                 ch = Characteristic.get(session, inp_name)
                 if len(ch.axisDescriptions) != len(first.axisDescriptions):
                     result.valid = False
-                    result.errors.append(
-                        f"{entry.name}: inputs {curve_inputs[0][0]} and {inp_name} "
-                        f"have different number of axes"
-                    )
+                    result.errors.append(f"{entry.name}: inputs {curve_inputs[0][0]} and {inp_name} have different number of axes")
                 if ch.fnc_np_shape != first.fnc_np_shape:
                     result.valid = False
-                    result.errors.append(
-                        f"{entry.name}: inputs {curve_inputs[0][0]} and {inp_name} "
-                        f"have different axis sizes"
-                    )
+                    result.errors.append(f"{entry.name}: inputs {curve_inputs[0][0]} and {inp_name} have different axis sizes")
         except (ValueError, AttributeError) as exc:
-            result.warnings.append(
-                f"{entry.name}: could not verify axis compatibility: {exc}"
-            )
+            result.warnings.append(f"{entry.name}: could not verify axis compatibility: {exc}")
 
     # VAL_BLK inputs: same size
     vblk_inputs = [n for n, t in zip(entry.input_names, input_types) if t == "VAL_BLK"]
@@ -390,19 +361,12 @@ def _check_axis_compatibility(
                 ch = Characteristic.get(session, inp_name)
                 if ch.fnc_np_shape != first.fnc_np_shape:
                     result.valid = False
-                    result.errors.append(
-                        f"{entry.name}: VAL_BLK inputs {vblk_inputs[0]} and {inp_name} "
-                        f"have different sizes"
-                    )
+                    result.errors.append(f"{entry.name}: VAL_BLK inputs {vblk_inputs[0]} and {inp_name} have different sizes")
         except (ValueError, AttributeError) as exc:
-            result.warnings.append(
-                f"{entry.name}: could not verify VAL_BLK size compatibility: {exc}"
-            )
+            result.warnings.append(f"{entry.name}: could not verify VAL_BLK size compatibility: {exc}")
 
 
-def _check_compu_method(
-    entry: DependencyEntry, session: Any, result: ValidationResult
-) -> None:
+def _check_compu_method(entry: DependencyEntry, session: Any, result: ValidationResult) -> None:
     """G.1.7: check computation method type."""
     try:
         dep_ch = Characteristic.get(session, entry.name)
@@ -417,9 +381,7 @@ def _check_compu_method(
         pass
 
 
-def _check_axis_types(
-    entry: DependencyEntry, session: Any, result: ValidationResult
-) -> None:
+def _check_axis_types(entry: DependencyEntry, session: Any, result: ValidationResult) -> None:
     """G.1.2: axis type restrictions for curve-like dependents."""
     if entry.dependent_type not in CURVE_LIKE_TYPES:
         return
@@ -631,9 +593,7 @@ class DependencyEngine:
                 else:
                     result = _eval_interp_nd(axes, values, extra_args[: len(axes)])
             else:
-                raise CalibrationError(
-                    f"interp() requires a CURVE-like input, got {param_name}"
-                )
+                raise CalibrationError(f"interp() requires a CURVE-like input, got {param_name}")
         else:
             raise CalibrationError(f"Unknown special function: {func_name}")
 
@@ -665,14 +625,10 @@ class DependencyEngine:
                 obj = self._load_or_cached(inp_type, inp_name)
                 values.append(obj.phys if hasattr(obj, "phys") else obj)
             else:
-                raise CalibrationError(
-                    f"Unsupported input type '{inp_type}' for '{inp_name}'"
-                )
+                raise CalibrationError(f"Unsupported input type '{inp_type}' for '{inp_name}'")
         return values
 
-    def _load_input_array(
-        self, param_name: str
-    ) -> tuple[np.ndarray, Optional[list[np.ndarray]]]:
+    def _load_input_array(self, param_name: str) -> tuple[np.ndarray, Optional[list[np.ndarray]]]:
         """Load the function values (and optionally axes) for an array-like input."""
         inp_type = self._cal.characteristic_category(param_name)
         obj = self._load_or_cached(inp_type, param_name)
@@ -684,9 +640,7 @@ class DependencyEngine:
             axes = [np.asarray(ax.phys) for ax in obj.axes]
             return (np.asarray(obj.phys), axes)
 
-        raise CalibrationError(
-            f"min/max/interp requires CURVE or VAL_BLK, got {inp_type} for '{param_name}'"
-        )
+        raise CalibrationError(f"min/max/interp requires CURVE or VAL_BLK, got {inp_type} for '{param_name}'")
 
     def _load_or_cached(self, category: str, name: str) -> Any:
         """Load a parameter from cache or via the Calibration API."""

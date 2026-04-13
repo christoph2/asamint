@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Tests for asamint.cdf.importer.cdf_importer."""
+
 from __future__ import annotations
 
 import logging
@@ -38,9 +39,7 @@ def test_import_returns_true_on_success() -> None:
 
 def test_import_creates_db_with_given_path() -> None:
     db = _make_db()
-    with patch(f"{_MODULE}.MSRSWDatabase", return_value=db) as MockDB, patch(
-        f"{_MODULE}.Parser"
-    ):
+    with patch(f"{_MODULE}.MSRSWDatabase", return_value=db) as MockDB, patch(f"{_MODULE}.Parser"):
         import_cdf_to_db("data.xml", "out.msrswdb")
     MockDB.assert_called_once_with("out.msrswdb")
 
@@ -54,9 +53,7 @@ def test_import_calls_begin_transaction() -> None:
 
 def test_import_creates_parser_with_xml_path() -> None:
     db = _make_db()
-    with patch(f"{_MODULE}.MSRSWDatabase", return_value=db), patch(
-        f"{_MODULE}.Parser"
-    ) as MockParser:
+    with patch(f"{_MODULE}.MSRSWDatabase", return_value=db), patch(f"{_MODULE}.Parser") as MockParser:
         import_cdf_to_db("path/to/file.xml", "out.db")
     MockParser.assert_called_once_with("path/to/file.xml", db)
 
@@ -84,9 +81,11 @@ def test_import_accepts_path_objects() -> None:
 
 def test_import_uses_default_logger_when_none() -> None:
     db = _make_db()
-    with patch(f"{_MODULE}.MSRSWDatabase", return_value=db), patch(
-        f"{_MODULE}.Parser"
-    ), patch(f"{_MODULE}.logging") as mock_logging:
+    with (
+        patch(f"{_MODULE}.MSRSWDatabase", return_value=db),
+        patch(f"{_MODULE}.Parser"),
+        patch(f"{_MODULE}.logging") as mock_logging,
+    ):
         mock_logging.getLogger.return_value = MagicMock()
         import_cdf_to_db("x.xml", "x.db", logger=None)
     mock_logging.getLogger.assert_called_once_with(_MODULE)
@@ -107,18 +106,14 @@ def test_import_uses_provided_logger() -> None:
 
 def test_import_returns_false_on_parser_error() -> None:
     db = _make_db()
-    with patch(f"{_MODULE}.MSRSWDatabase", return_value=db), patch(
-        f"{_MODULE}.Parser", side_effect=RuntimeError("parse error")
-    ):
+    with patch(f"{_MODULE}.MSRSWDatabase", return_value=db), patch(f"{_MODULE}.Parser", side_effect=RuntimeError("parse error")):
         result = import_cdf_to_db("bad.xml", "out.db")
     assert result is False
 
 
 def test_import_rolls_back_on_exception() -> None:
     db = _make_db()
-    with patch(f"{_MODULE}.MSRSWDatabase", return_value=db), patch(
-        f"{_MODULE}.Parser", side_effect=ValueError("corrupt")
-    ):
+    with patch(f"{_MODULE}.MSRSWDatabase", return_value=db), patch(f"{_MODULE}.Parser", side_effect=ValueError("corrupt")):
         import_cdf_to_db("bad.xml", "out.db")
     db.rollback_transaction.assert_called_once()
 
@@ -126,9 +121,7 @@ def test_import_rolls_back_on_exception() -> None:
 def test_import_logs_error_on_exception() -> None:
     db = _make_db()
     custom_logger = MagicMock(spec=logging.Logger)
-    with patch(f"{_MODULE}.MSRSWDatabase", return_value=db), patch(
-        f"{_MODULE}.Parser", side_effect=RuntimeError("oops")
-    ):
+    with patch(f"{_MODULE}.MSRSWDatabase", return_value=db), patch(f"{_MODULE}.Parser", side_effect=RuntimeError("oops")):
         import_cdf_to_db("bad.xml", "out.db", logger=custom_logger)
     custom_logger.error.assert_called_once()
     assert "oops" in custom_logger.error.call_args[0][0]
@@ -136,9 +129,7 @@ def test_import_logs_error_on_exception() -> None:
 
 def test_import_closes_db_after_failure() -> None:
     db = _make_db(closed=False)
-    with patch(f"{_MODULE}.MSRSWDatabase", return_value=db), patch(
-        f"{_MODULE}.Parser", side_effect=RuntimeError("fail")
-    ):
+    with patch(f"{_MODULE}.MSRSWDatabase", return_value=db), patch(f"{_MODULE}.Parser", side_effect=RuntimeError("fail")):
         import_cdf_to_db("bad.xml", "out.db")
     db.close.assert_called_once()
 
@@ -152,9 +143,7 @@ def test_import_no_rollback_on_success() -> None:
 
 def test_import_db_error_also_handled() -> None:
     db = _make_db()
-    with patch(f"{_MODULE}.MSRSWDatabase", return_value=db), patch(
-        f"{_MODULE}.Parser", side_effect=Exception("db error")
-    ):
+    with patch(f"{_MODULE}.MSRSWDatabase", return_value=db), patch(f"{_MODULE}.Parser", side_effect=Exception("db error")):
         result = import_cdf_to_db("x.xml", "x.db")
     assert result is False
 

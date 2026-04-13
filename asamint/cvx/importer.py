@@ -79,9 +79,7 @@ class CVXImporter:
         i += 1
         if i < len(lines):
             f_line = lines[i].strip()
-            self.functions = [
-                f.strip() for f in self._parse_csv_fields(f_line) if f.strip()
-            ]
+            self.functions = [f.strip() for f in self._parse_csv_fields(f_line) if f.strip()]
         return i + 1
 
     def _parse_variant_header(self, lines: list[str], i: int) -> int:
@@ -103,9 +101,7 @@ class CVXImporter:
             i += 1
         return i
 
-    def _parse_record_start(
-        self, lines: list[str], i: int, fields: list[str]
-    ) -> tuple[int, dict[str, Any]]:
+    def _parse_record_start(self, lines: list[str], i: int, fields: list[str]) -> tuple[int, dict[str, Any]]:
         record = {
             "identifier": fields[1].strip(),
             "type": None,
@@ -130,9 +126,7 @@ class CVXImporter:
     def _parse_numeric_fields(self, fields: list[str], start: int = 2) -> list[float]:
         return [self._parse_float(field) for field in fields[start:] if field.strip()]
 
-    def _parse_record_values(
-        self, lines: list[str], i: int, fields: list[str], record: dict[str, Any]
-    ) -> int:
+    def _parse_record_values(self, lines: list[str], i: int, fields: list[str], record: dict[str, Any]) -> int:
         record_type = record["type"]
         if record_type in ("VALUE", "DEPENDENT_VALUE"):
             if len(fields) >= 3:
@@ -167,35 +161,23 @@ class CVXImporter:
             return i
 
         line1 = lines[i].rstrip("\r\n")
-        reader1 = csv.reader(
-            [line1], delimiter=self.value_separator, quotechar=self.string_delimiter
-        )
+        reader1 = csv.reader([line1], delimiter=self.value_separator, quotechar=self.string_delimiter)
         fields1 = next(reader1)
 
         # Check for a second line of data
         if i + 1 < len(lines):
             line2 = lines[i + 1].rstrip("\r\n")
-            reader2 = csv.reader(
-                [line2], delimiter=self.value_separator, quotechar=self.string_delimiter
-            )
+            reader2 = csv.reader([line2], delimiter=self.value_separator, quotechar=self.string_delimiter)
             fields2 = next(reader2)
 
-            if len(fields2) >= 3 and (
-                fields2[0].strip() == "" or fields2[0].strip() == self.value_separator
-            ):
+            if len(fields2) >= 3 and (fields2[0].strip() == "" or fields2[0].strip() == self.value_separator):
                 # Two lines of data -> first is axis, second is values
-                record["axis_x"] = [
-                    self._parse_float(f) for f in fields1[2:] if f.strip()
-                ]
-                record["values"] = [
-                    self._parse_float(f) for f in fields2[2:] if f.strip()
-                ]
+                record["axis_x"] = [self._parse_float(f) for f in fields1[2:] if f.strip()]
+                record["values"] = [self._parse_float(f) for f in fields2[2:] if f.strip()]
                 i += 1
             else:
                 # Only one line of data -> it's values
-                record["values"] = [
-                    self._parse_float(f) for f in fields1[2:] if f.strip()
-                ]
+                record["values"] = [self._parse_float(f) for f in fields1[2:] if f.strip()]
         else:
             record["values"] = [self._parse_float(f) for f in fields1[2:] if f.strip()]
         return i
@@ -206,9 +188,7 @@ class CVXImporter:
             return i
 
         line1 = lines[i].rstrip("\r\n")
-        reader1 = csv.reader(
-            [line1], delimiter=self.value_separator, quotechar=self.string_delimiter
-        )
+        reader1 = csv.reader([line1], delimiter=self.value_separator, quotechar=self.string_delimiter)
         fields1 = next(reader1)
 
         # First line after MAP is usually X-axis
@@ -250,13 +230,9 @@ class CVXImporter:
             i += 1
         record["axis_y"] = y_axis
         record["values"] = map_values
-        return (
-            i - 1
-        )  # Step back so that i+1 in the next loop points to the correct line
+        return i - 1  # Step back so that i+1 in the next loop points to the correct line
 
-    def _parse_record_attributes(
-        self, lines: list[str], i: int, record: dict[str, Any]
-    ) -> tuple[int, dict[str, Any]]:
+    def _parse_record_attributes(self, lines: list[str], i: int, record: dict[str, Any]) -> tuple[int, dict[str, Any]]:
         while i + 1 < len(lines):
             next_line = lines[i + 1].strip()
             if not next_line:
@@ -272,9 +248,7 @@ class CVXImporter:
             i += 1
         return i + 1, record
 
-    def _apply_record_attribute(
-        self, fields: list[str], record: dict[str, Any]
-    ) -> bool:
+    def _apply_record_attribute(self, fields: list[str], record: dict[str, Any]) -> bool:
         tag = fields[0].strip()
         if tag == "FUNCTION":
             if len(fields) >= 3:

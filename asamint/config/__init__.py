@@ -46,31 +46,19 @@ class General(Configurable):
 
     author = Unicode(default_value="", help="Author of the project").tag(config=True)
     company = Unicode(default_value="", help="Company of the project").tag(config=True)
-    department = Unicode(default_value="", help="Department of the project").tag(
-        config=True
-    )
+    department = Unicode(default_value="", help="Department of the project").tag(config=True)
     project = Unicode(default_value="", help="Project name").tag(config=True)
     shortname = Unicode(
         default_value="",
         help="Short name of the project (Contributes to filename generation)",
     ).tag(config=True)
-    pyxcp_config_file = Unicode(
-        default_value="pyxcp_conf.py", help="pyXCP config file"
-    ).tag(config=True)
+    pyxcp_config_file = Unicode(default_value="pyxcp_conf.py", help="pyXCP config file").tag(config=True)
     a2l_file = Unicode(default_value="", help="Input A2L file").tag(config=True)
-    a2l_encoding = Unicode(default_value="latin-1", help="Input A2L file encoding").tag(
-        config=True
-    )
-    a2l_dynamic = Bool(False, help="Enable dynamic (via XCP) A2L parsing").tag(
-        config=True
-    )
+    a2l_encoding = Unicode(default_value="latin-1", help="Input A2L file encoding").tag(config=True)
+    a2l_dynamic = Bool(False, help="Enable dynamic (via XCP) A2L parsing").tag(config=True)
     master_hexfile = Unicode(default_value="", help="Master HEX file").tag(config=True)
-    master_hexfile_type = Enum(
-        values=["ihex", "srec"], default_value="ihex", help="Choose HEX file type"
-    ).tag(config=True)
-    mdf_version = Unicode(
-        default_value="4.20", help="Version used to write MDF files."
-    ).tag(config=True)
+    master_hexfile_type = Enum(values=["ihex", "srec"], default_value="ihex", help="Choose HEX file type").tag(config=True)
+    mdf_version = Unicode(default_value="4.20", help="Version used to write MDF files.").tag(config=True)
     output_format = Enum(
         values=["MDF", "HDF5"],
         default_value="MDF",
@@ -90,9 +78,7 @@ class ProfileCreate(Application):
 
     description = "\nCreate a new profile"
 
-    dest_file = Unicode(
-        default_value=None, allow_none=True, help="destination file name"
-    ).tag(config=True)
+    dest_file = Unicode(default_value=None, allow_none=True, help="destination file name").tag(config=True)
     aliases = Dict(
         {
             "d": "ProfileCreate.dest_file",
@@ -106,9 +92,7 @@ class ProfileCreate(Application):
         if self.dest_file:
             dest = Path(self.dest_file)
             if dest.exists():
-                if not Confirm.ask(
-                    f"Destination file [green]{dest.name!r}[/green] already exists. Do you want to overwrite it?"
-                ):
+                if not Confirm.ask(f"Destination file [green]{dest.name!r}[/green] already exists. Do you want to overwrite it?"):
                     self.log.info("Aborting...")
                     self.exit(1)
             with dest.open("w", encoding="latin1") as out_file:
@@ -159,9 +143,7 @@ class XCP(Configurable):
                 self.log.warning(f"Failed to load external pyXCP configuration: {exc}")
             else:
                 # Fallback if no logger yet
-                sys.stderr.write(
-                    f"Warning: Failed to load external pyXCP configuration: {exc}\n"
-                )
+                sys.stderr.write(f"Warning: Failed to load external pyXCP configuration: {exc}\n")
         # Now create the pyxcp config sections using the merged config
         self.general = pyxcp_config.General(config=self.config, parent=self)
         self.transport = pyxcp_config.Transport(parent=self)
@@ -222,9 +204,7 @@ class Asamint(Application):
     """Main asamint CLI application — manages configuration, logging, and subcommands."""
 
     description = "ASAMInt application"
-    config_file = Unicode(
-        default_value="asamint_conf.py", help="base name of config file"
-    ).tag(config=True)
+    config_file = Unicode(default_value="asamint_conf.py", help="base name of config file").tag(config=True)
 
     classes = List([General, XCP])
 

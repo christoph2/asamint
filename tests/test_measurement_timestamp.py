@@ -190,9 +190,7 @@ class TestCollectTimebaseSummary:
 
 class TestCollectDaqTimebases:
     def test_basic(self):
-        dl = SimpleNamespace(
-            name="daq1", event_num=1, measurements=[("sig1", 0, 0, "U8")]
-        )
+        dl = SimpleNamespace(name="daq1", event_num=1, measurements=[("sig1", 0, 0, "U8")])
         result = _collect_daq_timebases([dl], 0.01)
         assert len(result) == 1
         assert result[0]["group_id"] == 1
@@ -231,9 +229,7 @@ class TestPrepareDaqMetadata:
         assert "daq_samples" not in meta
 
     def test_samples_field(self):
-        meta = _prepare_daq_metadata(
-            [], {}, duration=None, samples=500, period_s=None
-        )
+        meta = _prepare_daq_metadata([], {}, duration=None, samples=500, period_s=None)
         assert meta["daq_samples"] == 500
         assert "daq_duration_s" not in meta
         assert "daq_timebase_hint_s" not in meta

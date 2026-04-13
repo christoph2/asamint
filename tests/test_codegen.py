@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Tests for asamint.calibration.codegen – pure functions and integration."""
+
 from __future__ import annotations
 
 import json
@@ -327,22 +328,14 @@ def test_render_header_empty_log_no_structs() -> None:
 
 
 def test_render_header_value_struct() -> None:
-    ns = _minimal_namespace(
-        values=[
-            CValue(
-                name="EngineSpeed", c_name="EngineSpeed", c_type="double", comment="rpm"
-            )
-        ]
-    )
+    ns = _minimal_namespace(values=[CValue(name="EngineSpeed", c_name="EngineSpeed", c_type="double", comment="rpm")])
     result = render_header(ns)
     assert "double EngineSpeed;" in result
     assert "VALUE_t" in result
 
 
 def test_render_header_ascii_struct() -> None:
-    ns = _minimal_namespace(
-        asciis=[CString(name="Serial", c_name="Serial", length=15, comment=None)]
-    )
+    ns = _minimal_namespace(asciis=[CString(name="Serial", c_name="Serial", length=15, comment=None)])
     result = render_header(ns)
     assert "char Serial[16];" in result  # length + 1 for NUL
     assert "ASCII_t" in result
@@ -350,9 +343,7 @@ def test_render_header_ascii_struct() -> None:
 
 def test_render_header_axis_pts_1d() -> None:
     ns = _minimal_namespace()
-    ns["arrays_by_cat"]["AXIS_PTS"] = [
-        CArray(name="ax_rpm", c_name="ax_rpm", dims=[8], c_type="double")
-    ]
+    ns["arrays_by_cat"]["AXIS_PTS"] = [CArray(name="ax_rpm", c_name="ax_rpm", dims=[8], c_type="double")]
     result = render_header(ns)
     assert "double ax_rpm[8];" in result
     assert "AXIS_PTS_t" in result
@@ -360,9 +351,7 @@ def test_render_header_axis_pts_1d() -> None:
 
 def test_render_header_curve_1d() -> None:
     ns = _minimal_namespace()
-    ns["arrays_by_cat"]["CURVE"] = [
-        CArray(name="MyCurve", c_name="MyCurve", dims=[5], c_type="double")
-    ]
+    ns["arrays_by_cat"]["CURVE"] = [CArray(name="MyCurve", c_name="MyCurve", dims=[5], c_type="double")]
     result = render_header(ns)
     assert "double MyCurve[5];" in result
     assert "CURVE_t" in result
@@ -370,9 +359,7 @@ def test_render_header_curve_1d() -> None:
 
 def test_render_header_map_2d() -> None:
     ns = _minimal_namespace()
-    ns["arrays_by_cat"]["MAP"] = [
-        CArray(name="FuelMap", c_name="FuelMap", dims=[3, 4], c_type="double")
-    ]
+    ns["arrays_by_cat"]["MAP"] = [CArray(name="FuelMap", c_name="FuelMap", dims=[3, 4], c_type="double")]
     result = render_header(ns)
     assert "double FuelMap[3][4];" in result
     assert "MAP_t" in result
@@ -380,26 +367,20 @@ def test_render_header_map_2d() -> None:
 
 def test_render_header_val_blk_multidim() -> None:
     ns = _minimal_namespace()
-    ns["arrays_by_cat"]["VAL_BLK"] = [
-        CArray(name="BigBlock", c_name="BigBlock", dims=[4, 6], c_type="double")
-    ]
+    ns["arrays_by_cat"]["VAL_BLK"] = [CArray(name="BigBlock", c_name="BigBlock", dims=[4, 6], c_type="double")]
     result = render_header(ns)
     assert "double BigBlock[4][6];" in result
     assert "VAL_BLK_t" in result
 
 
 def test_render_header_comment_included() -> None:
-    ns = _minimal_namespace(
-        values=[CValue(name="X", c_name="X", c_type="double", comment="important")]
-    )
+    ns = _minimal_namespace(values=[CValue(name="X", c_name="X", c_type="double", comment="important")])
     result = render_header(ns)
     assert "important" in result
 
 
 def test_render_header_no_comment_no_dash() -> None:
-    ns = _minimal_namespace(
-        values=[CValue(name="X", c_name="X", c_type="double", comment=None)]
-    )
+    ns = _minimal_namespace(values=[CValue(name="X", c_name="X", c_type="double", comment=None)])
     result = render_header(ns)
     assert " - " not in result
 
@@ -455,9 +436,7 @@ def test_generate_c_structs_custom_header_guard(tmp_path: Path) -> None:
     log_path = _write_log(tmp_path, {"VALUE": {"V": {}}})
     mc = _stub_mc(tmp_path)
     out = tmp_path / "out.h"
-    generate_c_structs_from_log(
-        mc, log_path=log_path, out_path=out, header_guard="CUSTOM_GUARD_H"
-    )
+    generate_c_structs_from_log(mc, log_path=log_path, out_path=out, header_guard="CUSTOM_GUARD_H")
     content = out.read_text(encoding="utf-8")
     assert "#ifndef CUSTOM_GUARD_H" in content
 

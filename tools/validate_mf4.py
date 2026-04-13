@@ -9,6 +9,7 @@ Outputs a summary of MDF channel groups (sample counts, inferred timebase in sec
 and member signals. If CSV/HDF5 are provided, lengths and basic timebase consistency
 are cross-checked. Exit code 0 on OK; non-zero if mismatches are detected.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -144,9 +145,7 @@ def _parse_csv_timebase_header(header_lines: list[str]) -> dict[str, dict[str, A
 
     result: dict[str, dict[str, Any]] = {}
     # Regex to capture: timebase: <sig> tb≈<num>s src=<src> grp=<gid>
-    pattern = re.compile(
-        r"^#\s*timebase:\s*(?P<sig>[^\s]+)\s+tb≈(?P<tb>[^s]*)s\s+src=(?P<src>[^\s]*)\s+grp=(?P<gid>.*)$"
-    )
+    pattern = re.compile(r"^#\s*timebase:\s*(?P<sig>[^\s]+)\s+tb≈(?P<tb>[^s]*)s\s+src=(?P<src>[^\s]*)\s+grp=(?P<gid>.*)$")
     for line in header_lines:
         txt = line.strip()
         if not txt.startswith("#"):
@@ -185,16 +184,10 @@ def _load_hdf5(h5_path: Path) -> dict[str, Any]:
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description="Validate MF4 and cross-check with CSV/HDF5"
-    )
+    parser = argparse.ArgumentParser(description="Validate MF4 and cross-check with CSV/HDF5")
     parser.add_argument("--mf4", required=True, type=Path, help="Path to MF4 file")
-    parser.add_argument(
-        "--csv", type=Path, default=None, help="Optional CSV to cross-check"
-    )
-    parser.add_argument(
-        "--hdf5", type=Path, default=None, help="Optional HDF5 to cross-check"
-    )
+    parser.add_argument("--csv", type=Path, default=None, help="Optional CSV to cross-check")
+    parser.add_argument("--hdf5", type=Path, default=None, help="Optional HDF5 to cross-check")
     parser.add_argument(
         "--details",
         action="store_true",
@@ -251,18 +244,14 @@ def _print_group_details(members_by_group: dict[int, list[Any]]) -> None:
             print(f"  - {name}: group={group_index} tb≈{timebase}s len={sample_count}")
 
 
-def _load_csv_info(
-    csv_path: Path | None, warnings: list[str]
-) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
+def _load_csv_info(csv_path: Path | None, warnings: list[str]) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
     if not csv_path or not csv_path.exists():
         return {}, {}
     csv_data = _load_csv(csv_path)
     if not csv_data:
         warnings.append(f"CSV could not be parsed or empty: {csv_path}")
         return {}, {}
-    print(
-        f"CSV: {csv_path} (columns={len(csv_data) - (1 if '__HEADER_LINES__' in csv_data else 0)})"
-    )
+    print(f"CSV: {csv_path} (columns={len(csv_data) - (1 if '__HEADER_LINES__' in csv_data else 0)})")
     header_lines = csv_data.pop("__HEADER_LINES__", [])
     return csv_data, _parse_csv_timebase_header(header_lines) if header_lines else {}
 
@@ -278,21 +267,13 @@ def _load_hdf5_info(hdf5_path: Path | None, warnings: list[str]) -> dict[str, An
     return {}
 
 
-def _compare_csv_hdf5_lengths(
-    csv_data: dict[str, Any], h5_data: dict[str, Any], errors: list[str]
-) -> None:
+def _compare_csv_hdf5_lengths(csv_data: dict[str, Any], h5_data: dict[str, Any], errors: list[str]) -> None:
     common = set(csv_data.keys()).intersection(set(h5_data.keys()))
     for key in list(common)[:10]:
         csv_length = _safe_length(csv_data[key])
         hdf5_length = _safe_length(h5_data[key])
-        if (
-            csv_length is not None
-            and hdf5_length is not None
-            and csv_length != hdf5_length
-        ):
-            errors.append(
-                f"Length mismatch for '{key}': CSV={csv_length} vs HDF5={hdf5_length}"
-            )
+        if csv_length is not None and hdf5_length is not None and csv_length != hdf5_length:
+            errors.append(f"Length mismatch for '{key}': CSV={csv_length} vs HDF5={hdf5_length}")
 
 
 def _normalized_timestamp_source(source: Any) -> str:
@@ -318,9 +299,7 @@ def _compare_csv_signal_to_mf4(
         if channel is None:
             warnings.append(f"CSV column '{signal_name}' not found in MF4")
             return
-        len_mf4, len_csv = _compare_signal_lengths(
-            signal_name, channel, signal_values, errors
-        )
+        len_mf4, len_csv = _compare_signal_lengths(signal_name, channel, signal_values, errors)
         _compare_signal_timebase(
             signal_name,
             channel,
@@ -340,15 +319,11 @@ def _get_mf4_channel(mdf, signal_name: str):
         return None
 
 
-def _compare_signal_lengths(
-    signal_name: str, channel, signal_values, errors: list[str]
-) -> tuple[int, int]:
+def _compare_signal_lengths(signal_name: str, channel, signal_values, errors: list[str]) -> tuple[int, int]:
     len_mf4 = len(channel.samples)
     len_csv = len(signal_values)
     if len_mf4 != len_csv:
-        errors.append(
-            f"Length mismatch for signal '{signal_name}': MF4={len_mf4} vs CSV={len_csv}"
-        )
+        errors.append(f"Length mismatch for signal '{signal_name}': MF4={len_mf4} vs CSV={len_csv}")
     return len_mf4, len_csv
 
 
@@ -369,20 +344,14 @@ def _compare_signal_timebase(
     if tb_csv is not None and tb_mf4 is not None:
         denom = max(tb_csv, 1e-12)
         if abs(tb_mf4 - tb_csv) / denom > 0.05:
-            warnings.append(
-                f"Timebase differs for '{signal_name}': CSV header tb≈{tb_csv}s vs MF4≈{tb_mf4}s"
-            )
+            warnings.append(f"Timebase differs for '{signal_name}': CSV header tb≈{tb_csv}s vs MF4≈{tb_mf4}s")
     if details:
-        print(
-            f"Check: {signal_name}: len CSV/MF4 = {len_csv}/{len_mf4}, tb CSV/MF4 = {tb_csv}/{tb_mf4}"
-        )
+        print(f"Check: {signal_name}: len CSV/MF4 = {len_csv}/{len_mf4}, tb CSV/MF4 = {tb_csv}/{tb_mf4}")
     source = csv_timebase_map[signal_name].get("timestamp_source")
     if source and source != "synthetic":
         base = _normalized_timestamp_source(source)
         if base and base not in csv_data:
-            warnings.append(
-                f"CSV missing referenced timestamp column '{base}' for signal '{signal_name}'"
-            )
+            warnings.append(f"CSV missing referenced timestamp column '{base}' for signal '{signal_name}'")
         elif details:
             print(f"Check: {signal_name}: referenced timestamp column present: {base}")
 
@@ -448,9 +417,7 @@ def main(argv: list[str] | None = None) -> int:
     if csv_data and h5_data:
         _compare_csv_hdf5_lengths(csv_data, h5_data, errors)
     if csv_data:
-        _compare_csv_to_mf4(
-            args.mf4, csv_data, csv_timebase_map, args.details, warnings, errors
-        )
+        _compare_csv_to_mf4(args.mf4, csv_data, csv_timebase_map, args.details, warnings, errors)
     return _report_results(warnings, errors)
 
 

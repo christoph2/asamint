@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Tests for asamint.damos.dcm_exporter – dataclasses and DcmExporter methods."""
+
 from __future__ import annotations
 
 import re
@@ -217,9 +218,7 @@ def test_metadata_from_data_none() -> None:
 
 
 def test_metadata_from_data_all_attrs() -> None:
-    data = SimpleNamespace(
-        attrs={"comment": "my note", "display_identifier": "ID1", "unit": "rpm"}
-    )
+    data = SimpleNamespace(attrs={"comment": "my note", "display_identifier": "ID1", "unit": "rpm"})
     assert DcmExporter._metadata_from_data(data) == ("my note", "ID1", "rpm")
 
 

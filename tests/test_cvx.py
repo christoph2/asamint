@@ -26,6 +26,7 @@ EXAMPLES_DIR = FIXTURE_DIR.parent / "asamint" / "examples"
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _write_cvx(tmp_path: Path, content: str, name: str = "test.cvx") -> Path:
     """Write CVX content to a temp file and return its path."""
     p = tmp_path / name
@@ -42,11 +43,14 @@ class TestCVXImporterValue:
     """Import VALUE records."""
 
     def test_single_value(self, tmp_path: Path) -> None:
-        p = _write_cvx(tmp_path, """\
+        p = _write_cvx(
+            tmp_path,
+            """\
             #comment
             ,myParam
             VALUE,,42.5
-        """)
+        """,
+        )
         records = CVXImporter().import_file(str(p))
         assert len(records) >= 1
         rec = next(r for r in records if r["identifier"] == "myParam")
@@ -54,23 +58,29 @@ class TestCVXImporterValue:
         assert rec["values"] == [42.5]
 
     def test_multiple_values(self, tmp_path: Path) -> None:
-        p = _write_cvx(tmp_path, """\
+        p = _write_cvx(
+            tmp_path,
+            """\
             ,paramA
             VALUE,,1.0
 
             ,paramB
             VALUE,,2.0
-        """)
+        """,
+        )
         records = CVXImporter().import_file(str(p))
         names = [r["identifier"] for r in records]
         assert "paramA" in names
         assert "paramB" in names
 
     def test_ascii_value(self, tmp_path: Path) -> None:
-        p = _write_cvx(tmp_path, """\
+        p = _write_cvx(
+            tmp_path,
+            """\
             ,textParam
             ASCII,,"hello world"
-        """)
+        """,
+        )
         records = CVXImporter().import_file(str(p))
         rec = next(r for r in records if r["identifier"] == "textParam")
         assert rec["type"] == "ASCII"
@@ -81,10 +91,13 @@ class TestCVXImporterValBlk:
     """Import VAL_BLK records."""
 
     def test_val_blk(self, tmp_path: Path) -> None:
-        p = _write_cvx(tmp_path, """\
+        p = _write_cvx(
+            tmp_path,
+            """\
             ,myBlock
             VAL_BLK,,1.0,2.0,3.0,4.0,5.0
-        """)
+        """,
+        )
         records = CVXImporter().import_file(str(p))
         rec = next(r for r in records if r["identifier"] == "myBlock")
         assert rec["type"] == "VAL_BLK"
@@ -95,10 +108,13 @@ class TestCVXImporterAxisPts:
     """Import AXIS_PTS records."""
 
     def test_axis_pts(self, tmp_path: Path) -> None:
-        p = _write_cvx(tmp_path, """\
+        p = _write_cvx(
+            tmp_path,
+            """\
             ,xAxis
             AXIS_PTS,,10.0,20.0,30.0,40.0
-        """)
+        """,
+        )
         records = CVXImporter().import_file(str(p))
         rec = next(r for r in records if r["identifier"] == "xAxis")
         assert rec["type"] == "AXIS_PTS"
@@ -109,12 +125,15 @@ class TestCVXImporterCurve:
     """Import CURVE records."""
 
     def test_curve_two_lines(self, tmp_path: Path) -> None:
-        p = _write_cvx(tmp_path, """\
+        p = _write_cvx(
+            tmp_path,
+            """\
             ,myCurve
             CURVE
             ,,1.0,2.0,3.0
             ,,10.0,20.0,30.0
-        """)
+        """,
+        )
         records = CVXImporter().import_file(str(p))
         rec = next(r for r in records if r["identifier"] == "myCurve")
         assert rec["type"] == "CURVE"
@@ -126,13 +145,16 @@ class TestCVXImporterMap:
     """Import MAP records."""
 
     def test_map_basic(self, tmp_path: Path) -> None:
-        p = _write_cvx(tmp_path, """\
+        p = _write_cvx(
+            tmp_path,
+            """\
             ,myMap
             MAP
             ,,1.0,2.0,3.0
             ,,10.0,100.0,200.0,300.0
             ,,20.0,400.0,500.0,600.0
-        """)
+        """,
+        )
         records = CVXImporter().import_file(str(p))
         rec = next(r for r in records if r["identifier"] == "myMap")
         assert rec["type"] == "MAP"
@@ -148,32 +170,41 @@ class TestCVXImporterAttributes:
     """Import records with FUNCTION / VARIANT / DISPLAY_IDENTIFIER."""
 
     def test_function_attribute(self, tmp_path: Path) -> None:
-        p = _write_cvx(tmp_path, """\
+        p = _write_cvx(
+            tmp_path,
+            """\
             ,paramF
             VALUE,,99.0
             FUNCTION,,myFunc
-        """)
+        """,
+        )
         records = CVXImporter().import_file(str(p))
         rec = next(r for r in records if r["identifier"] == "paramF")
         assert rec["function"] == "myFunc"
 
     def test_variant_attribute(self, tmp_path: Path) -> None:
-        p = _write_cvx(tmp_path, """\
+        p = _write_cvx(
+            tmp_path,
+            """\
             ,paramV
             VALUE,,1.0
             VARIANT,,"CriterionA.ValueX"
-        """)
+        """,
+        )
         records = CVXImporter().import_file(str(p))
         rec = next(r for r in records if r["identifier"] == "paramV")
         assert len(rec["variants"]) == 1
         assert rec["variants"][0] == ("CriterionA", "ValueX")
 
     def test_display_identifier(self, tmp_path: Path) -> None:
-        p = _write_cvx(tmp_path, """\
+        p = _write_cvx(
+            tmp_path,
+            """\
             ,paramDI
             VALUE,,5.0
             DISPLAY_IDENTIFIER,,DI_Name
-        """)
+        """,
+        )
         records = CVXImporter().import_file(str(p))
         rec = next(r for r in records if r["identifier"] == "paramDI")
         assert rec["display_identifier"] == "DI_Name"
@@ -183,25 +214,31 @@ class TestCVXImporterHeaders:
     """Import FUNCTION_HDR and VARIANT_HDR blocks."""
 
     def test_function_header(self, tmp_path: Path) -> None:
-        p = _write_cvx(tmp_path, """\
+        p = _write_cvx(
+            tmp_path,
+            """\
             FUNCTION_HDR
             FuncA,FuncB,FuncC
 
             ,val1
             VALUE,,1.0
-        """)
+        """,
+        )
         imp = CVXImporter()
         imp.import_file(str(p))
         assert imp.functions == ["FuncA", "FuncB", "FuncC"]
 
     def test_variant_header(self, tmp_path: Path) -> None:
-        p = _write_cvx(tmp_path, """\
+        p = _write_cvx(
+            tmp_path,
+            """\
             VARIANT_HDR
             Country,DE,US,JP
 
             ,val1
             VALUE,,1.0
-        """)
+        """,
+        )
         imp = CVXImporter()
         imp.import_file(str(p))
         assert "Country" in imp.variants
@@ -212,10 +249,13 @@ class TestCVXImporterSemicolon:
     """Import with semicolon delimiter (matching real CVX files)."""
 
     def test_semicolon_value(self, tmp_path: Path) -> None:
-        p = _write_cvx(tmp_path, """\
+        p = _write_cvx(
+            tmp_path,
+            """\
             ;paramSC
             VALUE;;3.14
-        """)
+        """,
+        )
         records = CVXImporter(delimiter=";").import_file(str(p))
         rec = next(r for r in records if r["identifier"] == "paramSC")
         assert rec["type"] == "VALUE"
@@ -232,9 +272,7 @@ class TestCVXExporter:
 
     def test_export_value(self) -> None:
         exp = CVXExporter(delimiter=";")
-        out = exp.export_stream(
-            [{"identifier": "p1", "type": "VALUE", "values": [42.0]}]
-        )
+        out = exp.export_stream([{"identifier": "p1", "type": "VALUE", "values": [42.0]}])
         assert "KENNUNG p1" in out
         assert "VALUE" in out
         assert "WERT 42" in out
@@ -289,9 +327,7 @@ class TestCVXExporter:
 
     def test_export_header(self) -> None:
         exp = CVXExporter()
-        out = exp.export_stream(
-            [], functions=["F1", "F2"], variants={"Crit": ["A", "B"]}
-        )
+        out = exp.export_stream([], functions=["F1", "F2"], variants={"Crit": ["A", "B"]})
         assert "KENNUNGEN" in out
         assert "FUNKTIONEN" in out
         assert "VARIANTE" in out
@@ -332,10 +368,13 @@ class TestDependentValue:
     """DEPENDENT_VALUE is treated as a scalar VALUE in both import and export."""
 
     def test_import_dependent_value(self, tmp_path: Path) -> None:
-        p = _write_cvx(tmp_path, """\
+        p = _write_cvx(
+            tmp_path,
+            """\
             ,depParam
             DEPENDENT_VALUE,,99.5
-        """)
+        """,
+        )
         records = CVXImporter().import_file(str(p))
         rec = next(r for r in records if r["identifier"] == "depParam")
         assert rec["type"] == "DEPENDENT_VALUE"
@@ -343,9 +382,7 @@ class TestDependentValue:
 
     def test_export_dependent_value(self) -> None:
         exp = CVXExporter(delimiter=";")
-        out = exp.export_stream(
-            [{"identifier": "dep1", "type": "DEPENDENT_VALUE", "values": [7.5]}]
-        )
+        out = exp.export_stream([{"identifier": "dep1", "type": "DEPENDENT_VALUE", "values": [7.5]}])
         assert "KENNUNG dep1" in out
         assert "WERT 7.5" in out
 
@@ -398,10 +435,13 @@ class TestConvenienceAPI:
     """Test import_cvx and export_cvx top-level functions."""
 
     def test_import_cvx(self, tmp_path: Path) -> None:
-        p = _write_cvx(tmp_path, """\
+        p = _write_cvx(
+            tmp_path,
+            """\
             ,api_param
             VALUE,,7.0
-        """)
+        """,
+        )
         records = import_cvx(p)
         assert any(r["identifier"] == "api_param" for r in records)
 

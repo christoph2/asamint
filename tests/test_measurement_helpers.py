@@ -115,9 +115,7 @@ class _FakeMeasurement:
     ) -> None:
         self.name = name
         self.ecu_address = SimpleNamespace(address=address)
-        self.ecu_address_extension = (
-            SimpleNamespace(extension=extension) if extension is not None else None
-        )
+        self.ecu_address_extension = SimpleNamespace(extension=extension) if extension is not None else None
         self.datatype = datatype
 
 
@@ -193,9 +191,7 @@ def test_resolve_measurements_by_names_handles_unknown_type(
         ],
     )
 
-    result = measurement.resolve_measurements_by_names(
-        session, ["a", "missing", "b"], exclude={"missing"}
-    )
+    result = measurement.resolve_measurements_by_names(session, ["a", "missing", "b"], exclude={"missing"})
 
     assert ("a", 0x1, 0, "U32") in result
     assert ("b", 0x2, 0, "I8") in result
@@ -312,10 +308,7 @@ def test_write_csv_synthesizes_timestamps_and_metadata(tmp_path: Path):
     assert "# author: alice" in content
     assert "# shortname: demo" in content
     assert "# sig [V]" in content
-    assert any(
-        line.startswith("# timebase: sig tb≈0.5s src=TIMESTAMPS grp=0")
-        for line in content
-    )
+    assert any(line.startswith("# timebase: sig tb≈0.5s src=TIMESTAMPS grp=0") for line in content)
     assert content[-3:] == ["timestamp,sig", "0,1.0", "1,2.0"]
 
 

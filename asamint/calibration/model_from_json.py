@@ -22,11 +22,13 @@ data = open(CDF, encoding="utf-8-sig").read()
 
 keywords = set()
 
+
 @dataclass
 class Reference:
     name: str
     description: str
     ref: str
+
 
 @dataclass
 class Integer:
@@ -37,6 +39,7 @@ class Integer:
     exclusive_minimum: int
     exclusive_maximum: int
 
+
 @dataclass
 class Number:
     name: str
@@ -45,6 +48,7 @@ class Number:
     maximum: float
     exclusive_minimum: float
     exclusive_maximum: float
+
 
 @dataclass
 class String:
@@ -55,6 +59,7 @@ class String:
     pattern: str
     enum: str
 
+
 @dataclass
 class Array:
     name: str
@@ -63,6 +68,7 @@ class Array:
     min_items: int
     max_items: int
     unique_items: bool
+
 
 @dataclass
 class Element:
@@ -129,7 +135,7 @@ SAMPLE = """
 """
 
 # Schema Keywords
-SCHEMA = '$schema'
+SCHEMA = "$schema"
 ID = "$id"
 
 # Schema Annotations
@@ -137,11 +143,11 @@ TITLE = "title"
 DESCRIPTION = "description"
 
 # Validation
-TYPE = 'type'       # object, array, string, number, boolean, null
+TYPE = "type"  # object, array, string, number, boolean, null
 ENUM = "enum"
 CONST = "const"
-EXCLUSIVE_MINIMUM = "exclusiveMinimum" # numeric
-EXCLUSIVE_MAXIMUM = "exclusiveMaximum" # numeric
+EXCLUSIVE_MINIMUM = "exclusiveMinimum"  # numeric
+EXCLUSIVE_MAXIMUM = "exclusiveMaximum"  # numeric
 MINIMUM = "minimum"
 MAXIMUM = "maximum"
 
@@ -149,10 +155,10 @@ MIN_LENGTH = "minLength"
 MAX_LENGTH = "maxLength"
 PATTERN = "pattern"
 
-PROPERTIES = 'properties'
-ADDITIONAL_PROPERTIES = 'additionalProperties'
-REQUIRED = 'required'
-DEFINITIONS = 'definitions'
+PROPERTIES = "properties"
+ADDITIONAL_PROPERTIES = "additionalProperties"
+REQUIRED = "required"
+DEFINITIONS = "definitions"
 
 REF = "$ref"
 ALL_OF = "allOf"
@@ -160,9 +166,10 @@ ALL_OF = "allOf"
 ITEMS = "items"
 MIN_ITEMS = "minItems"
 MAX_ITEMS = "maxItems"
-UNIQUE_ITEMS = "uniqueItems"    # boolean
+UNIQUE_ITEMS = "uniqueItems"  # boolean
 
 DEF_PATH = "#/definitions/"
+
 
 @functools.cache
 def xml_name_converter(name: str) -> str:
@@ -171,17 +178,20 @@ def xml_name_converter(name: str) -> str:
     res = "".join([x.title() for x in name.split("-")])
     return res
 
+
 @functools.cache
 def klass_name(name: str) -> str:
     return re.sub("[Tt]ype$", "", xml_name_converter(name))
+
 
 @functools.cache
 def real_name(name: str) -> str:
     return klass_name(re.sub(DEF_PATH, "", name))
 
+
 @functools.cache
 def table_name(name: str) -> str:
-    return re.sub("[tT]ype$", "", name.replace('-', '_').lower())
+    return re.sub("[tT]ype$", "", name.replace("-", "_").lower())
 
 
 @functools.cache
@@ -196,8 +206,8 @@ def map_internals(name: str) -> str:
     else:
         return name
 
-class Schema:
 
+class Schema:
     def __init__(self, data):
         self.data = data
         self.definitions = {}
@@ -227,7 +237,10 @@ class Schema:
                 tn = map_internals(table_name(tuple(values)[0]))
                 self.simple_assocs[klass_name(key)] = klass_name(tuple(values)[0])
                 self.children[klass_name(tuple(values)[0])].append(klass_name(key))
-                self.parent[klass_name(key)] = klass_name(tuple(values)[0]), tn,
+                self.parent[klass_name(key)] = (
+                    klass_name(tuple(values)[0]),
+                    tn,
+                )
         logger.debug("%s", pformat(self.complex_assocs))
         logger.debug(" " * 80)
         logger.debug("%s", pformat(self.simple_assocs))
@@ -250,7 +263,7 @@ class Schema:
         return f"#/definitions/{name}Type"
 
     def run(self):
-        #print(self.data.keys())
+        # print(self.data.keys())
         schema = self.data.get(SCHEMA)
         if not schema:
             raise TypeError("Not a JSON schema")
@@ -262,7 +275,7 @@ class Schema:
         description = self.data.get(DESCRIPTION)
         logger.debug("%s %s", title, description)
         definitions = self.data.get(DEFINITIONS)
-        #self.current_obj = name
+        # self.current_obj = name
         if definitions:
             logger.debug("DEFINITIONS")
             logger.debug("==============")
@@ -275,17 +288,17 @@ class Schema:
         for k, v in self.definitions.items():
             self.obj_dict[real_name(k)] = v
 
-    def do_properties(self, data, destination, prefix = ""):
+    def do_properties(self, data, destination, prefix=""):
         result = []
         for name, v in data.items():
-            #print(name)
+            # print(name)
             tp = v.get(TYPE)
             description = v.get(DESCRIPTION)
             enum = v.get(ENUM)
             ref = v.get(REF)
             if enum and tp != "string":
                 logger.debug("\t\tenum %s %s", name, enum)
-            if tp == "object": # or tp is None:
+            if tp == "object":  # or tp is None:
                 self.current_obj = name
                 required = v.get(REQUIRED)
                 props = v.get(PROPERTIES)
@@ -328,11 +341,10 @@ class Schema:
                 element = Element(name, description, required, [])
                 self.current_obj = name
             if ref:
-                #print("\tREF:", ref)
+                # print("\tREF:", ref)
                 xyz = Reference(name, description, ref)
                 self.references[ref].add(self.current_obj)
                 result.append(xyz)
                 if (tp == "object" or tp is None) and element:
                     element.attrs.append(xyz)
         return result
-

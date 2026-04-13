@@ -76,12 +76,8 @@ class Directory:
 
     def __init__(self, session) -> None:
         self.session = session
-        self.group_by_name = {
-            g.groupName: g for g in self.session.query(model.Group).all()
-        }
-        self.function_by_name = {
-            f.name: f for f in self.session.query(model.Function).all()
-        }
+        self.group_by_name = {g.groupName: g for g in self.session.query(model.Group).all()}
+        self.function_by_name = {f.name: f for f in self.session.query(model.Function).all()}
 
     def get_group(self, name: str) -> Any:
         return self.group_by_name.get(name)
@@ -170,9 +166,7 @@ class AsamMC:
         self.mod_common = ModCommon.get(self.session)
         self.mod_par = ModPar.get(self.session) if ModPar.exists(self.session) else None
         self.variant_coding = (
-            VariantCoding.get(self.session, module_name=self.mod_par.modpar.module.name)
-            if self.mod_par is not None
-            else None
+            VariantCoding.get(self.session, module_name=self.mod_par.modpar.module.name) if self.mod_par is not None else None
         )
         self.directory = Directory(self.session)
         self.on_init(self.config, *args, **kws)
@@ -304,9 +298,7 @@ class AsamMC:
         {"TIMESTAMPS": np.ndarray, <meas_name>: np.ndarray, ...}
         """
         if not hasattr(self, "measurement_variables") or not self.measurement_variables:
-            raise ValueError(
-                "No measurements selected - call add_measurements() or set MEASUREMENTS in config."
-            )
+            raise ValueError("No measurements selected - call add_measurements() or set MEASUREMENTS in config.")
 
         if (duration_s is None) == (samples is None):
             raise ValueError("Provide either duration_s or samples, but not both")
@@ -315,10 +307,7 @@ class AsamMC:
         meas_info: list[dict[str, Any]] = []
         for m in self.measurement_variables:
             try:
-                bo = (
-                    core_byte_order(m, getattr(self, "mod_common", None))
-                    or ByteOrder.MSB_LAST
-                )
+                bo = core_byte_order(m, getattr(self, "mod_common", None)) or ByteOrder.MSB_LAST
                 dtype = self._numpy_dtype_for_asam(m.dataType, bo)
                 nbytes = int(asam_type_size(m.dataType))
                 addr = m.address
@@ -333,9 +322,7 @@ class AsamMC:
                 }
                 meas_info.append(info)
             except (AttributeError, TypeError, ValueError, KeyError) as e:
-                self.logger.error(
-                    f"Cannot prepare measurement '{getattr(m, 'name', '?')}': {e}"
-                )
+                self.logger.error(f"Cannot prepare measurement '{getattr(m, 'name', '?')}': {e}")
 
         # Determine number of samples
         if samples is None:

@@ -18,9 +18,7 @@ class CalibrationDB:
     an HDF5 database file.
     """
 
-    def __init__(
-        self, file_name: str, mode: str = "r", logger: Optional[logging.Logger] = None
-    ) -> None:
+    def __init__(self, file_name: str, mode: str = "r", logger: Optional[logging.Logger] = None) -> None:
         """Initialize the calibration database.
 
         Args:
@@ -33,9 +31,7 @@ class CalibrationDB:
         db_name = Path(file_name).with_suffix(".h5")
         self.logger.info(f"Opening database {str(db_name)!r} in mode {mode!r}")
 
-        self.db = h5py.File(
-            db_name, mode=mode, libver="latest", locking="best-effort", track_order=True
-        )
+        self.db = h5py.File(db_name, mode=mode, libver="latest", locking="best-effort", track_order=True)
 
         self.opened = True
         self.guid = uuid.uuid4()
@@ -82,13 +78,9 @@ class CalibrationDB:
 
             # Set attributes
             ds.attrs["comment"] = value.comment if value.comment is not None else ""
-            ds.attrs["display_identifier"] = (
-                value.displayIdentifier if value.displayIdentifier is not None else ""
-            )
+            ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
             ds.attrs["category"] = value.category
-            ds.attrs["unit"] = (
-                value.unit if hasattr(value, "unit") and value.unit is not None else ""
-            )
+            ds.attrs["unit"] = value.unit if hasattr(value, "unit") and value.unit is not None else ""
 
             # Store raw and physical values
             if raw is not None:
@@ -118,9 +110,7 @@ class CalibrationDB:
             # Set attributes
             ds.attrs["category"] = value.category
             ds.attrs["comment"] = value.comment if value.comment is not None else ""
-            ds.attrs["display_identifier"] = (
-                value.displayIdentifier if value.displayIdentifier is not None else ""
-            )
+            ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
 
             # Store raw values if not empty
             if value.raw.shape != (0,):
@@ -155,9 +145,7 @@ class CalibrationDB:
             # Set attributes
             ds.attrs["category"] = value.category
             ds.attrs["comment"] = value.comment if value.comment is not None else ""
-            ds.attrs["display_identifier"] = (
-                value.displayIdentifier if value.displayIdentifier is not None else ""
-            )
+            ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
 
             # Store raw values if not empty
             if value.raw.shape != (0,):
@@ -177,9 +165,7 @@ class CalibrationDB:
 
     def import_map_curve(
         self,
-        value: Union[
-            klasses.Curve, klasses.Map, klasses.Cuboid, klasses.Cube4, klasses.Cube5
-        ],
+        value: Union[klasses.Curve, klasses.Map, klasses.Cuboid, klasses.Cube4, klasses.Cube5],
     ) -> None:
         """Import a map or curve into the database.
 
@@ -199,9 +185,7 @@ class CalibrationDB:
             ds.attrs["category"] = value.category
             ds.attrs["unit"] = value.fnc_unit if value.fnc_unit is not None else ""
             ds.attrs["comment"] = value.comment if value.comment is not None else ""
-            ds.attrs["display_identifier"] = (
-                value.displayIdentifier if value.displayIdentifier is not None else ""
-            )
+            ds.attrs["display_identifier"] = value.displayIdentifier if value.displayIdentifier is not None else ""
 
             # Store raw values if not None
             if value.raw is not None:
@@ -223,9 +207,7 @@ class CalibrationDB:
                 ax.attrs["category"] = category
                 ax.attrs["unit"] = axis.unit if axis.unit else ""
                 ax.attrs["name"] = axis.name if axis.name else ""
-                ax.attrs["input_quantity"] = (
-                    axis.input_quantity if axis.input_quantity else ""
-                )
+                ax.attrs["input_quantity"] = axis.input_quantity if axis.input_quantity else ""
 
                 # Handle different axis types
                 match category:
@@ -238,36 +220,24 @@ class CalibrationDB:
                             ax["phys"] = axis.phys
                     case "COM_AXIS" | "RES_AXIS" | "CURVE_AXIS":
                         # Referenced axis: create a soft link to the referenced axis
-                        reference_path = self._validate_axis_reference(
-                            value.name, category, axis.axis_pts_ref
-                        )
+                        reference_path = self._validate_axis_reference(value.name, category, axis.axis_pts_ref)
                         ax["reference"] = h5py.SoftLink(reference_path)
 
             self.logger.debug(f"Imported {value.category.lower()}: {value.name}")
         except (TypeError, ValueError, OSError) as e:
-            self.logger.error(
-                f"Error importing {value.category.lower()} {value.name}: {e}"
-            )
+            self.logger.error(f"Error importing {value.category.lower()} {value.name}: {e}")
             raise
 
-    def _validate_axis_reference(
-        self, value_name: str, axis_category: str, axis_pts_ref: str | None
-    ) -> str:
+    def _validate_axis_reference(self, value_name: str, axis_category: str, axis_pts_ref: str | None) -> str:
         if not axis_pts_ref:
-            raise ValueError(
-                f"{value_name}: {axis_category} axis requires a non-empty axis_pts_ref"
-            )
+            raise ValueError(f"{value_name}: {axis_category} axis requires a non-empty axis_pts_ref")
         reference_path = f"/{axis_pts_ref}"
         try:
             referenced_axis = self.db[reference_path]
         except KeyError as exc:
-            raise ValueError(
-                f"{value_name}: {axis_category} references missing AXIS_PTS {axis_pts_ref!r}"
-            ) from exc
+            raise ValueError(f"{value_name}: {axis_category} references missing AXIS_PTS {axis_pts_ref!r}") from exc
         if referenced_axis.attrs.get("category") != "AXIS_PTS":
-            raise ValueError(
-                f"{value_name}: {axis_category} reference {axis_pts_ref!r} is not an AXIS_PTS entry"
-            )
+            raise ValueError(f"{value_name}: {axis_category} reference {axis_pts_ref!r} is not an AXIS_PTS entry")
         return reference_path
 
     def load(self, name: str) -> xr.DataArray:
@@ -319,9 +289,7 @@ class CalibrationDB:
         )
 
     @staticmethod
-    def _create_data_array_attrs(
-        name: str, ds_attrs: dict[str, Any], category: str
-    ) -> dict[str, Any]:
+    def _create_data_array_attrs(name: str, ds_attrs: dict[str, Any], category: str) -> dict[str, Any]:
         return {
             "name": name,
             "display_identifier": ds_attrs.get("display_identifier") or "",
@@ -329,9 +297,7 @@ class CalibrationDB:
             "comment": ds_attrs.get("comment") or "",
         }
 
-    def _read_axis_values(
-        self, axis_group: h5py.Group, axis_category: str
-    ) -> np.ndarray:
+    def _read_axis_values(self, axis_group: h5py.Group, axis_category: str) -> np.ndarray:
         if axis_category in ("COM_AXIS", "RES_AXIS", "CURVE_AXIS"):
             return self._read_referenced_axis_values(axis_group, axis_category)
         if axis_category not in ("FIX_AXIS", "STD_AXIS"):
@@ -339,31 +305,21 @@ class CalibrationDB:
         return np.array(axis_group["phys"])
 
     @staticmethod
-    def _read_referenced_axis_values(
-        axis_group: h5py.Group, axis_category: str
-    ) -> np.ndarray:
+    def _read_referenced_axis_values(axis_group: h5py.Group, axis_category: str) -> np.ndarray:
         reference_link = axis_group.get("reference", getlink=True)
         if not isinstance(reference_link, h5py.SoftLink):
-            raise KeyError(
-                f"{axis_category} axis {axis_group.name!r} is missing a soft-link reference"
-            )
+            raise KeyError(f"{axis_category} axis {axis_group.name!r} is missing a soft-link reference")
         reference_path = reference_link.path
         try:
             referenced_axis = axis_group.file[reference_path]
         except KeyError as exc:
-            raise KeyError(
-                f"Broken {axis_category} reference {reference_path!r} for axis {axis_group.name!r}"
-            ) from exc
+            raise KeyError(f"Broken {axis_category} reference {reference_path!r} for axis {axis_group.name!r}") from exc
         try:
             return np.array(referenced_axis["phys"])
         except KeyError as exc:
-            raise KeyError(
-                f"Referenced axis {reference_path!r} does not provide 'phys' values"
-            ) from exc
+            raise KeyError(f"Referenced axis {reference_path!r} does not provide 'phys' values") from exc
 
-    def _load_axis_metadata(
-        self, axes: h5py.Group
-    ) -> tuple[list[str], dict[str, Any], list[int]]:
+    def _load_axis_metadata(self, axes: h5py.Group) -> tuple[list[str], dict[str, Any], list[int]]:
         dims: list[str] = []
         coords: dict[str, Any] = {}
         shape: list[int] = []
@@ -377,9 +333,7 @@ class CalibrationDB:
             shape.append(axis_values.size)
         return dims, coords, shape
 
-    def _normalize_array_values(
-        self, name: str, values: np.ndarray, shape: list[int]
-    ) -> np.ndarray:
+    def _normalize_array_values(self, name: str, values: np.ndarray, shape: list[int]) -> np.ndarray:
         target_shape = tuple(shape)
         if values.shape == (0,) or values.size == 0:
             return np.zeros(target_shape)
@@ -389,13 +343,9 @@ class CalibrationDB:
             try:
                 return values.reshape(target_shape)
             except ValueError:
-                self.logger.error(
-                    f"Cannot reshape {name} from {values.shape} to {target_shape}"
-                )
+                self.logger.error(f"Cannot reshape {name} from {values.shape} to {target_shape}")
                 return np.zeros(target_shape)
-        self.logger.error(
-            f"Size mismatch for {name}: {values.size} != {np.prod(shape)}. Using zero-filled array."
-        )
+        self.logger.error(f"Size mismatch for {name}: {values.size} != {np.prod(shape)}. Using zero-filled array.")
         return np.zeros(target_shape)
 
     def _create_data_array(
@@ -408,14 +358,8 @@ class CalibrationDB:
         shape: list[int],
     ) -> xr.DataArray:
         try:
-            return xr.DataArray(
-                data=values, dims=dims, coords=coords, attrs=attrs, name=name
-            )
+            return xr.DataArray(data=values, dims=dims, coords=coords, attrs=attrs, name=name)
         except ValueError as e:
-            self.logger.error(
-                f"Failed to create DataArray for {name}: {e}. Falling back to zero-filled array."
-            )
+            self.logger.error(f"Failed to create DataArray for {name}: {e}. Falling back to zero-filled array.")
             zero_values = np.zeros(tuple(shape))
-            return xr.DataArray(
-                data=zero_values, dims=dims, coords=coords, attrs=attrs, name=name
-            )
+            return xr.DataArray(data=zero_values, dims=dims, coords=coords, attrs=attrs, name=name)

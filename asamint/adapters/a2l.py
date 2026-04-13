@@ -33,28 +33,15 @@ def _local_a2ldb_is_current(
     retries: int = 3,
     retry_delay: float = 0.2,
 ) -> bool:
-    expected_columns = {
-        table.name: {column.name for column in table.columns}
-        for table in model.Base.metadata.sorted_tables
-    }
+    expected_columns = {table.name: {column.name for column in table.columns} for table in model.Base.metadata.sorted_tables}
     for attempt in range(retries + 1):
         try:
             with sqlite3.connect(db_path) as connection:
-                table_names = {
-                    row[0]
-                    for row in connection.execute(
-                        "SELECT name FROM sqlite_master WHERE type = 'table'"
-                    )
-                }
+                table_names = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
                 for table_name, required_columns in expected_columns.items():
                     if table_name not in table_names:
                         return False
-                    actual_columns = {
-                        row[1]
-                        for row in connection.execute(
-                            f'PRAGMA table_info("{table_name}")'
-                        )
-                    }
+                    actual_columns = {row[1] for row in connection.execute(f'PRAGMA table_info("{table_name}")')}
                     if not required_columns.issubset(actual_columns):
                         return False
         except sqlite3.DatabaseError:
@@ -89,9 +76,7 @@ def _import_a2l_fresh(
         except PermissionError:
             if _local_a2ldb_is_current(db_path):
                 return db.open_existing(str(db_path))
-            temp_a2l = a2l_path.with_name(
-                f"{a2l_path.stem}_{uuid4().hex}{a2l_path.suffix}"
-            )
+            temp_a2l = a2l_path.with_name(f"{a2l_path.stem}_{uuid4().hex}{a2l_path.suffix}")
             shutil.copy2(a2l_path, temp_a2l)
             try:
                 return db.import_a2l(str(temp_a2l), local=False, encoding=encoding)
@@ -100,9 +85,7 @@ def _import_a2l_fresh(
     return db.import_a2l(str(a2l_path), local=local, encoding=encoding)
 
 
-def open_a2l_database(
-    a2l_file: str, encoding: str = "latin-1", *, local: bool = True
-) -> A2LDBSession:
+def open_a2l_database(a2l_file: str, encoding: str = "latin-1", *, local: bool = True) -> A2LDBSession:
     """Open an A2L database via pya2l.DB and return the session."""
 
     a2l_path, db_path = _a2l_database_paths(a2l_file, local=local)

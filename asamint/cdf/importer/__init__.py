@@ -35,9 +35,7 @@ logger = logging.getLogger(__name__)
 class DBImporter:
     opened: bool = False
 
-    def __init__(
-        self, file_name: str, parameters: Mapping[str, Any], logger: Any
-    ) -> None:
+    def __init__(self, file_name: str, parameters: Mapping[str, Any], logger: Any) -> None:
         db_name = Path(file_name).with_suffix(".msrswdb")
         self.parameters = parameters
         self.logger = logger
@@ -155,9 +153,7 @@ class DBImporter:
 
     def map_curve(
         self,
-        value: (
-            klasses.Curve | klasses.Map | klasses.Cuboid | klasses.Cube4 | klasses.Cube5
-        ),
+        value: (klasses.Curve | klasses.Map | klasses.Cuboid | klasses.Cube4 | klasses.Cube5),
         category: str,
     ) -> SwInstance:
         inst = self.create_instance(value)

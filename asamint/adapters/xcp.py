@@ -29,9 +29,7 @@ except ImportError:  # pragma: no cover - absent HDF5 policy
 
     class Hdf5OnlinePolicy:
         def __init__(self, *args: Any, **kwargs: Any) -> None:
-            msg = (
-                "pyxcp Hdf5OnlinePolicy is unavailable; install pyxcp with HDF5 extras."
-            )
+            msg = "pyxcp Hdf5OnlinePolicy is unavailable; install pyxcp with HDF5 extras."
             raise ImportError(msg)
 
 
