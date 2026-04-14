@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Tests for asamint.cdf.walker – utility functions and CdfWalker.do_* methods."""
+
 from __future__ import annotations
 
 import binascii

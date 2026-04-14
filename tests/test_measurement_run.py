@@ -21,9 +21,7 @@ class DummyCreator:
         self.closed = True
 
 
-def test_run_validates_duration_vs_samples(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_run_validates_duration_vs_samples(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(measurement, "get_application", lambda: None)
     with pytest.raises(ValueError):
         measurement.run([], duration=None, samples=None)
@@ -31,9 +29,7 @@ def test_run_validates_duration_vs_samples(
         measurement.run([], duration=1.0, samples=1)
 
 
-def test_run_uses_creator_and_daq_capture(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_run_uses_creator_and_daq_capture(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     captured = {}
 
     class StubDaqList:
@@ -49,9 +45,7 @@ def test_run_uses_creator_and_daq_capture(
             shortname = "TEST"
             output_format = "HDF5"
 
-    def fake_build_daq_lists(
-        session: Any, groups: list[dict[str, Any]]
-    ) -> list[StubDaqList]:
+    def fake_build_daq_lists(session: Any, groups: list[dict[str, Any]]) -> list[StubDaqList]:
         captured["groups"] = groups
         captured["session"] = session
         return [StubDaqList("daq_list", 1)]

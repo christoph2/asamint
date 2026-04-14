@@ -62,9 +62,7 @@ def _make_curve(
 
 
 @pytest.mark.parametrize("axis_category", ["COM_AXIS", "RES_AXIS", "CURVE_AXIS"])
-def test_load_reads_soft_linked_axis_categories(
-    calibration_db: CalibrationDB, axis_category: str
-) -> None:
+def test_load_reads_soft_linked_axis_categories(calibration_db: CalibrationDB, axis_category: str) -> None:
     calibration_db.import_axis_pts(_make_axis_pts())
     calibration_db.import_map_curve(_make_curve(axis_category))
 
@@ -76,13 +74,9 @@ def test_load_reads_soft_linked_axis_categories(
 
 
 @pytest.mark.parametrize("axis_category", ["COM_AXIS", "RES_AXIS", "CURVE_AXIS"])
-def test_import_map_curve_rejects_missing_axis_reference(
-    calibration_db: CalibrationDB, axis_category: str
-) -> None:
+def test_import_map_curve_rejects_missing_axis_reference(calibration_db: CalibrationDB, axis_category: str) -> None:
     with pytest.raises(ValueError, match="missing AXIS_PTS 'MISSING_AXIS'"):
-        calibration_db.import_map_curve(
-            _make_curve(axis_category, axis_pts_ref="MISSING_AXIS")
-        )
+        calibration_db.import_map_curve(_make_curve(axis_category, axis_pts_ref="MISSING_AXIS"))
 
 
 def test_load_reports_broken_soft_link_reference(

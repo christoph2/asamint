@@ -30,7 +30,6 @@ def do_axis_containers(conts) -> None:
 
 
 class Exporter(walker.CdfWalker):
-
     def __init__(self, db_name: str, output: IO[str] | None = None) -> None:
         super().__init__(db_name)
         self._out = output
@@ -53,17 +52,11 @@ class Exporter(walker.CdfWalker):
     def on_instance(self, instance: Instance) -> None:
         name = instance.short_name
         value_container = instance.values
-        unit = (
-            value_container.unit_display_name.value
-            if value_container.unit_display_name
-            else ""
-        )
+        unit = value_container.unit_display_name.value if value_container.unit_display_name else ""
         category = instance.category
 
         if category in {"VALUE", "DEPENDENT_VALUE", "BOOLEAN"}:
-            self._emit_scalar(
-                name, value_container, unit, self._scalar_suffix(category)
-            )
+            self._emit_scalar(name, value_container, unit, self._scalar_suffix(category))
         elif category == "ASCII":
             logger.debug("ASCII instance: %s", instance.short_name)
             self._emit_scalar(name, value_container, unit, " -- ASCII")
@@ -74,9 +67,7 @@ class Exporter(walker.CdfWalker):
 
     @staticmethod
     def _scalar_suffix(category: str) -> str:
-        return {"VALUE": "", "DEPENDENT_VALUE": "  -- DEP", "BOOLEAN": "  -- BOOL"}[
-            category
-        ]
+        return {"VALUE": "", "DEPENDENT_VALUE": "  -- DEP", "BOOLEAN": "  -- BOOL"}[category]
 
     @staticmethod
     def _array_suffix(category: str) -> str:
@@ -103,12 +94,8 @@ class Exporter(walker.CdfWalker):
 
     def _emit_array(self, name: str, value_container, unit: str, category: str) -> None:
         values = self._array_values(value_container, category)
-        self._write(
-            f"{name} = [{walker.dump_array(values)}]; %[{unit}]@CANAPE_ORIGIN@{name}{self._array_suffix(category)}"
-        )
+        self._write(f"{name} = [{walker.dump_array(values)}]; %[{unit}]@CANAPE_ORIGIN@{name}{self._array_suffix(category)}")
 
     def _emit_axis(self, name: str, value_container, unit: str, category: str) -> None:
         values = list(walker.array_values(value_container.values_phys, flatten=True))
-        self._write(
-            f"{name} = [{walker.axis_formatter(values)}]; %[{unit}]@CANAPE_ORIGIN@{name}{self._array_suffix(category)}"
-        )
+        self._write(f"{name} = [{walker.axis_formatter(values)}]; %[{unit}]@CANAPE_ORIGIN@{name}{self._array_suffix(category)}")

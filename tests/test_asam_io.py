@@ -37,18 +37,14 @@ class _RecordingImage:
         self.numeric_result: int | float = 34
         self.ndarray_result = np.array([1, 2, 3], dtype=np.uint16)
 
-    def read_asam_string(
-        self, addr: int, dtype: str, length: int = -1, **kws: Any
-    ) -> str:
+    def read_asam_string(self, addr: int, dtype: str, length: int = -1, **kws: Any) -> str:
         self.calls.append(("read_asam_string", (addr, dtype, length), kws))
         return self.string_result
 
     def write_asam_string(self, addr: int, value: str, dtype: str, **kws: Any) -> None:
         self.calls.append(("write_asam_string", (addr, value, dtype), kws))
 
-    def read_asam_numeric(
-        self, addr: int, dtype: str, byte_order: str = "MSB_LAST", **kws: Any
-    ) -> int | float:
+    def read_asam_numeric(self, addr: int, dtype: str, byte_order: str = "MSB_LAST", **kws: Any) -> int | float:
         self.calls.append(("read_asam_numeric", (addr, dtype, byte_order), kws))
         return self.numeric_result
 
@@ -90,9 +86,7 @@ class _RecordingImage:
         order: str | None = None,
         **kws: Any,
     ) -> None:
-        self.calls.append(
-            ("write_asam_ndarray", (addr, array.copy(), dtype, byte_order, order), kws)
-        )
+        self.calls.append(("write_asam_ndarray", (addr, array.copy(), dtype, byte_order, order), kws))
 
     def read_string(self, *args: Any, **kwargs: Any) -> str:
         raise AssertionError("generic read_string should not be used")
@@ -205,10 +199,7 @@ def _make_axis_pts(
 
 def test_core_byte_order_maps_legacy_aliases() -> None:
     assert resolve_byte_order(SimpleNamespace(byteOrder="BIG_ENDIAN")) == "BIG_ENDIAN"
-    assert (
-        resolve_byte_order(SimpleNamespace(byteOrder="LITTLE_ENDIAN"))
-        == "LITTLE_ENDIAN"
-    )
+    assert resolve_byte_order(SimpleNamespace(byteOrder="LITTLE_ENDIAN")) == "LITTLE_ENDIAN"
 
 
 def test_load_ascii_uses_asam_string_reader() -> None:
@@ -669,11 +660,7 @@ def test_save_curve_or_map_uses_asam_ndarray_writer() -> None:
         name="CURVE_CHAR",
         fnc_np_order="F",
         byteOrder="BIG_ENDIAN",
-        record_layout_components={
-            "elements": {
-                "fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")
-            }
-        },
+        record_layout_components={"elements": {"fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")}},
     )
     values = SimpleNamespace(
         phys=np.array([10, 20], dtype=np.uint16),
@@ -705,11 +692,7 @@ def test_save_curve_or_map_returns_address_error_on_invalid_address() -> None:
         name="CURVE_CHAR",
         fnc_np_order="F",
         byteOrder="BIG_ENDIAN",
-        record_layout_components={
-            "elements": {
-                "fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")
-            }
-        },
+        record_layout_components={"elements": {"fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")}},
     )
     values = SimpleNamespace(
         phys=np.array([10, 20], dtype=np.uint16),
@@ -735,11 +718,7 @@ def test_save_curve_or_map_read_only_returns_error_status() -> None:
         name="CURVE_CHAR",
         fnc_np_order="F",
         byteOrder="BIG_ENDIAN",
-        record_layout_components={
-            "elements": {
-                "fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")
-            }
-        },
+        record_layout_components={"elements": {"fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")}},
     )
     values = SimpleNamespace(
         phys=np.array([10, 20], dtype=np.uint16),
@@ -771,11 +750,7 @@ def test_save_curve_or_map_read_only_ignore_still_writes() -> None:
         name="CURVE_CHAR",
         fnc_np_order="F",
         byteOrder="BIG_ENDIAN",
-        record_layout_components={
-            "elements": {
-                "fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")
-            }
-        },
+        record_layout_components={"elements": {"fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")}},
     )
     values = SimpleNamespace(
         phys=np.array([10, 20], dtype=np.uint16),
@@ -807,11 +782,7 @@ def test_save_curve_or_map_read_only_except_raises() -> None:
         name="CURVE_CHAR",
         fnc_np_order="F",
         byteOrder="BIG_ENDIAN",
-        record_layout_components={
-            "elements": {
-                "fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")
-            }
-        },
+        record_layout_components={"elements": {"fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")}},
     )
     values = SimpleNamespace(
         phys=np.array([10, 20], dtype=np.uint16),
@@ -836,11 +807,7 @@ def test_save_curve_or_map_reports_axis_aware_physical_shape_mismatch() -> None:
         name="MAP_CHAR",
         fnc_np_order="C",
         byteOrder="BIG_ENDIAN",
-        record_layout_components={
-            "elements": {
-                "fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")
-            }
-        },
+        record_layout_components={"elements": {"fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")}},
     )
     values = SimpleNamespace(
         phys=np.ones((3, 2), dtype=np.uint16),
@@ -853,9 +820,7 @@ def test_save_curve_or_map_reports_axis_aware_physical_shape_mismatch() -> None:
         flip_axes=[],
     )
 
-    with pytest.raises(
-        ValueError, match=r"Physical values shape \(3, 2\).*x=3->2, y=2->3"
-    ):
+    with pytest.raises(ValueError, match=r"Physical values shape \(3, 2\).*x=3->2, y=2->3"):
         Calibration.save_curve_or_map(calibration, "MAP_CHAR", values)
 
 
@@ -867,11 +832,7 @@ def test_save_curve_or_map_reports_axis_aware_raw_shape_mismatch() -> None:
         name="MAP_CHAR",
         fnc_np_order="C",
         byteOrder="BIG_ENDIAN",
-        record_layout_components={
-            "elements": {
-                "fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")
-            }
-        },
+        record_layout_components={"elements": {"fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")}},
     )
     values = SimpleNamespace(
         phys=np.ones((2, 3), dtype=np.uint16),
@@ -896,11 +857,7 @@ def test_save_curve_or_map_rejects_objects_without_raw_and_phys() -> None:
         name="CURVE_CHAR",
         fnc_np_order="C",
         byteOrder="BIG_ENDIAN",
-        record_layout_components={
-            "elements": {
-                "fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")
-            }
-        },
+        record_layout_components={"elements": {"fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")}},
     )
     calibration = _make_calibration(image, characteristic)
     calibration.get_axes = lambda current_characteristic, num_axes: AxesContainer(
@@ -909,9 +866,7 @@ def test_save_curve_or_map_rejects_objects_without_raw_and_phys() -> None:
         flip_axes=[],
     )
 
-    with pytest.raises(
-        TypeError, match="values must provide both 'raw' and 'phys' arrays"
-    ):
+    with pytest.raises(TypeError, match="values must provide both 'raw' and 'phys' arrays"):
         Calibration.save_curve_or_map(
             calibration,
             "CURVE_CHAR",
@@ -1053,9 +1008,7 @@ def test_load_axis_pts_preserves_reversed_storage_metadata() -> None:
     calibration.parameter_cache = {}
     calibration.get_axis_pts = lambda name: axis_pts
     calibration.read_axes_values = lambda ap, axis_name: {}
-    calibration.read_axes_arrays = lambda ap, axis_name: {
-        "axis_pts": np.array([1, 2, 3], dtype=np.int16)
-    }
+    calibration.read_axes_arrays = lambda ap, axis_name: {"axis_pts": np.array([1, 2, 3], dtype=np.int16)}
     calibration.int_to_physical = lambda current_axis_pts, raw: raw.astype(np.float64)
     calibration.is_numeric = lambda compu_method: True
 
@@ -1081,9 +1034,7 @@ def test_objutils_image_supports_direct_asam_helpers() -> None:
 def test_physical_to_int_warns_on_fractional_truncation() -> None:
     warnings: list[str] = []
     calibration = _make_conversion_calibration(warnings)
-    calibration.get_compu_method = lambda characteristic: SimpleNamespace(
-        physical_to_int=lambda value: value
-    )
+    calibration.get_compu_method = lambda characteristic: SimpleNamespace(physical_to_int=lambda value: value)
     characteristic = SimpleNamespace(name="VALUE_CHAR", fnc_np_dtype=np.dtype("uint8"))
 
     result = Calibration.physical_to_int(
@@ -1099,9 +1050,7 @@ def test_physical_to_int_warns_on_fractional_truncation() -> None:
 def test_physical_to_int_warns_on_integer_overflow() -> None:
     warnings: list[str] = []
     calibration = _make_conversion_calibration(warnings)
-    calibration.get_compu_method = lambda characteristic: SimpleNamespace(
-        physical_to_int=lambda value: value
-    )
+    calibration.get_compu_method = lambda characteristic: SimpleNamespace(physical_to_int=lambda value: value)
     characteristic = SimpleNamespace(name="VALUE_CHAR", fnc_np_dtype=np.dtype("uint8"))
 
     result = Calibration.physical_to_int(
@@ -1117,12 +1066,8 @@ def test_physical_to_int_warns_on_integer_overflow() -> None:
 def test_physical_to_int_warns_on_float_downcast_precision_loss() -> None:
     warnings: list[str] = []
     calibration = _make_conversion_calibration(warnings)
-    calibration.get_compu_method = lambda characteristic: SimpleNamespace(
-        physical_to_int=lambda value: value
-    )
-    characteristic = SimpleNamespace(
-        name="VALUE_CHAR", fnc_np_dtype=np.dtype("float32")
-    )
+    calibration.get_compu_method = lambda characteristic: SimpleNamespace(physical_to_int=lambda value: value)
+    characteristic = SimpleNamespace(name="VALUE_CHAR", fnc_np_dtype=np.dtype("float32"))
 
     result = Calibration.physical_to_int(
         calibration,
@@ -1137,9 +1082,7 @@ def test_physical_to_int_warns_on_float_downcast_precision_loss() -> None:
 def test_physical_to_int_does_not_warn_on_exact_cast() -> None:
     warnings: list[str] = []
     calibration = _make_conversion_calibration(warnings)
-    calibration.get_compu_method = lambda characteristic: SimpleNamespace(
-        physical_to_int=lambda value: value
-    )
+    calibration.get_compu_method = lambda characteristic: SimpleNamespace(physical_to_int=lambda value: value)
     characteristic = SimpleNamespace(name="VALUE_CHAR", fnc_np_dtype=np.dtype("uint16"))
 
     result = Calibration.physical_to_int(

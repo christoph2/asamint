@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Tests for asamint.utils – pure utility functions and Bunch class."""
+
 from __future__ import annotations
 
 import math

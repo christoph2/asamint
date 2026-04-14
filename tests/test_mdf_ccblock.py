@@ -15,9 +15,7 @@ from asamint.adapters.a2l import inspect
 def _bypass_init(self, *args, **kws):
     """Lightweight init that skips config/A2L/XCP setup."""
     self.config = MagicMock()
-    self.config.general = SimpleNamespace(
-        author="T", company="C", department="D", project="P", mdf_version="4.20"
-    )
+    self.config.general = SimpleNamespace(author="T", company="C", department="D", project="P", mdf_version="4.20")
     self.logger = logging.getLogger("test_mdf_ccblock")
     self.experiment_config: dict[str, Any] = {}
     self.measurement_variables: list[Any] = []
@@ -190,6 +188,7 @@ class TestSaveMeasurements:
                 self.compuMethod = "NO_COMPU_METHOD"
                 self.bitMask = None
                 self.bitOperation = None
+
         return Dummy
 
     def test_empty_data_returns_empty_result(self, creator):
@@ -283,9 +282,7 @@ class TestSaveMeasurements:
         }
         csv_out = str(tmp_path / "out.csv")
         h5_out = str(tmp_path / "out.h5")
-        result = creator.save_measurements(
-            data=data, csv_out=csv_out, hdf5_out=h5_out
-        )
+        result = creator.save_measurements(data=data, csv_out=csv_out, hdf5_out=h5_out)
         assert result is not None
         # finalize_measurement_outputs is called internally, producing csv and h5
         assert result.csv_path is not None or result.hdf5_path is not None

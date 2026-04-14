@@ -30,7 +30,6 @@ END
 
 
 class Exporter(walker.CdfWalker):
-
     def __init__(self, db_name: str, output: IO[str] | None = None) -> None:
         super().__init__(db_name)
         self._out = output
@@ -116,17 +115,13 @@ class Exporter(walker.CdfWalker):
     def _emit_axis_distribution(self, instance: Instance, value_container) -> None:
         element_count = array_elements(value_container.array_size)
         self.value_header("STUETZSTELLENVERTEILUNG", instance, element_count)
-        self._emit_rows(
-            "ST/X", walker.array_values(value_container.values_phys, flatten=True)
-        )
+        self._emit_rows("ST/X", walker.array_values(value_container.values_phys, flatten=True))
         self._write("END\n")
 
     def _emit_value_block(self, instance: Instance, value_container) -> None:
         element_count = array_elements(value_container.array_size)
         self.value_header("FESTWERTEBLOCK", instance, element_count)
-        self._emit_rows(
-            "WERT", walker.array_values(value_container.values_phys, flatten=True)
-        )
+        self._emit_rows("WERT", walker.array_values(value_container.values_phys, flatten=True))
         self._write("END\n")
 
     @staticmethod
@@ -145,7 +140,5 @@ class Exporter(walker.CdfWalker):
             self._write(f"  *SSTX {axis.instance_ref.name}")
         else:
             self._emit_rows("ST/X", walker.array_values(axis.values_phys, flatten=True))
-        self._emit_rows(
-            "WERT", walker.array_values(value_container.values_phys, flatten=True)
-        )
+        self._emit_rows("WERT", walker.array_values(value_container.values_phys, flatten=True))
         self._write("END\n")

@@ -57,10 +57,7 @@ def deprecated_getattr(
 
     replacement = alias.replacement or alias.target
     warn(
-        (
-            f"{name!r} is deprecated. Use {replacement!r} instead. "
-            f"It will be removed in {alias.remove_in_version}."
-        ),
+        (f"{name!r} is deprecated. Use {replacement!r} instead. It will be removed in {alias.remove_in_version}."),
         category=DeprecationWarning,
         stacklevel=2,
     )

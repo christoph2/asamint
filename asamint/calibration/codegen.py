@@ -6,6 +6,7 @@ This module renders C headers (structs/arrays) from the JSON calibration log
 produced by CalibrationData.load_hex(). It aims to be robust across slightly
 varying JSON formats observed in examples.
 """
+
 import json
 import re
 from dataclasses import dataclass, field
@@ -90,9 +91,7 @@ def _dims_for_nd(obj: dict[str, Any], axis_lengths: dict[str, int]) -> list[int]
     axes = obj.get("axes") or []
     dims: list[int] = []
     for ax in axes:
-        ref = _first_present(
-            ax, ["axis_pts_ref", "curve_axis_ref"]
-        )  # name in AXIS_PTS or curve axis
+        ref = _first_present(ax, ["axis_pts_ref", "curve_axis_ref"])  # name in AXIS_PTS or curve axis
         if isinstance(ref, str) and ref in axis_lengths:
             dims.append(axis_lengths[ref])
         else:
@@ -120,17 +119,15 @@ def build_model_from_log(log: dict[str, Any]) -> dict[str, Any]:
     # Collect per-category declarations
     values: list[CValue] = []
     asciis: list[CString] = []
-    arrays_by_cat: dict[str, list[CArray]] = (
-        {  # for AXIS_PTS, CURVE, MAP, CUBOID, CUBE_4, CUBE_5, VAL_BLK
-            "AXIS_PTS": [],
-            "CURVE": [],
-            "MAP": [],
-            "CUBOID": [],
-            "CUBE_4": [],
-            "CUBE_5": [],
-            "VAL_BLK": [],
-        }
-    )
+    arrays_by_cat: dict[str, list[CArray]] = {  # for AXIS_PTS, CURVE, MAP, CUBOID, CUBE_4, CUBE_5, VAL_BLK
+        "AXIS_PTS": [],
+        "CURVE": [],
+        "MAP": [],
+        "CUBOID": [],
+        "CUBE_4": [],
+        "CUBE_5": [],
+        "VAL_BLK": [],
+    }
 
     # VALUEs
     for name, obj in (log.get("VALUE") or {}).items():
@@ -181,12 +178,7 @@ def build_model_from_log(log: dict[str, Any]) -> dict[str, Any]:
 
 
 def default_template_path() -> Path:
-    return (
-        Path(__file__).resolve().parent.parent
-        / "data"
-        / "templates"
-        / "c_structs.h.mako"
-    )
+    return Path(__file__).resolve().parent.parent / "data" / "templates" / "c_structs.h.mako"
 
 
 def render_header(
@@ -219,22 +211,16 @@ def generate_c_structs_from_log(
     """
     if log_path is None:
         # Choose latest first_steps_*.json in logs/
-        candidates = sorted(
-            Path("logs").glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True
-        )
+        candidates = sorted(Path("logs").glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
         if not candidates:
-            raise FileNotFoundError(
-                "No calibration log JSON found in 'logs' directory."
-            )
+            raise FileNotFoundError("No calibration log JSON found in 'logs' directory.")
         log_path = candidates[0]
 
     log = parse_calibration_log(Path(log_path))
     model = build_model_from_log(log)
 
     # Build namespace for template
-    out_name = (
-        out_path.name if out_path else asam_mc.generate_filename(".h", extra="cstructs")
-    )
+    out_name = out_path.name if out_path else asam_mc.generate_filename(".h", extra="cstructs")
     if out_name.endswith(".h"):
         base_symbol = out_name[:-2]
     else:
@@ -254,9 +240,7 @@ def generate_c_structs_from_log(
 
     # Determine output path
     if out_path is None:
-        code_dir = (
-            asam_mc.sub_dir("code") if hasattr(asam_mc, "sub_dir") else Path("code")
-        )
+        code_dir = asam_mc.sub_dir("code") if hasattr(asam_mc, "sub_dir") else Path("code")
         code_dir.mkdir(exist_ok=True)
         out_path = code_dir / out_name
 

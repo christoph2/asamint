@@ -85,9 +85,7 @@ class MDFCreator(AsamMC):
             self._resolve_measurements_from_config()
         except (AttributeError, ValueError, KeyError) as e:
             # Non-fatal, user can add measurements later via add_measurements()
-            self.logger.debug(
-                f"MDFCreator: could not resolve measurements from config: {e}"
-            )
+            self.logger.debug(f"MDFCreator: could not resolve measurements from config: {e}")
 
     def hd_comment(self) -> Optional[bytes]:
         """ """
@@ -104,9 +102,7 @@ class MDFCreator(AsamMC):
             if sys_constants:
                 elem_constants = create_elem(elem_root, "constants")
                 for name, value in sys_constants.items():
-                    create_elem(
-                        elem_constants, "const", text=str(value), attrib={"name": name}
-                    )
+                    create_elem(elem_constants, "const", text=str(value), attrib={"name": name})
             cps = create_elem(elem_root, "common_properties")
             create_elem(
                 cps,
@@ -180,9 +176,7 @@ class MDFCreator(AsamMC):
         from asamint import measurement as measurement_module
 
         if not data:
-            return measurement_module.RunResult(
-                mdf_path=None, csv_path=None, hdf5_path=None, signals={}, timebases=None
-            )
+            return measurement_module.RunResult(mdf_path=None, csv_path=None, hdf5_path=None, signals={}, timebases=None)
 
         project_meta = project_meta or {
             "author": self.config.general.author,
@@ -232,15 +226,7 @@ class MDFCreator(AsamMC):
             name, arr = item
             lname = name.lower()
             # Prefer names like timestamp0/timestamp1 over generic 'timestamps'/'timestamp'
-            is_event = (
-                1
-                if (
-                    lname.startswith("timestamp")
-                    and lname != "timestamp"
-                    and lname != "timestamps"
-                )
-                else 0
-            )
+            is_event = 1 if (lname.startswith("timestamp") and lname != "timestamp" and lname != "timestamps") else 0
             return (is_event, int(arr.shape[0]))
 
         ts_items = sorted(
@@ -272,9 +258,7 @@ class MDFCreator(AsamMC):
                         if step <= 0:
                             continue
                         target = step * sample_len
-                        if target <= ts_len and abs(ts_len - target) <= max(
-                            1, int(0.01 * ts_len)
-                        ):
+                        if target <= ts_len and abs(ts_len - target) <= max(1, int(0.01 * ts_len)):
                             ts_use = ts[:target]
                             try:
                                 chosen_ts = ts_use[::step]
@@ -299,12 +283,8 @@ class MDFCreator(AsamMC):
             if chosen_ts is None:
                 # Synthesize linear timestamps 0..N-1 as float
                 if strict or strict_no_synth:
-                    raise ValueError(
-                        f"Strict mode: no compatible timestamps for sample_len={sample_len}; refusing to synthesize."
-                    )
-                self.logger.warning(
-                    f"No compatible timestamps found for sample_len={sample_len}; synthesizing simple indices."
-                )
+                    raise ValueError(f"Strict mode: no compatible timestamps for sample_len={sample_len}; refusing to synthesize.")
+                self.logger.warning(f"No compatible timestamps found for sample_len={sample_len}; synthesizing simple indices.")
                 chosen_ts = np.arange(sample_len, dtype=float)
                 chosen_src = f"timestamp_group{group_counter}"
 
@@ -339,9 +319,7 @@ class MDFCreator(AsamMC):
             # 4) Build Signal objects for this group and append as a separate channel group
             signals: list[Signal] = []
             for measurement in meas_list:
-                self.logger.info(
-                    f"Adding SIGNAL: '{measurement.name}' (len={sample_len}) with timestamps='{chosen_src}'."
-                )
+                self.logger.info(f"Adding SIGNAL: '{measurement.name}' (len={sample_len}) with timestamps='{chosen_src}'.")
                 kws: dict[str, Any] = {}
                 comment = measurement.longIdentifier
                 compuMethod = measurement.compuMethod
@@ -390,23 +368,13 @@ class MDFCreator(AsamMC):
                     "timestamp_source": ts_key,
                     "timebase_s": timebase_s,
                     "group_id": group_id,
-                    "sample_count": (
-                        int(ts_use.shape[0])
-                        if hasattr(ts_use, "shape")
-                        else samples.shape[0]
-                    ),
-                    "compu_method": (
-                        getattr(compuMethod, "name", None) if compuMethod else None
-                    ),
+                    "sample_count": (int(ts_use.shape[0]) if hasattr(ts_use, "shape") else samples.shape[0]),
+                    "compu_method": (getattr(compuMethod, "name", None) if compuMethod else None),
                     "units": unit,
                 }
 
                 # Enrich signal comment with timebase metadata (non-breaking)
-                tb_str = (
-                    f" tb≈{timebase_s:.6g}s"
-                    if isinstance(timebase_s, (float, int))
-                    else ""
-                )
+                tb_str = f" tb≈{timebase_s:.6g}s" if isinstance(timebase_s, (float, int)) else ""
                 # Add (ns) hint to src if source is event-specific timestamp*
                 annotated_src = chosen_src
                 try:
@@ -422,9 +390,7 @@ class MDFCreator(AsamMC):
                     annotated_src = chosen_src
                 src_str = f" src={annotated_src}" if annotated_src is not None else ""
                 grp_str = f" grp={group_id}"
-                comment_enriched = (
-                    comment or ""
-                ) + f" [{tb_str}{src_str}{grp_str}]".replace("  ", " ").strip()
+                comment_enriched = (comment or "") + f" [{tb_str}{src_str}{grp_str}]".replace("  ", " ").strip()
 
                 signal = Signal(
                     samples=samples,
@@ -454,11 +420,7 @@ class MDFCreator(AsamMC):
                 signal_metadata=meta,
             )
 
-        timebases = (
-            finalize_result.timebases
-            if finalize_result
-            else measurement_module._collect_timebase_summary(meta)
-        )
+        timebases = finalize_result.timebases if finalize_result else measurement_module._collect_timebase_summary(meta)
         signals_meta = finalize_result.signals if finalize_result else meta
         return measurement_module.RunResult(
             mdf_path=str(mdf_filename) if mdf_filename else None,
@@ -548,26 +510,18 @@ class MDFCreator(AsamMC):
                     lower_values = tv.lower_values
                     upper_values = tv.upper_values
                     conversion = {f"lower_{i}": v for i, v in enumerate(lower_values)}
-                    conversion.update(
-                        {f"upper_{i}": v for i, v in enumerate(upper_values)}
-                    )
-                    conversion.update(
-                        {f"text_{i}": v for i, v in enumerate(text_values)}
-                    )
+                    conversion.update({f"upper_{i}": v for i, v in enumerate(upper_values)})
+                    conversion.update({f"text_{i}": v for i, v in enumerate(text_values)})
                     # MDF requires bytes for default text value
                     if default_value:
                         try:
-                            conversion.update(
-                                default=bytes(default_value, encoding="utf-8")
-                            )
+                            conversion.update(default=bytes(default_value, encoding="utf-8"))
                         except (TypeError, UnicodeDecodeError, AttributeError):
                             conversion.update(default=b"")
                 else:  # must be CompuTabVerb instance.
                     in_values = tv.in_values
                     conversion = {f"val_{i}": v for i, v in enumerate(in_values)}
-                    conversion.update(
-                        {f"text_{i}": v for i, v in enumerate(text_values)}
-                    )
+                    conversion.update({f"text_{i}": v for i, v in enumerate(text_values)})
                     if default_value is not None:
                         conversion.update(default=default_value)
 
@@ -578,9 +532,7 @@ class MDFCreator(AsamMC):
                     cm_type,
                 )
                 conversion = None
-        except (
-            Exception
-        ) as e:  # defensive: never fail MDF writing due to conversion map
+        except Exception as e:  # defensive: never fail MDF writing due to conversion map
             self.logger.warning(
                 "Failed to construct CCBLOCK for %s: %s",
                 getattr(compuMethod, "name", compuMethod),

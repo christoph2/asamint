@@ -54,9 +54,7 @@ def indent_text(text: str, left_margin: int = 0) -> str:
     """
     if left_margin == 0:
         return text
-    return "\n".join(
-        [f"{' ' * left_margin}{line}" if line else "" for line in text.splitlines()]
-    )
+    return "\n".join([f"{' ' * left_margin}{line}" if line else "" for line in text.splitlines()])
 
 
 def do_template(
@@ -71,9 +69,7 @@ def do_template(
     buf = StringIO()
     ctx = Context(buf, **namespace)
     try:
-        tobj = Template(
-            filename=tmpl, output_encoding=encoding, format_exceptions=formatExceptions
-        )  # nosec
+        tobj = Template(filename=tmpl, output_encoding=encoding, format_exceptions=formatExceptions)  # nosec
         tobj.render_context(ctx)
     except (OSError, exceptions.MakoException, UnicodeDecodeError, AttributeError, NameError, TypeError):
         logger.error("Template rendering failed:\n%s", exceptions.text_error_template().render())
@@ -94,9 +90,7 @@ def do_template_from_text(
     buf = StringIO()
     ctx = Context(buf, **namespace)
     try:
-        tobj = Template(
-            text=tmpl, output_encoding=encoding, format_exceptions=formatExceptions
-        )  # nosec
+        tobj = Template(text=tmpl, output_encoding=encoding, format_exceptions=formatExceptions)  # nosec
         tobj.render_context(ctx)
     except (exceptions.MakoException, SyntaxError, UnicodeDecodeError, AttributeError, NameError, TypeError):
         logger.error("Template rendering failed:\n%s", exceptions.text_error_template().render())

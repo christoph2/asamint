@@ -23,8 +23,7 @@ class MeasurementPersist(Protocol):
         project_meta: Optional[dict[str, Any]] = None,
         output_path: str | Path | None = None,
         **kwargs: Any,
-    ) -> "RunResult":
-        ...
+    ) -> "RunResult": ...
 
 
 @dataclass
@@ -63,4 +62,3 @@ def get_measurement_format(name: str) -> MeasurementFormat:
 
 def available_measurement_formats() -> list[str]:
     return sorted(_registry.keys())
-

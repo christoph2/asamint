@@ -626,11 +626,13 @@ ELEMENTS = {
 ROOT_ELEMENT = "MSRSW"
 """
 
+
 def xml_name_converter(name: str) -> str:
     if not name:
         return
     res = "".join([x.title() for x in name.split("-")])
     return res
+
 
 def map_name(name: str, suffix: str = None) -> str:
     import builtins
@@ -640,37 +642,44 @@ def map_name(name: str, suffix: str = None) -> str:
     names = set([x for x in dir(builtins) if x[0].islower()] + keyword.kwlist + ["view", "desc", "row"])
     if suffix:
         name = f"{name}_{suffix}"
-    name = name.replace('-', '_').lower()
+    name = name.replace("-", "_").lower()
     if name in names:
         return f"_{name}"
     else:
         return name
 
+
 def table_name(name: str) -> str:
-    return re.sub("[tT]ype$", "", name.replace('-', '_').lower())
+    return re.sub("[tT]ype$", "", name.replace("-", "_").lower())
+
 
 def klass_name(name: str) -> str:
     return re.sub("[Tt]ype$", "", xml_name_converter(name))
 
+
 def strip_type(name: str) -> str:
     return re.sub("[Tt]ype$", "", name)
+
 
 def attr_name(name: str) -> str:
     return map_name(name)
 
+
 def rel_name(name: str) -> str:
     xname = xml_name_converter(name)
-    #flz, _ = re.subn("[Tt]ype$", "", xname, 1)
+    # flz, _ = re.subn("[Tt]ype$", "", xname, 1)
     return xname
 
+
 data = open(MSRSW, encoding="utf-8-sig").read()
-#data = open(CDF, encoding="utf-8-sig").read()
+# data = open(CDF, encoding="utf-8-sig").read()
 msrsw = json.loads(data)
 
 schema = Schema(msrsw)
 schema.run()
 
 kkk = schema.get_klasses("Requirement")
+
 
 def sorter1(schema):
     positions = {}
@@ -681,7 +690,7 @@ def sorter1(schema):
 
     while True:
         swap_counter = 0
-        for (name, item) in items:
+        for name, item in items:
             for attr in item.attrs:
                 if isinstance(attr, Reference):
                     pos, elem = positions[attr.ref]
@@ -730,10 +739,17 @@ def sorter2(schema):
     ttt = sorted(positions.items(), key=lambda x: x[1][0])
     xyz = []
     for k, (_, v) in ttt:
-        xyz.append((k, v,))
+        xyz.append(
+            (
+                k,
+                v,
+            )
+        )
     schema.complex_assocs = dict(xyz)
 
+
 TERMINAL_EXTRA = {"LONG-NAMEType", "PType", "NMLISTType", "LABELType", "VFType"}
+
 
 def traverser(schema):
     short_names = []
@@ -742,7 +758,7 @@ def traverser(schema):
         item.terminal = True
         names[klass_name(item.name)] = strip_type(item.name)
         for attr in item.attrs:
-            if attr.name == 'SHORT-NAME':
+            if attr.name == "SHORT-NAME":
                 short_names.append(klass_name(item.name))
             cpis = schema.klass_assocs.get(klass_name(item.name), [])
             cmplx = rel_name(attr.name) in cpis
@@ -762,6 +778,7 @@ def traverser(schema):
             item.terminal = True
     return names, sorted(short_names)
 
+
 def swappy(schema, items_to_swap=()):
 
     def swap(array, pos1, pos2):
@@ -780,9 +797,26 @@ def swappy(schema, items_to_swap=()):
 
     schema.complex_assocs = dict(result)
 
+
 sorter1(schema)
-swappy(schema, [(25, 32 ), (24, 33), (19, 31), (9,  31), (9, 12), (6, 31), (9, 11),
-    (15, 31), (11, 15), (12, 15), (20, 31), (22, 31), (42, 43), (46, 47)]
+swappy(
+    schema,
+    [
+        (25, 32),
+        (24, 33),
+        (19, 31),
+        (9, 31),
+        (9, 12),
+        (6, 31),
+        (9, 11),
+        (15, 31),
+        (11, 15),
+        (12, 15),
+        (20, 31),
+        (22, 31),
+        (42, 43),
+        (46, 47),
+    ],
 )
 
 names, shortnames = traverser(schema)
@@ -797,30 +831,81 @@ with io.open("msrsw_db.py", "w") as fout:
     fout.write(do_template_from_text(HEADER))
     fout.write("\n")
 
-    fout.write(do_template_from_text(ASSOCS, namespace={
-        "schema": schema, "xml_name_converter": xml_name_converter, "map_name": map_name,
-        "Number": Number, "Integer": Integer, "String": String, "Array": Array, "Reference": Reference,
-        "Element": Element, "re": re, "table_name": table_name, "klass_name": klass_name,
-        "attr_name": attr_name, "rel_name": rel_name, "TYPE_MAP": TYPE_MAP,
-    }, formatExceptions=False))
+    fout.write(
+        do_template_from_text(
+            ASSOCS,
+            namespace={
+                "schema": schema,
+                "xml_name_converter": xml_name_converter,
+                "map_name": map_name,
+                "Number": Number,
+                "Integer": Integer,
+                "String": String,
+                "Array": Array,
+                "Reference": Reference,
+                "Element": Element,
+                "re": re,
+                "table_name": table_name,
+                "klass_name": klass_name,
+                "attr_name": attr_name,
+                "rel_name": rel_name,
+                "TYPE_MAP": TYPE_MAP,
+            },
+            formatExceptions=False,
+        )
+    )
     fout.write("\n")
 
-    fout.write(do_template_from_text(DEFI, namespace={
-        "schema": schema, "xml_name_converter": xml_name_converter, "map_name": map_name,
-        "Number": Number, "Integer": Integer, "String": String, "Array": Array, "Reference": Reference,
-        "Element": Element, "re": re, "table_name": table_name, "klass_name": klass_name,
-        "attr_name": attr_name, "rel_name": rel_name, "TYPE_MAP": TYPE_MAP,
-    }, formatExceptions=False))
+    fout.write(
+        do_template_from_text(
+            DEFI,
+            namespace={
+                "schema": schema,
+                "xml_name_converter": xml_name_converter,
+                "map_name": map_name,
+                "Number": Number,
+                "Integer": Integer,
+                "String": String,
+                "Array": Array,
+                "Reference": Reference,
+                "Element": Element,
+                "re": re,
+                "table_name": table_name,
+                "klass_name": klass_name,
+                "attr_name": attr_name,
+                "rel_name": rel_name,
+                "TYPE_MAP": TYPE_MAP,
+            },
+            formatExceptions=False,
+        )
+    )
     fout.write("\n")
 
-    fout.write(do_template_from_text(PROPS, namespace={
-        "schema": schema, "xml_name_converter": xml_name_converter, "map_name": map_name,
-        "Number": Number, "Integer": Integer, "String": String, "Array": Array, "Reference": Reference,
-        "Element": Element, "re": re, "table_name": table_name, "klass_name": klass_name,
-        "attr_name": attr_name, "rel_name": rel_name, "TYPE_MAP": TYPE_MAP,
-    }, formatExceptions=False))
+    fout.write(
+        do_template_from_text(
+            PROPS,
+            namespace={
+                "schema": schema,
+                "xml_name_converter": xml_name_converter,
+                "map_name": map_name,
+                "Number": Number,
+                "Integer": Integer,
+                "String": String,
+                "Array": Array,
+                "Reference": Reference,
+                "Element": Element,
+                "re": re,
+                "table_name": table_name,
+                "klass_name": klass_name,
+                "attr_name": attr_name,
+                "rel_name": rel_name,
+                "TYPE_MAP": TYPE_MAP,
+            },
+            formatExceptions=False,
+        )
+    )
     fout.write("\n")
     fout.write(do_template_from_text(POST_HEADER, namespace={"names": names}))
     fout.write("\n")
-    fout.write(do_template_from_text(FOOTER, namespace={"shortnames": shortnames}))   #
+    fout.write(do_template_from_text(FOOTER, namespace={"shortnames": shortnames}))  #
     fout.write("\n")

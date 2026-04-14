@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """DAMOS DCM 2.0 format — export and import."""
+
 from __future__ import annotations
 
 __copyright__ = """

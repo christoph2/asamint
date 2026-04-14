@@ -10,9 +10,7 @@ from asamint.cdf.exporter.cdf_exporter import CDFExporter
 from asamint.utils.xml import create_validator
 
 
-def test_export_cdf_invokes_export(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_export_cdf_invokes_export(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     calls: dict[str, object] = {"db_closed": False, "h5_closed": False}
     dummy_logger = SimpleNamespace()
     monkeypatch.setattr(cdf, "configure_logging", lambda _: dummy_logger)
@@ -25,9 +23,7 @@ def test_export_cdf_invokes_export(
             calls["db_closed"] = True
 
     class DummyH5:
-        def __init__(
-            self, file_name: str | Path, mode: str = "r", logger: object | None = None
-        ) -> None:
+        def __init__(self, file_name: str | Path, mode: str = "r", logger: object | None = None) -> None:
             calls["h5_path"] = Path(file_name)
             calls["h5_logger"] = logger
 
@@ -79,9 +75,7 @@ def test_export_cdf_invokes_export(
     assert calls["h5_logger"] is dummy_logger
 
 
-def test_import_cdf_invokes_importer(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_import_cdf_invokes_importer(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     calls: dict[str, object] = {}
     dummy_logger = SimpleNamespace()
     monkeypatch.setattr(cdf, "configure_logging", lambda _: dummy_logger)
@@ -198,9 +192,7 @@ class _DummyExporterDb:
         self.session = _DummySession(root_obj)
 
 
-def test_cdf_exporter_writes_doctype_and_validates_when_enabled(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_cdf_exporter_writes_doctype_and_validates_when_enabled(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     calls: dict[str, object] = {}
     exporter = CDFExporter(
         db=_DummyExporterDb(object()),
@@ -233,7 +225,7 @@ def test_cdf_exporter_writes_doctype_and_validates_when_enabled(
     monkeypatch.setattr(
         exporter_module,
         "create_validator",
-        lambda name: (calls.__setitem__("dtd_name", name) or DummyValidator()),
+        lambda name: calls.__setitem__("dtd_name", name) or DummyValidator(),
     )
 
     output = tmp_path / "export.cdfx"
@@ -244,9 +236,7 @@ def test_cdf_exporter_writes_doctype_and_validates_when_enabled(
     assert "cdf_v2.0.0.sl.dtd" in output.read_text(encoding="utf-8")
 
 
-def test_cdf_exporter_returns_false_when_dtd_validation_fails(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_cdf_exporter_returns_false_when_dtd_validation_fails(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     exporter = CDFExporter(
         db=_DummyExporterDb(object()),
         logger=SimpleNamespace(
@@ -269,9 +259,7 @@ def test_cdf_exporter_returns_false_when_dtd_validation_fails(
 
     import asamint.cdf.exporter.cdf_exporter as exporter_module
 
-    monkeypatch.setattr(
-        exporter_module, "create_validator", lambda name: DummyValidator()
-    )
+    monkeypatch.setattr(exporter_module, "create_validator", lambda name: DummyValidator())
 
     output = tmp_path / "export.cdfx"
 

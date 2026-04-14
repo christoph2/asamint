@@ -42,9 +42,7 @@ FIXTURE_DIR = Path(__file__).parent
 
 @pytest.fixture(scope="module")
 def cdf20_session():
-    session = open_a2l_database(
-        str(FIXTURE_DIR / "CDF20demo"), encoding="latin1", local=True
-    )
+    session = open_a2l_database(str(FIXTURE_DIR / "CDF20demo"), encoding="latin1", local=True)
     yield session
     close_fn = getattr(session, "close", None)
     if callable(close_fn):
@@ -138,9 +136,7 @@ class TestWriteGuards:
         """save_value raises VirtualWriteError for a virtual characteristic."""
         char = _make_virtual_characteristic("VIRT_VALUE")
 
-        with patch.object(
-            cdf20_offline, "get_characteristic", return_value=char
-        ):
+        with patch.object(cdf20_offline, "get_characteristic", return_value=char):
             with pytest.raises(VirtualWriteError, match="Cannot write to virtual"):
                 cdf20_offline.save_value("VIRT_VALUE", 42.0)
 
@@ -149,9 +145,7 @@ class TestWriteGuards:
         char = _make_virtual_characteristic("VIRT_VALBLK")
         char.type = "VAL_BLK"
 
-        with patch.object(
-            cdf20_offline, "get_characteristic", return_value=char
-        ):
+        with patch.object(cdf20_offline, "get_characteristic", return_value=char):
             with pytest.raises(VirtualWriteError, match="Cannot write to virtual"):
                 cdf20_offline.save_value_block("VIRT_VALBLK", np.array([1, 2, 3]))
 
@@ -164,9 +158,7 @@ class TestWriteGuards:
             raw=np.array([1.0, 2.0]),
             phys=np.array([1.0, 2.0]),
         )
-        with patch.object(
-            cdf20_offline, "get_characteristic", return_value=char
-        ):
+        with patch.object(cdf20_offline, "get_characteristic", return_value=char):
             with pytest.raises(VirtualWriteError, match="Cannot write to virtual"):
                 cdf20_offline.save_curve_or_map("VIRT_CURVE", wrapper)
 

@@ -131,9 +131,7 @@ class CDFExporter:
     def _append_values(self, elem, data) -> None:
         category = data.attrs.get("category", "")
         if category in ("VALUE", "DEPENDENT_VALUE", "BOOLEAN", "ASCII", "TEXT"):
-            self._append_scalar_value(
-                elem, data.values, "VT" if category in ("ASCII", "TEXT") else "V"
-            )
+            self._append_scalar_value(elem, data.values, "VT" if category in ("ASCII", "TEXT") else "V")
             return
         if category in (
             "VAL_BLK",
@@ -158,11 +156,7 @@ class CDFExporter:
 
     @staticmethod
     def _apply_terminal_content(elem, obj) -> None:
-        if (
-            getattr(obj, "TERMINAL", False)
-            and hasattr(obj, "content")
-            and obj.content is not None
-        ):
+        if getattr(obj, "TERMINAL", False) and hasattr(obj, "content") and obj.content is not None:
             elem.text = str(obj.content)
 
     def _populate_value_container(self, elem, obj) -> bool:
@@ -182,9 +176,7 @@ class CDFExporter:
         session = inspect(obj).session
         if not session:
             return None
-        instance = (
-            session.query(SwInstance).filter(SwInstance.sw_value_cont == obj).first()
-        )
+        instance = session.query(SwInstance).filter(SwInstance.sw_value_cont == obj).first()
         if instance and instance.short_name:
             return instance.short_name.content
         return None
@@ -243,15 +235,10 @@ class CDFExporter:
         child.text = str(value)
 
     def _append_array_values(self, elem, data, category: str) -> None:
-        if (
-            category in ("CURVE", "MAP", "VAL_BLK", "CUBOID", "CUBE4", "CUBE5")
-            and len(data.dims) > 0
-        ):
+        if category in ("CURVE", "MAP", "VAL_BLK", "CUBOID", "CUBE4", "CUBE5") and len(data.dims) > 0:
             self._append_grouped_values(elem, data.values)
             return
-        self._append_flat_values(
-            elem, data.values.flatten(), "VT" if category == "ASCII" else "V"
-        )
+        self._append_flat_values(elem, data.values.flatten(), "VT" if category == "ASCII" else "V")
 
     def _append_grouped_values(self, elem, values) -> None:
         if len(values.shape) == 1:

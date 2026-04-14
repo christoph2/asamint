@@ -36,9 +36,7 @@ def test_boolean():
 
 @pytest.fixture
 def calibration_context():
-    session = open_a2l_database(
-        str(FIXTURE_DIR / "CDF20demo"), encoding="latin1", local=True
-    )
+    session = open_a2l_database(str(FIXTURE_DIR / "CDF20demo"), encoding="latin1", local=True)
     context = SimpleNamespace(
         session=session,
         mod_common=ModCommon.get(session),
@@ -319,9 +317,7 @@ def test_axis_pts004(offline):
 
 
 def test_axis_pts005(offline):
-    load_save_verify_axis_pts(
-        offline, "LUT2D_1_y_table", [-19200, -6400, 19200], [-150.0, -50.0, 150.0]
-    )
+    load_save_verify_axis_pts(offline, "LUT2D_1_y_table", [-19200, -6400, 19200], [-150.0, -50.0, 150.0])
 
 
 def test_axis_pts006(offline):

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Tests for asamint.cdf.exporter.matlab (Exporter, do_axis_containers)."""
+
 from __future__ import annotations
 
 from types import SimpleNamespace
@@ -43,9 +44,7 @@ def _scalar_inst(name="P1", category="VALUE", phys_val=42.0, unit="rpm"):
     )
 
 
-def _array_inst(
-    name="A1", category="VAL_BLK", phys_vals=(1.0, 2.0, 3.0), dims=(3,), unit="m"
-):
+def _array_inst(name="A1", category="VAL_BLK", phys_vals=(1.0, 2.0, 3.0), dims=(3,), unit="m"):
     return _ns(
         short_name=name,
         category=category,
@@ -215,9 +214,7 @@ def test_array_values_map_preserves_values(exp: _ME) -> None:
 
 
 def test_emit_array_val_blk(exp: _ME, capsys) -> None:
-    vc = _ns(
-        values_phys=[V(phys=float(i)) for i in range(3)], array_size=ArraySize((3,))
-    )
+    vc = _ns(values_phys=[V(phys=float(i)) for i in range(3)], array_size=ArraySize((3,)))
     exp._emit_array("Arr", vc, "m", "VAL_BLK")
     out = capsys.readouterr().out
     assert "Arr = [" in out
@@ -234,9 +231,7 @@ def test_emit_array_curve(exp: _ME, capsys) -> None:
 
 
 def test_emit_array_map(exp: _ME, capsys) -> None:
-    vc = _ns(
-        values_phys=[V(phys=float(i)) for i in range(4)], array_size=ArraySize((2, 2))
-    )
+    vc = _ns(values_phys=[V(phys=float(i)) for i in range(4)], array_size=ArraySize((2, 2)))
     exp._emit_array("M", vc, "K", "MAP")
     out = capsys.readouterr().out
     assert "M = [" in out
@@ -256,9 +251,7 @@ def test_emit_array_unit_in_comment(exp: _ME, capsys) -> None:
 
 
 def test_emit_axis_com(exp: _ME, capsys) -> None:
-    vc = _ns(
-        values_phys=[V(phys=1.0), V(phys=2.0), V(phys=3.0)], array_size=ArraySize((3,))
-    )
+    vc = _ns(values_phys=[V(phys=1.0), V(phys=2.0), V(phys=3.0)], array_size=ArraySize((3,)))
     exp._emit_axis("AX", vc, "rpm", "COM_AXIS")
     out = capsys.readouterr().out
     assert "AX = [" in out
@@ -343,11 +336,7 @@ def test_on_instance_curve(exp: _ME, capsys) -> None:
 
 
 def test_on_instance_map(exp: _ME, capsys) -> None:
-    exp.on_instance(
-        _array_inst(
-            name="MP", category="MAP", phys_vals=(1.0, 2.0, 3.0, 4.0), dims=(2, 2)
-        )
-    )
+    exp.on_instance(_array_inst(name="MP", category="MAP", phys_vals=(1.0, 2.0, 3.0, 4.0), dims=(2, 2)))
     out = capsys.readouterr().out
     assert "MP = [" in out
     assert "  -- MAP" in out
@@ -387,9 +376,7 @@ def test_on_instance_unknown_category_no_output(exp: _ME, capsys) -> None:
     inst = _ns(
         short_name="X",
         category="UNKNOWN_CAT",
-        values=_ns(
-            unit_display_name=None, values_phys=[V(phys=0.0)], array_size=ArraySize(())
-        ),
+        values=_ns(unit_display_name=None, values_phys=[V(phys=0.0)], array_size=ArraySize(())),
     )
     exp.on_instance(inst)
     assert capsys.readouterr().out == ""

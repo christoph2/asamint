@@ -44,9 +44,7 @@ def _write_metadata_headers(
         else:
             fh.write(f"# {sig}\n")
     if meta:
-        fh.write(
-            "# timebase metadata per signal: tb≈<seconds>, src=<timestamp key>, grp=<id>\n"
-        )
+        fh.write("# timebase metadata per signal: tb≈<seconds>, src=<timestamp key>, grp=<id>\n")
         for sig in sorted(k for k in units.keys()):
             m = meta.get(sig, {})
             tb = m.get("timebase_s")
@@ -61,9 +59,7 @@ def _write_metadata_headers(
     fh.write("#\n")
 
 
-def _iter_csv_rows(
-    timestamps: list[Any], series_keys: list[str], data: dict[str, Any]
-) -> Iterable[list[Any]]:
+def _iter_csv_rows(timestamps: list[Any], series_keys: list[str], data: dict[str, Any]) -> Iterable[list[Any]]:
     for idx, t_val in enumerate(timestamps):
         row = [t_val]
         for key in series_keys:
@@ -215,9 +211,7 @@ def _parse_daq_csv_python(csv_file: Path) -> dict[str, Any]:
             try:
                 col_data[idx].append(float(value))
             except (ValueError, TypeError, IndexError) as exc:
-                logger.debug(
-                    "Skipping non-numeric value %r at column %s: %s", value, idx, exc
-                )
+                logger.debug("Skipping non-numeric value %r at column %s: %s", value, idx, exc)
 
     result: dict[str, Any] = {}
     if ts_idx is not None:
@@ -256,4 +250,3 @@ def _merge_daq_csv_results(files: Iterable[Path]) -> dict[str, Any]:
         max_len = max((len(v) for k, v in merged.items() if k != "TIMESTAMPS"), default=0)
         merged["TIMESTAMPS"] = np.arange(max_len, dtype=float)
     return merged
-

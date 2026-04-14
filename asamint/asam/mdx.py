@@ -72,9 +72,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
     )
     """
 
-    DOCTYPE = (
-        '<!DOCTYPE MSRSW PUBLIC "-//MSR//DTD MSR SOFTWARE DTD:V2.2.0:MSRSW.DTD//EN">'
-    )
+    DOCTYPE = '<!DOCTYPE MSRSW PUBLIC "-//MSR//DTD MSR SOFTWARE DTD:V2.2.0:MSRSW.DTD//EN">'
     # <!DOCTYPE MSRSW PUBLIC"-//ASAM//DTD MSR SOFTWARE DTD:V3.0.0:LAI:IAI:XML:MSRSW300.XSD//EN" "MSRSW_v3.0.0.DTD">
     DTD = "mdx_v1_0_0.sl.dtd"
     EXTENSION = "_mdx.xml"
@@ -144,11 +142,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
         PHYSICAL-DIMENSION-REF?
         """
         cm_units = self.query(model.CompuMethod.unit.distinct()).all()
-        self.cm_units = {
-            u[0]: format(f"{replace_non_c_char(u[0])}_{sha1_digest(u[0])}")
-            for u in cm_units
-            if u[0]
-        }
+        self.cm_units = {u[0]: format(f"{replace_non_c_char(u[0])}_{sha1_digest(u[0])}") for u in cm_units if u[0]}
         unit_spec = create_elem(tree, "UNIT-SPEC")
         units = create_elem(unit_spec, "UNITS")
         for k, v in self.cm_units.items():
@@ -248,15 +242,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             if is_block:
                 if matrixDim:
                     dim = (m for m in matrixDim if m and m > 1)
-            category = (
-                "VALUE_ARRAY"
-                if is_block
-                else (
-                    "DEPENDENT_VALUE"
-                    if is_dependent
-                    else "ASCII" if is_ascii else "VALUE"
-                )
-            )
+            category = "VALUE_ARRAY" if is_block else ("DEPENDENT_VALUE" if is_dependent else "ASCII" if is_ascii else "VALUE")
             cal_parm = create_elem(cal_parms, "SW-CALPRM", attrib={"ID": ch_name})
             self.common_elements(
                 cal_parm,
@@ -276,11 +262,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             )
             if is_ascii:
                 text_props = create_elem(data_def_props, "SW-TEXT-PROPS")
-                size = (
-                    chx.number
-                    if chx.number is not None
-                    else matrixDim[0] if matrixDim else 0
-                )
+                size = chx.number if chx.number is not None else matrixDim[0] if matrixDim else 0
                 create_elem(text_props, "SW-MAX-TEXT-SIZE", text=str(size))
             else:
                 create_elem(data_def_props, "COMPU-METHOD-REF", text=compu_method.name)
@@ -361,9 +343,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
 
     def _compu_methods(self, tree) -> None:
         cm_tree = create_elem(tree, "COMPU-METHODS")
-        for conversion in [
-            x[0] for x in self.session.query(model.CompuMethod.name).all()
-        ]:
+        for conversion in [x[0] for x in self.session.query(model.CompuMethod.name).all()]:
             cm = CompuMethod.get(self.session, conversion)
             self._compu_method(cm_tree, conversion, cm)
 
@@ -383,9 +363,7 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
         cpti = create_elem(cm, "COMPU-PHYS-TO-INTERNAL")
         scales = create_elem(cpti, "COMPU-SCALES")
         simple_handlers = {
-            "IDENTICAL": lambda: self._append_rational_scale(
-                scales, ("0", "1"), ("1", "0")
-            ),
+            "IDENTICAL": lambda: self._append_rational_scale(scales, ("0", "1"), ("1", "0")),
             "FORM": lambda: None,
             "LINEAR": lambda: self._append_rational_scale(
                 scales,
@@ -397,32 +375,18 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             ),
             "RAT_FUNC": lambda: self._append_rational_scale(
                 scales,
-                (
-                    self._coeff_value(compu_method.coeffs, key)
-                    for key in ("c", "b", "a")
-                ),
-                (
-                    self._coeff_value(compu_method.coeffs, key)
-                    for key in ("f", "e", "d")
-                ),
+                (self._coeff_value(compu_method.coeffs, key) for key in ("c", "b", "a")),
+                (self._coeff_value(compu_method.coeffs, key) for key in ("f", "e", "d")),
             ),
-            "TAB_INTP": lambda: self._append_numeric_table_conversion(
-                cpti, scales, compu_method
-            ),
-            "TAB_NOINTP": lambda: self._append_numeric_table_conversion(
-                cpti, scales, compu_method
-            ),
-            "TAB_VERB": lambda: self._append_text_table_conversion(
-                cpti, scales, compu_method
-            ),
+            "TAB_INTP": lambda: self._append_numeric_table_conversion(cpti, scales, compu_method),
+            "TAB_NOINTP": lambda: self._append_numeric_table_conversion(cpti, scales, compu_method),
+            "TAB_VERB": lambda: self._append_text_table_conversion(cpti, scales, compu_method),
         }
         handler = simple_handlers.get(cm_type)
         if handler:
             handler()
 
-    def _append_rational_scale(
-        self, scales, numerator_values, denominator_values
-    ) -> None:
+    def _append_rational_scale(self, scales, numerator_values, denominator_values) -> None:
         scale = create_elem(scales, "COMPU-SCALE")
         coeffs = create_elem(scale, "COMPU-RATIONAL-COEFFS")
         numerator = create_elem(coeffs, "COMPU-NUMERATOR")
@@ -447,12 +411,8 @@ class MDXCreator(msrsw.MSRMixIn, AsamMC):
             attrib={"INTERVAL-TYPE": "CLOSED"},
         )
 
-    def _append_table_values(
-        self, scales, lower_values, upper_values, out_values, value_tag: str
-    ) -> None:
-        for lower_value, upper_value, out_value in zip(
-            lower_values, upper_values, out_values
-        ):
+    def _append_table_values(self, scales, lower_values, upper_values, out_values, value_tag: str) -> None:
+        for lower_value, upper_value, out_value in zip(lower_values, upper_values, out_values):
             scale = create_elem(scales, "COMPU-SCALE")
             self._append_limits(scale, lower_value, upper_value)
             compu_const = create_elem(scale, "COMPU-CONST")

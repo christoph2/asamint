@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Tests for asamint.cdf.exporter.dcm (Exporter) and cdf_exporter (CDFExporter)."""
+
 from __future__ import annotations
 
 from decimal import Decimal
@@ -46,9 +47,7 @@ def _inst(
 ):
     """Build a minimal instance SimpleNamespace matching Exporter's attribute access."""
     if values is None:
-        values = _ns(
-            unit_display_name=_ns(phys=unit), values_phys=[], array_size=ArraySize(())
-        )
+        values = _ns(unit_display_name=_ns(phys=unit), values_phys=[], array_size=ArraySize(()))
     return _ns(
         short_name=name,
         long_name=long_name,
@@ -202,9 +201,7 @@ def test_emit_rows_slices_at_6(exporter: _E, capsys) -> None:
 
 def test_emit_scalar_decimal(exporter: _E, capsys) -> None:
     vc = _ns(values_phys=[V(phys=Decimal("3.14"))])
-    exporter._emit_scalar(
-        _inst(values=_ns(unit_display_name=_ns(phys=""))), "VALUE", vc
-    )
+    exporter._emit_scalar(_inst(values=_ns(unit_display_name=_ns(phys=""))), "VALUE", vc)
     out = capsys.readouterr().out
     assert "WERT 3.14" in out
     assert "END" in out
@@ -212,36 +209,28 @@ def test_emit_scalar_decimal(exporter: _E, capsys) -> None:
 
 def test_emit_scalar_boolean_true(exporter: _E, capsys) -> None:
     vc = _ns(values_phys=[V(phys="true")])
-    exporter._emit_scalar(
-        _inst(values=_ns(unit_display_name=_ns(phys=""))), "BOOLEAN", vc
-    )
+    exporter._emit_scalar(_inst(values=_ns(unit_display_name=_ns(phys=""))), "BOOLEAN", vc)
     out = capsys.readouterr().out
     assert "WERT 1" in out
 
 
 def test_emit_scalar_boolean_false(exporter: _E, capsys) -> None:
     vc = _ns(values_phys=[V(phys="false")])
-    exporter._emit_scalar(
-        _inst(values=_ns(unit_display_name=_ns(phys=""))), "BOOLEAN", vc
-    )
+    exporter._emit_scalar(_inst(values=_ns(unit_display_name=_ns(phys=""))), "BOOLEAN", vc)
     out = capsys.readouterr().out
     assert "WERT 0" in out
 
 
 def test_emit_scalar_text(exporter: _E, capsys) -> None:
     vc = _ns(values_phys=[VT(phys="hello")])
-    exporter._emit_scalar(
-        _inst(values=_ns(unit_display_name=_ns(phys=""))), "VALUE", vc
-    )
+    exporter._emit_scalar(_inst(values=_ns(unit_display_name=_ns(phys=""))), "VALUE", vc)
     out = capsys.readouterr().out
     assert 'TEXT "hello"' in out
 
 
 def test_emit_scalar_zero_value_no_wert(exporter: _E, capsys) -> None:
     vc = _ns(values_phys=[V(phys=0)])
-    exporter._emit_scalar(
-        _inst(values=_ns(unit_display_name=_ns(phys=""))), "VALUE", vc
-    )
+    exporter._emit_scalar(_inst(values=_ns(unit_display_name=_ns(phys=""))), "VALUE", vc)
     out = capsys.readouterr().out
     # zero is falsy → no "  WERT …" value line, but "END" is printed
     assert "END" in out

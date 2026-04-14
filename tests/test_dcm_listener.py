@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Tests for asamint.damos.dcm_listener – BaseListener helpers and Dcm20Listener.exit* methods."""
+
 from __future__ import annotations
 
 from decimal import Decimal

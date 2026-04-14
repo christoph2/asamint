@@ -4,6 +4,7 @@
 Tests the full cycle:  CDF XML → import (CDFImporter) → MSRSW DB → export (CDFExporter) → CDF XML.
 Verifies that structure and values survive the round-trip.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -37,7 +38,9 @@ _CDF_HEADER = """\
 <!DOCTYPE MSRSW PUBLIC "-//ASAM//DTD CALIBRATION DATA FORMAT:V2.0.0:LAI:IAI:XML:CDF200.XSD//EN" "cdf_v2.0.0.sl.dtd">
 """
 
-_SCALAR_CDF = _CDF_HEADER + """\
+_SCALAR_CDF = (
+    _CDF_HEADER
+    + """\
 <MSRSW>
   <SHORT-NAME>RoundTrip</SHORT-NAME>
   <CATEGORY>CDF20</CATEGORY>
@@ -65,8 +68,11 @@ _SCALAR_CDF = _CDF_HEADER + """\
   </SW-SYSTEMS>
 </MSRSW>
 """
+)
 
-_MULTI_CDF = _CDF_HEADER + """\
+_MULTI_CDF = (
+    _CDF_HEADER
+    + """\
 <MSRSW>
   <SHORT-NAME>MultiTest</SHORT-NAME>
   <CATEGORY>CDF20</CATEGORY>
@@ -117,6 +123,7 @@ _MULTI_CDF = _CDF_HEADER + """\
   </SW-SYSTEMS>
 </MSRSW>
 """
+)
 
 
 # ---------------------------------------------------------------------------
@@ -173,9 +180,7 @@ def _parse_xml(xml_file: Path) -> etree._Element:
 
 def _find_instances(root: etree._Element) -> list[etree._Element]:
     """Find all SW-INSTANCE elements in CDF XML."""
-    return root.findall(".//{http://www.w3.org/1999/xhtml}SW-INSTANCE") or root.findall(
-        ".//SW-INSTANCE"
-    )
+    return root.findall(".//{http://www.w3.org/1999/xhtml}SW-INSTANCE") or root.findall(".//SW-INSTANCE")
 
 
 def _instance_map(root: etree._Element) -> dict[str, etree._Element]:
@@ -469,9 +474,7 @@ class TestExampleRoundTrip:
         exported_names = set(_instance_map(exported_root).keys())
 
         assert original_names == exported_names, (
-            f"Instance names differ: "
-            f"missing={original_names - exported_names}, "
-            f"extra={exported_names - original_names}"
+            f"Instance names differ: missing={original_names - exported_names}, extra={exported_names - original_names}"
         )
 
 

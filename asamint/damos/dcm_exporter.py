@@ -34,11 +34,7 @@ class ParamData:
         if self.values is None:
             return
         if self.category in ("VALUE", "BOOLEAN", "TEXT"):
-            self.converted_value = (
-                self.values.values.item()
-                if hasattr(self.values.values, "item")
-                else self.values.values
-            )
+            self.converted_value = self.values.values.item() if hasattr(self.values.values, "item") else self.values.values
             self.value = self.converted_value
         else:
             self.converted_values = self.values.values
@@ -54,9 +50,7 @@ class DcmExporter:
         self.db = db
         self.h5_db = h5_db
         self.logger = logger or logging.getLogger(__name__)
-        self.template_path = (
-            Path(__file__).parent.parent / "data" / "templates" / "dcm.tmpl"
-        )
+        self.template_path = Path(__file__).parent.parent / "data" / "templates" / "dcm.tmpl"
 
     def export(self, output_path: str | Path) -> bool:
         self.logger.info(f"Exporting DCM to {output_path}")
@@ -81,9 +75,7 @@ class DcmExporter:
         instances = self.db.session.query(SwInstance).all()
         for inst in instances:
             param_data = self._prepare_param_data(inst)
-            bucket = (
-                self._bucket_for_category(param_data.category) if param_data else None
-            )
+            bucket = self._bucket_for_category(param_data.category) if param_data else None
             if bucket and param_data:
                 params[bucket][param_data.name] = param_data
         return params
@@ -113,9 +105,7 @@ class DcmExporter:
             "current_datetime": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
 
-    def _render_template(
-        self, output_path: str | Path, namespace: dict[str, Any]
-    ) -> bool:
+    def _render_template(self, output_path: str | Path, namespace: dict[str, Any]) -> bool:
         try:
             res = do_template(
                 str(self.template_path),
@@ -140,9 +130,7 @@ class DcmExporter:
             return None
 
         data = self._load_h5_data(name)
-        category = self._normalize_category(
-            inst.category.content if inst.category else "VALUE"
-        )
+        category = self._normalize_category(inst.category.content if inst.category else "VALUE")
         comment, display_id, unit = self._metadata_from_data(data)
         return ParamData(
             name,
@@ -192,16 +180,12 @@ class DcmExporter:
             return []
         axes_data: list[AxisData] = []
         for dim_name in data.dims:
-            axis_values = (
-                data.coords[dim_name].values if dim_name in data.coords else []
-            )
+            axis_values = data.coords[dim_name].values if dim_name in data.coords else []
             axes_data.append(AxisData("STD_AXIS", "", axis_values))
         return axes_data
 
 
-def export_to_dcm(
-    db_path: str | Path, output_dcm_path: str | Path, h5_path: str | Path = None
-) -> bool:
+def export_to_dcm(db_path: str | Path, output_dcm_path: str | Path, h5_path: str | Path = None) -> bool:
     db = MSRSWDatabase(db_path)
 
     h5_db = None

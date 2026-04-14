@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """API stability tests for asamint.api."""
+
 from __future__ import annotations
 
 import importlib

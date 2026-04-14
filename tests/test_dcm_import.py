@@ -4,6 +4,7 @@
 Tests the full parsing chain: DCM text → ANTLR lexer/parser → Dcm20Listener → dict.
 Unit tests for individual exit* methods live in ``test_dcm_listener.py``.
 """
+
 from __future__ import annotations
 
 from decimal import Decimal
@@ -21,6 +22,7 @@ EXAMPLES_DIR = Path(__file__).resolve().parent.parent / "asamint" / "examples"
 # ---------------------------------------------------------------------------
 # Helper
 # ---------------------------------------------------------------------------
+
 
 def _parse(text: str) -> dict:
     """Shortcut: parse DCM text and return the result dict."""
@@ -42,6 +44,7 @@ def _first(text: str, key: str):
 # ---------------------------------------------------------------------------
 # FESTWERT (scalar)
 # ---------------------------------------------------------------------------
+
 
 class TestFestwert:
     """Parse FESTWERT (scalar value) entries."""
@@ -100,6 +103,7 @@ END
 # FESTWERTEBLOCK (value block / array)
 # ---------------------------------------------------------------------------
 
+
 class TestFestwerteblock:
     """Parse FESTWERTEBLOCK entries."""
 
@@ -129,6 +133,7 @@ END
 # ---------------------------------------------------------------------------
 # KENNLINIE (curve)
 # ---------------------------------------------------------------------------
+
 
 class TestKennlinie:
     """Parse KENNLINIE entries."""
@@ -164,6 +169,7 @@ END
 # ---------------------------------------------------------------------------
 # KENNFELD (map)
 # ---------------------------------------------------------------------------
+
 
 class TestKennfeld:
     """Parse KENNFELD entries."""
@@ -206,6 +212,7 @@ END
 # STUETZSTELLENVERTEILUNG (shared axis / group breakpoints)
 # ---------------------------------------------------------------------------
 
+
 class TestGruppenstuetzstellen:
     """Parse STUETZSTELLENVERTEILUNG entries."""
 
@@ -240,6 +247,7 @@ END
 # TEXTSTRING
 # ---------------------------------------------------------------------------
 
+
 class TestTextstring:
     """Parse TEXTSTRING entries."""
 
@@ -263,6 +271,7 @@ END
 # ---------------------------------------------------------------------------
 # Top-level structure
 # ---------------------------------------------------------------------------
+
 
 class TestTopLevel:
     """Top-level parse result structure."""
@@ -310,6 +319,7 @@ END
 # Multiple entry types in one file
 # ---------------------------------------------------------------------------
 
+
 class TestMixedEntries:
     """Parse files with multiple entry types."""
 
@@ -354,6 +364,7 @@ END
 # ParserWrapper.result attribute
 # ---------------------------------------------------------------------------
 
+
 class TestParserWrapperResult:
     """Verify that ParserWrapper stores result on listener."""
 
@@ -384,6 +395,7 @@ END
 # import_dcm convenience function
 # ---------------------------------------------------------------------------
 
+
 class TestImportDcm:
     """Test the import_dcm() convenience function."""
 
@@ -394,7 +406,7 @@ class TestImportDcm:
     def test_import_from_file(self, tmp_path: Path) -> None:
         dcm_file = tmp_path / "test.dcm"
         dcm_file.write_text(
-            "KONSERVIERUNG_FORMAT 2.0\n\nFESTWERT P\n  EINHEIT_W \"-\"\n  WERT 5.0\nEND\n",
+            'KONSERVIERUNG_FORMAT 2.0\n\nFESTWERT P\n  EINHEIT_W "-"\n  WERT 5.0\nEND\n',
             encoding="latin-1",
         )
         result = import_dcm(dcm_file)
@@ -405,7 +417,7 @@ class TestImportDcm:
     def test_import_from_string_path(self, tmp_path: Path) -> None:
         dcm_file = tmp_path / "demo.dcm"
         dcm_file.write_text(
-            "KONSERVIERUNG_FORMAT 2.0\n\nFESTWERT Q\n  EINHEIT_W \"A\"\n  WERT 8.0\nEND\n",
+            'KONSERVIERUNG_FORMAT 2.0\n\nFESTWERT Q\n  EINHEIT_W "A"\n  WERT 8.0\nEND\n',
             encoding="latin-1",
         )
         result = import_dcm(str(dcm_file))
@@ -415,6 +427,7 @@ class TestImportDcm:
 # ---------------------------------------------------------------------------
 # Real example file parsing
 # ---------------------------------------------------------------------------
+
 
 class TestExampleFiles:
     """Parse real example DCM files from the repository."""
@@ -449,6 +462,7 @@ class TestExampleFiles:
 # ---------------------------------------------------------------------------
 # API surface
 # ---------------------------------------------------------------------------
+
 
 class TestAPISurface:
     """Verify import_dcm is accessible from asamint.api."""

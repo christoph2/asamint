@@ -76,20 +76,13 @@ class CompuMethods(Mapping):
     def __init__(self, session: Any, referenced: bool = True) -> None:
         if referenced:
             conversions = (
-                session.query(model.Measurement.conversion)
-                .filter(model.Measurement.conversion != "NO_COMPU_METHOD")
-                .distinct()
+                session.query(model.Measurement.conversion).filter(model.Measurement.conversion != "NO_COMPU_METHOD").distinct()
             )
             self._compu_methods = {
-                item.name: item
-                for item in session.query(model.CompuMethod)
-                .filter(model.CompuMethod.name.in_(conversions))
-                .all()
+                item.name: item for item in session.query(model.CompuMethod).filter(model.CompuMethod.name.in_(conversions)).all()
             }
         else:
-            self._compu_methods = {
-                item.name: item for item in session.query(model.CompuMethod).all()
-            }
+            self._compu_methods = {item.name: item for item in session.query(model.CompuMethod).all()}
         for cm in self._compu_methods.values():
             conversionType = cm.conversionType
             if conversionType == "IDENTICAL":
@@ -123,20 +116,12 @@ class Measurement:
 
     def __init__(self, session: Any, name: str) -> None:
         self.session = session
-        self._meas = (
-            session.query(model.Measurement)
-            .filter(model.Measurement.name == name)
-            .first()
-        )
+        self._meas = session.query(model.Measurement).filter(model.Measurement.name == name).first()
 
 
 def getCM(session: Any, name: str) -> Optional[Any]:
     if name != "NO_COMPU_METHOD":
-        cm = (
-            session.query(model.CompuMethod)
-            .filter(model.CompuMethod.name == name)
-            .first()
-        )
+        cm = session.query(model.CompuMethod).filter(model.CompuMethod.name == name).first()
         return cm
     else:
         return None
@@ -148,26 +133,16 @@ if __name__ == "__main__":
 
     db = DB()
     session = db.open_existing("ASAP2_Demo_V161")
-    measurements = (
-        session.query(model.Measurement).order_by(model.Measurement.name).all()
-    )
+    measurements = session.query(model.Measurement).order_by(model.Measurement.name).all()
 
     cms = CompuMethods(session)
 
     for m in measurements:
         _logger.info("%48s %12s 0x%08x", m.name, m.datatype, m.ecu_address.address)
 
-    conversions = (
-        session.query(model.Measurement.conversion)
-        .filter(model.Measurement.conversion != "NO_COMPU_METHOD")
-        .distinct()
-    )
+    conversions = session.query(model.Measurement.conversion).filter(model.Measurement.conversion != "NO_COMPU_METHOD").distinct()
 
-    cm = (
-        session.query(model.CompuMethod)
-        .filter(model.CompuMethod.name.in_(conversions))
-        .all()
-    )
+    cm = session.query(model.CompuMethod).filter(model.CompuMethod.name.in_(conversions)).all()
     for c in cm:
         _logger.info("%s", c)
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Tests for asamint.compu (CompuMethods, Measurement, getCM)."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock
@@ -79,9 +80,7 @@ def test_compu_methods_unreferenced_iter(capsys) -> None:
 
 
 def test_compu_methods_unreferenced_keys(capsys) -> None:
-    cms = CompuMethods(
-        _make_session([_mock_cm("M1"), _mock_cm("M2")]), referenced=False
-    )
+    cms = CompuMethods(_make_session([_mock_cm("M1"), _mock_cm("M2")]), referenced=False)
     capsys.readouterr()
     assert set(cms.keys()) == {"M1", "M2"}
 

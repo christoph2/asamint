@@ -134,9 +134,7 @@ class ReadOnlyError(Exception):
     pass
 
 
-def check_limits(
-    characteristic: Characteristic, value: float, extended_limits: bool = False
-) -> bool:
+def check_limits(characteristic: Characteristic, value: float, extended_limits: bool = False) -> bool:
     """Check if the value is within the limits of the characteristic.
 
     Args:
@@ -211,21 +209,11 @@ class ParameterCache:
         self.parent = parent
 
         # Initialize caches for different parameter types
-        self.curves = DictLike(
-            partialmethod(parent.load_curve_or_map, category="CURVE", num_axes=1)
-        )
-        self.maps = DictLike(
-            partialmethod(parent.load_curve_or_map, category="MAP", num_axes=2)
-        )
-        self.cuboids = DictLike(
-            partialmethod(parent.load_curve_or_map, category="CUBOID", num_axes=3)
-        )
-        self.cube4s = DictLike(
-            partialmethod(parent.load_curve_or_map, category="CUBE_4", num_axes=4)
-        )
-        self.cube5s = DictLike(
-            partialmethod(parent.load_curve_or_map, category="CUBE_5", num_axes=5)
-        )
+        self.curves = DictLike(partialmethod(parent.load_curve_or_map, category="CURVE", num_axes=1))
+        self.maps = DictLike(partialmethod(parent.load_curve_or_map, category="MAP", num_axes=2))
+        self.cuboids = DictLike(partialmethod(parent.load_curve_or_map, category="CUBOID", num_axes=3))
+        self.cube4s = DictLike(partialmethod(parent.load_curve_or_map, category="CUBE_4", num_axes=4))
+        self.cube5s = DictLike(partialmethod(parent.load_curve_or_map, category="CUBE_5", num_axes=5))
         self.axis_pts = DictLike(parent.load_axis_pts)
         self.values = DictLike(parent.load_value)
         self.value_dtos = DictLike(parent.load_value_dto)
@@ -310,19 +298,13 @@ class Calibration:
         self._dep_engine: Optional["DependencyEngine"] = None
         self._preload_definitions()
         if preload_characteristics or preload_axis_pts:
-            self.preload_selected(
-                characteristics=preload_characteristics, axis_pts=preload_axis_pts
-            )
+            self.preload_selected(characteristics=preload_characteristics, axis_pts=preload_axis_pts)
 
     def _preload_definitions(self) -> None:
         """Preload characteristic types and axis existence to reduce repeated DB hits."""
 
         try:
-            characteristic_rows = list(
-                self.session.query(
-                    model.Characteristic.name, model.Characteristic.type
-                ).all()
-            )
+            characteristic_rows = list(self.session.query(model.Characteristic.name, model.Characteristic.type).all())
             axis_rows = list(self.session.query(model.AxisPts.name).all())
         except (AttributeError, ValueError, KeyError) as exc:
             self.logger.debug("Skipping A2L preload: %s", exc)
@@ -347,9 +329,7 @@ class Calibration:
                 try:
                     characteristic = Characteristic.get(self.session, name)
                 except ValueError:
-                    self.logger.debug(
-                        "Characteristic '%s' not found during preload", name
-                    )
+                    self.logger.debug("Characteristic '%s' not found during preload", name)
                     continue
                 self._definition_cache[("CHAR", name)] = characteristic
                 self._definition_cache[("TYPE", name)] = characteristic.type
@@ -371,9 +351,7 @@ class Calibration:
                     cm = self.get_compu_method(axis)
                     self._definition_cache[("CM", cm.name)] = cm
                 except (AttributeError, ValueError, KeyError) as exc:  # pragma: no cover - best effort
-                    self.logger.debug(
-                        "Skipping compu preload for axis %s: %s", name, exc
-                    )
+                    self.logger.debug("Skipping compu preload for axis %s: %s", name, exc)
 
     # ------------------------------------------------------------------
     # Dependency graph (lazy)
@@ -419,11 +397,7 @@ class Calibration:
         """Return the names of all VIRTUAL characteristics in the A2L session."""
         from asamint.calibration.dependent import DependencyKind
 
-        return [
-            name
-            for name, entry in self.dependency_graph.entries.items()
-            if entry.kind == DependencyKind.VIRTUAL
-        ]
+        return [name for name, entry in self.dependency_graph.entries.items() if entry.kind == DependencyKind.VIRTUAL]
 
     def evaluate_all_virtual(self) -> dict[str, Any]:
         """Evaluate every VIRTUAL characteristic and return the results.
@@ -682,9 +656,7 @@ class Calibration:
         if characteristic.readOnly:
             self.logger.info(f"Characteristic '{characteristic_name}' is READ-ONLY!")
             if readOnlyPolicy == ExecutionPolicy.EXCEPT:
-                raise ReadOnlyError(
-                    f"Characteristic '{characteristic_name}' is read-only."
-                )
+                raise ReadOnlyError(f"Characteristic '{characteristic_name}' is read-only.")
             elif readOnlyPolicy == ExecutionPolicy.RETURN_ERROR:
                 return Status.READ_ONLY_ERROR
 
@@ -752,14 +724,10 @@ class Calibration:
         axis_labels = ("x", "y", "z", "4", "5")
         axis_details = ", ".join(
             f"{axis_labels[index]}={actual}->{expected}"
-            for index, (actual, expected) in enumerate(
-                zip(actual_shape, expected_shape, strict=False)
-            )
+            for index, (actual, expected) in enumerate(zip(actual_shape, expected_shape, strict=False))
         )
         if len(actual_shape) != len(expected_shape):
-            axis_details = (
-                f"rank {len(actual_shape)}->{len(expected_shape)}; {axis_details}"
-            )
+            axis_details = f"rank {len(actual_shape)}->{len(expected_shape)}; {axis_details}"
         return (
             f"{value_kind} values shape {actual_shape} does not match expected shape "
             f"{expected_shape} for '{characteristic_name}' ({axis_details})"
@@ -879,17 +847,13 @@ class Calibration:
 
         # Virtual characteristics are runtime-only — never written to image
         if getattr(characteristic, "virtual_characteristic", None):
-            raise VirtualWriteError(
-                f"Cannot write to virtual characteristic '{characteristic_name}'"
-            )
+            raise VirtualWriteError(f"Cannot write to virtual characteristic '{characteristic_name}'")
 
         # Check if the characteristic is read-only
         if characteristic.readOnly:
             self.logger.info(f"Characteristic '{characteristic_name}' is READ-ONLY!")
             if readOnlyPolicy == ExecutionPolicy.EXCEPT:
-                raise ReadOnlyError(
-                    f"Characteristic '{characteristic_name}' is read-only."
-                )
+                raise ReadOnlyError(f"Characteristic '{characteristic_name}' is read-only.")
             elif readOnlyPolicy == ExecutionPolicy.RETURN_ERROR:
                 return Status.READ_ONLY_ERROR
 
@@ -979,10 +943,7 @@ class Calibration:
             is_bool = False
 
         # Determine the physical unit
-        if (
-            characteristic.physUnit is None
-            and characteristic._conversionRef != "NO_COMPU_METHOD"
-        ):
+        if characteristic.physUnit is None and characteristic._conversionRef != "NO_COMPU_METHOD":
             unit = characteristic.compuMethod.unit
         else:
             unit = characteristic.physUnit
@@ -990,10 +951,7 @@ class Calibration:
         # Convert to physical value
         phys = self.int_to_physical(characteristic, raw)
         if is_bool and characteristic.compuMethod != "NO_COMPU_METHOD":
-            if (
-                getattr(characteristic.compuMethod, "conversionType", None)
-                != "TAB_VERB"
-            ):
+            if getattr(characteristic.compuMethod, "conversionType", None) != "TAB_VERB":
                 phys = "true" if bool(raw) else "false"
 
         # Determine the category based on the value type
@@ -1091,17 +1049,13 @@ class Calibration:
 
         # Virtual characteristics are runtime-only — never written to image
         if getattr(characteristic, "virtual_characteristic", None):
-            raise VirtualWriteError(
-                f"Cannot write to virtual characteristic '{characteristic_name}'"
-            )
+            raise VirtualWriteError(f"Cannot write to virtual characteristic '{characteristic_name}'")
 
         # Check if the characteristic is read-only
         if characteristic.readOnly:
             self.logger.info(f"Characteristic '{characteristic_name}' is READ-ONLY!")
             if readOnlyPolicy == ExecutionPolicy.EXCEPT:
-                raise ReadOnlyError(
-                    f"Characteristic '{characteristic_name}' is read-only."
-                )
+                raise ReadOnlyError(f"Characteristic '{characteristic_name}' is read-only.")
             elif readOnlyPolicy == ExecutionPolicy.RETURN_ERROR:
                 return Status.READ_ONLY_ERROR
 
@@ -1124,14 +1078,10 @@ class Calibration:
             raise ValueError("value of type str must be 'true' or 'false'")
 
         # Check if the value is within limits
-        if isinstance(value, (int, float)) and not check_limits(
-            characteristic, value, extendedLimits
-        ):
+        if isinstance(value, (int, float)) and not check_limits(characteristic, value, extendedLimits):
             self.logger.info(f"Characteristic '{characteristic_name}' is out of range")
             if limitsPolicy == ExecutionPolicy.EXCEPT:
-                raise RangeError(
-                    f"Characteristic '{characteristic_name}' is out of range"
-                )
+                raise RangeError(f"Characteristic '{characteristic_name}' is out of range")
             elif limitsPolicy == ExecutionPolicy.RETURN_ERROR:
                 return Status.RANGE_ERROR
 
@@ -1162,9 +1112,7 @@ class Calibration:
         """Load a scalar characteristic as CalibrationValue DTO."""
 
         characteristic = self.get_characteristic(characteristic_name, "VALUE", False)
-        dto_limits = CalibrationLimits(
-            lower=characteristic.lowerLimit, upper=characteristic.upperLimit
-        )
+        dto_limits = CalibrationLimits(lower=characteristic.lowerLimit, upper=characteristic.upperLimit)
 
         val = self.load_value(characteristic_name)
         return CalibrationValue(
@@ -1219,16 +1167,12 @@ class Calibration:
         # Handle different axis categories
         if axis_info.category == "COM_AXIS":
             raw = axis_arrays.get("axis_pts")
-            no_axis_pts = axis_values.get("no_axis_pts") or (
-                axis_info.actual_element_count or axis_info.maximum_element_count
-            )
+            no_axis_pts = axis_values.get("no_axis_pts") or (axis_info.actual_element_count or axis_info.maximum_element_count)
         elif axis_info.category == "RES_AXIS":
             raw = axis_arrays.get("axis_rescale")
             rescale_count = axis_values.get("no_rescale")
             if rescale_count is None:
-                rescale_count = (
-                    axis_info.actual_element_count or axis_info.maximum_element_count
-                )
+                rescale_count = axis_info.actual_element_count or axis_info.maximum_element_count
             no_axis_pts = rescale_count * 2 if rescale_count is not None else None
         else:
             self.logger.warning(f"Unsupported axis category: {axis_info.category}")
@@ -1311,9 +1255,7 @@ class Calibration:
 
         # Check if the axis is physically allocated
         if axis_info.category == "FIX_AXIS":
-            raise TypeError(
-                f"AXIS_PTS {axis_pts_name!r} is not physically allocated, use A2L to change."
-            )
+            raise TypeError(f"AXIS_PTS {axis_pts_name!r} is not physically allocated, use A2L to change.")
 
         # Validate the values array
         if phys_vals.ndim != 1:
@@ -1325,9 +1267,7 @@ class Calibration:
             component_name = "axis_rescale"
             # For RES_AXIS, values come in pairs (index, value) -> length must be even
             if phys_vals.size % 2 != 0:
-                raise ValueError(
-                    "RES_AXIS values length must be even (pairs of index and value)"
-                )
+                raise ValueError("RES_AXIS values length must be even (pairs of index and value)")
 
         # Check array size against constraints
         if component_name == "axis_pts":
@@ -1335,14 +1275,10 @@ class Calibration:
             if "no_axis_pts" not in axis_info.elements:
                 # Fixed size axis
                 if phys_vals.size != ap.maxAxisPoints:
-                    raise ValueError(
-                        f"values: expected an array with {ap.maxAxisPoints} elements."
-                    )
+                    raise ValueError(f"values: expected an array with {ap.maxAxisPoints} elements.")
             elif phys_vals.size > ap.maxAxisPoints:
                 # Variable size axis but too many points
-                raise ValueError(
-                    f"values size ({phys_vals.size}) exceeds maxAxisPoints ({ap.maxAxisPoints})"
-                )
+                raise ValueError(f"values size ({phys_vals.size}) exceeds maxAxisPoints ({ap.maxAxisPoints})")
             else:
                 # Variable size axis, update the number of points
                 no_axis_pts = axis_info.elements.get("no_axis_pts")
@@ -1357,13 +1293,9 @@ class Calibration:
                     return self._address_error_status(ap.name, exc, " x-axis")
         else:
             # RES_AXIS sizing uses no_rescale (number of pairs)
-            max_pairs = (
-                ap.maxAxisPoints
-            )  # per A2L this is the maximum number of rescale points
+            max_pairs = ap.maxAxisPoints  # per A2L this is the maximum number of rescale points
             if (phys_vals.size // 2) > max_pairs:
-                raise ValueError(
-                    f"values size ({phys_vals.size // 2} pairs) exceeds maxAxisPoints ({max_pairs})"
-                )
+                raise ValueError(f"values size ({phys_vals.size // 2} pairs) exceeds maxAxisPoints ({max_pairs})")
             # Update the number of rescale pairs if adjustable
             if "no_rescale" in axis_info.elements:
                 no_rescale = axis_info.elements.get("no_rescale")
@@ -1393,9 +1325,7 @@ class Calibration:
 
     def load_curve_or_map(  # noqa: C901
         self, characteristic_name: str, category: str, num_axes: int
-    ) -> Union[
-        klasses.Cube4, klasses.Cube5, klasses.Cuboid, klasses.Curve, klasses.Map
-    ]:
+    ) -> Union[klasses.Cube4, klasses.Cube5, klasses.Cuboid, klasses.Curve, klasses.Map]:
         """Load a curve or map characteristic.
 
         Args:
@@ -1426,11 +1356,7 @@ class Calibration:
 
         # Get function unit and data type
         fnc_unit = chr_cm.unit
-        fnc_datatype = (
-            characteristic.record_layout_components.get("elements")
-            .get("fnc_values")
-            .data_type
-        )
+        fnc_datatype = characteristic.record_layout_components.get("elements").get("fnc_values").data_type
 
         # Get axes information
         axes_container = self.get_axes(characteristic, num_axes)
@@ -1440,9 +1366,7 @@ class Calibration:
         length = num_func_values * asam_type_size(fnc_datatype)
 
         # Get function values information
-        fnc_values = characteristic.record_layout_components["elements"].get(
-            "fnc_values"
-        )
+        fnc_values = characteristic.record_layout_components["elements"].get("fnc_values")
         address = fnc_values.address
         data_type = fnc_values.data_type
         order = characteristic.fnc_np_order
@@ -1470,12 +1394,8 @@ class Calibration:
             try:
                 phys = chr_cm.int_to_physical(raw)
             except (ValueError, TypeError, AttributeError, ZeroDivisionError) as e:
-                self.logger.error(
-                    f"Exception converting values for {characteristic.name!r}: {e}"
-                )
-                self.logger.error(
-                    f"COMPU_METHOD: {chr_cm.name!r} ==> {chr_cm.evaluator!r}"
-                )
+                self.logger.error(f"Exception converting values for {characteristic.name!r}: {e}")
+                self.logger.error(f"COMPU_METHOD: {chr_cm.name!r} ==> {chr_cm.evaluator!r}")
                 # Create empty physical values array with same shape as raw
                 if raw.size > 0:
                     phys = np.zeros_like(raw, dtype=float)
@@ -1525,9 +1445,7 @@ class Calibration:
     def save_curve_or_map(  # noqa: C901
         self,
         characteristic_name: str,
-        values: Union[
-            klasses.Cube4, klasses.Cube5, klasses.Cuboid, klasses.Curve, klasses.Map
-        ],
+        values: Union[klasses.Cube4, klasses.Cube5, klasses.Cuboid, klasses.Curve, klasses.Map],
         readOnlyPolicy: ExecutionPolicy = ExecutionPolicy.EXCEPT,
         raw_changed: bool = False,
     ) -> Status:
@@ -1553,9 +1471,7 @@ class Calibration:
 
         # Virtual characteristics are runtime-only — never written to image
         if getattr(characteristic, "virtual_characteristic", None):
-            raise VirtualWriteError(
-                f"Cannot write to virtual characteristic '{characteristic_name}'"
-            )
+            raise VirtualWriteError(f"Cannot write to virtual characteristic '{characteristic_name}'")
 
         # Determine category and number of axes from the characteristic definition
         category = characteristic.type
@@ -1568,9 +1484,7 @@ class Calibration:
         if getattr(characteristic, "readOnly", False):
             self.logger.info(f"Characteristic '{characteristic_name}' is READ-ONLY!")
             if readOnlyPolicy == ExecutionPolicy.EXCEPT:
-                raise ReadOnlyError(
-                    f"Characteristic '{characteristic_name}' is read-only."
-                )
+                raise ReadOnlyError(f"Characteristic '{characteristic_name}' is read-only.")
             elif readOnlyPolicy == ExecutionPolicy.RETURN_ERROR:
                 return Status.READ_ONLY_ERROR
 
@@ -1607,9 +1521,7 @@ class Calibration:
                     )
                 )
 
-        self.logger.debug(
-            f"Saving {category} '{characteristic_name}' with shape {expected_shape}"
-        )
+        self.logger.debug(f"Saving {category} '{characteristic_name}' with shape {expected_shape}")
 
         # Convert between physical and internal representation and update the values object
         if raw_changed:
@@ -1678,11 +1590,7 @@ class Calibration:
             max_axis_points = axis_descr.maxAxisPoints
 
             # Get computation method
-            axis_cm_name = (
-                "NO_COMPU_METHOD"
-                if axis_descr.compuMethod == "NO_COMPU_METHOD"
-                else axis_descr.compuMethod.name
-            )
+            axis_cm_name = "NO_COMPU_METHOD" if axis_descr.compuMethod == "NO_COMPU_METHOD" else axis_descr.compuMethod.name
             axis_cm = CompuMethod.get(self.session, axis_cm_name)
             axis_unit = axis_cm.unit
 
@@ -1725,13 +1633,13 @@ class Calibration:
                     # The curve maps raw input values → floating-point map indices.
                     # For display purposes: raw = integer indices [0..N-1],
                     # phys = curve Y-output values.
-                    ref_obj = self.parameter_cache["CURVE"][
-                        axis_descr.curveAxisRef.name
-                    ]
+                    ref_obj = self.parameter_cache["CURVE"][axis_descr.curveAxisRef.name]
                     axis_pts_ref = axis_descr.curveAxisRef.name
-                    no_axis_points = characteristic.record_layout_components.get(
-                        "axes", {}
-                    ).get(axis_name, SimpleNamespace(maximum_element_count=0)).maximum_element_count
+                    no_axis_points = (
+                        characteristic.record_layout_components.get("axes", {})
+                        .get(axis_name, SimpleNamespace(maximum_element_count=0))
+                        .maximum_element_count
+                    )
                     if not no_axis_points:
                         no_axis_points = getattr(axis_descr, "maxAxisPoints", 0)
                     raw_axis_values = np.arange(no_axis_points, dtype=np.float64)
@@ -1741,9 +1649,7 @@ class Calibration:
 
                 case "COM_AXIS":
                     # Axis referencing axis points
-                    ref_obj = self.parameter_cache["AXIS_PTS"][
-                        axis_descr.axisPtsRef.name
-                    ]
+                    ref_obj = self.parameter_cache["AXIS_PTS"][axis_descr.axisPtsRef.name]
                     axis_pts_ref = axis_descr.axisPtsRef.name
                     raw_axis_values = ref_obj.raw
                     converted_axis_values = ref_obj.phys
@@ -1753,9 +1659,7 @@ class Calibration:
                 case "RES_AXIS":
                     # Rescale axis
                     self.logger.debug(f"Processing RES_AXIS for {characteristic.name}")
-                    ref_obj = self.parameter_cache["AXIS_PTS"][
-                        axis_descr.axisPtsRef.name
-                    ]
+                    ref_obj = self.parameter_cache["AXIS_PTS"][axis_descr.axisPtsRef.name]
                     axis_pts_ref = axis_descr.axisPtsRef.name
                     raw_axis_values = ref_obj.raw
                     converted_axis_values = ref_obj.phys
@@ -1775,16 +1679,12 @@ class Calibration:
                     elif axis_descr.fixAxisPar.valid():
                         # Fixed axis with shift parameter
                         par = axis_descr.fixAxisPar
-                        raw_axis_values = fix_axis_par(
-                            par.offset, par.shift, par.numberapo
-                        )
+                        raw_axis_values = fix_axis_par(par.offset, par.shift, par.numberapo)
                     elif axis_descr.fixAxisParList:
                         # Fixed axis with explicit list of values
                         raw_axis_values = axis_descr.fixAxisParList
                     else:
-                        self.logger.warning(
-                            f"FIX_AXIS without parameters for {characteristic.name}"
-                        )
+                        self.logger.warning(f"FIX_AXIS without parameters for {characteristic.name}")
                         raw_axis_values = np.array([])
 
                     no_axis_points = len(raw_axis_values)
@@ -1823,9 +1723,7 @@ class Calibration:
         # Create and return axes container
         return AxesContainer(axes, shape=tuple(shape), flip_axes=flipper)
 
-    def int_to_physical(
-        self, characteristic: Union[Characteristic, AxisPts], int_values: np.ndarray
-    ) -> np.ndarray:
+    def int_to_physical(self, characteristic: Union[Characteristic, AxisPts], int_values: np.ndarray) -> np.ndarray:
         """Convert ECU internal values to physical representation.
 
         Args:
@@ -1877,41 +1775,27 @@ class Calibration:
 
         if np.issubdtype(target_dtype, np.integer):
             bounds = np.iinfo(target_dtype)
-            out_of_range = finite_mask & (
-                (source_numeric < bounds.min) | (source_numeric > bounds.max)
-            )
+            out_of_range = finite_mask & ((source_numeric < bounds.min) | (source_numeric > bounds.max))
             if np.any(out_of_range):
-                self.logger.warning(
-                    f"{name!r}: physical_to_int overflows {target_dtype} range [{bounds.min}, {bounds.max}]"
-                )
+                self.logger.warning(f"{name!r}: physical_to_int overflows {target_dtype} range [{bounds.min}, {bounds.max}]")
             fractional = finite_mask & (source_numeric != np.trunc(source_numeric))
             if np.any(fractional):
-                self.logger.warning(
-                    f"{name!r}: physical_to_int truncates fractional values when casting to {target_dtype}"
-                )
+                self.logger.warning(f"{name!r}: physical_to_int truncates fractional values when casting to {target_dtype}")
             return
 
-        if np.issubdtype(target_dtype, np.floating) and np.issubdtype(
-            source_dtype, np.floating
-        ):
+        if np.issubdtype(target_dtype, np.floating) and np.issubdtype(source_dtype, np.floating):
             source_info = np.finfo(source_dtype)
             target_info = np.finfo(target_dtype)
             if target_info.max < source_info.max:
                 out_of_range = finite_mask & (np.abs(source_numeric) > target_info.max)
                 if np.any(out_of_range):
-                    self.logger.warning(
-                        f"{name!r}: physical_to_int overflows {target_dtype} range +/-{target_info.max}"
-                    )
+                    self.logger.warning(f"{name!r}: physical_to_int overflows {target_dtype} range +/-{target_info.max}")
             if target_dtype.itemsize < source_dtype.itemsize:
                 roundtrip = cast_values.astype(source_dtype)
                 if np.any(roundtrip != source_values):
-                    self.logger.warning(
-                        f"{name!r}: physical_to_int loses floating-point precision when casting to {target_dtype}"
-                    )
+                    self.logger.warning(f"{name!r}: physical_to_int loses floating-point precision when casting to {target_dtype}")
 
-    def get_compu_method(
-        self, characteristic: Union[Characteristic, AxisPts]
-    ) -> CompuMethod:
+    def get_compu_method(self, characteristic: Union[Characteristic, AxisPts]) -> CompuMethod:
         """Get the computation method for a characteristic or axis points.
 
         Args:
@@ -1920,11 +1804,7 @@ class Calibration:
         Returns:
             The computation method
         """
-        cm_name = (
-            "NO_COMPU_METHOD"
-            if characteristic.compuMethod == "NO_COMPU_METHOD"
-            else characteristic.compuMethod.name
-        )
+        cm_name = "NO_COMPU_METHOD" if characteristic.compuMethod == "NO_COMPU_METHOD" else characteristic.compuMethod.name
         cache_key = ("CM", cm_name)
         cached = self._definition_cache.get(cache_key)
         if cached is not None:
@@ -1933,9 +1813,7 @@ class Calibration:
         self._definition_cache[cache_key] = compu_method
         return compu_method
 
-    def get_characteristic(
-        self, characteristic_name: str, type_name: str, save: bool = False
-    ) -> Characteristic:
+    def get_characteristic(self, characteristic_name: str, type_name: str, save: bool = False) -> Characteristic:
         """Get a characteristic by name and verify its type.
 
         Args:
@@ -1952,9 +1830,7 @@ class Calibration:
         """
         characteristic = self._load_characteristic(characteristic_name, type_name)
         direction = "Saving" if save else "Loading"
-        self.logger.debug(
-            f"{direction} {type_name} '{characteristic.name}' @0x{characteristic.address:08x}"
-        )
+        self.logger.debug(f"{direction} {type_name} '{characteristic.name}' @0x{characteristic.address:08x}")
         return characteristic
 
     def characteristic_category(self, characteristic_name: str) -> str:
@@ -1978,18 +1854,14 @@ class Calibration:
         try:
             characteristic = Characteristic.get(self.session, characteristic_name)
         except ValueError:
-            raise ValueError(
-                f"Characteristic '{characteristic_name}' not found"
-            ) from None
+            raise ValueError(f"Characteristic '{characteristic_name}' not found") from None
         if characteristic is None:
             raise ValueError(f"Characteristic '{characteristic_name}' not found")
         self._definition_cache[("CHAR", characteristic_name)] = characteristic
         self._definition_cache[("TYPE", characteristic_name)] = characteristic.type
         return characteristic.type
 
-    def _load_characteristic(
-        self, characteristic_name: str, category: str
-    ) -> Characteristic:
+    def _load_characteristic(self, characteristic_name: str, category: str) -> Characteristic:
         """Load a characteristic by name and verify its type.
 
         Args:
@@ -2009,17 +1881,13 @@ class Calibration:
             try:
                 characteristic = Characteristic.get(self.session, characteristic_name)
             except ValueError:
-                raise ValueError(
-                    f"Characteristic '{characteristic_name}' not found"
-                ) from None
+                raise ValueError(f"Characteristic '{characteristic_name}' not found") from None
             if characteristic is None:
                 raise ValueError(f"Characteristic '{characteristic_name}' not found")
             self._definition_cache[key] = characteristic
 
         if category is not None and characteristic.type != category:
-            raise TypeError(
-                f"Characteristic '{characteristic_name}' is not of type '{category}'"
-            )
+            raise TypeError(f"Characteristic '{characteristic_name}' is not of type '{category}'")
 
         return characteristic
 
@@ -2038,9 +1906,7 @@ class Calibration:
         """
         axis_pts = self._load_axis_pts(axis_pts_name)
         direction = "Saving" if save else "Loading"
-        self.logger.debug(
-            f"{direction} AXIS_PTS '{axis_pts.name}' @0x{axis_pts.address:08x}"
-        )
+        self.logger.debug(f"{direction} AXIS_PTS '{axis_pts.name}' @0x{axis_pts.address:08x}")
         return axis_pts
 
     def _load_axis_pts(self, axis_pts_name: str) -> AxisPts:
@@ -2093,9 +1959,7 @@ class Calibration:
         for name, attr in components["position"]:
             # Apply offset from previous patches
             if offset:
-                aligned_address = obj.record_layout.alignment.align(
-                    attr.data_type, attr.address + offset
-                )
+                aligned_address = obj.record_layout.alignment.align(attr.data_type, attr.address + offset)
                 attr.address = aligned_address
                 self.logger.debug(
                     f"Updating RecordLayout for {obj.name!r} / {obj.record_layout.name!r}:  -> [0x{aligned_address:08x}]"
@@ -2119,9 +1983,7 @@ class Calibration:
                             patch_name = "axis_pts"
                         elif name == "no_rescale":
                             patch_name = "axis_rescale"
-                        patches[(patch_name, attr.axis)] = (
-                            value - info.maximum_element_count
-                        )
+                        patches[(patch_name, attr.axis)] = value - info.maximum_element_count
 
             # Apply patches to axis points or rescale points
             elif name in ("axis_pts", "axis_rescale"):
@@ -2131,9 +1993,7 @@ class Calibration:
 
         return patches
 
-    def read_axes_values(
-        self, obj: Union[AxisPts, Characteristic], axis_name: Optional[str] = None
-    ) -> dict[str, dict[str, Any]]:
+    def read_axes_values(self, obj: Union[AxisPts, Characteristic], axis_name: Optional[str] = None) -> dict[str, dict[str, Any]]:
         """Read axis values (not arrays) from memory.
 
         Args:
@@ -2212,9 +2072,7 @@ class Calibration:
         # Process each axis
         for ax_name in axes.keys():
             axis_info = axes.get(ax_name)
-            number_of_elements = (
-                axis_info.actual_element_count or axis_info.maximum_element_count
-            )
+            number_of_elements = axis_info.actual_element_count or axis_info.maximum_element_count
             axis_elements = axis_info.elements
             # Process each element in the axis
             for name, attr in axis_elements.items():
@@ -2327,10 +2185,7 @@ class Calibration:
         Returns:
             True if the computation method produces numeric values, False otherwise
         """
-        return (
-            compu_method == "NO_COMPU_METHOD"
-            or compu_method.conversionType != "TAB_VERB"
-        )
+        return compu_method == "NO_COMPU_METHOD" or compu_method.conversionType != "TAB_VERB"
 
 
 class OnlineCalibration(Calibration):
@@ -2440,9 +2295,7 @@ class OnlineCalibration(Calibration):
     def save_curve_or_map(
         self,
         characteristic_name: str,
-        values: Union[
-            klasses.Cube4, klasses.Cube5, klasses.Cuboid, klasses.Curve, klasses.Map
-        ],
+        values: Union[klasses.Cube4, klasses.Cube5, klasses.Cuboid, klasses.Curve, klasses.Map],
         readOnlyPolicy: ExecutionPolicy = ExecutionPolicy.EXCEPT,
         raw_changed: bool = False,
     ) -> Status:
@@ -2488,9 +2341,7 @@ class OnlineCalibration(Calibration):
                 return
             if char.virtual_characteristic:
                 return
-            self._dirty_regions.append(
-                (char.address, char.total_allocated_memory)
-            )
+            self._dirty_regions.append((char.address, char.total_allocated_memory))
         except (ValueError, AttributeError):
             pass
 
@@ -2536,9 +2387,7 @@ class OnlineCalibration(Calibration):
 
         Replaces the local image and clears all caches.
         """
-        self.image = _upload_parameters_xcp(
-            self.session, self.xcp_master, self.logger
-        )
+        self.image = _upload_parameters_xcp(self.session, self.xcp_master, self.logger)
         if hasattr(self.image, "join_sections"):
             try:
                 self.image.join_sections()
@@ -2616,19 +2465,13 @@ def _upload_parameters_xcp(
         result.append(McObject(ax.name, ax.address, 0, mem_size, ""))
 
     # Collect all characteristics
-    for row in (
-        session.query(model.Characteristic)
-        .order_by(model.Characteristic.type, model.Characteristic.address)
-        .all()
-    ):
+    for row in session.query(model.Characteristic).order_by(model.Characteristic.type, model.Characteristic.address).all():
         ch = Characteristic.get(session, row.name)
         try:
             mem_size = ch.total_allocated_memory
         except (AttributeError, TypeError):
             continue
-        result.append(
-            McObject(ch.name, ch.address, 0, mem_size, "")
-        )
+        result.append(McObject(ch.name, ch.address, 0, mem_size, ""))
 
     if not result:
         raise ValueError("No calibration parameters found in A2L.")
@@ -2690,9 +2533,7 @@ def _build_calibration_context(a2l_db: Any, loglevel: str) -> _CalibrationContex
     if session is None and hasattr(a2l_db, "query"):
         session = a2l_db
     if session is None:
-        raise TypeError(
-            "OfflineCalibration requires an A2L session or AsamMC-like object."
-        )
+        raise TypeError("OfflineCalibration requires an A2L session or AsamMC-like object.")
 
     mod_common = getattr(a2l_db, "mod_common", None) or ModCommon.get(session)
     mod_par = getattr(a2l_db, "mod_par", None)
@@ -2702,12 +2543,8 @@ def _build_calibration_context(a2l_db: Any, loglevel: str) -> _CalibrationContex
     level = logging.getLevelName(loglevel) if isinstance(loglevel, str) else loglevel
     if not isinstance(level, int):
         level = logging.INFO
-    logger = getattr(a2l_db, "logger", None) or configure_logging(
-        name="asamint.calibration.offline", level=level
-    )
-    return _CalibrationContext(
-        session=session, mod_common=mod_common, mod_par=mod_par, logger=logger
-    )
+    logger = getattr(a2l_db, "logger", None) or configure_logging(name="asamint.calibration.offline", level=level)
+    return _CalibrationContext(session=session, mod_common=mod_common, mod_par=mod_par, logger=logger)
 
 
 class OfflineCalibration(Calibration):

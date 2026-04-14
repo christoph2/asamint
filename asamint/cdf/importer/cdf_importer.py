@@ -4,9 +4,7 @@ from pathlib import Path
 from asamint.calibration.msrsw_db import MSRSWDatabase, Parser
 
 
-def import_cdf_to_db(
-    xml_path: str | Path, db_path: str | Path, logger: logging.Logger = None
-) -> bool:
+def import_cdf_to_db(xml_path: str | Path, db_path: str | Path, logger: logging.Logger = None) -> bool:
     logger = logger or logging.getLogger(__name__)
     logger.info(f"Importing {xml_path} to {db_path}")
 

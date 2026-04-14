@@ -135,6 +135,7 @@ def __getattr__(name: str) -> object:
 def __dir__() -> list[str]:
     return deprecated_dir(_DEPRECATED_ALIASES, globals())
 
+
 PYXCP_TYPES = {
     "UBYTE": "U8",
     "SBYTE": "I8",
@@ -167,20 +168,12 @@ def group_measurements(
     for meas_name in res.ref_measurement.identifier:
         if meas_name in exclude:
             continue
-        meas = (
-            session.query(model.Measurement)
-            .filter(model.Measurement.name == meas_name)
-            .first()
-        )
+        meas = session.query(model.Measurement).filter(model.Measurement.name == meas_name).first()
         result.append(
             (
                 meas_name,
                 meas.ecu_address.address,
-                (
-                    meas.ecu_address_extension.extension
-                    if meas.ecu_address_extension
-                    else 0
-                ),
+                (meas.ecu_address_extension.extension if meas.ecu_address_extension else 0),
                 PYXCP_TYPES[meas.datatype],
             )
         )
@@ -206,11 +199,7 @@ def resolve_measurements_by_names(
     for meas_name in names:
         if meas_name in exclude:
             continue
-        meas = (
-            session.query(model.Measurement)
-            .filter(model.Measurement.name == meas_name)
-            .first()
-        )
+        meas = session.query(model.Measurement).filter(model.Measurement.name == meas_name).first()
         if not meas:
             # skip unknown
             continue
@@ -240,11 +229,7 @@ def names_from_group(
             exclude_set = set(exclude)
         else:
             exclude_set = set()
-        res = (
-            session.query(model.Group)
-            .filter(model.Group.groupName == group_name)
-            .first()
-        )
+        res = session.query(model.Group).filter(model.Group.groupName == group_name).first()
         if not res:
             return names
         for meas_name in res.ref_measurement.identifier:
@@ -362,9 +347,7 @@ def build_daq_lists(
                 exclude=g.get("exclude"),
             )
         else:
-            raise ValueError(
-                f"Group '{list_name}' must define either 'variables' or 'group_name'."
-            )
+            raise ValueError(f"Group '{list_name}' must define either 'variables' or 'group_name'.")
         result.append(dl)
     return result
 
@@ -408,9 +391,7 @@ def _unique_names_from_groups(groups: list[DaqGroupSpec]) -> list[str]:
     return names
 
 
-def _compute_timebase_metadata(
-    data: dict[str, Any], signal_names: Iterable[str]
-) -> dict[str, dict[str, Any]]:
+def _compute_timebase_metadata(data: dict[str, Any], signal_names: Iterable[str]) -> dict[str, dict[str, Any]]:
     """Compute per-signal timebase mapping and summary from a data dict.
 
     Returns a dict mapping signal name to a metadata fragment with keys:
@@ -426,9 +407,7 @@ def _compute_timebase_metadata(
     next_gid = 0
 
     for name in signal_names:
-        chosen_src, chosen_ts, sample_len = _select_timestamp_for_signal(
-            data, name, ts_items
-        )
+        chosen_src, chosen_ts, sample_len = _select_timestamp_for_signal(data, name, ts_items)
         tb = _median_timebase(chosen_src, chosen_ts)
         key = chosen_src or "synthetic"
         if key not in group_map:
@@ -466,11 +445,7 @@ def _timestamp_candidates(data: dict[str, Any]) -> list[tuple[str, Any]]:
 def _ts_priority(item: tuple[str, Any]) -> tuple[int, int]:
     name, arr = item
     lname = name.lower()
-    is_event = (
-        1
-        if lname.startswith("timestamp") and lname not in ("timestamp", "timestamps")
-        else 0
-    )
+    is_event = 1 if lname.startswith("timestamp") and lname not in ("timestamp", "timestamps") else 0
     try:
         length = int(arr.shape[0])
     except (AttributeError, IndexError, TypeError):
@@ -497,18 +472,14 @@ def _select_timestamp_for_signal(
     return chosen_src, chosen_ts, n
 
 
-def _exact_timestamp_match(
-    ts_items: list[tuple[str, Any]], sample_len: int
-) -> tuple[Optional[str], Optional[Any]]:
+def _exact_timestamp_match(ts_items: list[tuple[str, Any]], sample_len: int) -> tuple[Optional[str], Optional[Any]]:
     for src, ts in ts_items:
         if int(getattr(ts, "shape", [0])[0]) == sample_len:
             return src, ts
     return None, None
 
 
-def _stride_timestamp_match(
-    ts_items: list[tuple[str, Any]], sample_len: int
-) -> tuple[Optional[str], Optional[Any]]:
+def _stride_timestamp_match(ts_items: list[tuple[str, Any]], sample_len: int) -> tuple[Optional[str], Optional[Any]]:
     for src, ts in ts_items:
         ts_len = int(getattr(ts, "shape", [0])[0])
         if ts_len <= sample_len or sample_len <= 0:
@@ -588,9 +559,7 @@ def _collect_timebase_summary(meta: dict[str, dict[str, Any]]) -> list[dict[str,
     return [summary[idx] for idx in sorted(summary.keys())]
 
 
-def _collect_daq_timebases(
-    daq_lists: list[DaqList], timebase_hint_s: Optional[float]
-) -> list[dict[str, Any]]:
+def _collect_daq_timebases(daq_lists: list[DaqList], timebase_hint_s: Optional[float]) -> list[dict[str, Any]]:
     hint = float(timebase_hint_s) if timebase_hint_s is not None else None
     summary: list[dict[str, Any]] = []
     for dl in daq_lists:
@@ -679,9 +648,7 @@ def finalize_measurement_outputs(
         for name, extra in signal_metadata.items():
             base = meta.setdefault(name, {})
             base.update(extra)
-    meta_with_units = {
-        name: {**meta.get(name, {}), "units": units.get(name)} for name in signal_names
-    }
+    meta_with_units = {name: {**meta.get(name, {}), "units": units.get(name)} for name in signal_names}
 
     csv_path: Path | None = None
     h5_path: Path | None = None
@@ -772,9 +739,7 @@ def _persist_csv_format(
     **_: Any,
 ) -> RunResult:
     target = str(output_path) if output_path is not None else _auto_filename("measurement", ".csv")
-    return finalize_measurement_outputs(
-        data=data, units=units, project_meta=project_meta, csv_out=target, hdf5_out=None
-    )
+    return finalize_measurement_outputs(data=data, units=units, project_meta=project_meta, csv_out=target, hdf5_out=None)
 
 
 def _persist_hdf5_format(
@@ -919,9 +884,7 @@ def _run_daq_flow(
     shortname: str,
     project_meta: dict[str, Any],
 ) -> RunResult:
-    daq_lists = (
-        daq_lists if daq_lists is not None else build_daq_lists(creator.session, daq_groups)
-    )
+    daq_lists = daq_lists if daq_lists is not None else build_daq_lists(creator.session, daq_groups)
     timebase_hint_s = float(period_s) if period_s is not None else None
     metadata = _prepare_daq_metadata(
         daq_lists,
@@ -975,9 +938,7 @@ def _run_daq_flow_wrapper(
     for g in groups:
         grp_name = g.get("group_name")
         if grp_name:
-            extra = names_from_group(
-                creator.session, grp_name, exclude=g.get("exclude")
-            )
+            extra = names_from_group(creator.session, grp_name, exclude=g.get("exclude"))
             for n in extra:
                 if n not in names:
                     names.append(n)
@@ -987,9 +948,7 @@ def _run_daq_flow_wrapper(
     creator.add_measurements(names)
     if not creator.measurement_variables:
         creator.close()
-        raise ValueError(
-            "None of the requested measurements could be resolved from A2L."
-        )
+        raise ValueError("None of the requested measurements could be resolved from A2L.")
 
     project_meta = {
         "author": getattr(app.general, "author", None),
@@ -1137,12 +1096,8 @@ def run(
     format_name = _resolve_output_format(app.general.output_format, hdf5_out)
     fmt = get_measurement_format(format_name)
     if not fmt.supports_live_capture or fmt.creator_factory is None:
-        raise ValueError(
-            f"Measurement format '{format_name}' does not support polling acquisition."
-        )
-    creator = fmt.creator_factory(
-        exp_cfg
-    )  # AsamMC passes (app_config, exp_cfg) into on_init
+        raise ValueError(f"Measurement format '{format_name}' does not support polling acquisition.")
+    creator = fmt.creator_factory(exp_cfg)  # AsamMC passes (app_config, exp_cfg) into on_init
 
     # Resolve variable names
     # 1) Collect explicit variables
@@ -1151,9 +1106,7 @@ def run(
     for g in groups:
         grp_name = g.get("group_name")
         if grp_name:
-            extra = names_from_group(
-                creator.session, grp_name, exclude=g.get("exclude")
-            )
+            extra = names_from_group(creator.session, grp_name, exclude=g.get("exclude"))
             for n in extra:
                 if n not in names:
                     names.append(n)
@@ -1163,9 +1116,7 @@ def run(
     # valid_measurement = valid_measurements(names)
     creator.add_measurements(names)
     if not creator.measurement_variables:
-        raise ValueError(
-            "None of the requested measurements could be resolved from A2L."
-        )
+        raise ValueError("None of the requested measurements could be resolved from A2L.")
 
     project_meta = {
         "author": getattr(app.general, "author", None),

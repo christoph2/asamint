@@ -53,9 +53,7 @@ class ArgumentParser:
     def __init__(self, callout=None, *args, **kws) -> None:
         self._parser = FakeParser()
         if callout is not None:
-            warnings.warn(
-                "callout  argument is currently not supported.", DeprecationWarning, stacklevel=2
-            )
+            warnings.warn("callout  argument is currently not supported.", DeprecationWarning, stacklevel=2)
 
     def run(self, policy=None, transport_layer_interface=None) -> dict:
         self.application = create_application(self.parser.options)

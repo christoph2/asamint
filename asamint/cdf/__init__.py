@@ -169,9 +169,7 @@ class DB:
         # self.logger.info(f"Creating database {str(db_name)!r}.")
         self.db = MSRSWDatabase(db_name, debug=False)
         self.session = self.db.session
-        self.storage = h5py.File(
-            db_name.with_suffix(".h5"), mode="r", libver="latest", locking="best-effort"
-        )
+        self.storage = h5py.File(db_name.with_suffix(".h5"), mode="r", libver="latest", locking="best-effort")
         self.opened = True
         self.guid = uuid.uuid4()
 
@@ -301,9 +299,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         instance_tree = create_elem(instance_spec, "SW-INSTANCE-TREE")
         self.sub_trees["SW-INSTANCE-TREE"] = instance_tree
         create_elem(instance_tree, "SHORT-NAME", text="STD")
-        create_elem(
-            instance_tree, "CATEGORY", text="NO_VCD"
-        )  # or VCD, variant-coding f.parameters.
+        create_elem(instance_tree, "CATEGORY", text="NO_VCD")  # or VCD, variant-coding f.parameters.
         instance_tree_origin = create_elem(instance_tree, "SW-INSTANCE-TREE-ORIGIN")
         create_elem(
             instance_tree_origin,
@@ -312,9 +308,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         )
         return root
 
-    def cs_collection(
-        self, name: str, category: str, tree: etree._Element, is_group: bool
-    ) -> None:
+    def cs_collection(self, name: str, category: str, tree: etree._Element, is_group: bool) -> None:
         """Create a single SW-CS-COLLECTION element (feature or group reference)."""
         collection = create_elem(tree, "SW-CS-COLLECTION")
         create_elem(collection, "CATEGORY", text=category)
@@ -328,11 +322,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         instance_tree = self.sub_trees["SW-INSTANCE-TREE"]
         collections = create_elem(instance_tree, "SW-CS-COLLECTIONS")
         functions = self.query(model.Function).all()
-        functions = [
-            f
-            for f in functions
-            if f.def_characteristic and f.def_characteristic.identifier != []
-        ]
+        functions = [f for f in functions if f.def_characteristic and f.def_characteristic.identifier != []]
         for f in functions:
             self.cs_collection(f.name, "FEATURE", collections, False)
         groups = self.query(model.Group).all()
@@ -471,9 +461,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
         else:
             create_elem(values, "V", text=str(value))
 
-    def add_axis(
-        self, axis_conts: etree._Element, axis_values: np.ndarray, category: str, unit: str = ""
-    ) -> None:
+    def add_axis(self, axis_conts: etree._Element, axis_values: np.ndarray, category: str, unit: str = "") -> None:
         """Append an axis container with values and optional unit to *axis_conts*."""
         axis_cont = create_elem(axis_conts, "SW-AXIS-CONT")
         create_elem(axis_cont, "CATEGORY", text=category)

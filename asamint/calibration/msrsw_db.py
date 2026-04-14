@@ -58,7 +58,6 @@ def set_sqlite3_pragmas(dbapi_connection, connection_record):
 
 @as_declarative()
 class Base:
-
     rid = Column("rid", types.Integer, primary_key=True)
     content = Column("content", types.Text, nullable=True, unique=False)
 
@@ -68,9 +67,7 @@ class Base:
     def __repr__(self):
         columns = [c.name for c in self.__class__.__table__.c]
         result = []
-        for name, value in [
-            (n, getattr(self, n)) for n in columns if not n.startswith("_")
-        ]:
+        for name, value in [(n, getattr(self, n)) for n in columns if not n.startswith("_")]:
             if isinstance(value, str):
                 result.append(f"{name} = '{value}'")
             else:
@@ -79,22 +76,18 @@ class Base:
 
 
 class DatetimeType(types.TypeDecorator):
-
     FMT = "%Y-%m-%dT%H:%M:%S"
     impl = types.Float
     cache_ok = True
 
     def process_bind_param(self, value, dialect):  # IN
-        return str(
-            Decimal(datetime.datetime.strptime(value, DatetimeType.FMT).timestamp())
-        )
+        return str(Decimal(datetime.datetime.strptime(value, DatetimeType.FMT).timestamp()))
 
     def process_result_value(self, value, dialect):  # OUT
         return datetime.datetime.fromtimestamp(value).strftime(DatetimeType.FMT)
 
 
 class DecimalType(types.TypeDecorator):
-
     impl = types.Text
     cache_ok = True
 
@@ -106,7 +99,6 @@ class DecimalType(types.TypeDecorator):
 
 
 class BlobType(types.TypeDecorator):
-
     impl = types.BLOB
     cache_ok = True
 
@@ -192,7 +184,6 @@ def StdString(default=None, primary_key=False, unique=False, index=False):
 
 
 class MetaData(Base):
-
     __tablename__ = "metadata"
 
     """
@@ -209,7 +200,6 @@ class MetaData(Base):
 
 
 class TtAssociation(Base):
-
     __tablename__ = "tt_association"
 
     discriminator = Column(sqa.String)
@@ -218,7 +208,6 @@ class TtAssociation(Base):
 
 
 class HasTts:
-
     @declared_attr
     def tt_association_id(self):
         return Column(types.Integer, ForeignKey("tt_association.rid"))
@@ -250,9 +239,7 @@ class Tt(Base):
     # P: []  --  C: []
     __tablename__ = "tt"  # TTType   --  tt
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("tt_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tt_association.rid"))
     association = relationship("TtAssociation", back_populates="tts")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("tt.rid"))
@@ -294,7 +281,6 @@ class Tt(Base):
 
 
 class EAssociation(Base):
-
     __tablename__ = "e_association"
 
     discriminator = Column(sqa.String)
@@ -303,7 +289,6 @@ class EAssociation(Base):
 
 
 class HasEs:
-
     @declared_attr
     def e_association_id(self):
         return Column(types.Integer, ForeignKey("e_association.rid"))
@@ -335,9 +320,7 @@ class E(Base):
     # P: []  --  C: []
     __tablename__ = "e"  # EType   --  e
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("e_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("e_association.rid"))
     association = relationship("EAssociation", back_populates="es")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("e.rid"))
@@ -366,7 +349,6 @@ class E(Base):
 
 
 class SupAssociation(Base):
-
     __tablename__ = "sup_association"
 
     discriminator = Column(sqa.String)
@@ -375,7 +357,6 @@ class SupAssociation(Base):
 
 
 class HasSups:
-
     @declared_attr
     def sup_association_id(self):
         return Column(types.Integer, ForeignKey("sup_association.rid"))
@@ -407,9 +388,7 @@ class Sup(Base):
     # P: []  --  C: []
     __tablename__ = "sup"  # SUPType   --  sup
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sup_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sup_association.rid"))
     association = relationship("SupAssociation", back_populates="sups")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sup.rid"))
@@ -431,7 +410,6 @@ class Sup(Base):
 
 
 class SubAssociation(Base):
-
     __tablename__ = "sub_association"
 
     discriminator = Column(sqa.String)
@@ -440,7 +418,6 @@ class SubAssociation(Base):
 
 
 class HasSubs:
-
     @declared_attr
     def sub_association_id(self):
         return Column(types.Integer, ForeignKey("sub_association.rid"))
@@ -472,9 +449,7 @@ class Sub(Base):
     # P: []  --  C: []
     __tablename__ = "sub"  # SUBType   --  sub
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sub_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sub_association.rid"))
     association = relationship("SubAssociation", back_populates="subs")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sub.rid"))
@@ -496,7 +471,6 @@ class Sub(Base):
 
 
 class IeAssociation(Base):
-
     __tablename__ = "ie_association"
 
     discriminator = Column(sqa.String)
@@ -505,7 +479,6 @@ class IeAssociation(Base):
 
 
 class HasIes:
-
     @declared_attr
     def ie_association_id(self):
         return Column(types.Integer, ForeignKey("ie_association.rid"))
@@ -537,9 +510,7 @@ class Ie(Base, HasSups, HasSubs):
     # P: []  --  C: []
     __tablename__ = "ie"  # IEType   --  ie
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("ie_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ie_association.rid"))
     association = relationship("IeAssociation", back_populates="ies")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("ie.rid"))
@@ -569,7 +540,6 @@ class Ie(Base, HasSups, HasSubs):
 
 
 class XrefAssociation(Base):
-
     __tablename__ = "xref_association"
 
     discriminator = Column(sqa.String)
@@ -578,7 +548,6 @@ class XrefAssociation(Base):
 
 
 class HasXrefs:
-
     @declared_attr
     def xref_association_id(self):
         return Column(types.Integer, ForeignKey("xref_association.rid"))
@@ -610,9 +579,7 @@ class Xref(Base):
     # P: []  --  C: []
     __tablename__ = "xref"  # XREFType   --  xref
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("xref_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("xref_association.rid"))
     association = relationship("XrefAssociation", back_populates="xrefs")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("xref.rid"))
@@ -720,7 +687,6 @@ class Xref(Base):
 
 
 class StdAssociation(Base):
-
     __tablename__ = "std_association"
 
     discriminator = Column(sqa.String)
@@ -729,7 +695,6 @@ class StdAssociation(Base):
 
 
 class HasStds:
-
     @declared_attr
     def std_association_id(self):
         return Column(types.Integer, ForeignKey("std_association.rid"))
@@ -761,9 +726,7 @@ class Std(Base):
     # P: []  --  C: []
     __tablename__ = "std"  # STDType   --  std
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("std_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("std_association.rid"))
     association = relationship("StdAssociation", back_populates="stds")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("std.rid"))
@@ -794,19 +757,13 @@ class Std(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    long_name_1_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name_1.rid")
-    )
+    long_name_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name_1.rid"))
     long_name_1: Mapped["LongName1"] = relationship(single_parent=True)
     # SHIT-R
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # SHIT-R
-    subtitle_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("subtitle.rid")
-    )
+    subtitle_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("subtitle.rid"))
     subtitle: Mapped["Subtitle"] = relationship(single_parent=True)
     # SHIT-R
     state_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("state_1.rid"))
@@ -818,14 +775,11 @@ class Std(Base):
     url_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("url.rid"))
     url: Mapped["Url"] = relationship(single_parent=True)
     # SHIT-R
-    position_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("position.rid")
-    )
+    position_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("position.rid"))
     position: Mapped["Position"] = relationship(single_parent=True)
 
 
 class FtAssociation(Base):
-
     __tablename__ = "ft_association"
 
     discriminator = Column(sqa.String)
@@ -834,7 +788,6 @@ class FtAssociation(Base):
 
 
 class HasFts:
-
     @declared_attr
     def ft_association_id(self):
         return Column(types.Integer, ForeignKey("ft_association.rid"))
@@ -866,9 +819,7 @@ class Ft(Base):
     # P: []  --  C: []
     __tablename__ = "ft"  # FTType   --  ft
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("ft_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ft_association.rid"))
     association = relationship("FtAssociation", back_populates="fts")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("ft.rid"))
@@ -890,18 +841,14 @@ class Ft(Base):
 
 
 class MsrQueryTextAssociation(Base):
-
     __tablename__ = "msr_query_text_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    msr_query_texts: Mapped[list["MsrQueryText"]] = relationship(
-        back_populates="association"
-    )
+    msr_query_texts: Mapped[list["MsrQueryText"]] = relationship(back_populates="association")
 
 
 class HasMsrQueryTexts:
-
     @declared_attr
     def msr_query_text_association_id(self):
         return Column(types.Integer, ForeignKey("msr_query_text_association.rid"))
@@ -933,12 +880,8 @@ class MsrQueryText(Base):
     # P: []  --  C: []
     __tablename__ = "msr_query_text"  # MSR-QUERY-TEXTType   --  msr_query_text
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_text_association.rid")
-    )
-    association = relationship(
-        "MsrQueryTextAssociation", back_populates="msr_query_texts"
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_text_association.rid"))
+    association = relationship("MsrQueryTextAssociation", back_populates="msr_query_texts")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("msr_query_text.rid"))
     children = relationship("MsrQueryText")
@@ -959,21 +902,14 @@ class MsrQueryText(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    msr_query_props_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_props.rid")
-    )
+    msr_query_props_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_props.rid"))
     msr_query_props: Mapped["MsrQueryProps"] = relationship(single_parent=True)
     # SHIT-R
-    msr_query_result_text_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_result_text.rid")
-    )
-    msr_query_result_text: Mapped["MsrQueryResultText"] = relationship(
-        single_parent=True
-    )
+    msr_query_result_text_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_result_text.rid"))
+    msr_query_result_text: Mapped["MsrQueryResultText"] = relationship(single_parent=True)
 
 
 class XfileAssociation(Base):
-
     __tablename__ = "xfile_association"
 
     discriminator = Column(sqa.String)
@@ -982,7 +918,6 @@ class XfileAssociation(Base):
 
 
 class HasXfiles:
-
     @declared_attr
     def xfile_association_id(self):
         return Column(types.Integer, ForeignKey("xfile_association.rid"))
@@ -1014,9 +949,7 @@ class Xfile(Base):
     # P: []  --  C: []
     __tablename__ = "xfile"  # XFILEType   --  xfile
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("xfile_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("xfile_association.rid"))
     association = relationship("XfileAssociation", back_populates="xfiles")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("xfile.rid"))
@@ -1046,35 +979,26 @@ class Xfile(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    long_name_1_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name_1.rid")
-    )
+    long_name_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name_1.rid"))
     long_name_1: Mapped["LongName1"] = relationship(single_parent=True)
     # SHIT-R
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # SHIT-R
     url_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("url.rid"))
     url: Mapped["Url"] = relationship(single_parent=True)
     # SHIT-R
-    notation_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("notation.rid")
-    )
+    notation_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("notation.rid"))
     notation: Mapped["Notation"] = relationship(single_parent=True)
     # SHIT-R
     tool_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tool.rid"))
     tool: Mapped["Tool"] = relationship(single_parent=True)
     # SHIT-R
-    tool_version_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("tool_version.rid")
-    )
+    tool_version_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tool_version.rid"))
     tool_version: Mapped["ToolVersion"] = relationship(single_parent=True)
 
 
 class XdocAssociation(Base):
-
     __tablename__ = "xdoc_association"
 
     discriminator = Column(sqa.String)
@@ -1083,7 +1007,6 @@ class XdocAssociation(Base):
 
 
 class HasXdocs:
-
     @declared_attr
     def xdoc_association_id(self):
         return Column(types.Integer, ForeignKey("xdoc_association.rid"))
@@ -1115,9 +1038,7 @@ class Xdoc(Base):
     # P: []  --  C: []
     __tablename__ = "xdoc"  # XDOCType   --  xdoc
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("xdoc_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("xdoc_association.rid"))
     association = relationship("XdocAssociation", back_populates="xdocs")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("xdoc.rid"))
@@ -1149,14 +1070,10 @@ class Xdoc(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    long_name_1_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name_1.rid")
-    )
+    long_name_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name_1.rid"))
     long_name_1: Mapped["LongName1"] = relationship(single_parent=True)
     # SHIT-R
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # SHIT-R
     number_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("number.rid"))
@@ -1168,33 +1085,25 @@ class Xdoc(Base):
     date_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("date_1.rid"))
     date_1: Mapped["Date1"] = relationship(single_parent=True)
     # SHIT-R
-    publisher_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("publisher.rid")
-    )
+    publisher_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("publisher.rid"))
     publisher: Mapped["Publisher"] = relationship(single_parent=True)
     # SHIT-R
     url_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("url.rid"))
     url: Mapped["Url"] = relationship(single_parent=True)
     # SHIT-R
-    position_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("position.rid")
-    )
+    position_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("position.rid"))
     position: Mapped["Position"] = relationship(single_parent=True)
 
 
 class XrefTargetAssociation(Base):
-
     __tablename__ = "xref_target_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    xref_targets: Mapped[list["XrefTarget"]] = relationship(
-        back_populates="association"
-    )
+    xref_targets: Mapped[list["XrefTarget"]] = relationship(back_populates="association")
 
 
 class HasXrefTargets:
-
     @declared_attr
     def xref_target_association_id(self):
         return Column(types.Integer, ForeignKey("xref_target_association.rid"))
@@ -1226,9 +1135,7 @@ class XrefTarget(Base):
     # P: []  --  C: []
     __tablename__ = "xref_target"  # XREF-TARGETType   --  xref_target
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("xref_target_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("xref_target_association.rid"))
     association = relationship("XrefTargetAssociation", back_populates="xref_targets")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("xref_target.rid"))
@@ -1254,19 +1161,14 @@ class XrefTarget(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    long_name_1_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name_1.rid")
-    )
+    long_name_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name_1.rid"))
     long_name_1: Mapped["LongName1"] = relationship(single_parent=True)
     # SHIT-R
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
 
 
 class PAssociation(Base):
-
     __tablename__ = "p_association"
 
     discriminator = Column(sqa.String)
@@ -1275,7 +1177,6 @@ class PAssociation(Base):
 
 
 class HasPs:
-
     @declared_attr
     def p_association_id(self):
         return Column(types.Integer, ForeignKey("p_association.rid"))
@@ -1321,9 +1222,7 @@ class P(
     # P: []  --  C: []
     __tablename__ = "p"  # PType   --  p
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("p_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("p_association.rid"))
     association = relationship("PAssociation", back_populates="ps")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("p.rid"))
@@ -1389,7 +1288,6 @@ class P(
 
 
 class VerbatimAssociation(Base):
-
     __tablename__ = "verbatim_association"
 
     discriminator = Column(sqa.String)
@@ -1398,7 +1296,6 @@ class VerbatimAssociation(Base):
 
 
 class HasVerbatims:
-
     @declared_attr
     def verbatim_association_id(self):
         return Column(types.Integer, ForeignKey("verbatim_association.rid"))
@@ -1430,9 +1327,7 @@ class Verbatim(Base, HasEs):
     # P: []  --  C: []
     __tablename__ = "verbatim"  # VERBATIMType   --  verbatim
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("verbatim_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("verbatim_association.rid"))
     association = relationship("VerbatimAssociation", back_populates="verbatims")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("verbatim.rid"))
@@ -1472,7 +1367,6 @@ class Verbatim(Base, HasEs):
 
 
 class FigureAssociation(Base):
-
     __tablename__ = "figure_association"
 
     discriminator = Column(sqa.String)
@@ -1481,7 +1375,6 @@ class FigureAssociation(Base):
 
 
 class HasFigures:
-
     @declared_attr
     def figure_association_id(self):
         return Column(types.Integer, ForeignKey("figure_association.rid"))
@@ -1513,9 +1406,7 @@ class Figure(Base):
     # P: []  --  C: []
     __tablename__ = "figure"  # FIGUREType   --  figure
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("figure_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("figure_association.rid"))
     association = relationship("FigureAssociation", back_populates="figures")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("figure.rid"))
@@ -1553,9 +1444,7 @@ class Figure(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    figure_caption_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("figure_caption.rid")
-    )
+    figure_caption_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("figure_caption.rid"))
     figure_caption: Mapped["FigureCaption"] = relationship(single_parent=True)
     # SHIT-R
     graphic_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("graphic.rid"))
@@ -1564,9 +1453,7 @@ class Figure(Base):
     map_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_map.rid"))
     _map: Mapped["Map"] = relationship(single_parent=True)
     # SHIT-R
-    verbatim_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("verbatim.rid")
-    )
+    verbatim_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("verbatim.rid"))
     verbatim: Mapped["Verbatim"] = relationship(single_parent=True)
     # SHIT-R
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
@@ -1574,7 +1461,6 @@ class Figure(Base):
 
 
 class NoteAssociation(Base):
-
     __tablename__ = "note_association"
 
     discriminator = Column(sqa.String)
@@ -1583,7 +1469,6 @@ class NoteAssociation(Base):
 
 
 class HasNotes:
-
     @declared_attr
     def note_association_id(self):
         return Column(types.Integer, ForeignKey("note_association.rid"))
@@ -1615,9 +1500,7 @@ class Note(Base, HasPs):
     # P: []  --  C: []
     __tablename__ = "note"  # NOTEType   --  note
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("note_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("note_association.rid"))
     association = relationship("NoteAssociation", back_populates="notes")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("note.rid"))
@@ -1656,7 +1539,6 @@ class Note(Base, HasPs):
 
 
 class ListAssociation(Base):
-
     __tablename__ = "_list_association"
 
     discriminator = Column(sqa.String)
@@ -1665,7 +1547,6 @@ class ListAssociation(Base):
 
 
 class HasLists:
-
     @declared_attr
     def list_association_id(self):
         return Column(types.Integer, ForeignKey("_list_association.rid"))
@@ -1697,9 +1578,7 @@ class List(Base):
     # P: []  --  C: ['Item']
     __tablename__ = "_list"  # LISTType   --  _list
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("_list_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_list_association.rid"))
     association = relationship("ListAssociation", back_populates="_lists")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("_list.rid"))
@@ -1733,7 +1612,6 @@ class List(Base):
 
 
 class DefListAssociation(Base):
-
     __tablename__ = "def_list_association"
 
     discriminator = Column(sqa.String)
@@ -1742,7 +1620,6 @@ class DefListAssociation(Base):
 
 
 class HasDefLists:
-
     @declared_attr
     def def_list_association_id(self):
         return Column(types.Integer, ForeignKey("def_list_association.rid"))
@@ -1774,9 +1651,7 @@ class DefList(Base):
     # P: []  --  C: ['DefItem']
     __tablename__ = "def_list"  # DEF-LISTType   --  def_list
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("def_list_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("def_list_association.rid"))
     association = relationship("DefListAssociation", back_populates="def_lists")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("def_list.rid"))
@@ -1807,18 +1682,14 @@ class DefList(Base):
 
 
 class LabeledListAssociation(Base):
-
     __tablename__ = "labeled_list_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    labeled_lists: Mapped[list["LabeledList"]] = relationship(
-        back_populates="association"
-    )
+    labeled_lists: Mapped[list["LabeledList"]] = relationship(back_populates="association")
 
 
 class HasLabeledLists:
-
     @declared_attr
     def labeled_list_association_id(self):
         return Column(types.Integer, ForeignKey("labeled_list_association.rid"))
@@ -1850,9 +1721,7 @@ class LabeledList(Base):
     # P: []  --  C: ['LabeledItem']
     __tablename__ = "labeled_list"  # LABELED-LISTType   --  labeled_list
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("labeled_list_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("labeled_list_association.rid"))
     association = relationship("LabeledListAssociation", back_populates="labeled_lists")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("labeled_list.rid"))
@@ -1879,30 +1748,22 @@ class LabeledList(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    indent_sample_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("indent_sample.rid")
-    )
+    indent_sample_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("indent_sample.rid"))
     indent_sample: Mapped["IndentSample"] = relationship(single_parent=True)
     # SHIT-A
     # PARENT-OBJ
-    labeled_item: Mapped[list["LabeledItem"]] = relationship(
-        back_populates="labeled_list"
-    )
+    labeled_item: Mapped[list["LabeledItem"]] = relationship(back_populates="labeled_list")
 
 
 class MsrQueryChapterAssociation(Base):
-
     __tablename__ = "msr_query_chapter_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    msr_query_chapters: Mapped[list["MsrQueryChapter"]] = relationship(
-        back_populates="association"
-    )
+    msr_query_chapters: Mapped[list["MsrQueryChapter"]] = relationship(back_populates="association")
 
 
 class HasMsrQueryChapters:
-
     @declared_attr
     def msr_query_chapter_association_id(self):
         return Column(types.Integer, ForeignKey("msr_query_chapter_association.rid"))
@@ -1924,9 +1785,7 @@ class HasMsrQueryChapters:
         cls.msr_query_chapters = association_proxy(
             "msr_query_chapter_association",
             "msr_query_chapters",
-            creator=lambda msr_query_chapters: assoc_cls(
-                msr_query_chapters=msr_query_chapters
-            ),
+            creator=lambda msr_query_chapters: assoc_cls(msr_query_chapters=msr_query_chapters),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -1936,12 +1795,8 @@ class MsrQueryChapter(Base):
     # P: []  --  C: []
     __tablename__ = "msr_query_chapter"  # MSR-QUERY-CHAPTERType   --  msr_query_chapter
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_chapter_association.rid")
-    )
-    association = relationship(
-        "MsrQueryChapterAssociation", back_populates="msr_query_chapters"
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_chapter_association.rid"))
+    association = relationship("MsrQueryChapterAssociation", back_populates="msr_query_chapters")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("msr_query_chapter.rid"))
     children = relationship("MsrQueryChapter")
@@ -1967,21 +1822,14 @@ class MsrQueryChapter(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    msr_query_props_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_props.rid")
-    )
+    msr_query_props_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_props.rid"))
     msr_query_props: Mapped["MsrQueryProps"] = relationship(single_parent=True)
     # SHIT-R
-    msr_query_result_chapter_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_result_chapter.rid")
-    )
-    msr_query_result_chapter: Mapped["MsrQueryResultChapter"] = relationship(
-        single_parent=True
-    )
+    msr_query_result_chapter_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_result_chapter.rid"))
+    msr_query_result_chapter: Mapped["MsrQueryResultChapter"] = relationship(single_parent=True)
 
 
 class FormulaAssociation(Base):
-
     __tablename__ = "formula_association"
 
     discriminator = Column(sqa.String)
@@ -1990,7 +1838,6 @@ class FormulaAssociation(Base):
 
 
 class HasFormulas:
-
     @declared_attr
     def formula_association_id(self):
         return Column(types.Integer, ForeignKey("formula_association.rid"))
@@ -2022,9 +1869,7 @@ class Formula(Base):
     # P: []  --  C: []
     __tablename__ = "formula"  # FORMULAType   --  formula
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("formula_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("formula_association.rid"))
     association = relationship("FormulaAssociation", back_populates="formulas")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("formula.rid"))
@@ -2056,9 +1901,7 @@ class Formula(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    formula_caption_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("formula_caption.rid")
-    )
+    formula_caption_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("formula_caption.rid"))
     formula_caption: Mapped["FormulaCaption"] = relationship(single_parent=True)
     # SHIT-R
     graphic_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("graphic.rid"))
@@ -2067,38 +1910,28 @@ class Formula(Base):
     map_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_map.rid"))
     _map: Mapped["Map"] = relationship(single_parent=True)
     # SHIT-R
-    verbatim_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("verbatim.rid")
-    )
+    verbatim_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("verbatim.rid"))
     verbatim: Mapped["Verbatim"] = relationship(single_parent=True)
     # SHIT-R
-    tex_math_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("tex_math.rid")
-    )
+    tex_math_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tex_math.rid"))
     tex_math: Mapped["TexMath"] = relationship(single_parent=True)
     # SHIT-R
     c_code_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("c_code.rid"))
     c_code: Mapped["CCode"] = relationship(single_parent=True)
     # SHIT-R
-    generic_math_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("generic_math.rid")
-    )
+    generic_math_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("generic_math.rid"))
     generic_math: Mapped["GenericMath"] = relationship(single_parent=True)
 
 
 class MsrQueryP2Association(Base):
-
     __tablename__ = "msr_query_p_2_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    msr_query_p_2s: Mapped[list["MsrQueryP2"]] = relationship(
-        back_populates="association"
-    )
+    msr_query_p_2s: Mapped[list["MsrQueryP2"]] = relationship(back_populates="association")
 
 
 class HasMsrQueryP2s:
-
     @declared_attr
     def msr_query_p_2_association_id(self):
         return Column(types.Integer, ForeignKey("msr_query_p_2_association.rid"))
@@ -2130,9 +1963,7 @@ class MsrQueryP2(Base):
     # P: []  --  C: []
     __tablename__ = "msr_query_p_2"  # MSR-QUERY-P-2Type   --  msr_query_p_2
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_p_2_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_p_2_association.rid"))
     association = relationship("MsrQueryP2Association", back_populates="msr_query_p_2s")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("msr_query_p_2.rid"))
@@ -2159,19 +1990,14 @@ class MsrQueryP2(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    msr_query_props_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_props.rid")
-    )
+    msr_query_props_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_props.rid"))
     msr_query_props: Mapped["MsrQueryProps"] = relationship(single_parent=True)
     # SHIT-R
-    msr_query_result_p_2_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_result_p_2.rid")
-    )
+    msr_query_result_p_2_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_result_p_2.rid"))
     msr_query_result_p_2: Mapped["MsrQueryResultP2"] = relationship(single_parent=True)
 
 
 class TableAssociation(Base):
-
     __tablename__ = "table_association"
 
     discriminator = Column(sqa.String)
@@ -2180,7 +2006,6 @@ class TableAssociation(Base):
 
 
 class HasTables:
-
     @declared_attr
     def table_association_id(self):
         return Column(types.Integer, ForeignKey("table_association.rid"))
@@ -2212,9 +2037,7 @@ class Table(Base):
     # P: []  --  C: ['Tgroup']
     __tablename__ = "table"  # TABLEType   --  table
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("table_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("table_association.rid"))
     association = relationship("TableAssociation", back_populates="tables")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("table.rid"))
@@ -2264,9 +2087,7 @@ class Table(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    table_caption_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("table_caption.rid")
-    )
+    table_caption_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("table_caption.rid"))
     table_caption: Mapped["TableCaption"] = relationship(single_parent=True)
     # SHIT-A
     # PARENT-OBJ
@@ -2274,18 +2095,14 @@ class Table(Base):
 
 
 class MsrQueryTopic2Association(Base):
-
     __tablename__ = "msr_query_topic_2_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    msr_query_topic_2s: Mapped[list["MsrQueryTopic2"]] = relationship(
-        back_populates="association"
-    )
+    msr_query_topic_2s: Mapped[list["MsrQueryTopic2"]] = relationship(back_populates="association")
 
 
 class HasMsrQueryTopic2s:
-
     @declared_attr
     def msr_query_topic_2_association_id(self):
         return Column(types.Integer, ForeignKey("msr_query_topic_2_association.rid"))
@@ -2307,9 +2124,7 @@ class HasMsrQueryTopic2s:
         cls.msr_query_topic_2s = association_proxy(
             "msr_query_topic_2_association",
             "msr_query_topic_2s",
-            creator=lambda msr_query_topic_2s: assoc_cls(
-                msr_query_topic_2s=msr_query_topic_2s
-            ),
+            creator=lambda msr_query_topic_2s: assoc_cls(msr_query_topic_2s=msr_query_topic_2s),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -2319,12 +2134,8 @@ class MsrQueryTopic2(Base):
     # P: []  --  C: []
     __tablename__ = "msr_query_topic_2"  # MSR-QUERY-TOPIC-2Type   --  msr_query_topic_2
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_topic_2_association.rid")
-    )
-    association = relationship(
-        "MsrQueryTopic2Association", back_populates="msr_query_topic_2s"
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_topic_2_association.rid"))
+    association = relationship("MsrQueryTopic2Association", back_populates="msr_query_topic_2s")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("msr_query_topic_2.rid"))
     children = relationship("MsrQueryTopic2")
@@ -2350,21 +2161,14 @@ class MsrQueryTopic2(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    msr_query_props_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_props.rid")
-    )
+    msr_query_props_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_props.rid"))
     msr_query_props: Mapped["MsrQueryProps"] = relationship(single_parent=True)
     # SHIT-R
-    msr_query_result_topic_2_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_result_topic_2.rid")
-    )
-    msr_query_result_topic_2: Mapped["MsrQueryResultTopic2"] = relationship(
-        single_parent=True
-    )
+    msr_query_result_topic_2_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_result_topic_2.rid"))
+    msr_query_result_topic_2: Mapped["MsrQueryResultTopic2"] = relationship(single_parent=True)
 
 
 class PrmCharAssociation(Base):
-
     __tablename__ = "prm_char_association"
 
     discriminator = Column(sqa.String)
@@ -2373,7 +2177,6 @@ class PrmCharAssociation(Base):
 
 
 class HasPrmChars:
-
     @declared_attr
     def prm_char_association_id(self):
         return Column(types.Integer, ForeignKey("prm_char_association.rid"))
@@ -2405,9 +2208,7 @@ class PrmChar(Base):
     # P: []  --  C: []
     __tablename__ = "prm_char"  # PRM-CHARType   --  prm_char
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("prm_char_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("prm_char_association.rid"))
     association = relationship("PrmCharAssociation", back_populates="prm_chars")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("prm_char.rid"))
@@ -2465,7 +2266,6 @@ class PrmChar(Base):
 
 
 class PrmAssociation(Base):
-
     __tablename__ = "prm_association"
 
     discriminator = Column(sqa.String)
@@ -2474,7 +2274,6 @@ class PrmAssociation(Base):
 
 
 class HasPrms:
-
     @declared_attr
     def prm_association_id(self):
         return Column(types.Integer, ForeignKey("prm_association.rid"))
@@ -2506,9 +2305,7 @@ class Prm(Base, HasPrmChars):
     # P: []  --  C: []
     __tablename__ = "prm"  # PRMType   --  prm
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("prm_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("prm_association.rid"))
     association = relationship("PrmAssociation", back_populates="prms")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("prm.rid"))
@@ -2536,14 +2333,10 @@ class Prm(Base, HasPrmChars):
     t = StdString()
     si = StdString()
     # SHIT-R
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # SHIT-R
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # SHIT-R
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
@@ -2553,7 +2346,6 @@ class Prm(Base, HasPrmChars):
 
 
 class PrmsAssociation(Base):
-
     __tablename__ = "prms_association"
 
     discriminator = Column(sqa.String)
@@ -2562,7 +2354,6 @@ class PrmsAssociation(Base):
 
 
 class HasPrmss:
-
     @declared_attr
     def prms_association_id(self):
         return Column(types.Integer, ForeignKey("prms_association.rid"))
@@ -2594,9 +2385,7 @@ class Prms(Base, HasPrms):
     # P: []  --  C: []
     __tablename__ = "prms"  # PRMSType   --  prms
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("prms_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("prms_association.rid"))
     association = relationship("PrmsAssociation", back_populates="prmss")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("prms.rid"))
@@ -2630,18 +2419,14 @@ class Prms(Base, HasPrms):
 
 
 class MsrQueryP1Association(Base):
-
     __tablename__ = "msr_query_p_1_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    msr_query_p_1s: Mapped[list["MsrQueryP1"]] = relationship(
-        back_populates="association"
-    )
+    msr_query_p_1s: Mapped[list["MsrQueryP1"]] = relationship(back_populates="association")
 
 
 class HasMsrQueryP1s:
-
     @declared_attr
     def msr_query_p_1_association_id(self):
         return Column(types.Integer, ForeignKey("msr_query_p_1_association.rid"))
@@ -2673,9 +2458,7 @@ class MsrQueryP1(Base):
     # P: []  --  C: []
     __tablename__ = "msr_query_p_1"  # MSR-QUERY-P-1Type   --  msr_query_p_1
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_p_1_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_p_1_association.rid"))
     association = relationship("MsrQueryP1Association", back_populates="msr_query_p_1s")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("msr_query_p_1.rid"))
@@ -2702,19 +2485,14 @@ class MsrQueryP1(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    msr_query_props_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_props.rid")
-    )
+    msr_query_props_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_props.rid"))
     msr_query_props: Mapped["MsrQueryProps"] = relationship(single_parent=True)
     # SHIT-R
-    msr_query_result_p_1_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_result_p_1.rid")
-    )
+    msr_query_result_p_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_result_p_1.rid"))
     msr_query_result_p_1: Mapped["MsrQueryResultP1"] = relationship(single_parent=True)
 
 
 class Topic1Association(Base):
-
     __tablename__ = "topic_1_association"
 
     discriminator = Column(sqa.String)
@@ -2723,7 +2501,6 @@ class Topic1Association(Base):
 
 
 class HasTopic1s:
-
     @declared_attr
     def topic_1_association_id(self):
         return Column(types.Integer, ForeignKey("topic_1_association.rid"))
@@ -2768,9 +2545,7 @@ class Topic1(
     # P: []  --  C: []
     __tablename__ = "topic_1"  # TOPIC-1Type   --  topic_1
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("topic_1_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("topic_1_association.rid"))
     association = relationship("Topic1Association", back_populates="topic_1s")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("topic_1.rid"))
@@ -2814,14 +2589,10 @@ class Topic1(
     t = StdString()
     si = StdString()
     # SHIT-R
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # SHIT-R
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # SHIT-A
     # NO_PA         p
@@ -2848,18 +2619,14 @@ class Topic1(
 
 
 class MsrQueryTopic1Association(Base):
-
     __tablename__ = "msr_query_topic_1_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    msr_query_topic_1s: Mapped[list["MsrQueryTopic1"]] = relationship(
-        back_populates="association"
-    )
+    msr_query_topic_1s: Mapped[list["MsrQueryTopic1"]] = relationship(back_populates="association")
 
 
 class HasMsrQueryTopic1s:
-
     @declared_attr
     def msr_query_topic_1_association_id(self):
         return Column(types.Integer, ForeignKey("msr_query_topic_1_association.rid"))
@@ -2881,9 +2648,7 @@ class HasMsrQueryTopic1s:
         cls.msr_query_topic_1s = association_proxy(
             "msr_query_topic_1_association",
             "msr_query_topic_1s",
-            creator=lambda msr_query_topic_1s: assoc_cls(
-                msr_query_topic_1s=msr_query_topic_1s
-            ),
+            creator=lambda msr_query_topic_1s: assoc_cls(msr_query_topic_1s=msr_query_topic_1s),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -2893,12 +2658,8 @@ class MsrQueryTopic1(Base):
     # P: []  --  C: []
     __tablename__ = "msr_query_topic_1"  # MSR-QUERY-TOPIC-1Type   --  msr_query_topic_1
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_topic_1_association.rid")
-    )
-    association = relationship(
-        "MsrQueryTopic1Association", back_populates="msr_query_topic_1s"
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_topic_1_association.rid"))
+    association = relationship("MsrQueryTopic1Association", back_populates="msr_query_topic_1s")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("msr_query_topic_1.rid"))
     children = relationship("MsrQueryTopic1")
@@ -2924,21 +2685,14 @@ class MsrQueryTopic1(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    msr_query_props_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_props.rid")
-    )
+    msr_query_props_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_props.rid"))
     msr_query_props: Mapped["MsrQueryProps"] = relationship(single_parent=True)
     # SHIT-R
-    msr_query_result_topic_1_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_result_topic_1.rid")
-    )
-    msr_query_result_topic_1: Mapped["MsrQueryResultTopic1"] = relationship(
-        single_parent=True
-    )
+    msr_query_result_topic_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_result_topic_1.rid"))
+    msr_query_result_topic_1: Mapped["MsrQueryResultTopic1"] = relationship(single_parent=True)
 
 
 class ChapterAssociation(Base):
-
     __tablename__ = "chapter_association"
 
     discriminator = Column(sqa.String)
@@ -2947,7 +2701,6 @@ class ChapterAssociation(Base):
 
 
 class HasChapters:
-
     @declared_attr
     def chapter_association_id(self):
         return Column(types.Integer, ForeignKey("chapter_association.rid"))
@@ -2995,9 +2748,7 @@ class Chapter(
     # P: []  --  C: []
     __tablename__ = "chapter"  # CHAPTERType   --  chapter
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("chapter_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("chapter_association.rid"))
     association = relationship("ChapterAssociation", back_populates="chapters")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("chapter.rid"))
@@ -3051,24 +2802,16 @@ class Chapter(
     t = StdString()
     si = StdString()
     # SHIT-R
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # SHIT-R
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # SHIT-R
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # SHIT-R
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # SHIT-A
     # NO_PA         p
@@ -3103,7 +2846,6 @@ class Chapter(
 
 
 class Topic2Association(Base):
-
     __tablename__ = "topic_2_association"
 
     discriminator = Column(sqa.String)
@@ -3112,7 +2854,6 @@ class Topic2Association(Base):
 
 
 class HasTopic2s:
-
     @declared_attr
     def topic_2_association_id(self):
         return Column(types.Integer, ForeignKey("topic_2_association.rid"))
@@ -3156,9 +2897,7 @@ class Topic2(
     # P: []  --  C: []
     __tablename__ = "topic_2"  # TOPIC-2Type   --  topic_2
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("topic_2_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("topic_2_association.rid"))
     association = relationship("Topic2Association", back_populates="topic_2s")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("topic_2.rid"))
@@ -3201,14 +2940,10 @@ class Topic2(
     t = StdString()
     si = StdString()
     # SHIT-R
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # SHIT-R
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # SHIT-A
     # NO_PA         p
@@ -3233,7 +2968,6 @@ class Topic2(
 
 
 class RowAssociation(Base):
-
     __tablename__ = "_row_association"
 
     discriminator = Column(sqa.String)
@@ -3242,7 +2976,6 @@ class RowAssociation(Base):
 
 
 class HasRows:
-
     @declared_attr
     def row_association_id(self):
         return Column(types.Integer, ForeignKey("_row_association.rid"))
@@ -3274,9 +3007,7 @@ class Row(Base):
     # P: []  --  C: ['Entry']
     __tablename__ = "_row"  # ROWType   --  _row
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("_row_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_row_association.rid"))
     association = relationship("RowAssociation", back_populates="_rows")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("_row.rid"))
@@ -3309,7 +3040,6 @@ class Row(Base):
 
 
 class ColspecAssociation(Base):
-
     __tablename__ = "colspec_association"
 
     discriminator = Column(sqa.String)
@@ -3318,7 +3048,6 @@ class ColspecAssociation(Base):
 
 
 class HasColspecs:
-
     @declared_attr
     def colspec_association_id(self):
         return Column(types.Integer, ForeignKey("colspec_association.rid"))
@@ -3350,9 +3079,7 @@ class Colspec(Base):
     # P: []  --  C: []
     __tablename__ = "colspec"  # COLSPECType   --  colspec
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("colspec_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("colspec_association.rid"))
     association = relationship("ColspecAssociation", back_populates="colspecs")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("colspec.rid"))
@@ -3364,18 +3091,14 @@ class Colspec(Base):
 
 
 class RequirementAssociation(Base):
-
     __tablename__ = "requirement_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    requirements: Mapped[list["Requirement"]] = relationship(
-        back_populates="association"
-    )
+    requirements: Mapped[list["Requirement"]] = relationship(back_populates="association")
 
 
 class HasRequirements:
-
     @declared_attr
     def requirement_association_id(self):
         return Column(types.Integer, ForeignKey("requirement_association.rid"))
@@ -3407,9 +3130,7 @@ class Requirement(Base):
     # P: []  --  C: []
     __tablename__ = "requirement"  # REQUIREMENTType   --  requirement
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("requirement_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("requirement_association.rid"))
     association = relationship("RequirementAssociation", back_populates="requirements")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("requirement.rid"))
@@ -3447,82 +3168,54 @@ class Requirement(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # SHIT-R
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # SHIT-R
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # SHIT-R
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # SHIT-R
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # SHIT-R
-    requirement_body_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("requirement_body.rid")
-    )
+    requirement_body_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("requirement_body.rid"))
     requirement_body: Mapped["RequirementBody"] = relationship(single_parent=True)
     # SHIT-R
-    critical_aspects_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("critical_aspects.rid")
-    )
+    critical_aspects_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("critical_aspects.rid"))
     critical_aspects: Mapped["CriticalAspects"] = relationship(single_parent=True)
     # SHIT-R
-    technical_aspects_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("technical_aspects.rid")
-    )
+    technical_aspects_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("technical_aspects.rid"))
     technical_aspects: Mapped["TechnicalAspects"] = relationship(single_parent=True)
     # SHIT-R
-    realtime_requirements_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("realtime_requirements.rid")
-    )
-    realtime_requirements: Mapped["RealtimeRequirements"] = relationship(
-        single_parent=True
-    )
+    realtime_requirements_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("realtime_requirements.rid"))
+    realtime_requirements: Mapped["RealtimeRequirements"] = relationship(single_parent=True)
     # SHIT-R
     risks_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("risks.rid"))
     risks: Mapped["Risks"] = relationship(single_parent=True)
     # SHIT-R
-    requirements_dependency_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("requirements_dependency.rid")
-    )
-    requirements_dependency: Mapped["RequirementsDependency"] = relationship(
-        single_parent=True
-    )
+    requirements_dependency_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("requirements_dependency.rid"))
+    requirements_dependency: Mapped["RequirementsDependency"] = relationship(single_parent=True)
     # SHIT-R
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
     # SHIT-A
     # NO_PA         requirement
 
 
 class SwVariableRefAssociation(Base):
-
     __tablename__ = "sw_variable_ref_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    sw_variable_refs: Mapped[list["SwVariableRef"]] = relationship(
-        back_populates="association"
-    )
+    sw_variable_refs: Mapped[list["SwVariableRef"]] = relationship(back_populates="association")
 
 
 class HasSwVariableRefs:
-
     @declared_attr
     def sw_variable_ref_association_id(self):
         return Column(types.Integer, ForeignKey("sw_variable_ref_association.rid"))
@@ -3544,9 +3237,7 @@ class HasSwVariableRefs:
         cls.sw_variable_refs = association_proxy(
             "sw_variable_ref_association",
             "sw_variable_refs",
-            creator=lambda sw_variable_refs: assoc_cls(
-                sw_variable_refs=sw_variable_refs
-            ),
+            creator=lambda sw_variable_refs: assoc_cls(sw_variable_refs=sw_variable_refs),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -3556,12 +3247,8 @@ class SwVariableRef(Base):
     # P: []  --  C: []
     __tablename__ = "sw_variable_ref"  # SW-VARIABLE-REFType   --  sw_variable_ref
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variable_ref_association.rid")
-    )
-    association = relationship(
-        "SwVariableRefAssociation", back_populates="sw_variable_refs"
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variable_ref_association.rid"))
+    association = relationship("SwVariableRefAssociation", back_populates="sw_variable_refs")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sw_variable_ref.rid"))
     children = relationship("SwVariableRef")
@@ -3590,23 +3277,17 @@ class SwVariableRef(Base):
 
 
 class SwSystemconstCodedRefAssociation(Base):
-
     __tablename__ = "sw_systemconst_coded_ref_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    sw_systemconst_coded_refs: Mapped[list["SwSystemconstCodedRef"]] = relationship(
-        back_populates="association"
-    )
+    sw_systemconst_coded_refs: Mapped[list["SwSystemconstCodedRef"]] = relationship(back_populates="association")
 
 
 class HasSwSystemconstCodedRefs:
-
     @declared_attr
     def sw_systemconst_coded_ref_association_id(self):
-        return Column(
-            types.Integer, ForeignKey("sw_systemconst_coded_ref_association.rid")
-        )
+        return Column(types.Integer, ForeignKey("sw_systemconst_coded_ref_association.rid"))
 
     @declared_attr
     def sw_systemconst_coded_ref_association(cls):
@@ -3625,9 +3306,7 @@ class HasSwSystemconstCodedRefs:
         cls.sw_systemconst_coded_refs = association_proxy(
             "sw_systemconst_coded_ref_association",
             "sw_systemconst_coded_refs",
-            creator=lambda sw_systemconst_coded_refs: assoc_cls(
-                sw_systemconst_coded_refs=sw_systemconst_coded_refs
-            ),
+            creator=lambda sw_systemconst_coded_refs: assoc_cls(sw_systemconst_coded_refs=sw_systemconst_coded_refs),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -3637,12 +3316,8 @@ class SwSystemconstCodedRef(Base):
     # P: []  --  C: []
     __tablename__ = "sw_systemconst_coded_ref"  # SW-SYSTEMCONST-CODED-REFType   --  sw_systemconst_coded_ref
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_systemconst_coded_ref_association.rid")
-    )
-    association = relationship(
-        "SwSystemconstCodedRefAssociation", back_populates="sw_systemconst_coded_refs"
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_systemconst_coded_ref_association.rid"))
+    association = relationship("SwSystemconstCodedRefAssociation", back_populates="sw_systemconst_coded_refs")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sw_systemconst_coded_ref.rid"))
     children = relationship("SwSystemconstCodedRef")
@@ -3671,23 +3346,17 @@ class SwSystemconstCodedRef(Base):
 
 
 class SwSystemconstPhysRefAssociation(Base):
-
     __tablename__ = "sw_systemconst_phys_ref_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    sw_systemconst_phys_refs: Mapped[list["SwSystemconstPhysRef"]] = relationship(
-        back_populates="association"
-    )
+    sw_systemconst_phys_refs: Mapped[list["SwSystemconstPhysRef"]] = relationship(back_populates="association")
 
 
 class HasSwSystemconstPhysRefs:
-
     @declared_attr
     def sw_systemconst_phys_ref_association_id(self):
-        return Column(
-            types.Integer, ForeignKey("sw_systemconst_phys_ref_association.rid")
-        )
+        return Column(types.Integer, ForeignKey("sw_systemconst_phys_ref_association.rid"))
 
     @declared_attr
     def sw_systemconst_phys_ref_association(cls):
@@ -3706,9 +3375,7 @@ class HasSwSystemconstPhysRefs:
         cls.sw_systemconst_phys_refs = association_proxy(
             "sw_systemconst_phys_ref_association",
             "sw_systemconst_phys_refs",
-            creator=lambda sw_systemconst_phys_refs: assoc_cls(
-                sw_systemconst_phys_refs=sw_systemconst_phys_refs
-            ),
+            creator=lambda sw_systemconst_phys_refs: assoc_cls(sw_systemconst_phys_refs=sw_systemconst_phys_refs),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -3718,12 +3385,8 @@ class SwSystemconstPhysRef(Base):
     # P: []  --  C: []
     __tablename__ = "sw_systemconst_phys_ref"  # SW-SYSTEMCONST-PHYS-REFType   --  sw_systemconst_phys_ref
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_systemconst_phys_ref_association.rid")
-    )
-    association = relationship(
-        "SwSystemconstPhysRefAssociation", back_populates="sw_systemconst_phys_refs"
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_systemconst_phys_ref_association.rid"))
+    association = relationship("SwSystemconstPhysRefAssociation", back_populates="sw_systemconst_phys_refs")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sw_systemconst_phys_ref.rid"))
     children = relationship("SwSystemconstPhysRef")
@@ -3752,7 +3415,6 @@ class SwSystemconstPhysRef(Base):
 
 
 class VfAssociation(Base):
-
     __tablename__ = "vf_association"
 
     discriminator = Column(sqa.String)
@@ -3761,7 +3423,6 @@ class VfAssociation(Base):
 
 
 class HasVfs:
-
     @declared_attr
     def vf_association_id(self):
         return Column(types.Integer, ForeignKey("vf_association.rid"))
@@ -3793,9 +3454,7 @@ class Vf(Base, HasSwSystemconstCodedRefs, HasSwSystemconstPhysRefs):
     # P: []  --  C: []
     __tablename__ = "vf"  # VFType   --  vf
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("vf_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("vf_association.rid"))
     association = relationship("VfAssociation", back_populates="vfs")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("vf.rid"))
@@ -3824,7 +3483,6 @@ class Vf(Base, HasSwSystemconstCodedRefs, HasSwSystemconstPhysRefs):
 
 
 class VtAssociation(Base):
-
     __tablename__ = "vt_association"
 
     discriminator = Column(sqa.String)
@@ -3833,7 +3491,6 @@ class VtAssociation(Base):
 
 
 class HasVts:
-
     @declared_attr
     def vt_association_id(self):
         return Column(types.Integer, ForeignKey("vt_association.rid"))
@@ -3865,9 +3522,7 @@ class Vt(Base):
     # P: []  --  C: []
     __tablename__ = "vt"  # VTType   --  vt
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("vt_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("vt_association.rid"))
     association = relationship("VtAssociation", back_populates="vts")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("vt.rid"))
@@ -3889,7 +3544,6 @@ class Vt(Base):
 
 
 class VhAssociation(Base):
-
     __tablename__ = "vh_association"
 
     discriminator = Column(sqa.String)
@@ -3898,7 +3552,6 @@ class VhAssociation(Base):
 
 
 class HasVhs:
-
     @declared_attr
     def vh_association_id(self):
         return Column(types.Integer, ForeignKey("vh_association.rid"))
@@ -3930,9 +3583,7 @@ class Vh(Base):
     # P: []  --  C: []
     __tablename__ = "vh"  # VHType   --  vh
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("vh_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("vh_association.rid"))
     association = relationship("VhAssociation", back_populates="vhs")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("vh.rid"))
@@ -3954,7 +3605,6 @@ class Vh(Base):
 
 
 class VAssociation(Base):
-
     __tablename__ = "v_association"
 
     discriminator = Column(sqa.String)
@@ -3963,7 +3613,6 @@ class VAssociation(Base):
 
 
 class HasVs:
-
     @declared_attr
     def v_association_id(self):
         return Column(types.Integer, ForeignKey("v_association.rid"))
@@ -3995,9 +3644,7 @@ class V(Base):
     # P: []  --  C: []
     __tablename__ = "v"  # VType   --  v
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("v_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("v_association.rid"))
     association = relationship("VAssociation", back_populates="vs")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("v.rid"))
@@ -4020,18 +3667,14 @@ class V(Base):
 
 
 class SwInstanceRefAssociation(Base):
-
     __tablename__ = "sw_instance_ref_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    sw_instance_refs: Mapped[list["SwInstanceRef"]] = relationship(
-        back_populates="association"
-    )
+    sw_instance_refs: Mapped[list["SwInstanceRef"]] = relationship(back_populates="association")
 
 
 class HasSwInstanceRefs:
-
     @declared_attr
     def sw_instance_ref_association_id(self):
         return Column(types.Integer, ForeignKey("sw_instance_ref_association.rid"))
@@ -4053,9 +3696,7 @@ class HasSwInstanceRefs:
         cls.sw_instance_refs = association_proxy(
             "sw_instance_ref_association",
             "sw_instance_refs",
-            creator=lambda sw_instance_refs: assoc_cls(
-                sw_instance_refs=sw_instance_refs
-            ),
+            creator=lambda sw_instance_refs: assoc_cls(sw_instance_refs=sw_instance_refs),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4065,12 +3706,8 @@ class SwInstanceRef(Base):
     # P: []  --  C: []
     __tablename__ = "sw_instance_ref"  # SW-INSTANCE-REFType   --  sw_instance_ref
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_instance_ref_association.rid")
-    )
-    association = relationship(
-        "SwInstanceRefAssociation", back_populates="sw_instance_refs"
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_instance_ref_association.rid"))
+    association = relationship("SwInstanceRefAssociation", back_populates="sw_instance_refs")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sw_instance_ref.rid"))
     children = relationship("SwInstanceRef")
@@ -4099,7 +3736,6 @@ class SwInstanceRef(Base):
 
 
 class VgAssociation(Base):
-
     __tablename__ = "vg_association"
 
     discriminator = Column(sqa.String)
@@ -4108,7 +3744,6 @@ class VgAssociation(Base):
 
 
 class HasVgs:
-
     @declared_attr
     def vg_association_id(self):
         return Column(types.Integer, ForeignKey("vg_association.rid"))
@@ -4140,9 +3775,7 @@ class Vg(Base, HasVfs, HasVts, HasVhs, HasVs, HasSwInstanceRefs):
     # P: []  --  C: []
     __tablename__ = "vg"  # VGType   --  vg
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("vg_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("vg_association.rid"))
     association = relationship("VgAssociation", back_populates="vgs")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("vg.rid"))
@@ -4187,18 +3820,14 @@ class Vg(Base, HasVfs, HasVts, HasVhs, HasVs, HasSwInstanceRefs):
 
 
 class SwCalprmRefAssociation(Base):
-
     __tablename__ = "sw_calprm_ref_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    sw_calprm_refs: Mapped[list["SwCalprmRef"]] = relationship(
-        back_populates="association"
-    )
+    sw_calprm_refs: Mapped[list["SwCalprmRef"]] = relationship(back_populates="association")
 
 
 class HasSwCalprmRefs:
-
     @declared_attr
     def sw_calprm_ref_association_id(self):
         return Column(types.Integer, ForeignKey("sw_calprm_ref_association.rid"))
@@ -4230,12 +3859,8 @@ class SwCalprmRef(Base):
     # P: []  --  C: []
     __tablename__ = "sw_calprm_ref"  # SW-CALPRM-REFType   --  sw_calprm_ref
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_ref_association.rid")
-    )
-    association = relationship(
-        "SwCalprmRefAssociation", back_populates="sw_calprm_refs"
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_ref_association.rid"))
+    association = relationship("SwCalprmRefAssociation", back_populates="sw_calprm_refs")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sw_calprm_ref.rid"))
     children = relationship("SwCalprmRef")
@@ -4264,18 +3889,14 @@ class SwCalprmRef(Base):
 
 
 class SwScaleConstrAssociation(Base):
-
     __tablename__ = "sw_scale_constr_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    sw_scale_constrs: Mapped[list["SwScaleConstr"]] = relationship(
-        back_populates="association"
-    )
+    sw_scale_constrs: Mapped[list["SwScaleConstr"]] = relationship(back_populates="association")
 
 
 class HasSwScaleConstrs:
-
     @declared_attr
     def sw_scale_constr_association_id(self):
         return Column(types.Integer, ForeignKey("sw_scale_constr_association.rid"))
@@ -4297,9 +3918,7 @@ class HasSwScaleConstrs:
         cls.sw_scale_constrs = association_proxy(
             "sw_scale_constr_association",
             "sw_scale_constrs",
-            creator=lambda sw_scale_constrs: assoc_cls(
-                sw_scale_constrs=sw_scale_constrs
-            ),
+            creator=lambda sw_scale_constrs: assoc_cls(sw_scale_constrs=sw_scale_constrs),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4309,12 +3928,8 @@ class SwScaleConstr(Base):
     # P: []  --  C: []
     __tablename__ = "sw_scale_constr"  # SW-SCALE-CONSTRType   --  sw_scale_constr
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_scale_constr_association.rid")
-    )
-    association = relationship(
-        "SwScaleConstrAssociation", back_populates="sw_scale_constrs"
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_scale_constr_association.rid"))
+    association = relationship("SwScaleConstrAssociation", back_populates="sw_scale_constrs")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sw_scale_constr.rid"))
     children = relationship("SwScaleConstr")
@@ -4335,30 +3950,22 @@ class SwScaleConstr(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    lower_limit_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("lower_limit.rid")
-    )
+    lower_limit_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("lower_limit.rid"))
     lower_limit: Mapped["LowerLimit"] = relationship(single_parent=True)
     # SHIT-R
-    upper_limit_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("upper_limit.rid")
-    )
+    upper_limit_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("upper_limit.rid"))
     upper_limit: Mapped["UpperLimit"] = relationship(single_parent=True)
 
 
 class SwRecordLayoutRefAssociation(Base):
-
     __tablename__ = "sw_record_layout_ref_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    sw_record_layout_refs: Mapped[list["SwRecordLayoutRef"]] = relationship(
-        back_populates="association"
-    )
+    sw_record_layout_refs: Mapped[list["SwRecordLayoutRef"]] = relationship(back_populates="association")
 
 
 class HasSwRecordLayoutRefs:
-
     @declared_attr
     def sw_record_layout_ref_association_id(self):
         return Column(types.Integer, ForeignKey("sw_record_layout_ref_association.rid"))
@@ -4380,9 +3987,7 @@ class HasSwRecordLayoutRefs:
         cls.sw_record_layout_refs = association_proxy(
             "sw_record_layout_ref_association",
             "sw_record_layout_refs",
-            creator=lambda sw_record_layout_refs: assoc_cls(
-                sw_record_layout_refs=sw_record_layout_refs
-            ),
+            creator=lambda sw_record_layout_refs: assoc_cls(sw_record_layout_refs=sw_record_layout_refs),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4390,16 +3995,10 @@ class HasSwRecordLayoutRefs:
 class SwRecordLayoutRef(Base):
     # SIMPLE: [] -- SR: False
     # P: []  --  C: []
-    __tablename__ = (
-        "sw_record_layout_ref"  # SW-RECORD-LAYOUT-REFType   --  sw_record_layout_ref
-    )
+    __tablename__ = "sw_record_layout_ref"  # SW-RECORD-LAYOUT-REFType   --  sw_record_layout_ref
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_record_layout_ref_association.rid")
-    )
-    association = relationship(
-        "SwRecordLayoutRefAssociation", back_populates="sw_record_layout_refs"
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_record_layout_ref_association.rid"))
+    association = relationship("SwRecordLayoutRefAssociation", back_populates="sw_record_layout_refs")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sw_record_layout_ref.rid"))
     children = relationship("SwRecordLayoutRef")
@@ -4428,23 +4027,17 @@ class SwRecordLayoutRef(Base):
 
 
 class SwRecordLayoutGroupAssociation(Base):
-
     __tablename__ = "sw_record_layout_group_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    sw_record_layout_groups: Mapped[list["SwRecordLayoutGroup"]] = relationship(
-        back_populates="association"
-    )
+    sw_record_layout_groups: Mapped[list["SwRecordLayoutGroup"]] = relationship(back_populates="association")
 
 
 class HasSwRecordLayoutGroups:
-
     @declared_attr
     def sw_record_layout_group_association_id(self):
-        return Column(
-            types.Integer, ForeignKey("sw_record_layout_group_association.rid")
-        )
+        return Column(types.Integer, ForeignKey("sw_record_layout_group_association.rid"))
 
     @declared_attr
     def sw_record_layout_group_association(cls):
@@ -4463,9 +4056,7 @@ class HasSwRecordLayoutGroups:
         cls.sw_record_layout_groups = association_proxy(
             "sw_record_layout_group_association",
             "sw_record_layout_groups",
-            creator=lambda sw_record_layout_groups: assoc_cls(
-                sw_record_layout_groups=sw_record_layout_groups
-            ),
+            creator=lambda sw_record_layout_groups: assoc_cls(sw_record_layout_groups=sw_record_layout_groups),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4475,12 +4066,8 @@ class SwRecordLayoutGroup(Base, HasSwRecordLayoutRefs):
     # P: []  --  C: ['SwRecordLayoutV']
     __tablename__ = "sw_record_layout_group"  # SW-RECORD-LAYOUT-GROUPType   --  sw_record_layout_group
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_record_layout_group_association.rid")
-    )
-    association = relationship(
-        "SwRecordLayoutGroupAssociation", back_populates="sw_record_layout_groups"
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_record_layout_group_association.rid"))
+    association = relationship("SwRecordLayoutGroupAssociation", back_populates="sw_record_layout_groups")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sw_record_layout_group.rid"))
     children = relationship("SwRecordLayoutGroup")
@@ -4514,78 +4101,46 @@ class SwRecordLayoutGroup(Base, HasSwRecordLayoutRefs):
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # SHIT-R
-    sw_record_layout_group_axis_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_record_layout_group_axis.rid")
-    )
-    sw_record_layout_group_axis: Mapped["SwRecordLayoutGroupAxis"] = relationship(
-        single_parent=True
-    )
+    sw_record_layout_group_axis_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_record_layout_group_axis.rid"))
+    sw_record_layout_group_axis: Mapped["SwRecordLayoutGroupAxis"] = relationship(single_parent=True)
     # SHIT-R
-    sw_record_layout_group_index_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_record_layout_group_index.rid")
-    )
-    sw_record_layout_group_index: Mapped["SwRecordLayoutGroupIndex"] = relationship(
-        single_parent=True
-    )
+    sw_record_layout_group_index_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_record_layout_group_index.rid"))
+    sw_record_layout_group_index: Mapped["SwRecordLayoutGroupIndex"] = relationship(single_parent=True)
     # SHIT-R
     sw_generic_axis_param_type_ref_id: Mapped[typing.Optional[int]] = mapped_column(
         ForeignKey("sw_generic_axis_param_type_ref.rid")
     )
-    sw_generic_axis_param_type_ref: Mapped["SwGenericAxisParamTypeRef"] = relationship(
-        single_parent=True
-    )
+    sw_generic_axis_param_type_ref: Mapped["SwGenericAxisParamTypeRef"] = relationship(single_parent=True)
     # SHIT-R
-    sw_record_layout_group_from_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_record_layout_group_from.rid")
-    )
-    sw_record_layout_group_from: Mapped["SwRecordLayoutGroupFrom"] = relationship(
-        single_parent=True
-    )
+    sw_record_layout_group_from_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_record_layout_group_from.rid"))
+    sw_record_layout_group_from: Mapped["SwRecordLayoutGroupFrom"] = relationship(single_parent=True)
     # SHIT-R
-    sw_record_layout_group_to_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_record_layout_group_to.rid")
-    )
-    sw_record_layout_group_to: Mapped["SwRecordLayoutGroupTo"] = relationship(
-        single_parent=True
-    )
+    sw_record_layout_group_to_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_record_layout_group_to.rid"))
+    sw_record_layout_group_to: Mapped["SwRecordLayoutGroupTo"] = relationship(single_parent=True)
     # SHIT-R
-    sw_record_layout_group_step_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_record_layout_group_step.rid")
-    )
-    sw_record_layout_group_step: Mapped["SwRecordLayoutGroupStep"] = relationship(
-        single_parent=True
-    )
+    sw_record_layout_group_step_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_record_layout_group_step.rid"))
+    sw_record_layout_group_step: Mapped["SwRecordLayoutGroupStep"] = relationship(single_parent=True)
     # SHIT-R
-    sw_record_layout_component_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_record_layout_component.rid")
-    )
-    sw_record_layout_component: Mapped["SwRecordLayoutComponent"] = relationship(
-        single_parent=True
-    )
+    sw_record_layout_component_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_record_layout_component.rid"))
+    sw_record_layout_component: Mapped["SwRecordLayoutComponent"] = relationship(single_parent=True)
     # SHIT-A
     # NO_PA         sw_record_layout_ref
     # SHIT-A
     # PARENT-OBJ
-    sw_record_layout_v: Mapped[list["SwRecordLayoutV"]] = relationship(
-        back_populates="sw_record_layout_group"
-    )
+    sw_record_layout_v: Mapped[list["SwRecordLayoutV"]] = relationship(back_populates="sw_record_layout_group")
     # SHIT-A
     # NO_PA         sw_record_layout_group
 
 
 class SwCompuMethodRefAssociation(Base):
-
     __tablename__ = "sw_compu_method_ref_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    sw_compu_method_refs: Mapped[list["SwCompuMethodRef"]] = relationship(
-        back_populates="association"
-    )
+    sw_compu_method_refs: Mapped[list["SwCompuMethodRef"]] = relationship(back_populates="association")
 
 
 class HasSwCompuMethodRefs:
-
     @declared_attr
     def sw_compu_method_ref_association_id(self):
         return Column(types.Integer, ForeignKey("sw_compu_method_ref_association.rid"))
@@ -4607,9 +4162,7 @@ class HasSwCompuMethodRefs:
         cls.sw_compu_method_refs = association_proxy(
             "sw_compu_method_ref_association",
             "sw_compu_method_refs",
-            creator=lambda sw_compu_method_refs: assoc_cls(
-                sw_compu_method_refs=sw_compu_method_refs
-            ),
+            creator=lambda sw_compu_method_refs: assoc_cls(sw_compu_method_refs=sw_compu_method_refs),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4617,16 +4170,10 @@ class HasSwCompuMethodRefs:
 class SwCompuMethodRef(Base):
     # SIMPLE: [] -- SR: False
     # P: []  --  C: []
-    __tablename__ = (
-        "sw_compu_method_ref"  # SW-COMPU-METHOD-REFType   --  sw_compu_method_ref
-    )
+    __tablename__ = "sw_compu_method_ref"  # SW-COMPU-METHOD-REFType   --  sw_compu_method_ref
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_method_ref_association.rid")
-    )
-    association = relationship(
-        "SwCompuMethodRefAssociation", back_populates="sw_compu_method_refs"
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_method_ref_association.rid"))
+    association = relationship("SwCompuMethodRefAssociation", back_populates="sw_compu_method_refs")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sw_compu_method_ref.rid"))
     children = relationship("SwCompuMethodRef")
@@ -4655,23 +4202,17 @@ class SwCompuMethodRef(Base):
 
 
 class SwGenericAxisParamAssociation(Base):
-
     __tablename__ = "sw_generic_axis_param_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    sw_generic_axis_params: Mapped[list["SwGenericAxisParam"]] = relationship(
-        back_populates="association"
-    )
+    sw_generic_axis_params: Mapped[list["SwGenericAxisParam"]] = relationship(back_populates="association")
 
 
 class HasSwGenericAxisParams:
-
     @declared_attr
     def sw_generic_axis_param_association_id(self):
-        return Column(
-            types.Integer, ForeignKey("sw_generic_axis_param_association.rid")
-        )
+        return Column(types.Integer, ForeignKey("sw_generic_axis_param_association.rid"))
 
     @declared_attr
     def sw_generic_axis_param_association(cls):
@@ -4690,9 +4231,7 @@ class HasSwGenericAxisParams:
         cls.sw_generic_axis_params = association_proxy(
             "sw_generic_axis_param_association",
             "sw_generic_axis_params",
-            creator=lambda sw_generic_axis_params: assoc_cls(
-                sw_generic_axis_params=sw_generic_axis_params
-            ),
+            creator=lambda sw_generic_axis_params: assoc_cls(sw_generic_axis_params=sw_generic_axis_params),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4700,16 +4239,10 @@ class HasSwGenericAxisParams:
 class SwGenericAxisParam(Base, HasVfs):
     # SIMPLE: [] -- SR: True
     # P: ('SwGenericAxisParams', 'sw_generic_axis_params')  --  C: []
-    __tablename__ = (
-        "sw_generic_axis_param"  # SW-GENERIC-AXIS-PARAMType   --  sw_generic_axis_param
-    )
+    __tablename__ = "sw_generic_axis_param"  # SW-GENERIC-AXIS-PARAMType   --  sw_generic_axis_param
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_generic_axis_param_association.rid")
-    )
-    association = relationship(
-        "SwGenericAxisParamAssociation", back_populates="sw_generic_axis_params"
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_generic_axis_param_association.rid"))
+    association = relationship("SwGenericAxisParamAssociation", back_populates="sw_generic_axis_params")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sw_generic_axis_param.rid"))
     children = relationship("SwGenericAxisParam")
@@ -4734,38 +4267,26 @@ class SwGenericAxisParam(Base, HasVfs):
     sw_generic_axis_param_type_ref_id: Mapped[typing.Optional[int]] = mapped_column(
         ForeignKey("sw_generic_axis_param_type_ref.rid")
     )
-    sw_generic_axis_param_type_ref: Mapped["SwGenericAxisParamTypeRef"] = relationship(
-        single_parent=True
-    )
+    sw_generic_axis_param_type_ref: Mapped["SwGenericAxisParamTypeRef"] = relationship(single_parent=True)
     # SHIT-A
     # NO_PA         vf
     # PARENT-ASSO
-    sw_generic_axis_params_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_generic_axis_params.rid")
-    )
-    sw_generic_axis_params: Mapped["SwGenericAxisParams"] = relationship(
-        back_populates="sw_generic_axis_param"
-    )
+    sw_generic_axis_params_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_generic_axis_params.rid"))
+    sw_generic_axis_params: Mapped["SwGenericAxisParams"] = relationship(back_populates="sw_generic_axis_param")
 
 
 class SwVariableRefSyscondAssociation(Base):
-
     __tablename__ = "sw_variable_ref_syscond_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    sw_variable_ref_sysconds: Mapped[list["SwVariableRefSyscond"]] = relationship(
-        back_populates="association"
-    )
+    sw_variable_ref_sysconds: Mapped[list["SwVariableRefSyscond"]] = relationship(back_populates="association")
 
 
 class HasSwVariableRefSysconds:
-
     @declared_attr
     def sw_variable_ref_syscond_association_id(self):
-        return Column(
-            types.Integer, ForeignKey("sw_variable_ref_syscond_association.rid")
-        )
+        return Column(types.Integer, ForeignKey("sw_variable_ref_syscond_association.rid"))
 
     @declared_attr
     def sw_variable_ref_syscond_association(cls):
@@ -4784,9 +4305,7 @@ class HasSwVariableRefSysconds:
         cls.sw_variable_ref_sysconds = association_proxy(
             "sw_variable_ref_syscond_association",
             "sw_variable_ref_sysconds",
-            creator=lambda sw_variable_ref_sysconds: assoc_cls(
-                sw_variable_ref_sysconds=sw_variable_ref_sysconds
-            ),
+            creator=lambda sw_variable_ref_sysconds: assoc_cls(sw_variable_ref_sysconds=sw_variable_ref_sysconds),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4796,12 +4315,8 @@ class SwVariableRefSyscond(Base):
     # P: []  --  C: []
     __tablename__ = "sw_variable_ref_syscond"  # SW-VARIABLE-REF-SYSCONDType   --  sw_variable_ref_syscond
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variable_ref_syscond_association.rid")
-    )
-    association = relationship(
-        "SwVariableRefSyscondAssociation", back_populates="sw_variable_ref_sysconds"
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variable_ref_syscond_association.rid"))
+    association = relationship("SwVariableRefSyscondAssociation", back_populates="sw_variable_ref_sysconds")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sw_variable_ref_syscond.rid"))
     children = relationship("SwVariableRefSyscond")
@@ -4822,35 +4337,25 @@ class SwVariableRefSyscond(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    sw_variable_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variable_ref.rid")
-    )
+    sw_variable_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variable_ref.rid"))
     sw_variable_ref: Mapped["SwVariableRef"] = relationship(single_parent=True)
     # SHIT-R
-    sw_syscond_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_syscond.rid")
-    )
+    sw_syscond_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_syscond.rid"))
     sw_syscond: Mapped["SwSyscond"] = relationship(single_parent=True)
 
 
 class SwCalprmRefSyscondAssociation(Base):
-
     __tablename__ = "sw_calprm_ref_syscond_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    sw_calprm_ref_sysconds: Mapped[list["SwCalprmRefSyscond"]] = relationship(
-        back_populates="association"
-    )
+    sw_calprm_ref_sysconds: Mapped[list["SwCalprmRefSyscond"]] = relationship(back_populates="association")
 
 
 class HasSwCalprmRefSysconds:
-
     @declared_attr
     def sw_calprm_ref_syscond_association_id(self):
-        return Column(
-            types.Integer, ForeignKey("sw_calprm_ref_syscond_association.rid")
-        )
+        return Column(types.Integer, ForeignKey("sw_calprm_ref_syscond_association.rid"))
 
     @declared_attr
     def sw_calprm_ref_syscond_association(cls):
@@ -4869,9 +4374,7 @@ class HasSwCalprmRefSysconds:
         cls.sw_calprm_ref_sysconds = association_proxy(
             "sw_calprm_ref_syscond_association",
             "sw_calprm_ref_sysconds",
-            creator=lambda sw_calprm_ref_sysconds: assoc_cls(
-                sw_calprm_ref_sysconds=sw_calprm_ref_sysconds
-            ),
+            creator=lambda sw_calprm_ref_sysconds: assoc_cls(sw_calprm_ref_sysconds=sw_calprm_ref_sysconds),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4879,16 +4382,10 @@ class HasSwCalprmRefSysconds:
 class SwCalprmRefSyscond(Base):
     # SIMPLE: [] -- SR: False
     # P: []  --  C: []
-    __tablename__ = (
-        "sw_calprm_ref_syscond"  # SW-CALPRM-REF-SYSCONDType   --  sw_calprm_ref_syscond
-    )
+    __tablename__ = "sw_calprm_ref_syscond"  # SW-CALPRM-REF-SYSCONDType   --  sw_calprm_ref_syscond
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_ref_syscond_association.rid")
-    )
-    association = relationship(
-        "SwCalprmRefSyscondAssociation", back_populates="sw_calprm_ref_sysconds"
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_ref_syscond_association.rid"))
+    association = relationship("SwCalprmRefSyscondAssociation", back_populates="sw_calprm_ref_sysconds")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sw_calprm_ref_syscond.rid"))
     children = relationship("SwCalprmRefSyscond")
@@ -4909,35 +4406,25 @@ class SwCalprmRefSyscond(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    sw_calprm_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_ref.rid")
-    )
+    sw_calprm_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_ref.rid"))
     sw_calprm_ref: Mapped["SwCalprmRef"] = relationship(single_parent=True)
     # SHIT-R
-    sw_syscond_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_syscond.rid")
-    )
+    sw_syscond_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_syscond.rid"))
     sw_syscond: Mapped["SwSyscond"] = relationship(single_parent=True)
 
 
 class SwClassInstanceRefAssociation(Base):
-
     __tablename__ = "sw_class_instance_ref_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    sw_class_instance_refs: Mapped[list["SwClassInstanceRef"]] = relationship(
-        back_populates="association"
-    )
+    sw_class_instance_refs: Mapped[list["SwClassInstanceRef"]] = relationship(back_populates="association")
 
 
 class HasSwClassInstanceRefs:
-
     @declared_attr
     def sw_class_instance_ref_association_id(self):
-        return Column(
-            types.Integer, ForeignKey("sw_class_instance_ref_association.rid")
-        )
+        return Column(types.Integer, ForeignKey("sw_class_instance_ref_association.rid"))
 
     @declared_attr
     def sw_class_instance_ref_association(cls):
@@ -4956,9 +4443,7 @@ class HasSwClassInstanceRefs:
         cls.sw_class_instance_refs = association_proxy(
             "sw_class_instance_ref_association",
             "sw_class_instance_refs",
-            creator=lambda sw_class_instance_refs: assoc_cls(
-                sw_class_instance_refs=sw_class_instance_refs
-            ),
+            creator=lambda sw_class_instance_refs: assoc_cls(sw_class_instance_refs=sw_class_instance_refs),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -4966,16 +4451,10 @@ class HasSwClassInstanceRefs:
 class SwClassInstanceRef(Base):
     # SIMPLE: [] -- SR: False
     # P: []  --  C: []
-    __tablename__ = (
-        "sw_class_instance_ref"  # SW-CLASS-INSTANCE-REFType   --  sw_class_instance_ref
-    )
+    __tablename__ = "sw_class_instance_ref"  # SW-CLASS-INSTANCE-REFType   --  sw_class_instance_ref
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_instance_ref_association.rid")
-    )
-    association = relationship(
-        "SwClassInstanceRefAssociation", back_populates="sw_class_instance_refs"
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_instance_ref_association.rid"))
+    association = relationship("SwClassInstanceRefAssociation", back_populates="sw_class_instance_refs")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sw_class_instance_ref.rid"))
     children = relationship("SwClassInstanceRef")
@@ -5004,23 +4483,17 @@ class SwClassInstanceRef(Base):
 
 
 class SwInstanceRefSyscondAssociation(Base):
-
     __tablename__ = "sw_instance_ref_syscond_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    sw_instance_ref_sysconds: Mapped[list["SwInstanceRefSyscond"]] = relationship(
-        back_populates="association"
-    )
+    sw_instance_ref_sysconds: Mapped[list["SwInstanceRefSyscond"]] = relationship(back_populates="association")
 
 
 class HasSwInstanceRefSysconds:
-
     @declared_attr
     def sw_instance_ref_syscond_association_id(self):
-        return Column(
-            types.Integer, ForeignKey("sw_instance_ref_syscond_association.rid")
-        )
+        return Column(types.Integer, ForeignKey("sw_instance_ref_syscond_association.rid"))
 
     @declared_attr
     def sw_instance_ref_syscond_association(cls):
@@ -5039,9 +4512,7 @@ class HasSwInstanceRefSysconds:
         cls.sw_instance_ref_sysconds = association_proxy(
             "sw_instance_ref_syscond_association",
             "sw_instance_ref_sysconds",
-            creator=lambda sw_instance_ref_sysconds: assoc_cls(
-                sw_instance_ref_sysconds=sw_instance_ref_sysconds
-            ),
+            creator=lambda sw_instance_ref_sysconds: assoc_cls(sw_instance_ref_sysconds=sw_instance_ref_sysconds),
         )
         return relationship(assoc_cls, backref=backref("parent", uselist=False))
 
@@ -5051,12 +4522,8 @@ class SwInstanceRefSyscond(Base):
     # P: []  --  C: []
     __tablename__ = "sw_instance_ref_syscond"  # SW-INSTANCE-REF-SYSCONDType   --  sw_instance_ref_syscond
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_instance_ref_syscond_association.rid")
-    )
-    association = relationship(
-        "SwInstanceRefSyscondAssociation", back_populates="sw_instance_ref_sysconds"
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_instance_ref_syscond_association.rid"))
+    association = relationship("SwInstanceRefSyscondAssociation", back_populates="sw_instance_ref_sysconds")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sw_instance_ref_syscond.rid"))
     children = relationship("SwInstanceRefSyscond")
@@ -5077,32 +4544,22 @@ class SwInstanceRefSyscond(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    sw_class_instance_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_instance_ref.rid")
-    )
-    sw_class_instance_ref: Mapped["SwClassInstanceRef"] = relationship(
-        single_parent=True
-    )
+    sw_class_instance_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_instance_ref.rid"))
+    sw_class_instance_ref: Mapped["SwClassInstanceRef"] = relationship(single_parent=True)
     # SHIT-R
-    sw_syscond_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_syscond.rid")
-    )
+    sw_syscond_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_syscond.rid"))
     sw_syscond: Mapped["SwSyscond"] = relationship(single_parent=True)
 
 
 class SwFeatureRefAssociation(Base):
-
     __tablename__ = "sw_feature_ref_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    sw_feature_refs: Mapped[list["SwFeatureRef"]] = relationship(
-        back_populates="association"
-    )
+    sw_feature_refs: Mapped[list["SwFeatureRef"]] = relationship(back_populates="association")
 
 
 class HasSwFeatureRefs:
-
     @declared_attr
     def sw_feature_ref_association_id(self):
         return Column(types.Integer, ForeignKey("sw_feature_ref_association.rid"))
@@ -5134,12 +4591,8 @@ class SwFeatureRef(Base):
     # P: []  --  C: []
     __tablename__ = "sw_feature_ref"  # SW-FEATURE-REFType   --  sw_feature_ref
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_ref_association.rid")
-    )
-    association = relationship(
-        "SwFeatureRefAssociation", back_populates="sw_feature_refs"
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_ref_association.rid"))
+    association = relationship("SwFeatureRefAssociation", back_populates="sw_feature_refs")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sw_feature_ref.rid"))
     children = relationship("SwFeatureRef")
@@ -5168,18 +4621,14 @@ class SwFeatureRef(Base):
 
 
 class SwInstanceAssociation(Base):
-
     __tablename__ = "sw_instance_association"
 
     discriminator = Column(sqa.String)
     __mapper_args__ = {"polymorphic_on": discriminator}
-    sw_instances: Mapped[list["SwInstance"]] = relationship(
-        back_populates="association"
-    )
+    sw_instances: Mapped[list["SwInstance"]] = relationship(back_populates="association")
 
 
 class HasSwInstances:
-
     @declared_attr
     def sw_instance_association_id(self):
         return Column(types.Integer, ForeignKey("sw_instance_association.rid"))
@@ -5211,9 +4660,7 @@ class SwInstance(Base):
     # P: []  --  C: []
     __tablename__ = "sw_instance"  # SW-INSTANCEType   --  sw_instance
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_instance_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_instance_association.rid"))
     association = relationship("SwInstanceAssociation", back_populates="sw_instances")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sw_instance.rid"))
@@ -5255,81 +4702,52 @@ class SwInstance(Base):
     t = StdString()
     si = StdString()
     # SHIT-R
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # SHIT-R
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # SHIT-R
-    sw_array_index_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_array_index.rid")
-    )
+    sw_array_index_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_array_index.rid"))
     sw_array_index: Mapped["SwArrayIndex"] = relationship(single_parent=True)
     # SHIT-R
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # SHIT-R
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # SHIT-R
-    display_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("display_name.rid")
-    )
+    display_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("display_name.rid"))
     display_name: Mapped["DisplayName"] = relationship(single_parent=True)
     # SHIT-R
-    sw_value_cont_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_value_cont.rid")
-    )
+    sw_value_cont_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_value_cont.rid"))
     sw_value_cont: Mapped["SwValueCont"] = relationship(single_parent=True)
     # SHIT-R
-    sw_axis_conts_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_axis_conts.rid")
-    )
+    sw_axis_conts_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_axis_conts.rid"))
     sw_axis_conts: Mapped["SwAxisConts"] = relationship(single_parent=True)
     # SHIT-R
-    sw_model_link_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_model_link.rid")
-    )
+    sw_model_link_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_model_link.rid"))
     sw_model_link: Mapped["SwModelLink"] = relationship(single_parent=True)
     # SHIT-R
-    sw_cs_flags_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_flags.rid")
-    )
+    sw_cs_flags_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_flags.rid"))
     sw_cs_flags: Mapped["SwCsFlags"] = relationship(single_parent=True)
     # SHIT-R
-    sw_cs_history_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_history.rid")
-    )
+    sw_cs_history_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_history.rid"))
     sw_cs_history: Mapped["SwCsHistory"] = relationship(single_parent=True)
     # SHIT-R
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # SHIT-R
-    sw_feature_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_ref.rid")
-    )
+    sw_feature_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_ref.rid"))
     sw_feature_ref: Mapped["SwFeatureRef"] = relationship(single_parent=True)
     # SHIT-R
-    sw_instance_props_variants_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_instance_props_variants.rid")
-    )
-    sw_instance_props_variants: Mapped["SwInstancePropsVariants"] = relationship(
-        single_parent=True
-    )
+    sw_instance_props_variants_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_instance_props_variants.rid"))
+    sw_instance_props_variants: Mapped["SwInstancePropsVariants"] = relationship(single_parent=True)
     # SHIT-A
     # NO_PA         sw_instance
 
 
 class SdAssociation(Base):
-
     __tablename__ = "sd_association"
 
     discriminator = Column(sqa.String)
@@ -5338,7 +4756,6 @@ class SdAssociation(Base):
 
 
 class HasSds:
-
     @declared_attr
     def sd_association_id(self):
         return Column(types.Integer, ForeignKey("sd_association.rid"))
@@ -5370,9 +4787,7 @@ class Sd(Base):
     # P: []  --  C: []
     __tablename__ = "sd"  # SDType   --  sd
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sd_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sd_association.rid"))
     association = relationship("SdAssociation", back_populates="sds")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sd.rid"))
@@ -5396,7 +4811,6 @@ class Sd(Base):
 
 
 class SdgAssociation(Base):
-
     __tablename__ = "sdg_association"
 
     discriminator = Column(sqa.String)
@@ -5405,7 +4819,6 @@ class SdgAssociation(Base):
 
 
 class HasSdgs:
-
     @declared_attr
     def sdg_association_id(self):
         return Column(types.Integer, ForeignKey("sdg_association.rid"))
@@ -5437,9 +4850,7 @@ class Sdg(Base, HasXrefs, HasSds):
     # P: []  --  C: ['Ncoi1']
     __tablename__ = "sdg"  # SDGType   --  sdg
 
-    association_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sdg_association.rid")
-    )
+    association_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sdg_association.rid"))
     association = relationship("SdgAssociation", back_populates="sdgs")
     parent = association_proxy("association", "parent")
     _p_id = mapped_column(sqa.Integer, ForeignKey("sdg.rid"))
@@ -5467,9 +4878,7 @@ class Sdg(Base, HasXrefs, HasSds):
     t = StdString()
     si = StdString()
     # SHIT-R
-    sdg_caption_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sdg_caption.rid")
-    )
+    sdg_caption_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sdg_caption.rid"))
     sdg_caption: Mapped["SdgCaption"] = relationship(single_parent=True)
     # SHIT-A
     # NO_PA         sd
@@ -5559,12 +4968,8 @@ class Label(Base, HasTts, HasEs, HasSups, HasSubs, HasIes):
     # ARR
     # NO_PA         ie
     # PARENT
-    sw_calprm_value_axis_labels_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_value_axis_labels.rid")
-    )
-    sw_calprm_value_axis_labels: Mapped["SwCalprmValueAxisLabels"] = relationship(
-        back_populates="label"
-    )
+    sw_calprm_value_axis_labels_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_value_axis_labels.rid"))
+    sw_calprm_value_axis_labels: Mapped["SwCalprmValueAxisLabels"] = relationship(back_populates="label")
 
 
 class Language(Base):
@@ -5859,12 +5264,8 @@ class MsrQueryArg(Base, HasXrefs):
     # ARR
     # NO_PA         xref
     # PARENT
-    msr_query_props_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_props.rid")
-    )
-    msr_query_props: Mapped["MsrQueryProps"] = relationship(
-        back_populates="msr_query_arg"
-    )
+    msr_query_props_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_props.rid"))
+    msr_query_props: Mapped["MsrQueryProps"] = relationship(back_populates="msr_query_arg")
 
 
 class MsrQueryProps(Base):
@@ -5888,15 +5289,11 @@ class MsrQueryProps(Base):
     t = StdString()
     si = StdString()
     # REF
-    msr_query_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_query_name.rid")
-    )
+    msr_query_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_query_name.rid"))
     msr_query_name: Mapped["MsrQueryName"] = relationship(single_parent=True)
     # ARR
     # PARENT-OBJ
-    msr_query_arg: Mapped[list["MsrQueryArg"]] = relationship(
-        back_populates="msr_query_props"
-    )
+    msr_query_arg: Mapped[list["MsrQueryArg"]] = relationship(back_populates="msr_query_props")
     # REF
     comment_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("comment.rid"))
     comment: Mapped["Comment"] = relationship(single_parent=True)
@@ -5943,9 +5340,7 @@ class TeamMemberRefs(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    team_member_ref: Mapped[list["TeamMemberRef"]] = relationship(
-        back_populates="team_member_refs"
-    )
+    team_member_ref: Mapped[list["TeamMemberRef"]] = relationship(back_populates="team_member_refs")
 
 
 class LongName(Base, HasTts, HasEs, HasSups, HasSubs, HasIes):
@@ -6028,9 +5423,7 @@ class TeamMembers(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    team_member: Mapped[list["TeamMember"]] = relationship(
-        back_populates="team_members"
-    )
+    team_member: Mapped[list["TeamMember"]] = relationship(back_populates="team_members")
 
 
 class Role(Base):
@@ -6090,27 +5483,19 @@ class Company(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     roles_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("roles.rid"))
     roles: Mapped["Roles"] = relationship(single_parent=True)
     # REF
-    team_members_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("team_members.rid")
-    )
+    team_members_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("team_members.rid"))
     team_members: Mapped["TeamMembers"] = relationship(single_parent=True)
     # PARENT
-    companies_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("companies.rid")
-    )
+    companies_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("companies.rid"))
     companies: Mapped["Companies"] = relationship(back_populates="company")
 
 
@@ -6299,22 +5684,16 @@ class TeamMember(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     roles_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("roles.rid"))
     roles: Mapped["Roles"] = relationship(single_parent=True)
     # REF
-    department_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("department.rid")
-    )
+    department_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("department.rid"))
     department: Mapped["Department"] = relationship(single_parent=True)
     # REF
     address_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("address.rid"))
@@ -6335,14 +5714,10 @@ class TeamMember(Base):
     email_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("email.rid"))
     email: Mapped["Email"] = relationship(single_parent=True)
     # REF
-    homepage_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("homepage.rid")
-    )
+    homepage_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("homepage.rid"))
     homepage: Mapped["Homepage"] = relationship(single_parent=True)
     # PARENT
-    team_members_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("team_members.rid")
-    )
+    team_members_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("team_members.rid"))
     team_members: Mapped["TeamMembers"] = relationship(back_populates="team_member")
 
 
@@ -6482,9 +5857,7 @@ class Schedule(Base):
     t = StdString()
     si = StdString()
     # REF
-    sample_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sample_ref.rid")
-    )
+    sample_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sample_ref.rid"))
     sample_ref: Mapped["SampleRef"] = relationship(single_parent=True)
     # REF
     date_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("date.rid"))
@@ -6517,12 +5890,8 @@ class TeamMemberRef(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    team_member_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("team_member_refs.rid")
-    )
-    team_member_refs: Mapped["TeamMemberRefs"] = relationship(
-        back_populates="team_member_ref"
-    )
+    team_member_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("team_member_refs.rid"))
+    team_member_refs: Mapped["TeamMemberRefs"] = relationship(back_populates="team_member_ref")
 
 
 class Tbd(Base):
@@ -6546,14 +5915,10 @@ class Tbd(Base):
     t = StdString()
     si = StdString()
     # REF
-    team_member_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("team_member_refs.rid")
-    )
+    team_member_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("team_member_refs.rid"))
     team_member_refs: Mapped["TeamMemberRefs"] = relationship(single_parent=True)
     # REF
-    schedule_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("schedule.rid")
-    )
+    schedule_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("schedule.rid"))
     schedule: Mapped["Schedule"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
@@ -6599,9 +5964,7 @@ class CompanyDocInfos(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    company_doc_info: Mapped[list["CompanyDocInfo"]] = relationship(
-        back_populates="company_doc_infos"
-    )
+    company_doc_info: Mapped[list["CompanyDocInfo"]] = relationship(back_populates="company_doc_infos")
 
 
 class FormatterCtrls(Base):
@@ -6624,9 +5987,7 @@ class FormatterCtrls(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    formatter_ctrl: Mapped[list["FormatterCtrl"]] = relationship(
-        back_populates="formatter_ctrls"
-    )
+    formatter_ctrl: Mapped[list["FormatterCtrl"]] = relationship(back_populates="formatter_ctrls")
 
 
 class Subtitle(Base):
@@ -6914,9 +6275,7 @@ class DocRevisions(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    doc_revision: Mapped[list["DocRevision"]] = relationship(
-        back_populates="doc_revisions"
-    )
+    doc_revision: Mapped[list["DocRevision"]] = relationship(back_populates="doc_revisions")
 
 
 class AdminData(Base):
@@ -6942,29 +6301,19 @@ class AdminData(Base):
     t = StdString()
     si = StdString()
     # REF
-    language_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("language.rid")
-    )
+    language_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("language.rid"))
     language: Mapped["Language"] = relationship(single_parent=True)
     # REF
-    used_languages_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("used_languages.rid")
-    )
+    used_languages_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("used_languages.rid"))
     used_languages: Mapped["UsedLanguages"] = relationship(single_parent=True)
     # REF
-    company_doc_infos_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("company_doc_infos.rid")
-    )
+    company_doc_infos_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("company_doc_infos.rid"))
     company_doc_infos: Mapped["CompanyDocInfos"] = relationship(single_parent=True)
     # REF
-    formatter_ctrls_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("formatter_ctrls.rid")
-    )
+    formatter_ctrls_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("formatter_ctrls.rid"))
     formatter_ctrls: Mapped["FormatterCtrls"] = relationship(single_parent=True)
     # REF
-    doc_revisions_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("doc_revisions.rid")
-    )
+    doc_revisions_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("doc_revisions.rid"))
     doc_revisions: Mapped["DocRevisions"] = relationship(single_parent=True)
 
 
@@ -7118,9 +6467,7 @@ class PrivateCodes(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    private_code: Mapped[list["PrivateCode"]] = relationship(
-        back_populates="private_codes"
-    )
+    private_code: Mapped[list["PrivateCode"]] = relationship(back_populates="private_codes")
 
 
 class EntityName(Base):
@@ -7162,9 +6509,7 @@ class PrivateCode(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    private_codes_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("private_codes.rid")
-    )
+    private_codes_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("private_codes.rid"))
     private_codes: Mapped["PrivateCodes"] = relationship(back_populates="private_code")
 
 
@@ -7191,37 +6536,23 @@ class CompanyDocInfo(Base):
     t = StdString()
     si = StdString()
     # REF
-    company_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("company_ref.rid")
-    )
+    company_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("company_ref.rid"))
     company_ref: Mapped["CompanyRef"] = relationship(single_parent=True)
     # REF
-    doc_label_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("doc_label.rid")
-    )
+    doc_label_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("doc_label.rid"))
     doc_label: Mapped["DocLabel"] = relationship(single_parent=True)
     # REF
-    team_member_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("team_member_ref.rid")
-    )
+    team_member_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("team_member_ref.rid"))
     team_member_ref: Mapped["TeamMemberRef"] = relationship(single_parent=True)
     # REF
-    private_codes_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("private_codes.rid")
-    )
+    private_codes_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("private_codes.rid"))
     private_codes: Mapped["PrivateCodes"] = relationship(single_parent=True)
     # REF
-    entity_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("entity_name.rid")
-    )
+    entity_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("entity_name.rid"))
     entity_name: Mapped["EntityName"] = relationship(single_parent=True)
     # PARENT
-    company_doc_infos_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("company_doc_infos.rid")
-    )
-    company_doc_infos: Mapped["CompanyDocInfos"] = relationship(
-        back_populates="company_doc_info"
-    )
+    company_doc_infos_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("company_doc_infos.rid"))
+    company_doc_infos: Mapped["CompanyDocInfos"] = relationship(back_populates="company_doc_info")
 
 
 class SystemOverview(Base):
@@ -7256,9 +6587,7 @@ class SystemOverview(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -7285,12 +6614,8 @@ class FormatterCtrl(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    formatter_ctrls_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("formatter_ctrls.rid")
-    )
-    formatter_ctrls: Mapped["FormatterCtrls"] = relationship(
-        back_populates="formatter_ctrl"
-    )
+    formatter_ctrls_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("formatter_ctrls.rid"))
+    formatter_ctrls: Mapped["FormatterCtrls"] = relationship(back_populates="formatter_ctrl")
 
 
 class ReasonOrder(Base):
@@ -7325,9 +6650,7 @@ class ReasonOrder(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -7354,9 +6677,7 @@ class CompanyRevisionInfos(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    company_revision_info: Mapped[list["CompanyRevisionInfo"]] = relationship(
-        back_populates="company_revision_infos"
-    )
+    company_revision_info: Mapped[list["CompanyRevisionInfo"]] = relationship(back_populates="company_revision_infos")
 
 
 class RevisionLabel(Base):
@@ -7491,14 +6812,10 @@ class CompanyRevisionInfo(Base):
     t = StdString()
     si = StdString()
     # REF
-    company_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("company_ref.rid")
-    )
+    company_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("company_ref.rid"))
     company_ref: Mapped["CompanyRef"] = relationship(single_parent=True)
     # REF
-    revision_label_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("revision_label.rid")
-    )
+    revision_label_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("revision_label.rid"))
     revision_label: Mapped["RevisionLabel"] = relationship(single_parent=True)
     # REF
     state_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("state.rid"))
@@ -7507,12 +6824,8 @@ class CompanyRevisionInfo(Base):
     remark_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("remark.rid"))
     remark: Mapped["Remark"] = relationship(single_parent=True)
     # PARENT
-    company_revision_infos_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("company_revision_infos.rid")
-    )
-    company_revision_infos: Mapped["CompanyRevisionInfos"] = relationship(
-        back_populates="company_revision_info"
-    )
+    company_revision_infos_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("company_revision_infos.rid"))
+    company_revision_infos: Mapped["CompanyRevisionInfos"] = relationship(back_populates="company_revision_info")
 
     # N-I: P
 
@@ -7543,14 +6856,10 @@ class FigureCaption(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
 
 
@@ -7693,14 +7002,10 @@ class FormulaCaption(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
 
 
@@ -7882,22 +7187,16 @@ class DefItem(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     def_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_def.rid"))
     _def: Mapped["Def"] = relationship(single_parent=True)
     # PARENT
-    def_list_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("def_list.rid")
-    )
+    def_list_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("def_list.rid"))
     def_list: Mapped["DefList"] = relationship(back_populates="def_item")
 
 
@@ -8066,9 +7365,7 @@ class LabeledItem(
     t = StdString()
     si = StdString()
     # REF
-    item_label_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("item_label.rid")
-    )
+    item_label_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("item_label.rid"))
     item_label: Mapped["ItemLabel"] = relationship(single_parent=True)
     # ARR
     # NO_PA         p
@@ -8087,9 +7384,7 @@ class LabeledItem(
     # ARR
     # NO_PA         note
     # PARENT
-    labeled_list_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("labeled_list.rid")
-    )
+    labeled_list_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("labeled_list.rid"))
     labeled_list: Mapped["LabeledList"] = relationship(back_populates="labeled_item")
 
     # N-I: Note
@@ -8115,9 +7410,7 @@ class Modifications(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    modification: Mapped[list["Modification"]] = relationship(
-        back_populates="modifications"
-    )
+    modification: Mapped[list["Modification"]] = relationship(back_populates="modifications")
 
 
 class DocRevision(Base):
@@ -8145,42 +7438,28 @@ class DocRevision(Base):
     t = StdString()
     si = StdString()
     # REF
-    company_revision_infos_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("company_revision_infos.rid")
-    )
-    company_revision_infos: Mapped["CompanyRevisionInfos"] = relationship(
-        single_parent=True
-    )
+    company_revision_infos_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("company_revision_infos.rid"))
+    company_revision_infos: Mapped["CompanyRevisionInfos"] = relationship(single_parent=True)
     # REF
-    revision_label_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("revision_label.rid")
-    )
+    revision_label_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("revision_label.rid"))
     revision_label: Mapped["RevisionLabel"] = relationship(single_parent=True)
     # REF
     state_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("state.rid"))
     state: Mapped["State"] = relationship(single_parent=True)
     # REF
-    issued_by_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("issued_by.rid")
-    )
+    issued_by_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("issued_by.rid"))
     issued_by: Mapped["IssuedBy"] = relationship(single_parent=True)
     # REF
-    team_member_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("team_member_ref.rid")
-    )
+    team_member_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("team_member_ref.rid"))
     team_member_ref: Mapped["TeamMemberRef"] = relationship(single_parent=True)
     # REF
     date_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("date.rid"))
     date: Mapped["Date"] = relationship(single_parent=True)
     # REF
-    modifications_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("modifications.rid")
-    )
+    modifications_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("modifications.rid"))
     modifications: Mapped["Modifications"] = relationship(single_parent=True)
     # PARENT
-    doc_revisions_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("doc_revisions.rid")
-    )
+    doc_revisions_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("doc_revisions.rid"))
     doc_revisions: Mapped["DocRevisions"] = relationship(back_populates="doc_revision")
 
 
@@ -8329,9 +7608,7 @@ class Modification(Base):
     reason_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("reason.rid"))
     reason: Mapped["Reason"] = relationship(single_parent=True)
     # PARENT
-    modifications_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("modifications.rid")
-    )
+    modifications_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("modifications.rid"))
     modifications: Mapped["Modifications"] = relationship(back_populates="modification")
 
 
@@ -8367,9 +7644,7 @@ class ProductDesc(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -8400,14 +7675,10 @@ class TableCaption(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
 
     # N-I: Table
@@ -8776,9 +8047,7 @@ class Objectives(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -8817,9 +8086,7 @@ class Rights(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -9176,9 +8443,7 @@ class Guarantee(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -9217,9 +8482,7 @@ class Maintenance(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -9281,9 +8544,7 @@ class AddSpec(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -9325,27 +8586,19 @@ class ContractAspects(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     rights_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("rights.rid"))
     rights: Mapped["Rights"] = relationship(single_parent=True)
     # REF
-    guarantee_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("guarantee.rid")
-    )
+    guarantee_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("guarantee.rid"))
     guarantee: Mapped["Guarantee"] = relationship(single_parent=True)
     # REF
-    maintenance_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("maintenance.rid")
-    )
+    maintenance_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("maintenance.rid"))
     maintenance: Mapped["Maintenance"] = relationship(single_parent=True)
     # REF
-    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_spec.rid")
-    )
+    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_spec.rid"))
     add_spec: Mapped["AddSpec"] = relationship(single_parent=True)
 
 
@@ -9381,9 +8634,7 @@ class SampleSpec(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     samples_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("samples.rid"))
@@ -9410,9 +8661,7 @@ class VariantChars(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    variant_char: Mapped[list["VariantChar"]] = relationship(
-        back_populates="variant_chars"
-    )
+    variant_char: Mapped[list["VariantChar"]] = relationship(back_populates="variant_chars")
 
 
 class VariantDefs(Base):
@@ -9435,9 +8684,7 @@ class VariantDefs(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    variant_def: Mapped[list["VariantDef"]] = relationship(
-        back_populates="variant_defs"
-    )
+    variant_def: Mapped[list["VariantDef"]] = relationship(back_populates="variant_defs")
 
 
 class VariantSpec(Base):
@@ -9473,19 +8720,13 @@ class VariantSpec(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    variant_chars_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("variant_chars.rid")
-    )
+    variant_chars_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("variant_chars.rid"))
     variant_chars: Mapped["VariantChars"] = relationship(single_parent=True)
     # REF
-    variant_defs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("variant_defs.rid")
-    )
+    variant_defs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("variant_defs.rid"))
     variant_defs: Mapped["VariantDefs"] = relationship(single_parent=True)
 
 
@@ -9516,14 +8757,10 @@ class Sample(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -9565,9 +8802,7 @@ class DemarcationOtherProjects(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -9606,9 +8841,7 @@ class ParallelDesigns(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -9664,22 +8897,16 @@ class VariantChar(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     code_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("code.rid"))
     code: Mapped["Code"] = relationship(single_parent=True)
     # PARENT
-    variant_chars_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("variant_chars.rid")
-    )
+    variant_chars_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("variant_chars.rid"))
     variant_chars: Mapped["VariantChars"] = relationship(back_populates="variant_char")
 
 
@@ -9715,9 +8942,7 @@ class IntegrationCapability(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -9744,9 +8969,7 @@ class VariantCharAssigns(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    variant_char_assign: Mapped[list["VariantCharAssign"]] = relationship(
-        back_populates="variant_char_assigns"
-    )
+    variant_char_assign: Mapped[list["VariantCharAssign"]] = relationship(back_populates="variant_char_assigns")
 
 
 class VariantDef(Base):
@@ -9775,29 +8998,19 @@ class VariantDef(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     code_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("code.rid"))
     code: Mapped["Code"] = relationship(single_parent=True)
     # REF
-    variant_char_assigns_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("variant_char_assigns.rid")
-    )
-    variant_char_assigns: Mapped["VariantCharAssigns"] = relationship(
-        single_parent=True
-    )
+    variant_char_assigns_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("variant_char_assigns.rid"))
+    variant_char_assigns: Mapped["VariantCharAssigns"] = relationship(single_parent=True)
     # PARENT
-    variant_defs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("variant_defs.rid")
-    )
+    variant_defs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("variant_defs.rid"))
     variant_defs: Mapped["VariantDefs"] = relationship(back_populates="variant_def")
 
 
@@ -9894,22 +9107,14 @@ class VariantCharAssign(Base):
     t = StdString()
     si = StdString()
     # REF
-    variant_char_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("variant_char_ref.rid")
-    )
+    variant_char_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("variant_char_ref.rid"))
     variant_char_ref: Mapped["VariantCharRef"] = relationship(single_parent=True)
     # REF
-    variant_char_value_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("variant_char_value.rid")
-    )
+    variant_char_value_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("variant_char_value.rid"))
     variant_char_value: Mapped["VariantCharValue"] = relationship(single_parent=True)
     # PARENT
-    variant_char_assigns_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("variant_char_assigns.rid")
-    )
-    variant_char_assigns: Mapped["VariantCharAssigns"] = relationship(
-        back_populates="variant_char_assign"
-    )
+    variant_char_assigns_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("variant_char_assigns.rid"))
+    variant_char_assigns: Mapped["VariantCharAssigns"] = relationship(back_populates="variant_char_assign")
 
 
 class AcceptanceCond(Base):
@@ -9944,9 +9149,7 @@ class AcceptanceCond(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -9985,9 +9188,7 @@ class ProjectSchedule(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -10026,9 +9227,7 @@ class PurchasingCond(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -10067,9 +9266,7 @@ class Protocols(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -10108,9 +9305,7 @@ class DirHandOverDocData(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -10164,95 +9359,55 @@ class GeneralProjectData(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    system_overview_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("system_overview.rid")
-    )
+    system_overview_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("system_overview.rid"))
     system_overview: Mapped["SystemOverview"] = relationship(single_parent=True)
     # REF
-    reason_order_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("reason_order.rid")
-    )
+    reason_order_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("reason_order.rid"))
     reason_order: Mapped["ReasonOrder"] = relationship(single_parent=True)
     # REF
-    objectives_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("objectives.rid")
-    )
+    objectives_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("objectives.rid"))
     objectives: Mapped["Objectives"] = relationship(single_parent=True)
     # REF
-    contract_aspects_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("contract_aspects.rid")
-    )
+    contract_aspects_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("contract_aspects.rid"))
     contract_aspects: Mapped["ContractAspects"] = relationship(single_parent=True)
     # REF
-    sample_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sample_spec.rid")
-    )
+    sample_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sample_spec.rid"))
     sample_spec: Mapped["SampleSpec"] = relationship(single_parent=True)
     # REF
-    variant_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("variant_spec.rid")
-    )
+    variant_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("variant_spec.rid"))
     variant_spec: Mapped["VariantSpec"] = relationship(single_parent=True)
     # REF
-    demarcation_other_projects_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("demarcation_other_projects.rid")
-    )
-    demarcation_other_projects: Mapped["DemarcationOtherProjects"] = relationship(
-        single_parent=True
-    )
+    demarcation_other_projects_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("demarcation_other_projects.rid"))
+    demarcation_other_projects: Mapped["DemarcationOtherProjects"] = relationship(single_parent=True)
     # REF
-    parallel_designs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("parallel_designs.rid")
-    )
+    parallel_designs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("parallel_designs.rid"))
     parallel_designs: Mapped["ParallelDesigns"] = relationship(single_parent=True)
     # REF
-    integration_capability_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("integration_capability.rid")
-    )
-    integration_capability: Mapped["IntegrationCapability"] = relationship(
-        single_parent=True
-    )
+    integration_capability_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("integration_capability.rid"))
+    integration_capability: Mapped["IntegrationCapability"] = relationship(single_parent=True)
     # REF
-    acceptance_cond_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("acceptance_cond.rid")
-    )
+    acceptance_cond_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("acceptance_cond.rid"))
     acceptance_cond: Mapped["AcceptanceCond"] = relationship(single_parent=True)
     # REF
-    project_schedule_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("project_schedule.rid")
-    )
+    project_schedule_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("project_schedule.rid"))
     project_schedule: Mapped["ProjectSchedule"] = relationship(single_parent=True)
     # REF
-    purchasing_cond_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("purchasing_cond.rid")
-    )
+    purchasing_cond_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("purchasing_cond.rid"))
     purchasing_cond: Mapped["PurchasingCond"] = relationship(single_parent=True)
     # REF
-    protocols_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("protocols.rid")
-    )
+    protocols_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("protocols.rid"))
     protocols: Mapped["Protocols"] = relationship(single_parent=True)
     # REF
-    dir_hand_over_doc_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("dir_hand_over_doc_data.rid")
-    )
-    dir_hand_over_doc_data: Mapped["DirHandOverDocData"] = relationship(
-        single_parent=True
-    )
+    dir_hand_over_doc_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("dir_hand_over_doc_data.rid"))
+    dir_hand_over_doc_data: Mapped["DirHandOverDocData"] = relationship(single_parent=True)
     # REF
-    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_spec.rid")
-    )
+    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_spec.rid"))
     add_spec: Mapped["AddSpec"] = relationship(single_parent=True)
 
 
@@ -10284,17 +9439,11 @@ class Project(Base):
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    companies_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("companies.rid")
-    )
+    companies_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("companies.rid"))
     companies: Mapped["Companies"] = relationship(single_parent=True)
     # REF
-    general_project_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("general_project_data.rid")
-    )
-    general_project_data: Mapped["GeneralProjectData"] = relationship(
-        single_parent=True
-    )
+    general_project_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("general_project_data.rid"))
+    general_project_data: Mapped["GeneralProjectData"] = relationship(single_parent=True)
 
 
 class ProjectData(Base):
@@ -10317,9 +9466,7 @@ class ProjectData(Base):
     t = StdString()
     si = StdString()
     # REF
-    overall_project_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("overall_project.rid")
-    )
+    overall_project_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("overall_project.rid"))
     overall_project: Mapped["OverallProject"] = relationship(single_parent=True)
     # REF
     project_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("project.rid"))
@@ -10403,9 +9550,7 @@ class FunctionOverview(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -10549,19 +9694,13 @@ class KeyData(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    free_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("free_info.rid")
-    )
+    free_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("free_info.rid"))
     free_info: Mapped["FreeInfo"] = relationship(single_parent=True)
     # REF
-    prm_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("prm_refs.rid")
-    )
+    prm_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("prm_refs.rid"))
     prm_refs: Mapped["PrmRefs"] = relationship(single_parent=True)
 
 
@@ -10597,9 +9736,7 @@ class ProductDemarcation(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -10632,9 +9769,7 @@ class PrmRef(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    prm_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("prm_refs.rid")
-    )
+    prm_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("prm_refs.rid"))
     prm_refs: Mapped["PrmRefs"] = relationship(back_populates="prm_ref")
 
 
@@ -10670,9 +9805,7 @@ class SimilarProducts(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -10711,9 +9844,7 @@ class OperatingEnv(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -10743,19 +9874,13 @@ class UsefulLifePrms(Base, HasPrms):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    availability: Mapped[list["Availability"]] = relationship(
-        back_populates="useful_life_prms"
-    )
+    availability: Mapped[list["Availability"]] = relationship(back_populates="useful_life_prms")
     # ARR
     # PARENT-OBJ
-    life_time: Mapped[list["LifeTime"]] = relationship(
-        back_populates="useful_life_prms"
-    )
+    life_time: Mapped[list["LifeTime"]] = relationship(back_populates="useful_life_prms")
     # ARR
     # PARENT-OBJ
-    operating_time: Mapped[list["OperatingTime"]] = relationship(
-        back_populates="useful_life_prms"
-    )
+    operating_time: Mapped[list["OperatingTime"]] = relationship(back_populates="useful_life_prms")
     # ARR
     # NO_PA         prm
 
@@ -10892,14 +10017,10 @@ class UsefulLife(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    useful_life_prms_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("useful_life_prms.rid")
-    )
+    useful_life_prms_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("useful_life_prms.rid"))
     useful_life_prms: Mapped["UsefulLifePrms"] = relationship(single_parent=True)
     # REF
     ncoi_3_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_3.rid"))
@@ -10932,14 +10053,10 @@ class Availability(Base, HasPrmChars):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
@@ -10947,12 +10064,8 @@ class Availability(Base, HasPrmChars):
     # ARR
     # NO_PA         prm_char
     # PARENT
-    useful_life_prms_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("useful_life_prms.rid")
-    )
-    useful_life_prms: Mapped["UsefulLifePrms"] = relationship(
-        back_populates="availability"
-    )
+    useful_life_prms_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("useful_life_prms.rid"))
+    useful_life_prms: Mapped["UsefulLifePrms"] = relationship(back_populates="availability")
 
 
 class LifeTime(Base, HasPrmChars):
@@ -10981,14 +10094,10 @@ class LifeTime(Base, HasPrmChars):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
@@ -10996,12 +10105,8 @@ class LifeTime(Base, HasPrmChars):
     # ARR
     # NO_PA         prm_char
     # PARENT
-    useful_life_prms_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("useful_life_prms.rid")
-    )
-    useful_life_prms: Mapped["UsefulLifePrms"] = relationship(
-        back_populates="life_time"
-    )
+    useful_life_prms_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("useful_life_prms.rid"))
+    useful_life_prms: Mapped["UsefulLifePrms"] = relationship(back_populates="life_time")
 
 
 class OperatingTime(Base, HasPrmChars):
@@ -11030,14 +10135,10 @@ class OperatingTime(Base, HasPrmChars):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
@@ -11045,12 +10146,8 @@ class OperatingTime(Base, HasPrmChars):
     # ARR
     # NO_PA         prm_char
     # PARENT
-    useful_life_prms_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("useful_life_prms.rid")
-    )
-    useful_life_prms: Mapped["UsefulLifePrms"] = relationship(
-        back_populates="operating_time"
-    )
+    useful_life_prms_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("useful_life_prms.rid"))
+    useful_life_prms: Mapped["UsefulLifePrms"] = relationship(back_populates="operating_time")
 
 
 class Reliability(Base):
@@ -11086,14 +10183,10 @@ class Reliability(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    reliability_prms_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("reliability_prms.rid")
-    )
+    reliability_prms_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("reliability_prms.rid"))
     reliability_prms: Mapped["ReliabilityPrms"] = relationship(single_parent=True)
     # REF
     ncoi_3_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_3.rid"))
@@ -11135,29 +10228,19 @@ class GeneralHardware(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    operating_env_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("operating_env.rid")
-    )
+    operating_env_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("operating_env.rid"))
     operating_env: Mapped["OperatingEnv"] = relationship(single_parent=True)
     # REF
-    useful_life_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("useful_life.rid")
-    )
+    useful_life_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("useful_life.rid"))
     useful_life: Mapped["UsefulLife"] = relationship(single_parent=True)
     # REF
-    reliability_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("reliability.rid")
-    )
+    reliability_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("reliability.rid"))
     reliability: Mapped["Reliability"] = relationship(single_parent=True)
     # REF
-    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_spec.rid")
-    )
+    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_spec.rid"))
     add_spec: Mapped["AddSpec"] = relationship(single_parent=True)
 
 
@@ -11193,9 +10276,7 @@ class NormativeReference(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -11228,14 +10309,10 @@ class Mtbf(Base, HasPrmChars):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
@@ -11243,9 +10320,7 @@ class Mtbf(Base, HasPrmChars):
     # ARR
     # NO_PA         prm_char
     # PARENT
-    reliability_prms_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("reliability_prms.rid")
-    )
+    reliability_prms_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("reliability_prms.rid"))
     reliability_prms: Mapped["ReliabilityPrms"] = relationship(back_populates="mtbf")
 
 
@@ -11275,14 +10350,10 @@ class Ppm(Base, HasPrmChars):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
@@ -11290,9 +10361,7 @@ class Ppm(Base, HasPrmChars):
     # ARR
     # NO_PA         prm_char
     # PARENT
-    reliability_prms_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("reliability_prms.rid")
-    )
+    reliability_prms_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("reliability_prms.rid"))
     reliability_prms: Mapped["ReliabilityPrms"] = relationship(back_populates="ppm")
 
 
@@ -11328,9 +10397,7 @@ class DataStructures(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -11369,9 +10436,7 @@ class DataDesc(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -11410,9 +10475,7 @@ class RestrictionsByHardware(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -11451,9 +10514,7 @@ class StandardSwModules(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -11495,31 +10556,19 @@ class DesignRequirements(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    normative_reference_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("normative_reference.rid")
-    )
+    normative_reference_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("normative_reference.rid"))
     normative_reference: Mapped["NormativeReference"] = relationship(single_parent=True)
     # REF
-    restrictions_by_hardware_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("restrictions_by_hardware.rid")
-    )
-    restrictions_by_hardware: Mapped["RestrictionsByHardware"] = relationship(
-        single_parent=True
-    )
+    restrictions_by_hardware_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("restrictions_by_hardware.rid"))
+    restrictions_by_hardware: Mapped["RestrictionsByHardware"] = relationship(single_parent=True)
     # REF
-    standard_sw_modules_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("standard_sw_modules.rid")
-    )
+    standard_sw_modules_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("standard_sw_modules.rid"))
     standard_sw_modules: Mapped["StandardSwModules"] = relationship(single_parent=True)
     # REF
-    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_spec.rid")
-    )
+    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_spec.rid"))
     add_spec: Mapped["AddSpec"] = relationship(single_parent=True)
 
 
@@ -11555,9 +10604,7 @@ class BinaryCompatibility(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -11598,24 +10645,16 @@ class DataRequirements(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    data_structures_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("data_structures.rid")
-    )
+    data_structures_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("data_structures.rid"))
     data_structures: Mapped["DataStructures"] = relationship(single_parent=True)
     # REF
-    data_desc_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("data_desc.rid")
-    )
+    data_desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("data_desc.rid"))
     data_desc: Mapped["DataDesc"] = relationship(single_parent=True)
     # REF
-    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_spec.rid")
-    )
+    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_spec.rid"))
     add_spec: Mapped["AddSpec"] = relationship(single_parent=True)
 
 
@@ -11651,9 +10690,7 @@ class Extensibility(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -11692,9 +10729,7 @@ class Compatibility(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -11738,41 +10773,25 @@ class GeneralSoftware(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    design_requirements_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("design_requirements.rid")
-    )
+    design_requirements_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("design_requirements.rid"))
     design_requirements: Mapped["DesignRequirements"] = relationship(single_parent=True)
     # REF
-    data_requirements_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("data_requirements.rid")
-    )
+    data_requirements_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("data_requirements.rid"))
     data_requirements: Mapped["DataRequirements"] = relationship(single_parent=True)
     # REF
-    binary_compatibility_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("binary_compatibility.rid")
-    )
-    binary_compatibility: Mapped["BinaryCompatibility"] = relationship(
-        single_parent=True
-    )
+    binary_compatibility_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("binary_compatibility.rid"))
+    binary_compatibility: Mapped["BinaryCompatibility"] = relationship(single_parent=True)
     # REF
-    extensibility_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("extensibility.rid")
-    )
+    extensibility_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("extensibility.rid"))
     extensibility: Mapped["Extensibility"] = relationship(single_parent=True)
     # REF
-    compatibility_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("compatibility.rid")
-    )
+    compatibility_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("compatibility.rid"))
     compatibility: Mapped["Compatibility"] = relationship(single_parent=True)
     # REF
-    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_spec.rid")
-    )
+    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_spec.rid"))
     add_spec: Mapped["AddSpec"] = relationship(single_parent=True)
 
 
@@ -11808,9 +10827,7 @@ class UserInterface(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -11849,9 +10866,7 @@ class HardwareInterface(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -11890,9 +10905,7 @@ class InternalInterfaces(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -11931,9 +10944,7 @@ class CommunicationInterface(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -11972,9 +10983,7 @@ class FlashProgramming(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -12018,41 +11027,25 @@ class GeneralInterfaces(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    user_interface_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("user_interface.rid")
-    )
+    user_interface_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("user_interface.rid"))
     user_interface: Mapped["UserInterface"] = relationship(single_parent=True)
     # REF
-    hardware_interface_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("hardware_interface.rid")
-    )
+    hardware_interface_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("hardware_interface.rid"))
     hardware_interface: Mapped["HardwareInterface"] = relationship(single_parent=True)
     # REF
-    internal_interfaces_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("internal_interfaces.rid")
-    )
+    internal_interfaces_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("internal_interfaces.rid"))
     internal_interfaces: Mapped["InternalInterfaces"] = relationship(single_parent=True)
     # REF
-    communication_interface_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("communication_interface.rid")
-    )
-    communication_interface: Mapped["CommunicationInterface"] = relationship(
-        single_parent=True
-    )
+    communication_interface_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("communication_interface.rid"))
+    communication_interface: Mapped["CommunicationInterface"] = relationship(single_parent=True)
     # REF
-    flash_programming_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("flash_programming.rid")
-    )
+    flash_programming_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("flash_programming.rid"))
     flash_programming: Mapped["FlashProgramming"] = relationship(single_parent=True)
     # REF
-    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_spec.rid")
-    )
+    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_spec.rid"))
     add_spec: Mapped["AddSpec"] = relationship(single_parent=True)
 
 
@@ -12088,9 +11081,7 @@ class Fmea(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -12129,9 +11120,7 @@ class FailSaveConcept(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -12170,9 +11159,7 @@ class ReplacementValues(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -12211,9 +11198,7 @@ class FailureMem(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -12252,9 +11237,7 @@ class SelfDiagnosis(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -12298,37 +11281,25 @@ class FailureManagement(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     fmea_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("fmea.rid"))
     fmea: Mapped["Fmea"] = relationship(single_parent=True)
     # REF
-    fail_save_concept_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("fail_save_concept.rid")
-    )
+    fail_save_concept_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("fail_save_concept.rid"))
     fail_save_concept: Mapped["FailSaveConcept"] = relationship(single_parent=True)
     # REF
-    replacement_values_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("replacement_values.rid")
-    )
+    replacement_values_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("replacement_values.rid"))
     replacement_values: Mapped["ReplacementValues"] = relationship(single_parent=True)
     # REF
-    failure_mem_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("failure_mem.rid")
-    )
+    failure_mem_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("failure_mem.rid"))
     failure_mem: Mapped["FailureMem"] = relationship(single_parent=True)
     # REF
-    self_diagnosis_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("self_diagnosis.rid")
-    )
+    self_diagnosis_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("self_diagnosis.rid"))
     self_diagnosis: Mapped["SelfDiagnosis"] = relationship(single_parent=True)
     # REF
-    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_spec.rid")
-    )
+    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_spec.rid"))
     add_spec: Mapped["AddSpec"] = relationship(single_parent=True)
 
 
@@ -12364,9 +11335,7 @@ class ResourceAllocation(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -12405,9 +11374,7 @@ class Calibration(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -12446,9 +11413,7 @@ class Safety(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -12487,9 +11452,7 @@ class Quality(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -12528,9 +11491,7 @@ class GeneralCond(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -12569,9 +11530,7 @@ class AddDesignDoc(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -12610,9 +11569,7 @@ class DevelopmentProcessSpec(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -12669,69 +11626,43 @@ class GeneralProductData1(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    product_desc_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("product_desc.rid")
-    )
+    product_desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("product_desc.rid"))
     product_desc: Mapped["ProductDesc"] = relationship(single_parent=True)
     # REF
-    function_overview_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("function_overview.rid")
-    )
+    function_overview_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("function_overview.rid"))
     function_overview: Mapped["FunctionOverview"] = relationship(single_parent=True)
     # REF
-    key_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("key_data.rid")
-    )
+    key_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("key_data.rid"))
     key_data: Mapped["KeyData"] = relationship(single_parent=True)
     # REF
-    product_demarcation_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("product_demarcation.rid")
-    )
+    product_demarcation_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("product_demarcation.rid"))
     product_demarcation: Mapped["ProductDemarcation"] = relationship(single_parent=True)
     # REF
-    similar_products_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("similar_products.rid")
-    )
+    similar_products_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("similar_products.rid"))
     similar_products: Mapped["SimilarProducts"] = relationship(single_parent=True)
     # REF
-    general_hardware_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("general_hardware.rid")
-    )
+    general_hardware_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("general_hardware.rid"))
     general_hardware: Mapped["GeneralHardware"] = relationship(single_parent=True)
     # REF
-    general_software_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("general_software.rid")
-    )
+    general_software_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("general_software.rid"))
     general_software: Mapped["GeneralSoftware"] = relationship(single_parent=True)
     # REF
-    general_interfaces_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("general_interfaces.rid")
-    )
+    general_interfaces_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("general_interfaces.rid"))
     general_interfaces: Mapped["GeneralInterfaces"] = relationship(single_parent=True)
     # REF
-    failure_management_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("failure_management.rid")
-    )
+    failure_management_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("failure_management.rid"))
     failure_management: Mapped["FailureManagement"] = relationship(single_parent=True)
     # REF
-    resource_allocation_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("resource_allocation.rid")
-    )
+    resource_allocation_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("resource_allocation.rid"))
     resource_allocation: Mapped["ResourceAllocation"] = relationship(single_parent=True)
     # REF
-    calibration_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("calibration.rid")
-    )
+    calibration_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("calibration.rid"))
     calibration: Mapped["Calibration"] = relationship(single_parent=True)
     # REF
     safety_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("safety.rid"))
@@ -12740,31 +11671,19 @@ class GeneralProductData1(Base):
     quality_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("quality.rid"))
     quality: Mapped["Quality"] = relationship(single_parent=True)
     # REF
-    maintenance_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("maintenance.rid")
-    )
+    maintenance_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("maintenance.rid"))
     maintenance: Mapped["Maintenance"] = relationship(single_parent=True)
     # REF
-    general_cond_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("general_cond.rid")
-    )
+    general_cond_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("general_cond.rid"))
     general_cond: Mapped["GeneralCond"] = relationship(single_parent=True)
     # REF
-    add_design_doc_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_design_doc.rid")
-    )
+    add_design_doc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_design_doc.rid"))
     add_design_doc: Mapped["AddDesignDoc"] = relationship(single_parent=True)
     # REF
-    development_process_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("development_process_spec.rid")
-    )
-    development_process_spec: Mapped["DevelopmentProcessSpec"] = relationship(
-        single_parent=True
-    )
+    development_process_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("development_process_spec.rid"))
+    development_process_spec: Mapped["DevelopmentProcessSpec"] = relationship(single_parent=True)
     # REF
-    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_spec.rid")
-    )
+    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_spec.rid"))
     add_spec: Mapped["AddSpec"] = relationship(single_parent=True)
 
 
@@ -12801,19 +11720,13 @@ class RequirementSpec(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    requirements_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("requirements.rid")
-    )
+    requirements_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("requirements.rid"))
     requirements: Mapped["Requirements"] = relationship(single_parent=True)
 
 
@@ -12849,9 +11762,7 @@ class Monitoring(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -12890,9 +11801,7 @@ class Diagnosis(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -13500,9 +12409,7 @@ class Communication(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -13541,9 +12448,7 @@ class OperationalRequirements(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -13588,46 +12493,28 @@ class FunctionalRequirements(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    requirement_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("requirement_spec.rid")
-    )
+    requirement_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("requirement_spec.rid"))
     requirement_spec: Mapped["RequirementSpec"] = relationship(single_parent=True)
     # REF
-    monitoring_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("monitoring.rid")
-    )
+    monitoring_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("monitoring.rid"))
     monitoring: Mapped["Monitoring"] = relationship(single_parent=True)
     # REF
-    diagnosis_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("diagnosis.rid")
-    )
+    diagnosis_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("diagnosis.rid"))
     diagnosis: Mapped["Diagnosis"] = relationship(single_parent=True)
     # REF
-    communication_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("communication.rid")
-    )
+    communication_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("communication.rid"))
     communication: Mapped["Communication"] = relationship(single_parent=True)
     # REF
-    operational_requirements_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("operational_requirements.rid")
-    )
-    operational_requirements: Mapped["OperationalRequirements"] = relationship(
-        single_parent=True
-    )
+    operational_requirements_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("operational_requirements.rid"))
+    operational_requirements: Mapped["OperationalRequirements"] = relationship(single_parent=True)
     # REF
-    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_spec.rid")
-    )
+    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_spec.rid"))
     add_spec: Mapped["AddSpec"] = relationship(single_parent=True)
 
 
@@ -13666,33 +12553,19 @@ class GeneralRequirements(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    general_product_data_1_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("general_product_data_1.rid")
-    )
-    general_product_data_1: Mapped["GeneralProductData1"] = relationship(
-        single_parent=True
-    )
+    general_product_data_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("general_product_data_1.rid"))
+    general_product_data_1: Mapped["GeneralProductData1"] = relationship(single_parent=True)
     # REF
-    functional_requirements_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("functional_requirements.rid")
-    )
-    functional_requirements: Mapped["FunctionalRequirements"] = relationship(
-        single_parent=True
-    )
+    functional_requirements_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("functional_requirements.rid"))
+    functional_requirements: Mapped["FunctionalRequirements"] = relationship(single_parent=True)
     # REF
-    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_spec.rid")
-    )
+    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_spec.rid"))
     add_spec: Mapped["AddSpec"] = relationship(single_parent=True)
 
 
@@ -13716,15 +12589,11 @@ class SwMcInterfaceSpec(Base):
     t = StdString()
     si = StdString()
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # ARR
     # PARENT-OBJ
-    sw_mc_interface: Mapped[list["SwMcInterface"]] = relationship(
-        back_populates="sw_mc_interface_spec"
-    )
+    sw_mc_interface: Mapped[list["SwMcInterface"]] = relationship(back_populates="sw_mc_interface_spec")
 
 
 class Overview(Base):
@@ -13759,9 +12628,7 @@ class Overview(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -13800,9 +12667,7 @@ class SwTestSpec(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -13866,24 +12731,16 @@ class SwTaskSpec(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    sw_tasks_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_tasks.rid")
-    )
+    sw_tasks_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_tasks.rid"))
     sw_tasks: Mapped["SwTasks"] = relationship(single_parent=True)
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
 
 
@@ -13919,9 +12776,7 @@ class InterruptSpec(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -13986,14 +12841,10 @@ class SwRefreshTiming(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_cse_code_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cse_code.rid")
-    )
+    sw_cse_code_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cse_code.rid"))
     sw_cse_code: Mapped["SwCseCode"] = relationship(single_parent=True)
     # REF
-    sw_cse_code_factor_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cse_code_factor.rid")
-    )
+    sw_cse_code_factor_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cse_code_factor.rid"))
     sw_cse_code_factor: Mapped["SwCseCodeFactor"] = relationship(single_parent=True)
 
 
@@ -14025,37 +12876,25 @@ class SwTask(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_refresh_timing_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_refresh_timing.rid")
-    )
+    sw_refresh_timing_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_refresh_timing.rid"))
     sw_refresh_timing: Mapped["SwRefreshTiming"] = relationship(single_parent=True)
     # PARENT
-    sw_tasks_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_tasks.rid")
-    )
+    sw_tasks_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_tasks.rid"))
     sw_tasks: Mapped["SwTasks"] = relationship(back_populates="sw_task")
 
 
@@ -14091,9 +12930,7 @@ class TimeDependency(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -14137,39 +12974,25 @@ class SwArchitecture(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    overview_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("overview.rid")
-    )
+    overview_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("overview.rid"))
     overview: Mapped["Overview"] = relationship(single_parent=True)
     # REF
-    sw_task_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_task_spec.rid")
-    )
+    sw_task_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_task_spec.rid"))
     sw_task_spec: Mapped["SwTaskSpec"] = relationship(single_parent=True)
     # REF
-    interrupt_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("interrupt_spec.rid")
-    )
+    interrupt_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("interrupt_spec.rid"))
     interrupt_spec: Mapped["InterruptSpec"] = relationship(single_parent=True)
     # REF
-    time_dependency_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("time_dependency.rid")
-    )
+    time_dependency_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("time_dependency.rid"))
     time_dependency: Mapped["TimeDependency"] = relationship(single_parent=True)
     # REF
-    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_spec.rid")
-    )
+    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_spec.rid"))
     add_spec: Mapped["AddSpec"] = relationship(single_parent=True)
 
 
@@ -14193,9 +13016,7 @@ class SwUnits(Base):
     t = StdString()
     si = StdString()
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # ARR
     # PARENT-OBJ
@@ -14252,9 +13073,7 @@ class SwTemplates(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_template: Mapped[list["SwTemplate"]] = relationship(
-        back_populates="sw_templates"
-    )
+    sw_template: Mapped[list["SwTemplate"]] = relationship(back_populates="sw_templates")
 
 
 class SwUnitDisplay(Base, HasSups, HasSubs):
@@ -14373,14 +13192,10 @@ class SwUnitConversionMethod(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_unit_gradient_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_unit_gradient.rid")
-    )
+    sw_unit_gradient_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_unit_gradient.rid"))
     sw_unit_gradient: Mapped["SwUnitGradient"] = relationship(single_parent=True)
     # REF
-    sw_unit_offset_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_unit_offset.rid")
-    )
+    sw_unit_offset_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_unit_offset.rid"))
     sw_unit_offset: Mapped["SwUnitOffset"] = relationship(single_parent=True)
 
 
@@ -14410,9 +13225,7 @@ class SwUnitRef(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_unit_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_unit_refs.rid")
-    )
+    sw_unit_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_unit_refs.rid"))
     sw_unit_refs: Mapped["SwUnitRefs"] = relationship(back_populates="sw_unit_ref")
 
 
@@ -14448,57 +13261,37 @@ class SwUnit(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_unit_display_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_unit_display.rid")
-    )
+    sw_unit_display_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_unit_display.rid"))
     sw_unit_display: Mapped["SwUnitDisplay"] = relationship(single_parent=True)
     # REF
-    sw_unit_conversion_method_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_unit_conversion_method.rid")
-    )
-    sw_unit_conversion_method: Mapped["SwUnitConversionMethod"] = relationship(
-        single_parent=True
-    )
+    sw_unit_conversion_method_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_unit_conversion_method.rid"))
+    sw_unit_conversion_method: Mapped["SwUnitConversionMethod"] = relationship(single_parent=True)
     # REF
     si_unit_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("si_unit.rid"))
     si_unit: Mapped["SiUnit"] = relationship(single_parent=True)
     # REF
-    sw_unit_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_unit_ref.rid")
-    )
+    sw_unit_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_unit_ref.rid"))
     sw_unit_ref: Mapped["SwUnitRef"] = relationship(single_parent=True)
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
     # PARENT
-    sw_units_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_units.rid")
-    )
+    sw_units_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_units.rid"))
     sw_units: Mapped["SwUnits"] = relationship(back_populates="sw_unit")
 
 
@@ -14522,15 +13315,11 @@ class SwVariables(Base):
     t = StdString()
     si = StdString()
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # ARR
     # PARENT-OBJ
-    sw_variable: Mapped[list["SwVariable"]] = relationship(
-        back_populates="sw_variables"
-    )
+    sw_variable: Mapped[list["SwVariable"]] = relationship(back_populates="sw_variables")
 
 
 class Annotations(Base):
@@ -14582,12 +13371,8 @@ class SwAddrMethodRef(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_addr_method_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_addr_method_refs.rid")
-    )
-    sw_addr_method_refs: Mapped["SwAddrMethodRefs"] = relationship(
-        back_populates="sw_addr_method_ref"
-    )
+    sw_addr_method_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_addr_method_refs.rid"))
+    sw_addr_method_refs: Mapped["SwAddrMethodRefs"] = relationship(back_populates="sw_addr_method_ref")
 
 
 class SwAliasName(Base):
@@ -14677,19 +13462,13 @@ class Annotation(Base):
     label_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("label.rid"))
     label: Mapped["Label"] = relationship(single_parent=True)
     # REF
-    annotation_origin_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("annotation_origin.rid")
-    )
+    annotation_origin_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("annotation_origin.rid"))
     annotation_origin: Mapped["AnnotationOrigin"] = relationship(single_parent=True)
     # REF
-    annotation_text_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("annotation_text.rid")
-    )
+    annotation_text_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("annotation_text.rid"))
     annotation_text: Mapped["AnnotationText"] = relationship(single_parent=True)
     # PARENT
-    annotations_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("annotations.rid")
-    )
+    annotations_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("annotations.rid"))
     annotations: Mapped["Annotations"] = relationship(back_populates="annotation")
 
 
@@ -14719,12 +13498,8 @@ class SwBaseTypeRef(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_base_type_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_base_type_refs.rid")
-    )
-    sw_base_type_refs: Mapped["SwBaseTypeRefs"] = relationship(
-        back_populates="sw_base_type_ref"
-    )
+    sw_base_type_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_base_type_refs.rid"))
+    sw_base_type_refs: Mapped["SwBaseTypeRefs"] = relationship(back_populates="sw_base_type_ref")
 
 
 class BitPosition(Base):
@@ -14785,14 +13560,10 @@ class SwBitRepresentation(Base):
     t = StdString()
     si = StdString()
     # REF
-    bit_position_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("bit_position.rid")
-    )
+    bit_position_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("bit_position.rid"))
     bit_position: Mapped["BitPosition"] = relationship(single_parent=True)
     # REF
-    number_of_bits_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("number_of_bits.rid")
-    )
+    number_of_bits_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("number_of_bits.rid"))
     number_of_bits: Mapped["NumberOfBits"] = relationship(single_parent=True)
 
 
@@ -14835,9 +13606,7 @@ class SwCalprmAxisSet(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_calprm_axis: Mapped[list["SwCalprmAxis"]] = relationship(
-        back_populates="sw_calprm_axis_set"
-    )
+    sw_calprm_axis: Mapped[list["SwCalprmAxis"]] = relationship(back_populates="sw_calprm_axis_set")
 
 
 class SwCalprmNoEffectValue(Base):
@@ -15013,12 +13782,8 @@ class SwDataConstrRef(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_data_constr_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_constr_refs.rid")
-    )
-    sw_data_constr_refs: Mapped["SwDataConstrRefs"] = relationship(
-        back_populates="sw_data_constr_ref"
-    )
+    sw_data_constr_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_constr_refs.rid"))
+    sw_data_constr_refs: Mapped["SwDataConstrRefs"] = relationship(back_populates="sw_data_constr_ref")
 
 
 class SwAxisTypeRef(Base):
@@ -15047,12 +13812,8 @@ class SwAxisTypeRef(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_axis_type_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_axis_type_refs.rid")
-    )
-    sw_axis_type_refs: Mapped["SwAxisTypeRefs"] = relationship(
-        back_populates="sw_axis_type_ref"
-    )
+    sw_axis_type_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_axis_type_refs.rid"))
+    sw_axis_type_refs: Mapped["SwAxisTypeRefs"] = relationship(back_populates="sw_axis_type_ref")
 
 
 class SwNumberOfAxisPoints(Base, HasSwSystemconstCodedRefs, HasSwSystemconstPhysRefs):
@@ -15100,9 +13861,7 @@ class SwGenericAxisParams(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_generic_axis_param: Mapped[list["SwGenericAxisParam"]] = relationship(
-        back_populates="sw_generic_axis_params"
-    )
+    sw_generic_axis_param: Mapped[list["SwGenericAxisParam"]] = relationship(back_populates="sw_generic_axis_params")
 
 
 class SwValuesPhys(Base, HasVfs, HasVts, HasVhs, HasVs, HasVgs, HasSwInstanceRefs):
@@ -15233,33 +13992,19 @@ class SwAxisGeneric(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_axis_type_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_axis_type_ref.rid")
-    )
+    sw_axis_type_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_axis_type_ref.rid"))
     sw_axis_type_ref: Mapped["SwAxisTypeRef"] = relationship(single_parent=True)
     # REF
-    sw_number_of_axis_points_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_number_of_axis_points.rid")
-    )
-    sw_number_of_axis_points: Mapped["SwNumberOfAxisPoints"] = relationship(
-        single_parent=True
-    )
+    sw_number_of_axis_points_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_number_of_axis_points.rid"))
+    sw_number_of_axis_points: Mapped["SwNumberOfAxisPoints"] = relationship(single_parent=True)
     # REF
-    sw_generic_axis_params_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_generic_axis_params.rid")
-    )
-    sw_generic_axis_params: Mapped["SwGenericAxisParams"] = relationship(
-        single_parent=True
-    )
+    sw_generic_axis_params_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_generic_axis_params.rid"))
+    sw_generic_axis_params: Mapped["SwGenericAxisParams"] = relationship(single_parent=True)
     # REF
-    sw_values_phys_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_values_phys.rid")
-    )
+    sw_values_phys_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_values_phys.rid"))
     sw_values_phys: Mapped["SwValuesPhys"] = relationship(single_parent=True)
     # REF
-    sw_values_coded_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_values_coded.rid")
-    )
+    sw_values_coded_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_values_coded.rid"))
     sw_values_coded: Mapped["SwValuesCoded"] = relationship(single_parent=True)
 
     # N-I: Vt
@@ -15299,46 +14044,28 @@ class SwAxisIndividual(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_variable_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variable_refs.rid")
-    )
+    sw_variable_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variable_refs.rid"))
     sw_variable_refs: Mapped["SwVariableRefs"] = relationship(single_parent=True)
     # REF
-    sw_compu_method_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_method_ref.rid")
-    )
+    sw_compu_method_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_method_ref.rid"))
     sw_compu_method_ref: Mapped["SwCompuMethodRef"] = relationship(single_parent=True)
     # REF
-    sw_unit_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_unit_ref.rid")
-    )
+    sw_unit_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_unit_ref.rid"))
     sw_unit_ref: Mapped["SwUnitRef"] = relationship(single_parent=True)
     # REF
-    sw_bit_representation_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_bit_representation.rid")
-    )
-    sw_bit_representation: Mapped["SwBitRepresentation"] = relationship(
-        single_parent=True
-    )
+    sw_bit_representation_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_bit_representation.rid"))
+    sw_bit_representation: Mapped["SwBitRepresentation"] = relationship(single_parent=True)
     # REF
-    sw_max_axis_points_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_max_axis_points.rid")
-    )
+    sw_max_axis_points_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_max_axis_points.rid"))
     sw_max_axis_points: Mapped["SwMaxAxisPoints"] = relationship(single_parent=True)
     # REF
-    sw_min_axis_points_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_min_axis_points.rid")
-    )
+    sw_min_axis_points_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_min_axis_points.rid"))
     sw_min_axis_points: Mapped["SwMinAxisPoints"] = relationship(single_parent=True)
     # REF
-    sw_data_constr_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_constr_ref.rid")
-    )
+    sw_data_constr_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_constr_ref.rid"))
     sw_data_constr_ref: Mapped["SwDataConstrRef"] = relationship(single_parent=True)
     # REF
-    sw_axis_generic_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_axis_generic.rid")
-    )
+    sw_axis_generic_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_axis_generic.rid"))
     sw_axis_generic: Mapped["SwAxisGeneric"] = relationship(single_parent=True)
 
 
@@ -15381,14 +14108,10 @@ class SwAxisGrouped(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_axis_index_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_axis_index.rid")
-    )
+    sw_axis_index_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_axis_index.rid"))
     sw_axis_index: Mapped["SwAxisIndex"] = relationship(single_parent=True)
     # REF
-    sw_calprm_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_ref.rid")
-    )
+    sw_calprm_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_ref.rid"))
     sw_calprm_ref: Mapped["SwCalprmRef"] = relationship(single_parent=True)
 
 
@@ -15416,44 +14139,26 @@ class SwCalprmAxis(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_axis_index_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_axis_index.rid")
-    )
+    sw_axis_index_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_axis_index.rid"))
     sw_axis_index: Mapped["SwAxisIndex"] = relationship(single_parent=True)
     # REF
-    sw_axis_individual_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_axis_individual.rid")
-    )
+    sw_axis_individual_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_axis_individual.rid"))
     sw_axis_individual: Mapped["SwAxisIndividual"] = relationship(single_parent=True)
     # REF
-    sw_axis_grouped_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_axis_grouped.rid")
-    )
+    sw_axis_grouped_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_axis_grouped.rid"))
     sw_axis_grouped: Mapped["SwAxisGrouped"] = relationship(single_parent=True)
     # REF
-    sw_calibration_access_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calibration_access.rid")
-    )
-    sw_calibration_access: Mapped["SwCalibrationAccess"] = relationship(
-        single_parent=True
-    )
+    sw_calibration_access_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calibration_access.rid"))
+    sw_calibration_access: Mapped["SwCalibrationAccess"] = relationship(single_parent=True)
     # REF
-    sw_display_format_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_display_format.rid")
-    )
+    sw_display_format_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_display_format.rid"))
     sw_display_format: Mapped["SwDisplayFormat"] = relationship(single_parent=True)
     # REF
-    sw_base_type_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_base_type_ref.rid")
-    )
+    sw_base_type_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_base_type_ref.rid"))
     sw_base_type_ref: Mapped["SwBaseTypeRef"] = relationship(single_parent=True)
     # PARENT
-    sw_calprm_axis_set_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_axis_set.rid")
-    )
-    sw_calprm_axis_set: Mapped["SwCalprmAxisSet"] = relationship(
-        back_populates="sw_calprm_axis"
-    )
+    sw_calprm_axis_set_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_axis_set.rid"))
+    sw_calprm_axis_set: Mapped["SwCalprmAxisSet"] = relationship(back_populates="sw_calprm_axis")
 
 
 class SwClassAttrImplRef(Base):
@@ -15504,17 +14209,11 @@ class SwCalprmPointer(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_template_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_template_ref.rid")
-    )
+    sw_template_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_template_ref.rid"))
     sw_template_ref: Mapped["SwTemplateRef"] = relationship(single_parent=True)
     # REF
-    sw_class_attr_impl_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_attr_impl_ref.rid")
-    )
-    sw_class_attr_impl_ref: Mapped["SwClassAttrImplRef"] = relationship(
-        single_parent=True
-    )
+    sw_class_attr_impl_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_attr_impl_ref.rid"))
+    sw_class_attr_impl_ref: Mapped["SwClassAttrImplRef"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
@@ -15539,9 +14238,7 @@ class SwCalprmTarget(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_variable_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variable_ref.rid")
-    )
+    sw_variable_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variable_ref.rid"))
     sw_variable_ref: Mapped["SwVariableRef"] = relationship(single_parent=True)
 
 
@@ -15604,21 +14301,13 @@ class SwCalprmText(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_calprm_max_text_size_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_max_text_size.rid")
-    )
-    sw_calprm_max_text_size: Mapped["SwCalprmMaxTextSize"] = relationship(
-        single_parent=True
-    )
+    sw_calprm_max_text_size_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_max_text_size.rid"))
+    sw_calprm_max_text_size: Mapped["SwCalprmMaxTextSize"] = relationship(single_parent=True)
     # REF
-    sw_base_type_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_base_type_ref.rid")
-    )
+    sw_base_type_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_base_type_ref.rid"))
     sw_base_type_ref: Mapped["SwBaseTypeRef"] = relationship(single_parent=True)
     # REF
-    sw_fill_character_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_fill_character.rid")
-    )
+    sw_fill_character_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_fill_character.rid"))
     sw_fill_character: Mapped["SwFillCharacter"] = relationship(single_parent=True)
 
 
@@ -15642,9 +14331,7 @@ class SwCalprmValueAxisLabels(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    label: Mapped[list["Label"]] = relationship(
-        back_populates="sw_calprm_value_axis_labels"
-    )
+    label: Mapped[list["Label"]] = relationship(back_populates="sw_calprm_value_axis_labels")
 
 
 class SwCodeSyntaxRef(Base):
@@ -15673,12 +14360,8 @@ class SwCodeSyntaxRef(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_code_syntax_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_code_syntax_refs.rid")
-    )
-    sw_code_syntax_refs: Mapped["SwCodeSyntaxRefs"] = relationship(
-        back_populates="sw_code_syntax_ref"
-    )
+    sw_code_syntax_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_code_syntax_refs.rid"))
+    sw_code_syntax_refs: Mapped["SwCodeSyntaxRefs"] = relationship(back_populates="sw_code_syntax_ref")
 
 
 class SwComparisonVariables(Base, HasSwVariableRefs):
@@ -15722,9 +14405,7 @@ class SwDataDependencyFormula(Base):
     si = StdString()
 
 
-class SwDataDependencyArgs(
-    Base, HasSwVariableRefs, HasSwSystemconstCodedRefs, HasSwCalprmRefs
-):
+class SwDataDependencyArgs(Base, HasSwVariableRefs, HasSwSystemconstCodedRefs, HasSwCalprmRefs):
     # SIMPLE: [] == SR: False
     # P: []  --  C: []
     __tablename__ = "sw_data_dependency_args"
@@ -15776,26 +14457,14 @@ class SwDataDependency(Base):
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    sw_data_dependency_formula_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_dependency_formula.rid")
-    )
-    sw_data_dependency_formula: Mapped["SwDataDependencyFormula"] = relationship(
-        single_parent=True
-    )
+    sw_data_dependency_formula_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_dependency_formula.rid"))
+    sw_data_dependency_formula: Mapped["SwDataDependencyFormula"] = relationship(single_parent=True)
     # REF
-    sw_data_dependency_args_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_dependency_args.rid")
-    )
-    sw_data_dependency_args: Mapped["SwDataDependencyArgs"] = relationship(
-        single_parent=True
-    )
+    sw_data_dependency_args_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_dependency_args.rid"))
+    sw_data_dependency_args: Mapped["SwDataDependencyArgs"] = relationship(single_parent=True)
     # PARENT
-    sw_related_constrs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_related_constrs.rid")
-    )
-    sw_related_constrs: Mapped["SwRelatedConstrs"] = relationship(
-        back_populates="sw_data_dependency"
-    )
+    sw_related_constrs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_related_constrs.rid"))
+    sw_related_constrs: Mapped["SwRelatedConstrs"] = relationship(back_populates="sw_data_dependency")
 
 
 class SwHostVariable(Base):
@@ -15817,9 +14486,7 @@ class SwHostVariable(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_variable_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variable_ref.rid")
-    )
+    sw_variable_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variable_ref.rid"))
     sw_variable_ref: Mapped["SwVariableRef"] = relationship(single_parent=True)
 
 
@@ -16032,9 +14699,7 @@ class SwVcdCriterionRefs(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_vcd_criterion_ref: Mapped[list["SwVcdCriterionRef"]] = relationship(
-        back_populates="sw_vcd_criterion_refs"
-    )
+    sw_vcd_criterion_ref: Mapped[list["SwVcdCriterionRef"]] = relationship(back_populates="sw_vcd_criterion_refs")
 
 
 class SwDataDefProps(Base):
@@ -16089,190 +14754,106 @@ class SwDataDefProps(Base):
     t = StdString()
     si = StdString()
     # REF
-    annotations_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("annotations.rid")
-    )
+    annotations_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("annotations.rid"))
     annotations: Mapped["Annotations"] = relationship(single_parent=True)
     # REF
-    sw_addr_method_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_addr_method_ref.rid")
-    )
+    sw_addr_method_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_addr_method_ref.rid"))
     sw_addr_method_ref: Mapped["SwAddrMethodRef"] = relationship(single_parent=True)
     # REF
-    sw_alias_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_alias_name.rid")
-    )
+    sw_alias_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_alias_name.rid"))
     sw_alias_name: Mapped["SwAliasName"] = relationship(single_parent=True)
     # REF
-    sw_base_type_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_base_type_ref.rid")
-    )
+    sw_base_type_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_base_type_ref.rid"))
     sw_base_type_ref: Mapped["SwBaseTypeRef"] = relationship(single_parent=True)
     # REF
-    sw_bit_representation_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_bit_representation.rid")
-    )
-    sw_bit_representation: Mapped["SwBitRepresentation"] = relationship(
-        single_parent=True
-    )
+    sw_bit_representation_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_bit_representation.rid"))
+    sw_bit_representation: Mapped["SwBitRepresentation"] = relationship(single_parent=True)
     # REF
-    sw_calibration_access_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calibration_access.rid")
-    )
-    sw_calibration_access: Mapped["SwCalibrationAccess"] = relationship(
-        single_parent=True
-    )
+    sw_calibration_access_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calibration_access.rid"))
+    sw_calibration_access: Mapped["SwCalibrationAccess"] = relationship(single_parent=True)
     # REF
-    sw_calprm_axis_set_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_axis_set.rid")
-    )
+    sw_calprm_axis_set_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_axis_set.rid"))
     sw_calprm_axis_set: Mapped["SwCalprmAxisSet"] = relationship(single_parent=True)
     # REF
-    sw_calprm_no_effect_value_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_no_effect_value.rid")
-    )
-    sw_calprm_no_effect_value: Mapped["SwCalprmNoEffectValue"] = relationship(
-        single_parent=True
-    )
+    sw_calprm_no_effect_value_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_no_effect_value.rid"))
+    sw_calprm_no_effect_value: Mapped["SwCalprmNoEffectValue"] = relationship(single_parent=True)
     # REF
-    sw_calprm_pointer_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_pointer.rid")
-    )
+    sw_calprm_pointer_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_pointer.rid"))
     sw_calprm_pointer: Mapped["SwCalprmPointer"] = relationship(single_parent=True)
     # REF
-    sw_calprm_target_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_target.rid")
-    )
+    sw_calprm_target_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_target.rid"))
     sw_calprm_target: Mapped["SwCalprmTarget"] = relationship(single_parent=True)
     # REF
-    sw_calprm_text_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_text.rid")
-    )
+    sw_calprm_text_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_text.rid"))
     sw_calprm_text: Mapped["SwCalprmText"] = relationship(single_parent=True)
     # REF
-    sw_calprm_value_axis_labels_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_value_axis_labels.rid")
-    )
-    sw_calprm_value_axis_labels: Mapped["SwCalprmValueAxisLabels"] = relationship(
-        single_parent=True
-    )
+    sw_calprm_value_axis_labels_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_value_axis_labels.rid"))
+    sw_calprm_value_axis_labels: Mapped["SwCalprmValueAxisLabels"] = relationship(single_parent=True)
     # REF
-    sw_code_syntax_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_code_syntax_ref.rid")
-    )
+    sw_code_syntax_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_code_syntax_ref.rid"))
     sw_code_syntax_ref: Mapped["SwCodeSyntaxRef"] = relationship(single_parent=True)
     # REF
-    sw_comparison_variables_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_comparison_variables.rid")
-    )
-    sw_comparison_variables: Mapped["SwComparisonVariables"] = relationship(
-        single_parent=True
-    )
+    sw_comparison_variables_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_comparison_variables.rid"))
+    sw_comparison_variables: Mapped["SwComparisonVariables"] = relationship(single_parent=True)
     # REF
-    sw_compu_method_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_method_ref.rid")
-    )
+    sw_compu_method_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_method_ref.rid"))
     sw_compu_method_ref: Mapped["SwCompuMethodRef"] = relationship(single_parent=True)
     # REF
-    sw_data_constr_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_constr_ref.rid")
-    )
+    sw_data_constr_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_constr_ref.rid"))
     sw_data_constr_ref: Mapped["SwDataConstrRef"] = relationship(single_parent=True)
     # REF
-    sw_data_dependency_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_dependency.rid")
-    )
+    sw_data_dependency_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_dependency.rid"))
     sw_data_dependency: Mapped["SwDataDependency"] = relationship(single_parent=True)
     # REF
-    sw_display_format_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_display_format.rid")
-    )
+    sw_display_format_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_display_format.rid"))
     sw_display_format: Mapped["SwDisplayFormat"] = relationship(single_parent=True)
     # REF
-    sw_host_variable_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_host_variable.rid")
-    )
+    sw_host_variable_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_host_variable.rid"))
     sw_host_variable: Mapped["SwHostVariable"] = relationship(single_parent=True)
     # REF
-    sw_impl_policy_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_impl_policy.rid")
-    )
+    sw_impl_policy_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_impl_policy.rid"))
     sw_impl_policy: Mapped["SwImplPolicy"] = relationship(single_parent=True)
     # REF
-    sw_intended_resolution_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_intended_resolution.rid")
-    )
-    sw_intended_resolution: Mapped["SwIntendedResolution"] = relationship(
-        single_parent=True
-    )
+    sw_intended_resolution_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_intended_resolution.rid"))
+    sw_intended_resolution: Mapped["SwIntendedResolution"] = relationship(single_parent=True)
     # REF
-    sw_interpolation_method_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_interpolation_method.rid")
-    )
-    sw_interpolation_method: Mapped["SwInterpolationMethod"] = relationship(
-        single_parent=True
-    )
+    sw_interpolation_method_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_interpolation_method.rid"))
+    sw_interpolation_method: Mapped["SwInterpolationMethod"] = relationship(single_parent=True)
     # REF
-    sw_is_virtual_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_is_virtual.rid")
-    )
+    sw_is_virtual_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_is_virtual.rid"))
     sw_is_virtual: Mapped["SwIsVirtual"] = relationship(single_parent=True)
     # REF
-    sw_mc_base_type_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_base_type_ref.rid")
-    )
+    sw_mc_base_type_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_base_type_ref.rid"))
     sw_mc_base_type_ref: Mapped["SwMcBaseTypeRef"] = relationship(single_parent=True)
     # REF
-    sw_record_layout_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_record_layout_ref.rid")
-    )
+    sw_record_layout_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_record_layout_ref.rid"))
     sw_record_layout_ref: Mapped["SwRecordLayoutRef"] = relationship(single_parent=True)
     # REF
-    sw_refresh_timing_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_refresh_timing.rid")
-    )
+    sw_refresh_timing_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_refresh_timing.rid"))
     sw_refresh_timing: Mapped["SwRefreshTiming"] = relationship(single_parent=True)
     # REF
-    sw_task_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_task_ref.rid")
-    )
+    sw_task_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_task_ref.rid"))
     sw_task_ref: Mapped["SwTaskRef"] = relationship(single_parent=True)
     # REF
-    sw_template_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_template_ref.rid")
-    )
+    sw_template_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_template_ref.rid"))
     sw_template_ref: Mapped["SwTemplateRef"] = relationship(single_parent=True)
     # REF
-    sw_unit_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_unit_ref.rid")
-    )
+    sw_unit_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_unit_ref.rid"))
     sw_unit_ref: Mapped["SwUnitRef"] = relationship(single_parent=True)
     # REF
-    sw_variable_kind_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variable_kind.rid")
-    )
+    sw_variable_kind_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variable_kind.rid"))
     sw_variable_kind: Mapped["SwVariableKind"] = relationship(single_parent=True)
     # REF
-    sw_var_init_value_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_var_init_value.rid")
-    )
+    sw_var_init_value_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_var_init_value.rid"))
     sw_var_init_value: Mapped["SwVarInitValue"] = relationship(single_parent=True)
     # REF
-    sw_var_not_avl_value_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_var_not_avl_value.rid")
-    )
+    sw_var_not_avl_value_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_var_not_avl_value.rid"))
     sw_var_not_avl_value: Mapped["SwVarNotAvlValue"] = relationship(single_parent=True)
     # REF
-    sw_vcd_criterion_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_vcd_criterion_refs.rid")
-    )
-    sw_vcd_criterion_refs: Mapped["SwVcdCriterionRefs"] = relationship(
-        single_parent=True
-    )
+    sw_vcd_criterion_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_vcd_criterion_refs.rid"))
+    sw_vcd_criterion_refs: Mapped["SwVcdCriterionRefs"] = relationship(single_parent=True)
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
 
 
@@ -16304,37 +14885,25 @@ class SwTemplate(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_def_props.rid")
-    )
+    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_def_props.rid"))
     sw_data_def_props: Mapped["SwDataDefProps"] = relationship(single_parent=True)
     # PARENT
-    sw_templates_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_templates.rid")
-    )
+    sw_templates_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_templates.rid"))
     sw_templates: Mapped["SwTemplates"] = relationship(back_populates="sw_template")
 
 
@@ -16364,12 +14933,8 @@ class SwVcdCriterionRef(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_vcd_criterion_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_vcd_criterion_refs.rid")
-    )
-    sw_vcd_criterion_refs: Mapped["SwVcdCriterionRefs"] = relationship(
-        back_populates="sw_vcd_criterion_ref"
-    )
+    sw_vcd_criterion_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_vcd_criterion_refs.rid"))
+    sw_vcd_criterion_refs: Mapped["SwVcdCriterionRefs"] = relationship(back_populates="sw_vcd_criterion_ref")
 
 
 class SwCalprms(Base):
@@ -16392,9 +14957,7 @@ class SwCalprms(Base):
     t = StdString()
     si = StdString()
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # ARR
     # PARENT-OBJ
@@ -16465,57 +15028,37 @@ class SwVariable(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_arraysize_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_arraysize.rid")
-    )
+    sw_arraysize_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_arraysize.rid"))
     sw_arraysize: Mapped["SwArraysize"] = relationship(single_parent=True)
     # REF
-    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_def_props.rid")
-    )
+    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_def_props.rid"))
     sw_data_def_props: Mapped["SwDataDefProps"] = relationship(single_parent=True)
     # REF
-    sw_variables_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variables.rid")
-    )
+    sw_variables_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variables.rid"))
     sw_variables: Mapped["SwVariables"] = relationship(single_parent=True)
     # REF
-    annotations_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("annotations.rid")
-    )
+    annotations_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("annotations.rid"))
     annotations: Mapped["Annotations"] = relationship(single_parent=True)
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
     # PARENT
-    sw_variables_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variables.rid")
-    )
+    sw_variables_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variables.rid"))
     sw_variables: Mapped["SwVariables"] = relationship(back_populates="sw_variable")
 
 
@@ -16539,9 +15082,7 @@ class SwSystemconsts(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_systemconst: Mapped[list["SwSystemconst"]] = relationship(
-        back_populates="sw_systemconsts"
-    )
+    sw_systemconst: Mapped[list["SwSystemconst"]] = relationship(back_populates="sw_systemconsts")
 
 
 class SwCalprm(Base):
@@ -16578,57 +15119,37 @@ class SwCalprm(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_arraysize_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_arraysize.rid")
-    )
+    sw_arraysize_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_arraysize.rid"))
     sw_arraysize: Mapped["SwArraysize"] = relationship(single_parent=True)
     # REF
-    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_def_props.rid")
-    )
+    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_def_props.rid"))
     sw_data_def_props: Mapped["SwDataDefProps"] = relationship(single_parent=True)
     # REF
-    sw_calprms_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprms.rid")
-    )
+    sw_calprms_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprms.rid"))
     sw_calprms: Mapped["SwCalprms"] = relationship(single_parent=True)
     # REF
-    annotations_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("annotations.rid")
-    )
+    annotations_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("annotations.rid"))
     annotations: Mapped["Annotations"] = relationship(single_parent=True)
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
     # PARENT
-    sw_calprms_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprms.rid")
-    )
+    sw_calprms_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprms.rid"))
     sw_calprms: Mapped["SwCalprms"] = relationship(back_populates="sw_calprm")
 
 
@@ -16652,9 +15173,7 @@ class SwClassInstances(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_class_instance: Mapped[list["SwClassInstance"]] = relationship(
-        back_populates="sw_class_instances"
-    )
+    sw_class_instance: Mapped[list["SwClassInstance"]] = relationship(back_populates="sw_class_instances")
 
 
 class SwSystemconst(Base):
@@ -16687,50 +15206,32 @@ class SwSystemconst(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_values_phys_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_values_phys.rid")
-    )
+    sw_values_phys_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_values_phys.rid"))
     sw_values_phys: Mapped["SwValuesPhys"] = relationship(single_parent=True)
     # REF
-    sw_values_coded_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_values_coded.rid")
-    )
+    sw_values_coded_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_values_coded.rid"))
     sw_values_coded: Mapped["SwValuesCoded"] = relationship(single_parent=True)
     # REF
-    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_def_props.rid")
-    )
+    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_def_props.rid"))
     sw_data_def_props: Mapped["SwDataDefProps"] = relationship(single_parent=True)
     # PARENT
-    sw_systemconsts_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_systemconsts.rid")
-    )
-    sw_systemconsts: Mapped["SwSystemconsts"] = relationship(
-        back_populates="sw_systemconst"
-    )
+    sw_systemconsts_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_systemconsts.rid"))
+    sw_systemconsts: Mapped["SwSystemconsts"] = relationship(back_populates="sw_systemconst")
 
 
 class SwCompuMethods(Base):
@@ -16753,15 +15254,11 @@ class SwCompuMethods(Base):
     t = StdString()
     si = StdString()
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # ARR
     # PARENT-OBJ
-    sw_compu_method: Mapped[list["SwCompuMethod"]] = relationship(
-        back_populates="sw_compu_methods"
-    )
+    sw_compu_method: Mapped[list["SwCompuMethod"]] = relationship(back_populates="sw_compu_methods")
 
 
 class SwClassRef(Base):
@@ -16824,67 +15321,41 @@ class SwClassInstance(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_arraysize_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_arraysize.rid")
-    )
+    sw_arraysize_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_arraysize.rid"))
     sw_arraysize: Mapped["SwArraysize"] = relationship(single_parent=True)
     # REF
-    sw_class_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_ref.rid")
-    )
+    sw_class_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_ref.rid"))
     sw_class_ref: Mapped["SwClassRef"] = relationship(single_parent=True)
     # REF
-    sw_class_attr_impl_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_attr_impl_ref.rid")
-    )
-    sw_class_attr_impl_ref: Mapped["SwClassAttrImplRef"] = relationship(
-        single_parent=True
-    )
+    sw_class_attr_impl_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_attr_impl_ref.rid"))
+    sw_class_attr_impl_ref: Mapped["SwClassAttrImplRef"] = relationship(single_parent=True)
     # REF
-    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_def_props.rid")
-    )
+    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_def_props.rid"))
     sw_data_def_props: Mapped["SwDataDefProps"] = relationship(single_parent=True)
     # REF
-    annotations_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("annotations.rid")
-    )
+    annotations_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("annotations.rid"))
     annotations: Mapped["Annotations"] = relationship(single_parent=True)
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
     # PARENT
-    sw_class_instances_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_instances.rid")
-    )
-    sw_class_instances: Mapped["SwClassInstances"] = relationship(
-        back_populates="sw_class_instance"
-    )
+    sw_class_instances_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_instances.rid"))
+    sw_class_instances: Mapped["SwClassInstances"] = relationship(back_populates="sw_class_instance")
 
 
 class SwAddrMethods(Base):
@@ -16907,15 +15378,11 @@ class SwAddrMethods(Base):
     t = StdString()
     si = StdString()
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # ARR
     # PARENT-OBJ
-    sw_addr_method: Mapped[list["SwAddrMethod"]] = relationship(
-        back_populates="sw_addr_methods"
-    )
+    sw_addr_method: Mapped[list["SwAddrMethod"]] = relationship(back_populates="sw_addr_methods")
 
 
 class SwPhysConstrs1(Base, HasSwScaleConstrs):
@@ -17051,9 +15518,7 @@ class SwCompuScales(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_compu_scale: Mapped[list["SwCompuScale"]] = relationship(
-        back_populates="sw_compu_scales"
-    )
+    sw_compu_scale: Mapped[list["SwCompuScale"]] = relationship(back_populates="sw_compu_scales")
 
 
 class SwCompuDefaultValue(Base):
@@ -17095,17 +15560,11 @@ class SwCompuInternalToPhys(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_compu_scales_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_scales.rid")
-    )
+    sw_compu_scales_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_scales.rid"))
     sw_compu_scales: Mapped["SwCompuScales"] = relationship(single_parent=True)
     # REF
-    sw_compu_default_value_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_default_value.rid")
-    )
-    sw_compu_default_value: Mapped["SwCompuDefaultValue"] = relationship(
-        single_parent=True
-    )
+    sw_compu_default_value_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_default_value.rid"))
+    sw_compu_default_value: Mapped["SwCompuDefaultValue"] = relationship(single_parent=True)
 
 
 class CIdentifier(Base):
@@ -17292,17 +15751,11 @@ class SwCompuRationalCoeffs(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_compu_numerator_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_numerator.rid")
-    )
+    sw_compu_numerator_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_numerator.rid"))
     sw_compu_numerator: Mapped["SwCompuNumerator"] = relationship(single_parent=True)
     # REF
-    sw_compu_denominator_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_denominator.rid")
-    )
-    sw_compu_denominator: Mapped["SwCompuDenominator"] = relationship(
-        single_parent=True
-    )
+    sw_compu_denominator_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_denominator.rid"))
+    sw_compu_denominator: Mapped["SwCompuDenominator"] = relationship(single_parent=True)
 
 
 class SwCompuGenericMath(Base, HasSwSystemconstCodedRefs, HasSwSystemconstPhysRefs):
@@ -17359,63 +15812,35 @@ class SwCompuScale(Base):
     t = StdString()
     si = StdString()
     # REF
-    c_identifier_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("c_identifier.rid")
-    )
+    c_identifier_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("c_identifier.rid"))
     c_identifier: Mapped["CIdentifier"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    lower_limit_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("lower_limit.rid")
-    )
+    lower_limit_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("lower_limit.rid"))
     lower_limit: Mapped["LowerLimit"] = relationship(single_parent=True)
     # REF
-    upper_limit_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("upper_limit.rid")
-    )
+    upper_limit_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("upper_limit.rid"))
     upper_limit: Mapped["UpperLimit"] = relationship(single_parent=True)
     # REF
-    sw_compu_inverse_value_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_inverse_value.rid")
-    )
-    sw_compu_inverse_value: Mapped["SwCompuInverseValue"] = relationship(
-        single_parent=True
-    )
+    sw_compu_inverse_value_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_inverse_value.rid"))
+    sw_compu_inverse_value: Mapped["SwCompuInverseValue"] = relationship(single_parent=True)
     # REF
-    sw_compu_const_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_const.rid")
-    )
+    sw_compu_const_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_const.rid"))
     sw_compu_const: Mapped["SwCompuConst"] = relationship(single_parent=True)
     # REF
-    sw_compu_rational_coeffs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_rational_coeffs.rid")
-    )
-    sw_compu_rational_coeffs: Mapped["SwCompuRationalCoeffs"] = relationship(
-        single_parent=True
-    )
+    sw_compu_rational_coeffs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_rational_coeffs.rid"))
+    sw_compu_rational_coeffs: Mapped["SwCompuRationalCoeffs"] = relationship(single_parent=True)
     # REF
-    sw_compu_program_code_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_program_code.rid")
-    )
-    sw_compu_program_code: Mapped["SwCompuProgramCode"] = relationship(
-        single_parent=True
-    )
+    sw_compu_program_code_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_program_code.rid"))
+    sw_compu_program_code: Mapped["SwCompuProgramCode"] = relationship(single_parent=True)
     # REF
-    sw_compu_generic_math_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_generic_math.rid")
-    )
-    sw_compu_generic_math: Mapped["SwCompuGenericMath"] = relationship(
-        single_parent=True
-    )
+    sw_compu_generic_math_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_generic_math.rid"))
+    sw_compu_generic_math: Mapped["SwCompuGenericMath"] = relationship(single_parent=True)
     # PARENT
-    sw_compu_scales_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_scales.rid")
-    )
-    sw_compu_scales: Mapped["SwCompuScales"] = relationship(
-        back_populates="sw_compu_scale"
-    )
+    sw_compu_scales_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_scales.rid"))
+    sw_compu_scales: Mapped["SwCompuScales"] = relationship(back_populates="sw_compu_scale")
 
 
 class SwCompuPhysToInternal(Base):
@@ -17438,17 +15863,11 @@ class SwCompuPhysToInternal(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_compu_scales_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_scales.rid")
-    )
+    sw_compu_scales_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_scales.rid"))
     sw_compu_scales: Mapped["SwCompuScales"] = relationship(single_parent=True)
     # REF
-    sw_compu_default_value_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_default_value.rid")
-    )
-    sw_compu_default_value: Mapped["SwCompuDefaultValue"] = relationship(
-        single_parent=True
-    )
+    sw_compu_default_value_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_default_value.rid"))
+    sw_compu_default_value: Mapped["SwCompuDefaultValue"] = relationship(single_parent=True)
 
 
 class SwCompuMethod(Base):
@@ -17486,81 +15905,47 @@ class SwCompuMethod(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_display_format_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_display_format.rid")
-    )
+    sw_display_format_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_display_format.rid"))
     sw_display_format: Mapped["SwDisplayFormat"] = relationship(single_parent=True)
     # REF
-    sw_unit_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_unit_ref.rid")
-    )
+    sw_unit_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_unit_ref.rid"))
     sw_unit_ref: Mapped["SwUnitRef"] = relationship(single_parent=True)
     # REF
-    sw_data_constr_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_constr_ref.rid")
-    )
+    sw_data_constr_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_constr_ref.rid"))
     sw_data_constr_ref: Mapped["SwDataConstrRef"] = relationship(single_parent=True)
     # REF
-    sw_phys_constrs_1_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_phys_constrs_1.rid")
-    )
+    sw_phys_constrs_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_phys_constrs_1.rid"))
     sw_phys_constrs_1: Mapped["SwPhysConstrs1"] = relationship(single_parent=True)
     # REF
-    sw_internal_constrs_1_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_internal_constrs_1.rid")
-    )
-    sw_internal_constrs_1: Mapped["SwInternalConstrs1"] = relationship(
-        single_parent=True
-    )
+    sw_internal_constrs_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_internal_constrs_1.rid"))
+    sw_internal_constrs_1: Mapped["SwInternalConstrs1"] = relationship(single_parent=True)
     # REF
-    sw_compu_identity_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_identity.rid")
-    )
+    sw_compu_identity_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_identity.rid"))
     sw_compu_identity: Mapped["SwCompuIdentity"] = relationship(single_parent=True)
     # REF
-    sw_compu_phys_to_internal_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_phys_to_internal.rid")
-    )
-    sw_compu_phys_to_internal: Mapped["SwCompuPhysToInternal"] = relationship(
-        single_parent=True
-    )
+    sw_compu_phys_to_internal_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_phys_to_internal.rid"))
+    sw_compu_phys_to_internal: Mapped["SwCompuPhysToInternal"] = relationship(single_parent=True)
     # REF
-    sw_compu_internal_to_phys_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_internal_to_phys.rid")
-    )
-    sw_compu_internal_to_phys: Mapped["SwCompuInternalToPhys"] = relationship(
-        single_parent=True
-    )
+    sw_compu_internal_to_phys_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_internal_to_phys.rid"))
+    sw_compu_internal_to_phys: Mapped["SwCompuInternalToPhys"] = relationship(single_parent=True)
     # PARENT
-    sw_compu_methods_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_methods.rid")
-    )
-    sw_compu_methods: Mapped["SwCompuMethods"] = relationship(
-        back_populates="sw_compu_method"
-    )
+    sw_compu_methods_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_methods.rid"))
+    sw_compu_methods: Mapped["SwCompuMethods"] = relationship(back_populates="sw_compu_method")
 
 
 class SwRecordLayouts(Base):
@@ -17583,15 +15968,11 @@ class SwRecordLayouts(Base):
     t = StdString()
     si = StdString()
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # ARR
     # PARENT-OBJ
-    sw_record_layout: Mapped[list["SwRecordLayout"]] = relationship(
-        back_populates="sw_record_layouts"
-    )
+    sw_record_layout: Mapped[list["SwRecordLayout"]] = relationship(back_populates="sw_record_layouts")
 
 
 class SwCpuMemSegRef(Base):
@@ -17731,45 +16112,29 @@ class SwAddrMethod(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_cpu_mem_seg_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cpu_mem_seg_ref.rid")
-    )
+    sw_cpu_mem_seg_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cpu_mem_seg_ref.rid"))
     sw_cpu_mem_seg_ref: Mapped["SwCpuMemSegRef"] = relationship(single_parent=True)
     # REF
-    sw_addr_method_desc_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_addr_method_desc.rid")
-    )
+    sw_addr_method_desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_addr_method_desc.rid"))
     sw_addr_method_desc: Mapped["SwAddrMethodDesc"] = relationship(single_parent=True)
     # PARENT
-    sw_addr_methods_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_addr_methods.rid")
-    )
-    sw_addr_methods: Mapped["SwAddrMethods"] = relationship(
-        back_populates="sw_addr_method"
-    )
+    sw_addr_methods_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_addr_methods.rid"))
+    sw_addr_methods: Mapped["SwAddrMethods"] = relationship(back_populates="sw_addr_method")
 
 
 class SwCodeSyntaxes(Base):
@@ -17792,15 +16157,11 @@ class SwCodeSyntaxes(Base):
     t = StdString()
     si = StdString()
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # ARR
     # PARENT-OBJ
-    sw_code_syntax: Mapped[list["SwCodeSyntax"]] = relationship(
-        back_populates="sw_code_syntaxes"
-    )
+    sw_code_syntax: Mapped[list["SwCodeSyntax"]] = relationship(back_populates="sw_code_syntaxes")
 
 
 class SwRecordLayout(Base, HasSwRecordLayoutGroups):
@@ -17831,37 +16192,25 @@ class SwRecordLayout(Base, HasSwRecordLayoutGroups):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # ARR
     # NO_PA         sw_record_layout_group
     # PARENT
-    sw_record_layouts_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_record_layouts.rid")
-    )
-    sw_record_layouts: Mapped["SwRecordLayouts"] = relationship(
-        back_populates="sw_record_layout"
-    )
+    sw_record_layouts_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_record_layouts.rid"))
+    sw_record_layouts: Mapped["SwRecordLayouts"] = relationship(back_populates="sw_record_layout")
 
 
 class SwRecordLayoutGroupAxis(Base):
@@ -18085,57 +16434,31 @@ class SwRecordLayoutV(Base):
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    sw_base_type_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_base_type_ref.rid")
-    )
+    sw_base_type_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_base_type_ref.rid"))
     sw_base_type_ref: Mapped["SwBaseTypeRef"] = relationship(single_parent=True)
     # REF
-    sw_record_layout_v_axis_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_record_layout_v_axis.rid")
-    )
-    sw_record_layout_v_axis: Mapped["SwRecordLayoutVAxis"] = relationship(
-        single_parent=True
-    )
+    sw_record_layout_v_axis_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_record_layout_v_axis.rid"))
+    sw_record_layout_v_axis: Mapped["SwRecordLayoutVAxis"] = relationship(single_parent=True)
     # REF
-    sw_record_layout_v_prop_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_record_layout_v_prop.rid")
-    )
-    sw_record_layout_v_prop: Mapped["SwRecordLayoutVProp"] = relationship(
-        single_parent=True
-    )
+    sw_record_layout_v_prop_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_record_layout_v_prop.rid"))
+    sw_record_layout_v_prop: Mapped["SwRecordLayoutVProp"] = relationship(single_parent=True)
     # REF
-    sw_record_layout_v_index_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_record_layout_v_index.rid")
-    )
-    sw_record_layout_v_index: Mapped["SwRecordLayoutVIndex"] = relationship(
-        single_parent=True
-    )
+    sw_record_layout_v_index_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_record_layout_v_index.rid"))
+    sw_record_layout_v_index: Mapped["SwRecordLayoutVIndex"] = relationship(single_parent=True)
     # REF
     sw_generic_axis_param_type_ref_id: Mapped[typing.Optional[int]] = mapped_column(
         ForeignKey("sw_generic_axis_param_type_ref.rid")
     )
-    sw_generic_axis_param_type_ref: Mapped["SwGenericAxisParamTypeRef"] = relationship(
-        single_parent=True
-    )
+    sw_generic_axis_param_type_ref: Mapped["SwGenericAxisParamTypeRef"] = relationship(single_parent=True)
     # REF
-    sw_record_layout_v_fix_value_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_record_layout_v_fix_value.rid")
-    )
-    sw_record_layout_v_fix_value: Mapped["SwRecordLayoutVFixValue"] = relationship(
-        single_parent=True
-    )
+    sw_record_layout_v_fix_value_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_record_layout_v_fix_value.rid"))
+    sw_record_layout_v_fix_value: Mapped["SwRecordLayoutVFixValue"] = relationship(single_parent=True)
     # REF
-    sw_record_layout_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_record_layout_ref.rid")
-    )
+    sw_record_layout_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_record_layout_ref.rid"))
     sw_record_layout_ref: Mapped["SwRecordLayoutRef"] = relationship(single_parent=True)
     # PARENT
-    sw_record_layout_group_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_record_layout_group.rid")
-    )
-    sw_record_layout_group: Mapped["SwRecordLayoutGroup"] = relationship(
-        back_populates="sw_record_layout_v"
-    )
+    sw_record_layout_group_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_record_layout_group.rid"))
+    sw_record_layout_group: Mapped["SwRecordLayoutGroup"] = relationship(back_populates="sw_record_layout_v")
 
 
 class SwBaseTypes(Base):
@@ -18158,15 +16481,11 @@ class SwBaseTypes(Base):
     t = StdString()
     si = StdString()
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # ARR
     # NO_PA         sw_base_type
-    sw_base_type_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_base_type.rid")
-    )
+    sw_base_type_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_base_type.rid"))
     sw_base_type: Mapped[list["SwBaseType"]] = relationship()
 
 
@@ -18279,40 +16598,26 @@ class SwCodeSyntax(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_code_syntax_desc_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_code_syntax_desc.rid")
-    )
+    sw_code_syntax_desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_code_syntax_desc.rid"))
     sw_code_syntax_desc: Mapped["SwCodeSyntaxDesc"] = relationship(single_parent=True)
     # PARENT
-    sw_code_syntaxes_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_code_syntaxes.rid")
-    )
-    sw_code_syntaxes: Mapped["SwCodeSyntaxes"] = relationship(
-        back_populates="sw_code_syntax"
-    )
+    sw_code_syntaxes_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_code_syntaxes.rid"))
+    sw_code_syntaxes: Mapped["SwCodeSyntaxes"] = relationship(back_populates="sw_code_syntax")
 
 
 class SwDataConstrs(Base):
@@ -18335,15 +16640,11 @@ class SwDataConstrs(Base):
     t = StdString()
     si = StdString()
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # ARR
     # PARENT-OBJ
-    sw_data_constr: Mapped[list["SwDataConstr"]] = relationship(
-        back_populates="sw_data_constrs"
-    )
+    sw_data_constr: Mapped[list["SwDataConstr"]] = relationship(back_populates="sw_data_constrs")
 
 
 class SwBaseTypeSize(Base):
@@ -18459,52 +16760,34 @@ class SwBaseType(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_base_type_size_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_base_type_size.rid")
-    )
+    sw_base_type_size_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_base_type_size.rid"))
     sw_base_type_size: Mapped["SwBaseTypeSize"] = relationship(single_parent=True)
     # REF
-    sw_coded_type_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_coded_type.rid")
-    )
+    sw_coded_type_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_coded_type.rid"))
     sw_coded_type: Mapped["SwCodedType"] = relationship(single_parent=True)
     # REF
-    sw_mem_alignment_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mem_alignment.rid")
-    )
+    sw_mem_alignment_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mem_alignment.rid"))
     sw_mem_alignment: Mapped["SwMemAlignment"] = relationship(single_parent=True)
     # REF
-    byte_order_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("byte_order.rid")
-    )
+    byte_order_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("byte_order.rid"))
     byte_order: Mapped["ByteOrder"] = relationship(single_parent=True)
     # REF
-    sw_base_type_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_base_type_ref.rid")
-    )
+    sw_base_type_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_base_type_ref.rid"))
     sw_base_type_ref: Mapped["SwBaseTypeRef"] = relationship(single_parent=True)
 
 
@@ -18528,15 +16811,11 @@ class SwAxisTypes(Base):
     t = StdString()
     si = StdString()
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # ARR
     # NO_PA         sw_axis_type
-    sw_axis_type_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_axis_type.rid")
-    )
+    sw_axis_type_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_axis_type.rid"))
     sw_axis_type: Mapped[list["SwAxisType"]] = relationship()
 
 
@@ -18597,45 +16876,29 @@ class SwDataConstr(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_constr_objects_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_constr_objects.rid")
-    )
+    sw_constr_objects_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_constr_objects.rid"))
     sw_constr_objects: Mapped["SwConstrObjects"] = relationship(single_parent=True)
     # ARR
     # PARENT-OBJ
-    sw_data_constr_rule: Mapped[list["SwDataConstrRule"]] = relationship(
-        back_populates="sw_data_constr"
-    )
+    sw_data_constr_rule: Mapped[list["SwDataConstrRule"]] = relationship(back_populates="sw_data_constr")
     # PARENT
-    sw_data_constrs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_constrs.rid")
-    )
-    sw_data_constrs: Mapped["SwDataConstrs"] = relationship(
-        back_populates="sw_data_constr"
-    )
+    sw_data_constrs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_constrs.rid"))
+    sw_data_constrs: Mapped["SwDataConstrs"] = relationship(back_populates="sw_data_constr")
 
 
 class SwConstrLevel(Base):
@@ -18756,9 +17019,7 @@ class SwRelatedConstrs(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_data_dependency: Mapped[list["SwDataDependency"]] = relationship(
-        back_populates="sw_related_constrs"
-    )
+    sw_data_dependency: Mapped[list["SwDataDependency"]] = relationship(back_populates="sw_related_constrs")
 
 
 class SwInternalConstrs(Base):
@@ -18785,34 +17046,22 @@ class SwInternalConstrs(Base):
     t = StdString()
     si = StdString()
     # REF
-    lower_limit_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("lower_limit.rid")
-    )
+    lower_limit_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("lower_limit.rid"))
     lower_limit: Mapped["LowerLimit"] = relationship(single_parent=True)
     # REF
-    upper_limit_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("upper_limit.rid")
-    )
+    upper_limit_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("upper_limit.rid"))
     upper_limit: Mapped["UpperLimit"] = relationship(single_parent=True)
     # REF
-    sw_scale_constrs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_scale_constrs.rid")
-    )
+    sw_scale_constrs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_scale_constrs.rid"))
     sw_scale_constrs: Mapped["SwScaleConstrs"] = relationship(single_parent=True)
     # REF
-    sw_max_diff_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_max_diff.rid")
-    )
+    sw_max_diff_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_max_diff.rid"))
     sw_max_diff: Mapped["SwMaxDiff"] = relationship(single_parent=True)
     # REF
-    sw_monotony_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_monotony.rid")
-    )
+    sw_monotony_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_monotony.rid"))
     sw_monotony: Mapped["SwMonotony"] = relationship(single_parent=True)
     # REF
-    sw_related_constrs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_related_constrs.rid")
-    )
+    sw_related_constrs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_related_constrs.rid"))
     sw_related_constrs: Mapped["SwRelatedConstrs"] = relationship(single_parent=True)
 
 
@@ -18841,39 +17090,25 @@ class SwPhysConstrs(Base):
     t = StdString()
     si = StdString()
     # REF
-    lower_limit_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("lower_limit.rid")
-    )
+    lower_limit_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("lower_limit.rid"))
     lower_limit: Mapped["LowerLimit"] = relationship(single_parent=True)
     # REF
-    upper_limit_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("upper_limit.rid")
-    )
+    upper_limit_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("upper_limit.rid"))
     upper_limit: Mapped["UpperLimit"] = relationship(single_parent=True)
     # REF
-    sw_scale_constrs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_scale_constrs.rid")
-    )
+    sw_scale_constrs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_scale_constrs.rid"))
     sw_scale_constrs: Mapped["SwScaleConstrs"] = relationship(single_parent=True)
     # REF
-    sw_unit_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_unit_ref.rid")
-    )
+    sw_unit_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_unit_ref.rid"))
     sw_unit_ref: Mapped["SwUnitRef"] = relationship(single_parent=True)
     # REF
-    sw_max_diff_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_max_diff.rid")
-    )
+    sw_max_diff_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_max_diff.rid"))
     sw_max_diff: Mapped["SwMaxDiff"] = relationship(single_parent=True)
     # REF
-    sw_monotony_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_monotony.rid")
-    )
+    sw_monotony_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_monotony.rid"))
     sw_monotony: Mapped["SwMonotony"] = relationship(single_parent=True)
     # REF
-    sw_related_constrs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_related_constrs.rid")
-    )
+    sw_related_constrs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_related_constrs.rid"))
     sw_related_constrs: Mapped["SwRelatedConstrs"] = relationship(single_parent=True)
 
 
@@ -18899,32 +17134,20 @@ class SwDataConstrRule(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_constr_level_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_constr_level.rid")
-    )
+    sw_constr_level_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_constr_level.rid"))
     sw_constr_level: Mapped["SwConstrLevel"] = relationship(single_parent=True)
     # REF
-    sw_max_gradient_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_max_gradient.rid")
-    )
+    sw_max_gradient_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_max_gradient.rid"))
     sw_max_gradient: Mapped["SwMaxGradient"] = relationship(single_parent=True)
     # REF
-    sw_phys_constrs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_phys_constrs.rid")
-    )
+    sw_phys_constrs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_phys_constrs.rid"))
     sw_phys_constrs: Mapped["SwPhysConstrs"] = relationship(single_parent=True)
     # REF
-    sw_internal_constrs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_internal_constrs.rid")
-    )
+    sw_internal_constrs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_internal_constrs.rid"))
     sw_internal_constrs: Mapped["SwInternalConstrs"] = relationship(single_parent=True)
     # PARENT
-    sw_data_constr_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_constr.rid")
-    )
-    sw_data_constr: Mapped["SwDataConstr"] = relationship(
-        back_populates="sw_data_constr_rule"
-    )
+    sw_data_constr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_constr.rid"))
+    sw_data_constr: Mapped["SwDataConstr"] = relationship(back_populates="sw_data_constr_rule")
 
 
 class SwDataDictionarySpec(Base):
@@ -18974,87 +17197,55 @@ class SwDataDictionarySpec(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    sw_units_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_units.rid")
-    )
+    sw_units_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_units.rid"))
     sw_units: Mapped["SwUnits"] = relationship(single_parent=True)
     # REF
-    sw_templates_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_templates.rid")
-    )
+    sw_templates_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_templates.rid"))
     sw_templates: Mapped["SwTemplates"] = relationship(single_parent=True)
     # REF
-    sw_variables_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variables.rid")
-    )
+    sw_variables_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variables.rid"))
     sw_variables: Mapped["SwVariables"] = relationship(single_parent=True)
     # REF
-    sw_calprms_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprms.rid")
-    )
+    sw_calprms_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprms.rid"))
     sw_calprms: Mapped["SwCalprms"] = relationship(single_parent=True)
     # REF
-    sw_systemconsts_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_systemconsts.rid")
-    )
+    sw_systemconsts_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_systemconsts.rid"))
     sw_systemconsts: Mapped["SwSystemconsts"] = relationship(single_parent=True)
     # REF
-    sw_class_instances_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_instances.rid")
-    )
+    sw_class_instances_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_instances.rid"))
     sw_class_instances: Mapped["SwClassInstances"] = relationship(single_parent=True)
     # REF
-    sw_compu_methods_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_methods.rid")
-    )
+    sw_compu_methods_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_methods.rid"))
     sw_compu_methods: Mapped["SwCompuMethods"] = relationship(single_parent=True)
     # REF
-    sw_addr_methods_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_addr_methods.rid")
-    )
+    sw_addr_methods_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_addr_methods.rid"))
     sw_addr_methods: Mapped["SwAddrMethods"] = relationship(single_parent=True)
     # REF
-    sw_record_layouts_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_record_layouts.rid")
-    )
+    sw_record_layouts_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_record_layouts.rid"))
     sw_record_layouts: Mapped["SwRecordLayouts"] = relationship(single_parent=True)
     # REF
-    sw_code_syntaxes_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_code_syntaxes.rid")
-    )
+    sw_code_syntaxes_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_code_syntaxes.rid"))
     sw_code_syntaxes: Mapped["SwCodeSyntaxes"] = relationship(single_parent=True)
     # REF
-    sw_base_types_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_base_types.rid")
-    )
+    sw_base_types_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_base_types.rid"))
     sw_base_types: Mapped["SwBaseTypes"] = relationship(single_parent=True)
     # REF
-    sw_data_constrs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_constrs.rid")
-    )
+    sw_data_constrs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_constrs.rid"))
     sw_data_constrs: Mapped["SwDataConstrs"] = relationship(single_parent=True)
     # REF
-    sw_axis_types_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_axis_types.rid")
-    )
+    sw_axis_types_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_axis_types.rid"))
     sw_axis_types: Mapped["SwAxisTypes"] = relationship(single_parent=True)
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
 
 
@@ -19131,9 +17322,7 @@ class SwGenericAxisParamTypes(Base, HasSwGenericAxisParams):
     si = StdString()
     # ARR
     # NO_PA         sw_generic_axis_param_type
-    sw_generic_axis_param_type_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_generic_axis_param_type.rid")
-    )
+    sw_generic_axis_param_type_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_generic_axis_param_type.rid"))
     sw_generic_axis_param_type: Mapped[list["SwGenericAxisParamType"]] = relationship()
 
 
@@ -19166,40 +17355,26 @@ class SwAxisType(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_generic_axis_desc_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_generic_axis_desc.rid")
-    )
+    sw_generic_axis_desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_generic_axis_desc.rid"))
     sw_generic_axis_desc: Mapped["SwGenericAxisDesc"] = relationship(single_parent=True)
     # REF
-    sw_generic_axis_param_types_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_generic_axis_param_types.rid")
-    )
-    sw_generic_axis_param_types: Mapped["SwGenericAxisParamTypes"] = relationship(
-        single_parent=True
-    )
+    sw_generic_axis_param_types_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_generic_axis_param_types.rid"))
+    sw_generic_axis_param_types: Mapped["SwGenericAxisParamTypes"] = relationship(single_parent=True)
 
 
 class SwGenericAxisParamType(Base):
@@ -19231,38 +17406,26 @@ class SwGenericAxisParamType(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_data_constr_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_constr_ref.rid")
-    )
+    sw_data_constr_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_constr_ref.rid"))
     sw_data_constr_ref: Mapped["SwDataConstrRef"] = relationship(single_parent=True)
     # ARR
     # NO_PA         sw_generic_axis_param_type
-    sw_generic_axis_param_type_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_generic_axis_param_type.rid")
-    )
+    sw_generic_axis_param_type_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_generic_axis_param_type.rid"))
     sw_generic_axis_param_type: Mapped[list["SwGenericAxisParamType"]] = relationship()
 
 
@@ -19300,24 +17463,16 @@ class SwInstanceSpec(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # ARR
     # PARENT-OBJ
-    sw_instance_tree: Mapped[list["SwInstanceTree"]] = relationship(
-        back_populates="sw_instance_spec"
-    )
+    sw_instance_tree: Mapped[list["SwInstanceTree"]] = relationship(back_populates="sw_instance_spec")
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
 
 
@@ -19526,14 +17681,10 @@ class SwFulfils(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    function_ref: Mapped[list["FunctionRef"]] = relationship(
-        back_populates="sw_fulfils"
-    )
+    function_ref: Mapped[list["FunctionRef"]] = relationship(back_populates="sw_fulfils")
     # ARR
     # PARENT-OBJ
-    requirement_ref: Mapped[list["RequirementRef"]] = relationship(
-        back_populates="sw_fulfils"
-    )
+    requirement_ref: Mapped[list["RequirementRef"]] = relationship(back_populates="sw_fulfils")
 
 
 class SwClassMethods(Base):
@@ -19556,9 +17707,7 @@ class SwClassMethods(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_class_method: Mapped[list["SwClassMethod"]] = relationship(
-        back_populates="sw_class_methods"
-    )
+    sw_class_method: Mapped[list["SwClassMethod"]] = relationship(back_populates="sw_class_methods")
 
 
 class FunctionRef(Base):
@@ -19589,9 +17738,7 @@ class FunctionRef(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_fulfils_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_fulfils.rid")
-    )
+    sw_fulfils_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_fulfils.rid"))
     sw_fulfils: Mapped["SwFulfils"] = relationship(back_populates="function_ref")
 
 
@@ -19621,9 +17768,7 @@ class RequirementRef(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_fulfils_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_fulfils.rid")
-    )
+    sw_fulfils_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_fulfils.rid"))
     sw_fulfils: Mapped["SwFulfils"] = relationship(back_populates="requirement_ref")
 
 
@@ -19647,9 +17792,7 @@ class SwVariablePrototypes(Base):
     si = StdString()
     # ARR
     # NO_PA         sw_variable_prototype
-    sw_variable_prototype_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variable_prototype.rid")
-    )
+    sw_variable_prototype_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variable_prototype.rid"))
     sw_variable_prototype: Mapped[list["SwVariablePrototype"]] = relationship()
 
 
@@ -19751,32 +17894,20 @@ class SwClassMethod(Base):
     label_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("label.rid"))
     label: Mapped["Label"] = relationship(single_parent=True)
     # REF
-    short_label_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_label.rid")
-    )
+    short_label_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_label.rid"))
     short_label: Mapped["ShortLabel"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    sw_class_method_return_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_method_return.rid")
-    )
-    sw_class_method_return: Mapped["SwClassMethodReturn"] = relationship(
-        single_parent=True
-    )
+    sw_class_method_return_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_method_return.rid"))
+    sw_class_method_return: Mapped["SwClassMethodReturn"] = relationship(single_parent=True)
     # ARR
     # PARENT-OBJ
-    sw_class_method_arg: Mapped[list["SwClassMethodArg"]] = relationship(
-        back_populates="sw_class_method"
-    )
+    sw_class_method_arg: Mapped[list["SwClassMethodArg"]] = relationship(back_populates="sw_class_method")
     # PARENT
-    sw_class_methods_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_methods.rid")
-    )
-    sw_class_methods: Mapped["SwClassMethods"] = relationship(
-        back_populates="sw_class_method"
-    )
+    sw_class_methods_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_methods.rid"))
+    sw_class_methods: Mapped["SwClassMethods"] = relationship(back_populates="sw_class_method")
 
 
 class SwClassMethodArg(Base):
@@ -19803,20 +17934,14 @@ class SwClassMethodArg(Base):
     label_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("label.rid"))
     label: Mapped["Label"] = relationship(single_parent=True)
     # REF
-    short_label_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_label.rid")
-    )
+    short_label_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_label.rid"))
     short_label: Mapped["ShortLabel"] = relationship(single_parent=True)
     # REF
     remark_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("remark.rid"))
     remark: Mapped["Remark"] = relationship(single_parent=True)
     # PARENT
-    sw_class_method_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_method.rid")
-    )
-    sw_class_method: Mapped["SwClassMethod"] = relationship(
-        back_populates="sw_class_method_arg"
-    )
+    sw_class_method_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_method.rid"))
+    sw_class_method: Mapped["SwClassMethod"] = relationship(back_populates="sw_class_method_arg")
 
 
 class SwClassAttrImpls(Base):
@@ -19839,9 +17964,7 @@ class SwClassAttrImpls(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_class_attr_impl: Mapped[list["SwClassAttrImpl"]] = relationship(
-        back_populates="sw_class_attr_impls"
-    )
+    sw_class_attr_impl: Mapped[list["SwClassAttrImpl"]] = relationship(back_populates="sw_class_attr_impls")
 
 
 class SwCalprmPrototypes(Base):
@@ -19864,9 +17987,7 @@ class SwCalprmPrototypes(Base):
     si = StdString()
     # ARR
     # NO_PA         sw_calprm_prototype
-    sw_calprm_prototype_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_prototype.rid")
-    )
+    sw_calprm_prototype_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_prototype.rid"))
     sw_calprm_prototype: Mapped[list["SwCalprmPrototype"]] = relationship()
 
 
@@ -19927,52 +18048,34 @@ class SwVariablePrototype(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_arraysize_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_arraysize.rid")
-    )
+    sw_arraysize_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_arraysize.rid"))
     sw_arraysize: Mapped["SwArraysize"] = relationship(single_parent=True)
     # REF
-    sw_unit_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_unit_ref.rid")
-    )
+    sw_unit_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_unit_ref.rid"))
     sw_unit_ref: Mapped["SwUnitRef"] = relationship(single_parent=True)
     # REF
-    sw_syscond_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_syscond.rid")
-    )
+    sw_syscond_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_syscond.rid"))
     sw_syscond: Mapped["SwSyscond"] = relationship(single_parent=True)
     # REF
-    annotations_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("annotations.rid")
-    )
+    annotations_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("annotations.rid"))
     annotations: Mapped["Annotations"] = relationship(single_parent=True)
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
 
 
@@ -19996,9 +18099,7 @@ class SwClassPrototypes(Base):
     si = StdString()
     # ARR
     # NO_PA         sw_class_prototype
-    sw_class_prototype_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_prototype.rid")
-    )
+    sw_class_prototype_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_prototype.rid"))
     sw_class_prototype: Mapped[list["SwClassPrototype"]] = relationship()
 
 
@@ -20033,47 +18134,31 @@ class SwCalprmPrototype(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_arraysize_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_arraysize.rid")
-    )
+    sw_arraysize_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_arraysize.rid"))
     sw_arraysize: Mapped["SwArraysize"] = relationship(single_parent=True)
     # REF
-    sw_syscond_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_syscond.rid")
-    )
+    sw_syscond_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_syscond.rid"))
     sw_syscond: Mapped["SwSyscond"] = relationship(single_parent=True)
     # REF
-    annotations_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("annotations.rid")
-    )
+    annotations_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("annotations.rid"))
     annotations: Mapped["Annotations"] = relationship(single_parent=True)
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
 
 
@@ -20098,23 +18183,13 @@ class SwClassAttr(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_variable_prototypes_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variable_prototypes.rid")
-    )
-    sw_variable_prototypes: Mapped["SwVariablePrototypes"] = relationship(
-        single_parent=True
-    )
+    sw_variable_prototypes_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variable_prototypes.rid"))
+    sw_variable_prototypes: Mapped["SwVariablePrototypes"] = relationship(single_parent=True)
     # REF
-    sw_calprm_prototypes_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_prototypes.rid")
-    )
-    sw_calprm_prototypes: Mapped["SwCalprmPrototypes"] = relationship(
-        single_parent=True
-    )
+    sw_calprm_prototypes_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_prototypes.rid"))
+    sw_calprm_prototypes: Mapped["SwCalprmPrototypes"] = relationship(single_parent=True)
     # REF
-    sw_class_prototypes_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_prototypes.rid")
-    )
+    sw_class_prototypes_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_prototypes.rid"))
     sw_class_prototypes: Mapped["SwClassPrototypes"] = relationship(single_parent=True)
 
 
@@ -20150,52 +18225,34 @@ class SwClassPrototype(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_class_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_ref.rid")
-    )
+    sw_class_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_ref.rid"))
     sw_class_ref: Mapped["SwClassRef"] = relationship(single_parent=True)
     # REF
-    sw_arraysize_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_arraysize.rid")
-    )
+    sw_arraysize_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_arraysize.rid"))
     sw_arraysize: Mapped["SwArraysize"] = relationship(single_parent=True)
     # REF
-    sw_syscond_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_syscond.rid")
-    )
+    sw_syscond_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_syscond.rid"))
     sw_syscond: Mapped["SwSyscond"] = relationship(single_parent=True)
     # REF
-    annotations_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("annotations.rid")
-    )
+    annotations_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("annotations.rid"))
     annotations: Mapped["Annotations"] = relationship(single_parent=True)
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
 
 
@@ -20244,9 +18301,7 @@ class SwVariableImpls(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_variable_impl: Mapped[list["SwVariableImpl"]] = relationship(
-        back_populates="sw_variable_impls"
-    )
+    sw_variable_impl: Mapped[list["SwVariableImpl"]] = relationship(back_populates="sw_variable_impls")
 
 
 class SwCalprmImpls(Base):
@@ -20269,9 +18324,7 @@ class SwCalprmImpls(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_calprm_impl: Mapped[list["SwCalprmImpl"]] = relationship(
-        back_populates="sw_calprm_impls"
-    )
+    sw_calprm_impl: Mapped[list["SwCalprmImpl"]] = relationship(back_populates="sw_calprm_impls")
 
 
 class SwVariablePrototypeRef(Base):
@@ -20321,24 +18374,14 @@ class SwVariableImpl(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_variable_prototype_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variable_prototype_ref.rid")
-    )
-    sw_variable_prototype_ref: Mapped["SwVariablePrototypeRef"] = relationship(
-        single_parent=True
-    )
+    sw_variable_prototype_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variable_prototype_ref.rid"))
+    sw_variable_prototype_ref: Mapped["SwVariablePrototypeRef"] = relationship(single_parent=True)
     # REF
-    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_def_props.rid")
-    )
+    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_def_props.rid"))
     sw_data_def_props: Mapped["SwDataDefProps"] = relationship(single_parent=True)
     # PARENT
-    sw_variable_impls_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variable_impls.rid")
-    )
-    sw_variable_impls: Mapped["SwVariableImpls"] = relationship(
-        back_populates="sw_variable_impl"
-    )
+    sw_variable_impls_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variable_impls.rid"))
+    sw_variable_impls: Mapped["SwVariableImpls"] = relationship(back_populates="sw_variable_impl")
 
 
 class SwClassImpls(Base):
@@ -20361,9 +18404,7 @@ class SwClassImpls(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_class_impl: Mapped[list["SwClassImpl"]] = relationship(
-        back_populates="sw_class_impls"
-    )
+    sw_class_impl: Mapped[list["SwClassImpl"]] = relationship(back_populates="sw_class_impls")
 
 
 class SwCalprmPrototypeRef(Base):
@@ -20413,24 +18454,14 @@ class SwCalprmImpl(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_calprm_prototype_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_prototype_ref.rid")
-    )
-    sw_calprm_prototype_ref: Mapped["SwCalprmPrototypeRef"] = relationship(
-        single_parent=True
-    )
+    sw_calprm_prototype_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_prototype_ref.rid"))
+    sw_calprm_prototype_ref: Mapped["SwCalprmPrototypeRef"] = relationship(single_parent=True)
     # REF
-    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_def_props.rid")
-    )
+    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_def_props.rid"))
     sw_data_def_props: Mapped["SwDataDefProps"] = relationship(single_parent=True)
     # PARENT
-    sw_calprm_impls_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_impls.rid")
-    )
-    sw_calprm_impls: Mapped["SwCalprmImpls"] = relationship(
-        back_populates="sw_calprm_impl"
-    )
+    sw_calprm_impls_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_impls.rid"))
+    sw_calprm_impls: Mapped["SwCalprmImpls"] = relationship(back_populates="sw_calprm_impl")
 
 
 class SwClassAttrImpl(Base):
@@ -20464,55 +18495,35 @@ class SwClassAttrImpl(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_def_props.rid")
-    )
+    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_def_props.rid"))
     sw_data_def_props: Mapped["SwDataDefProps"] = relationship(single_parent=True)
     # REF
-    sw_variable_impls_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variable_impls.rid")
-    )
+    sw_variable_impls_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variable_impls.rid"))
     sw_variable_impls: Mapped["SwVariableImpls"] = relationship(single_parent=True)
     # REF
-    sw_calprm_impls_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_impls.rid")
-    )
+    sw_calprm_impls_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_impls.rid"))
     sw_calprm_impls: Mapped["SwCalprmImpls"] = relationship(single_parent=True)
     # REF
-    sw_class_impls_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_impls.rid")
-    )
+    sw_class_impls_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_impls.rid"))
     sw_class_impls: Mapped["SwClassImpls"] = relationship(single_parent=True)
     # PARENT
-    sw_class_attr_impls_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_attr_impls.rid")
-    )
-    sw_class_attr_impls: Mapped["SwClassAttrImpls"] = relationship(
-        back_populates="sw_class_attr_impl"
-    )
+    sw_class_attr_impls_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_attr_impls.rid"))
+    sw_class_attr_impls: Mapped["SwClassAttrImpls"] = relationship(back_populates="sw_class_attr_impl")
 
 
 class SwClassPrototypeRef(Base):
@@ -20562,26 +18573,14 @@ class SwClassImpl(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_class_prototype_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_prototype_ref.rid")
-    )
-    sw_class_prototype_ref: Mapped["SwClassPrototypeRef"] = relationship(
-        single_parent=True
-    )
+    sw_class_prototype_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_prototype_ref.rid"))
+    sw_class_prototype_ref: Mapped["SwClassPrototypeRef"] = relationship(single_parent=True)
     # REF
-    sw_class_attr_impl_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_attr_impl_ref.rid")
-    )
-    sw_class_attr_impl_ref: Mapped["SwClassAttrImplRef"] = relationship(
-        single_parent=True
-    )
+    sw_class_attr_impl_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_attr_impl_ref.rid"))
+    sw_class_attr_impl_ref: Mapped["SwClassAttrImplRef"] = relationship(single_parent=True)
     # PARENT
-    sw_class_impls_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_impls.rid")
-    )
-    sw_class_impls: Mapped["SwClassImpls"] = relationship(
-        back_populates="sw_class_impl"
-    )
+    sw_class_impls_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_impls.rid"))
+    sw_class_impls: Mapped["SwClassImpls"] = relationship(back_populates="sw_class_impl")
 
 
 class SwFeatureExportCalprms(Base, HasSwCalprmRefs, HasSwCalprmRefSysconds):
@@ -20682,22 +18681,14 @@ class SwFeatureExportVariables(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_variables_read_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variables_read.rid")
-    )
+    sw_variables_read_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variables_read.rid"))
     sw_variables_read: Mapped["SwVariablesRead"] = relationship(single_parent=True)
     # REF
-    sw_variables_write_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variables_write.rid")
-    )
+    sw_variables_write_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variables_write.rid"))
     sw_variables_write: Mapped["SwVariablesWrite"] = relationship(single_parent=True)
     # REF
-    sw_variables_read_write_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variables_read_write.rid")
-    )
-    sw_variables_read_write: Mapped["SwVariablesReadWrite"] = relationship(
-        single_parent=True
-    )
+    sw_variables_read_write_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variables_read_write.rid"))
+    sw_variables_read_write: Mapped["SwVariablesReadWrite"] = relationship(single_parent=True)
 
 
 class SwFeatureImportVariables(Base):
@@ -20721,22 +18712,14 @@ class SwFeatureImportVariables(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_variables_read_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variables_read.rid")
-    )
+    sw_variables_read_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variables_read.rid"))
     sw_variables_read: Mapped["SwVariablesRead"] = relationship(single_parent=True)
     # REF
-    sw_variables_write_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variables_write.rid")
-    )
+    sw_variables_write_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variables_write.rid"))
     sw_variables_write: Mapped["SwVariablesWrite"] = relationship(single_parent=True)
     # REF
-    sw_variables_read_write_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variables_read_write.rid")
-    )
-    sw_variables_read_write: Mapped["SwVariablesReadWrite"] = relationship(
-        single_parent=True
-    )
+    sw_variables_read_write_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variables_read_write.rid"))
+    sw_variables_read_write: Mapped["SwVariablesReadWrite"] = relationship(single_parent=True)
 
 
 class SwFeatureLocalVariables(Base):
@@ -20758,12 +18741,8 @@ class SwFeatureLocalVariables(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_variables_read_write_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variables_read_write.rid")
-    )
-    sw_variables_read_write: Mapped["SwVariablesReadWrite"] = relationship(
-        single_parent=True
-    )
+    sw_variables_read_write_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variables_read_write.rid"))
+    sw_variables_read_write: Mapped["SwVariablesReadWrite"] = relationship(single_parent=True)
 
 
 class SwFeatureModelOnlyVariables(Base, HasSwVariableRefs):
@@ -20810,38 +18789,22 @@ class SwFeatureVariables(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_feature_export_variables_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_export_variables.rid")
-    )
-    sw_feature_export_variables: Mapped["SwFeatureExportVariables"] = relationship(
-        single_parent=True
-    )
+    sw_feature_export_variables_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_export_variables.rid"))
+    sw_feature_export_variables: Mapped["SwFeatureExportVariables"] = relationship(single_parent=True)
     # REF
-    sw_feature_import_variables_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_import_variables.rid")
-    )
-    sw_feature_import_variables: Mapped["SwFeatureImportVariables"] = relationship(
-        single_parent=True
-    )
+    sw_feature_import_variables_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_import_variables.rid"))
+    sw_feature_import_variables: Mapped["SwFeatureImportVariables"] = relationship(single_parent=True)
     # REF
-    sw_feature_local_variables_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_local_variables.rid")
-    )
-    sw_feature_local_variables: Mapped["SwFeatureLocalVariables"] = relationship(
-        single_parent=True
-    )
+    sw_feature_local_variables_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_local_variables.rid"))
+    sw_feature_local_variables: Mapped["SwFeatureLocalVariables"] = relationship(single_parent=True)
     # REF
     sw_feature_model_only_variables_id: Mapped[typing.Optional[int]] = mapped_column(
         ForeignKey("sw_feature_model_only_variables.rid")
     )
-    sw_feature_model_only_variables: Mapped["SwFeatureModelOnlyVariables"] = (
-        relationship(single_parent=True)
-    )
+    sw_feature_model_only_variables: Mapped["SwFeatureModelOnlyVariables"] = relationship(single_parent=True)
 
 
-class SwFeatureExportClassInstances(
-    Base, HasSwClassInstanceRefs, HasSwInstanceRefSysconds
-):
+class SwFeatureExportClassInstances(Base, HasSwClassInstanceRefs, HasSwInstanceRefSysconds):
     # SIMPLE: [] == SR: False
     # P: []  --  C: []
     __tablename__ = "sw_feature_export_class_instances"
@@ -20939,26 +18902,14 @@ class SwFeatureParams(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_feature_export_calprms_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_export_calprms.rid")
-    )
-    sw_feature_export_calprms: Mapped["SwFeatureExportCalprms"] = relationship(
-        single_parent=True
-    )
+    sw_feature_export_calprms_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_export_calprms.rid"))
+    sw_feature_export_calprms: Mapped["SwFeatureExportCalprms"] = relationship(single_parent=True)
     # REF
-    sw_feature_import_calprms_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_import_calprms.rid")
-    )
-    sw_feature_import_calprms: Mapped["SwFeatureImportCalprms"] = relationship(
-        single_parent=True
-    )
+    sw_feature_import_calprms_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_import_calprms.rid"))
+    sw_feature_import_calprms: Mapped["SwFeatureImportCalprms"] = relationship(single_parent=True)
     # REF
-    sw_feature_local_params_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_local_params.rid")
-    )
-    sw_feature_local_params: Mapped["SwFeatureLocalParams"] = relationship(
-        single_parent=True
-    )
+    sw_feature_local_params_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_local_params.rid"))
+    sw_feature_local_params: Mapped["SwFeatureLocalParams"] = relationship(single_parent=True)
 
 
 class SwTestDesc(
@@ -21042,9 +18993,7 @@ class SwTestDesc(
     # NO_PA         msr_query_chapter
 
 
-class SwFeatureImportClassInstances(
-    Base, HasSwClassInstanceRefs, HasSwInstanceRefSysconds
-):
+class SwFeatureImportClassInstances(Base, HasSwClassInstanceRefs, HasSwInstanceRefSysconds):
     # SIMPLE: [] == SR: False
     # P: []  --  C: []
     __tablename__ = "sw_feature_import_class_instances"
@@ -21073,9 +19022,7 @@ class SwFeatureImportClassInstances(
     # N-I: SwInstanceRefSyscond
 
 
-class SwFeatureLocalClassInstances(
-    Base, HasSwClassInstanceRefs, HasSwInstanceRefSysconds
-):
+class SwFeatureLocalClassInstances(Base, HasSwClassInstanceRefs, HasSwInstanceRefSysconds):
     # SIMPLE: [] == SR: False
     # P: []  --  C: []
     __tablename__ = "sw_feature_local_class_instances"
@@ -21124,23 +19071,17 @@ class SwFeatureClassInstances(Base):
     sw_feature_export_class_instances_id: Mapped[typing.Optional[int]] = mapped_column(
         ForeignKey("sw_feature_export_class_instances.rid")
     )
-    sw_feature_export_class_instances: Mapped["SwFeatureExportClassInstances"] = (
-        relationship(single_parent=True)
-    )
+    sw_feature_export_class_instances: Mapped["SwFeatureExportClassInstances"] = relationship(single_parent=True)
     # REF
     sw_feature_import_class_instances_id: Mapped[typing.Optional[int]] = mapped_column(
         ForeignKey("sw_feature_import_class_instances.rid")
     )
-    sw_feature_import_class_instances: Mapped["SwFeatureImportClassInstances"] = (
-        relationship(single_parent=True)
-    )
+    sw_feature_import_class_instances: Mapped["SwFeatureImportClassInstances"] = relationship(single_parent=True)
     # REF
     sw_feature_local_class_instances_id: Mapped[typing.Optional[int]] = mapped_column(
         ForeignKey("sw_feature_local_class_instances.rid")
     )
-    sw_feature_local_class_instances: Mapped["SwFeatureLocalClassInstances"] = (
-        relationship(single_parent=True)
-    )
+    sw_feature_local_class_instances: Mapped["SwFeatureLocalClassInstances"] = relationship(single_parent=True)
 
 
 class SwApplicationNotes(
@@ -21431,120 +19372,70 @@ class SwClass(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_feature_def_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_def.rid")
-    )
+    sw_feature_def_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_def.rid"))
     sw_feature_def: Mapped["SwFeatureDef"] = relationship(single_parent=True)
     # REF
-    sw_feature_desc_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_desc.rid")
-    )
+    sw_feature_desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_desc.rid"))
     sw_feature_desc: Mapped["SwFeatureDesc"] = relationship(single_parent=True)
     # REF
-    sw_fulfils_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_fulfils.rid")
-    )
+    sw_fulfils_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_fulfils.rid"))
     sw_fulfils: Mapped["SwFulfils"] = relationship(single_parent=True)
     # REF
-    sw_class_methods_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_methods.rid")
-    )
+    sw_class_methods_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_methods.rid"))
     sw_class_methods: Mapped["SwClassMethods"] = relationship(single_parent=True)
     # REF
-    sw_class_attr_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_attr.rid")
-    )
+    sw_class_attr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_attr.rid"))
     sw_class_attr: Mapped["SwClassAttr"] = relationship(single_parent=True)
     # REF
-    sw_class_attr_impls_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_attr_impls.rid")
-    )
+    sw_class_attr_impls_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_attr_impls.rid"))
     sw_class_attr_impls: Mapped["SwClassAttrImpls"] = relationship(single_parent=True)
     # REF
-    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_def_props.rid")
-    )
+    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_def_props.rid"))
     sw_data_def_props: Mapped["SwDataDefProps"] = relationship(single_parent=True)
     # REF
-    sw_feature_variables_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_variables.rid")
-    )
-    sw_feature_variables: Mapped["SwFeatureVariables"] = relationship(
-        single_parent=True
-    )
+    sw_feature_variables_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_variables.rid"))
+    sw_feature_variables: Mapped["SwFeatureVariables"] = relationship(single_parent=True)
     # REF
-    sw_feature_params_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_params.rid")
-    )
+    sw_feature_params_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_params.rid"))
     sw_feature_params: Mapped["SwFeatureParams"] = relationship(single_parent=True)
     # REF
-    sw_feature_class_instances_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_class_instances.rid")
-    )
-    sw_feature_class_instances: Mapped["SwFeatureClassInstances"] = relationship(
-        single_parent=True
-    )
+    sw_feature_class_instances_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_class_instances.rid"))
+    sw_feature_class_instances: Mapped["SwFeatureClassInstances"] = relationship(single_parent=True)
     # REF
-    sw_test_desc_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_test_desc.rid")
-    )
+    sw_test_desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_test_desc.rid"))
     sw_test_desc: Mapped["SwTestDesc"] = relationship(single_parent=True)
     # REF
-    sw_application_notes_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_application_notes.rid")
-    )
-    sw_application_notes: Mapped["SwApplicationNotes"] = relationship(
-        single_parent=True
-    )
+    sw_application_notes_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_application_notes.rid"))
+    sw_application_notes: Mapped["SwApplicationNotes"] = relationship(single_parent=True)
     # REF
-    sw_maintenance_notes_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_maintenance_notes.rid")
-    )
-    sw_maintenance_notes: Mapped["SwMaintenanceNotes"] = relationship(
-        single_parent=True
-    )
+    sw_maintenance_notes_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_maintenance_notes.rid"))
+    sw_maintenance_notes: Mapped["SwMaintenanceNotes"] = relationship(single_parent=True)
     # REF
-    sw_carb_doc_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_carb_doc.rid")
-    )
+    sw_carb_doc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_carb_doc.rid"))
     sw_carb_doc: Mapped["SwCarbDoc"] = relationship(single_parent=True)
     # REF
-    annotations_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("annotations.rid")
-    )
+    annotations_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("annotations.rid"))
     annotations: Mapped["Annotations"] = relationship(single_parent=True)
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
     # PARENT
-    sw_components_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_components.rid")
-    )
+    sw_components_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_components.rid"))
     sw_components: Mapped["SwComponents"] = relationship(back_populates="sw_class")
 
 
@@ -21570,29 +19461,17 @@ class SwFeatureDesignData(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_variables_read_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variables_read.rid")
-    )
+    sw_variables_read_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variables_read.rid"))
     sw_variables_read: Mapped["SwVariablesRead"] = relationship(single_parent=True)
     # REF
-    sw_variables_write_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variables_write.rid")
-    )
+    sw_variables_write_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variables_write.rid"))
     sw_variables_write: Mapped["SwVariablesWrite"] = relationship(single_parent=True)
     # REF
-    sw_variables_read_write_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variables_read_write.rid")
-    )
-    sw_variables_read_write: Mapped["SwVariablesReadWrite"] = relationship(
-        single_parent=True
-    )
+    sw_variables_read_write_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variables_read_write.rid"))
+    sw_variables_read_write: Mapped["SwVariablesReadWrite"] = relationship(single_parent=True)
     # REF
-    sw_feature_local_params_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_local_params.rid")
-    )
-    sw_feature_local_params: Mapped["SwFeatureLocalParams"] = relationship(
-        single_parent=True
-    )
+    sw_feature_local_params_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_local_params.rid"))
+    sw_feature_local_params: Mapped["SwFeatureLocalParams"] = relationship(single_parent=True)
 
 
 class SwEffectFlows(Base):
@@ -21615,9 +19494,7 @@ class SwEffectFlows(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_effect_flow: Mapped[list["SwEffectFlow"]] = relationship(
-        back_populates="sw_effect_flows"
-    )
+    sw_effect_flow: Mapped[list["SwEffectFlow"]] = relationship(back_populates="sw_effect_flows")
 
 
 class SwSystemconstRefs(Base):
@@ -21640,9 +19517,7 @@ class SwSystemconstRefs(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_systemconst_ref: Mapped[list["SwSystemconstRef"]] = relationship(
-        back_populates="sw_systemconst_refs"
-    )
+    sw_systemconst_ref: Mapped[list["SwSystemconstRef"]] = relationship(back_populates="sw_systemconst_refs")
 
 
 class SwEffectFlow(Base):
@@ -21665,22 +19540,14 @@ class SwEffectFlow(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_variable_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variable_ref.rid")
-    )
+    sw_variable_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variable_ref.rid"))
     sw_variable_ref: Mapped["SwVariableRef"] = relationship(single_parent=True)
     # ARR
     # PARENT-OBJ
-    sw_effecting_variable: Mapped[list["SwEffectingVariable"]] = relationship(
-        back_populates="sw_effect_flow"
-    )
+    sw_effecting_variable: Mapped[list["SwEffectingVariable"]] = relationship(back_populates="sw_effect_flow")
     # PARENT
-    sw_effect_flows_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_effect_flows.rid")
-    )
-    sw_effect_flows: Mapped["SwEffectFlows"] = relationship(
-        back_populates="sw_effect_flow"
-    )
+    sw_effect_flows_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_effect_flows.rid"))
+    sw_effect_flows: Mapped["SwEffectFlows"] = relationship(back_populates="sw_effect_flow")
 
 
 class SwEffectingVariable(Base):
@@ -21703,22 +19570,14 @@ class SwEffectingVariable(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_variable_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variable_ref.rid")
-    )
+    sw_variable_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variable_ref.rid"))
     sw_variable_ref: Mapped["SwVariableRef"] = relationship(single_parent=True)
     # ARR
     # PARENT-OBJ
-    sw_effect: Mapped[list["SwEffect"]] = relationship(
-        back_populates="sw_effecting_variable"
-    )
+    sw_effect: Mapped[list["SwEffect"]] = relationship(back_populates="sw_effecting_variable")
     # PARENT
-    sw_effect_flow_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_effect_flow.rid")
-    )
-    sw_effect_flow: Mapped["SwEffectFlow"] = relationship(
-        back_populates="sw_effecting_variable"
-    )
+    sw_effect_flow_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_effect_flow.rid"))
+    sw_effect_flow: Mapped["SwEffectFlow"] = relationship(back_populates="sw_effecting_variable")
 
 
 class SwEffect(Base):
@@ -21741,12 +19600,8 @@ class SwEffect(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_effecting_variable_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_effecting_variable.rid")
-    )
-    sw_effecting_variable: Mapped["SwEffectingVariable"] = relationship(
-        back_populates="sw_effect"
-    )
+    sw_effecting_variable_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_effecting_variable.rid"))
+    sw_effecting_variable: Mapped["SwEffectingVariable"] = relationship(back_populates="sw_effect")
 
 
 class SwFeatureDecomposition(Base):
@@ -21769,9 +19624,7 @@ class SwFeatureDecomposition(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_subcomponent: Mapped[list["SwSubcomponent"]] = relationship(
-        back_populates="sw_feature_decomposition"
-    )
+    sw_subcomponent: Mapped[list["SwSubcomponent"]] = relationship(back_populates="sw_feature_decomposition")
 
 
 class SwSystemconstRef(Base):
@@ -21800,12 +19653,8 @@ class SwSystemconstRef(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_systemconst_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_systemconst_refs.rid")
-    )
-    sw_systemconst_refs: Mapped["SwSystemconstRefs"] = relationship(
-        back_populates="sw_systemconst_ref"
-    )
+    sw_systemconst_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_systemconst_refs.rid"))
+    sw_systemconst_refs: Mapped["SwSystemconstRefs"] = relationship(back_populates="sw_systemconst_ref")
 
 
 class SwFeature(Base):
@@ -21854,131 +19703,73 @@ class SwFeature(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_feature_def_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_def.rid")
-    )
+    sw_feature_def_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_def.rid"))
     sw_feature_def: Mapped["SwFeatureDef"] = relationship(single_parent=True)
     # REF
-    sw_feature_desc_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_desc.rid")
-    )
+    sw_feature_desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_desc.rid"))
     sw_feature_desc: Mapped["SwFeatureDesc"] = relationship(single_parent=True)
     # REF
-    sw_fulfils_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_fulfils.rid")
-    )
+    sw_fulfils_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_fulfils.rid"))
     sw_fulfils: Mapped["SwFulfils"] = relationship(single_parent=True)
     # REF
-    sw_feature_design_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_design_data.rid")
-    )
-    sw_feature_design_data: Mapped["SwFeatureDesignData"] = relationship(
-        single_parent=True
-    )
+    sw_feature_design_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_design_data.rid"))
+    sw_feature_design_data: Mapped["SwFeatureDesignData"] = relationship(single_parent=True)
     # REF
-    sw_effect_flows_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_effect_flows.rid")
-    )
+    sw_effect_flows_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_effect_flows.rid"))
     sw_effect_flows: Mapped["SwEffectFlows"] = relationship(single_parent=True)
     # REF
-    sw_feature_variables_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_variables.rid")
-    )
-    sw_feature_variables: Mapped["SwFeatureVariables"] = relationship(
-        single_parent=True
-    )
+    sw_feature_variables_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_variables.rid"))
+    sw_feature_variables: Mapped["SwFeatureVariables"] = relationship(single_parent=True)
     # REF
-    sw_feature_params_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_params.rid")
-    )
+    sw_feature_params_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_params.rid"))
     sw_feature_params: Mapped["SwFeatureParams"] = relationship(single_parent=True)
     # REF
-    sw_feature_class_instances_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_class_instances.rid")
-    )
-    sw_feature_class_instances: Mapped["SwFeatureClassInstances"] = relationship(
-        single_parent=True
-    )
+    sw_feature_class_instances_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_class_instances.rid"))
+    sw_feature_class_instances: Mapped["SwFeatureClassInstances"] = relationship(single_parent=True)
     # REF
-    sw_systemconst_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_systemconst_refs.rid")
-    )
+    sw_systemconst_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_systemconst_refs.rid"))
     sw_systemconst_refs: Mapped["SwSystemconstRefs"] = relationship(single_parent=True)
     # REF
-    sw_data_dictionary_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_dictionary_spec.rid")
-    )
-    sw_data_dictionary_spec: Mapped["SwDataDictionarySpec"] = relationship(
-        single_parent=True
-    )
+    sw_data_dictionary_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_dictionary_spec.rid"))
+    sw_data_dictionary_spec: Mapped["SwDataDictionarySpec"] = relationship(single_parent=True)
     # REF
-    sw_test_desc_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_test_desc.rid")
-    )
+    sw_test_desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_test_desc.rid"))
     sw_test_desc: Mapped["SwTestDesc"] = relationship(single_parent=True)
     # REF
-    sw_application_notes_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_application_notes.rid")
-    )
-    sw_application_notes: Mapped["SwApplicationNotes"] = relationship(
-        single_parent=True
-    )
+    sw_application_notes_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_application_notes.rid"))
+    sw_application_notes: Mapped["SwApplicationNotes"] = relationship(single_parent=True)
     # REF
-    sw_maintenance_notes_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_maintenance_notes.rid")
-    )
-    sw_maintenance_notes: Mapped["SwMaintenanceNotes"] = relationship(
-        single_parent=True
-    )
+    sw_maintenance_notes_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_maintenance_notes.rid"))
+    sw_maintenance_notes: Mapped["SwMaintenanceNotes"] = relationship(single_parent=True)
     # REF
-    sw_carb_doc_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_carb_doc.rid")
-    )
+    sw_carb_doc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_carb_doc.rid"))
     sw_carb_doc: Mapped["SwCarbDoc"] = relationship(single_parent=True)
     # REF
-    sw_feature_decomposition_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_decomposition.rid")
-    )
-    sw_feature_decomposition: Mapped["SwFeatureDecomposition"] = relationship(
-        single_parent=True
-    )
+    sw_feature_decomposition_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_decomposition.rid"))
+    sw_feature_decomposition: Mapped["SwFeatureDecomposition"] = relationship(single_parent=True)
     # REF
-    annotations_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("annotations.rid")
-    )
+    annotations_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("annotations.rid"))
     annotations: Mapped["Annotations"] = relationship(single_parent=True)
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
     # PARENT
-    sw_components_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_components.rid")
-    )
+    sw_components_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_components.rid"))
     sw_components: Mapped["SwComponents"] = relationship(back_populates="sw_feature")
 
     # N-I: SwFeatureRef
@@ -22027,22 +19818,14 @@ class SwSubcomponent(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_feature_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_ref.rid")
-    )
+    sw_feature_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_ref.rid"))
     sw_feature_ref: Mapped["SwFeatureRef"] = relationship(single_parent=True)
     # REF
-    sw_processes_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_processes.rid")
-    )
+    sw_processes_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_processes.rid"))
     sw_processes: Mapped["SwProcesses"] = relationship(single_parent=True)
     # PARENT
-    sw_feature_decomposition_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_decomposition.rid")
-    )
-    sw_feature_decomposition: Mapped["SwFeatureDecomposition"] = relationship(
-        back_populates="sw_subcomponent"
-    )
+    sw_feature_decomposition_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_decomposition.rid"))
+    sw_feature_decomposition: Mapped["SwFeatureDecomposition"] = relationship(back_populates="sw_subcomponent")
 
 
 class SwProcess(Base):
@@ -22070,22 +19853,16 @@ class SwProcess(Base):
     label_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("label.rid"))
     label: Mapped["Label"] = relationship(single_parent=True)
     # REF
-    short_label_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_label.rid")
-    )
+    short_label_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_label.rid"))
     short_label: Mapped["ShortLabel"] = relationship(single_parent=True)
     # REF
-    sw_task_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_task_ref.rid")
-    )
+    sw_task_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_task_ref.rid"))
     sw_task_ref: Mapped["SwTaskRef"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # PARENT
-    sw_processes_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_processes.rid")
-    )
+    sw_processes_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_processes.rid"))
     sw_processes: Mapped["SwProcesses"] = relationship(back_populates="sw_process")
 
 
@@ -22124,29 +19901,19 @@ class SwComponentSpec(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    sw_components_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_components.rid")
-    )
+    sw_components_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_components.rid"))
     sw_components: Mapped["SwComponents"] = relationship(single_parent=True)
     # REF
-    sw_root_features_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_root_features.rid")
-    )
+    sw_root_features_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_root_features.rid"))
     sw_root_features: Mapped["SwRootFeatures"] = relationship(single_parent=True)
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
 
 
@@ -22170,9 +19937,7 @@ class SwCollections(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_collection: Mapped[list["SwCollection"]] = relationship(
-        back_populates="sw_collections"
-    )
+    sw_collection: Mapped[list["SwCollection"]] = relationship(back_populates="sw_collections")
 
 
 class DisplayName(Base):
@@ -22289,12 +20054,8 @@ class SwCollectionRef(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_collection_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_collection_refs.rid")
-    )
-    sw_collection_refs: Mapped["SwCollectionRefs"] = relationship(
-        back_populates="sw_collection_ref"
-    )
+    sw_collection_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_collection_refs.rid"))
+    sw_collection_refs: Mapped["SwCollectionRefs"] = relationship(back_populates="sw_collection_ref")
 
 
 class SwCsCollections(Base):
@@ -22323,9 +20084,7 @@ class SwCsCollections(Base):
     _view = StdString()
     # ARR
     # PARENT-OBJ
-    sw_cs_collection: Mapped[list["SwCsCollection"]] = relationship(
-        back_populates="sw_cs_collections"
-    )
+    sw_cs_collection: Mapped[list["SwCsCollection"]] = relationship(back_populates="sw_cs_collections")
 
 
 class SymbolicFile(Base):
@@ -22379,9 +20138,7 @@ class SwCsHistory(Base):
     cs_entry: Mapped[list["CsEntry"]] = relationship(back_populates="sw_cs_history")
     # ARR
     # PARENT-OBJ
-    sw_cs_entry: Mapped[list["SwCsEntry"]] = relationship(
-        back_populates="sw_cs_history"
-    )
+    sw_cs_entry: Mapped[list["SwCsEntry"]] = relationship(back_populates="sw_cs_history")
 
 
 class Csus(Base):
@@ -22608,9 +20365,7 @@ class SwCsField(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_cs_entry_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_entry.rid")
-    )
+    sw_cs_entry_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_entry.rid"))
     sw_cs_entry: Mapped["SwCsEntry"] = relationship(back_populates="sw_cs_field")
 
 
@@ -22634,9 +20389,7 @@ class SwVcdCriterionValues(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_vcd_criterion_value: Mapped[list["SwVcdCriterionValue"]] = relationship(
-        back_populates="sw_vcd_criterion_values"
-    )
+    sw_vcd_criterion_value: Mapped[list["SwVcdCriterionValue"]] = relationship(back_populates="sw_vcd_criterion_values")
 
 
 class SwVcdCriterionValue(Base):
@@ -22659,20 +20412,14 @@ class SwVcdCriterionValue(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_vcd_criterion_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_vcd_criterion_ref.rid")
-    )
+    sw_vcd_criterion_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_vcd_criterion_ref.rid"))
     sw_vcd_criterion_ref: Mapped["SwVcdCriterionRef"] = relationship(single_parent=True)
     # REF
     vt_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("vt.rid"))
     vt: Mapped["Vt"] = relationship(single_parent=True)
     # PARENT
-    sw_vcd_criterion_values_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_vcd_criterion_values.rid")
-    )
-    sw_vcd_criterion_values: Mapped["SwVcdCriterionValues"] = relationship(
-        back_populates="sw_vcd_criterion_value"
-    )
+    sw_vcd_criterion_values_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_vcd_criterion_values.rid"))
+    sw_vcd_criterion_values: Mapped["SwVcdCriterionValues"] = relationship(back_populates="sw_vcd_criterion_value")
 
 
 class UnitDisplayName(Base):
@@ -22735,24 +20482,16 @@ class SwValueCont(Base):
     ti = StdString()
     _view = StdString()
     # REF
-    unit_display_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("unit_display_name.rid")
-    )
+    unit_display_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("unit_display_name.rid"))
     unit_display_name: Mapped["UnitDisplayName"] = relationship(single_parent=True)
     # REF
-    sw_arraysize_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_arraysize.rid")
-    )
+    sw_arraysize_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_arraysize.rid"))
     sw_arraysize: Mapped["SwArraysize"] = relationship(single_parent=True)
     # REF
-    sw_values_phys_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_values_phys.rid")
-    )
+    sw_values_phys_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_values_phys.rid"))
     sw_values_phys: Mapped["SwValuesPhys"] = relationship(single_parent=True)
     # REF
-    sw_values_coded_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_values_coded.rid")
-    )
+    sw_values_coded_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_values_coded.rid"))
     sw_values_coded: Mapped["SwValuesCoded"] = relationship(single_parent=True)
 
 
@@ -22828,9 +20567,7 @@ class SwAxisConts(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_axis_cont: Mapped[list["SwAxisCont"]] = relationship(
-        back_populates="sw_axis_conts"
-    )
+    sw_axis_cont: Mapped[list["SwAxisCont"]] = relationship(back_populates="sw_axis_conts")
 
 
 class SwInstancePropsVariants(Base):
@@ -22853,9 +20590,7 @@ class SwInstancePropsVariants(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_instance_props_variant: Mapped[list["SwInstancePropsVariant"]] = relationship(
-        back_populates="sw_instance_props_variants"
-    )
+    sw_instance_props_variant: Mapped[list["SwInstancePropsVariant"]] = relationship(back_populates="sw_instance_props_variants")
 
 
 class SwCsFlags(Base):
@@ -22907,9 +20642,7 @@ class SwAddrInfos(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_addr_info: Mapped[list["SwAddrInfo"]] = relationship(
-        back_populates="sw_addr_infos"
-    )
+    sw_addr_info: Mapped[list["SwAddrInfo"]] = relationship(back_populates="sw_addr_infos")
 
 
 class SwBaseAddr(Base):
@@ -23123,51 +20856,31 @@ class SwCsEntry(Base, HasSds):
     t = StdString()
     si = StdString()
     # REF
-    sw_cs_state_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_state.rid")
-    )
+    sw_cs_state_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_state.rid"))
     sw_cs_state: Mapped["SwCsState"] = relationship(single_parent=True)
     # REF
     state_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("state.rid"))
     state: Mapped["State"] = relationship(single_parent=True)
     # REF
-    sw_cs_context_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_context.rid")
-    )
+    sw_cs_context_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_context.rid"))
     sw_cs_context: Mapped["SwCsContext"] = relationship(single_parent=True)
     # REF
-    sw_cs_project_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_project_info.rid")
-    )
+    sw_cs_project_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_project_info.rid"))
     sw_cs_project_info: Mapped["SwCsProjectInfo"] = relationship(single_parent=True)
     # REF
-    sw_cs_target_variant_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_target_variant.rid")
-    )
+    sw_cs_target_variant_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_target_variant.rid"))
     sw_cs_target_variant: Mapped["SwCsTargetVariant"] = relationship(single_parent=True)
     # REF
-    sw_cs_test_object_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_test_object.rid")
-    )
+    sw_cs_test_object_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_test_object.rid"))
     sw_cs_test_object: Mapped["SwCsTestObject"] = relationship(single_parent=True)
     # REF
-    sw_cs_program_identifier_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_program_identifier.rid")
-    )
-    sw_cs_program_identifier: Mapped["SwCsProgramIdentifier"] = relationship(
-        single_parent=True
-    )
+    sw_cs_program_identifier_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_program_identifier.rid"))
+    sw_cs_program_identifier: Mapped["SwCsProgramIdentifier"] = relationship(single_parent=True)
     # REF
-    sw_cs_data_identifier_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_data_identifier.rid")
-    )
-    sw_cs_data_identifier: Mapped["SwCsDataIdentifier"] = relationship(
-        single_parent=True
-    )
+    sw_cs_data_identifier_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_data_identifier.rid"))
+    sw_cs_data_identifier: Mapped["SwCsDataIdentifier"] = relationship(single_parent=True)
     # REF
-    sw_cs_performed_by_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_performed_by.rid")
-    )
+    sw_cs_performed_by_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_performed_by.rid"))
     sw_cs_performed_by: Mapped["SwCsPerformedBy"] = relationship(single_parent=True)
     # REF
     csus_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("csus.rid"))
@@ -23202,9 +20915,7 @@ class SwCsEntry(Base, HasSds):
     # PARENT-OBJ
     sw_cs_field: Mapped[list["SwCsField"]] = relationship(back_populates="sw_cs_entry")
     # PARENT
-    sw_cs_history_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_history.rid")
-    )
+    sw_cs_history_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_history.rid"))
     sw_cs_history: Mapped["SwCsHistory"] = relationship(back_populates="sw_cs_entry")
 
 
@@ -23275,9 +20986,7 @@ class CsEntry(Base, HasSds):
     # ARR
     # NO_PA         sd
     # PARENT
-    sw_cs_history_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_history.rid")
-    )
+    sw_cs_history_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_history.rid"))
     sw_cs_history: Mapped["SwCsHistory"] = relationship(back_populates="cs_entry")
 
 
@@ -23310,9 +21019,7 @@ class SwCsFlag(Base):
     si = StdString()
     _view = StdString()
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
     flag_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("flag.rid"))
@@ -23327,9 +21034,7 @@ class SwCsFlag(Base):
     remark_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("remark.rid"))
     remark: Mapped["Remark"] = relationship(single_parent=True)
     # PARENT
-    sw_cs_flags_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_flags.rid")
-    )
+    sw_cs_flags_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_flags.rid"))
     sw_cs_flags: Mapped["SwCsFlags"] = relationship(back_populates="sw_cs_flag")
 
 
@@ -23353,9 +21058,7 @@ class SwMcInstanceInterfaces(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_mc_instance_interface: Mapped[list["SwMcInstanceInterface"]] = relationship(
-        back_populates="sw_mc_instance_interfaces"
-    )
+    sw_mc_instance_interface: Mapped[list["SwMcInstanceInterface"]] = relationship(back_populates="sw_mc_instance_interfaces")
 
 
 class SwSizeofInstance(Base):
@@ -23399,29 +21102,19 @@ class SwAddrInfo(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_cpu_mem_seg_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cpu_mem_seg_ref.rid")
-    )
+    sw_cpu_mem_seg_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cpu_mem_seg_ref.rid"))
     sw_cpu_mem_seg_ref: Mapped["SwCpuMemSegRef"] = relationship(single_parent=True)
     # REF
-    sw_base_addr_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_base_addr.rid")
-    )
+    sw_base_addr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_base_addr.rid"))
     sw_base_addr: Mapped["SwBaseAddr"] = relationship(single_parent=True)
     # REF
-    sw_addr_offset_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_addr_offset.rid")
-    )
+    sw_addr_offset_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_addr_offset.rid"))
     sw_addr_offset: Mapped["SwAddrOffset"] = relationship(single_parent=True)
     # REF
-    sw_sizeof_instance_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_sizeof_instance.rid")
-    )
+    sw_sizeof_instance_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_sizeof_instance.rid"))
     sw_sizeof_instance: Mapped["SwSizeofInstance"] = relationship(single_parent=True)
     # PARENT
-    sw_addr_infos_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_addr_infos.rid")
-    )
+    sw_addr_infos_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_addr_infos.rid"))
     sw_addr_infos: Mapped["SwAddrInfos"] = relationship(back_populates="sw_addr_info")
 
     # N-I: SwInstance
@@ -23492,59 +21185,37 @@ class SwAxisCont(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_unit_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_unit_ref.rid")
-    )
+    sw_unit_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_unit_ref.rid"))
     sw_unit_ref: Mapped["SwUnitRef"] = relationship(single_parent=True)
     # REF
-    unit_display_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("unit_display_name.rid")
-    )
+    unit_display_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("unit_display_name.rid"))
     unit_display_name: Mapped["UnitDisplayName"] = relationship(single_parent=True)
     # REF
-    sw_axis_index_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_axis_index.rid")
-    )
+    sw_axis_index_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_axis_index.rid"))
     sw_axis_index: Mapped["SwAxisIndex"] = relationship(single_parent=True)
     # REF
-    sw_values_phys_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_values_phys.rid")
-    )
+    sw_values_phys_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_values_phys.rid"))
     sw_values_phys: Mapped["SwValuesPhys"] = relationship(single_parent=True)
     # REF
-    sw_values_coded_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_values_coded.rid")
-    )
+    sw_values_coded_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_values_coded.rid"))
     sw_values_coded: Mapped["SwValuesCoded"] = relationship(single_parent=True)
     # REF
-    sw_values_coded_hex_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_values_coded_hex.rid")
-    )
+    sw_values_coded_hex_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_values_coded_hex.rid"))
     sw_values_coded_hex: Mapped["SwValuesCodedHex"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    sw_arraysize_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_arraysize.rid")
-    )
+    sw_arraysize_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_arraysize.rid"))
     sw_arraysize: Mapped["SwArraysize"] = relationship(single_parent=True)
     # REF
-    sw_instance_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_instance_ref.rid")
-    )
+    sw_instance_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_instance_ref.rid"))
     sw_instance_ref: Mapped["SwInstanceRef"] = relationship(single_parent=True)
     # ARR
     # PARENT-OBJ
-    sw_values_generic: Mapped[list["SwValuesGeneric"]] = relationship(
-        back_populates="sw_axis_cont"
-    )
+    sw_values_generic: Mapped[list["SwValuesGeneric"]] = relationship(back_populates="sw_axis_cont")
     # PARENT
-    sw_axis_conts_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_axis_conts.rid")
-    )
+    sw_axis_conts_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_axis_conts.rid"))
     sw_axis_conts: Mapped["SwAxisConts"] = relationship(back_populates="sw_axis_cont")
 
 
@@ -23586,12 +21257,8 @@ class SwValuesGeneric(Base, HasVfs, HasVts, HasVhs, HasVs, HasVgs, HasSwInstance
     # ARR
     # NO_PA         sw_instance_ref
     # PARENT
-    sw_axis_cont_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_axis_cont.rid")
-    )
-    sw_axis_cont: Mapped["SwAxisCont"] = relationship(
-        back_populates="sw_values_generic"
-    )
+    sw_axis_cont_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_axis_cont.rid"))
+    sw_axis_cont: Mapped["SwAxisCont"] = relationship(back_populates="sw_values_generic")
 
 
 class SwInstancePropsVariant(Base):
@@ -23623,69 +21290,41 @@ class SwInstancePropsVariant(Base):
     t = StdString()
     si = StdString()
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    sw_vcd_criterion_values_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_vcd_criterion_values.rid")
-    )
-    sw_vcd_criterion_values: Mapped["SwVcdCriterionValues"] = relationship(
-        single_parent=True
-    )
+    sw_vcd_criterion_values_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_vcd_criterion_values.rid"))
+    sw_vcd_criterion_values: Mapped["SwVcdCriterionValues"] = relationship(single_parent=True)
     # REF
-    sw_value_cont_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_value_cont.rid")
-    )
+    sw_value_cont_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_value_cont.rid"))
     sw_value_cont: Mapped["SwValueCont"] = relationship(single_parent=True)
     # REF
-    sw_cs_flags_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_flags.rid")
-    )
+    sw_cs_flags_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_flags.rid"))
     sw_cs_flags: Mapped["SwCsFlags"] = relationship(single_parent=True)
     # REF
-    sw_addr_infos_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_addr_infos.rid")
-    )
+    sw_addr_infos_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_addr_infos.rid"))
     sw_addr_infos: Mapped["SwAddrInfos"] = relationship(single_parent=True)
     # REF
-    sw_axis_conts_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_axis_conts.rid")
-    )
+    sw_axis_conts_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_axis_conts.rid"))
     sw_axis_conts: Mapped["SwAxisConts"] = relationship(single_parent=True)
     # REF
-    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_def_props.rid")
-    )
+    sw_data_def_props_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_def_props.rid"))
     sw_data_def_props: Mapped["SwDataDefProps"] = relationship(single_parent=True)
     # REF
-    sw_mc_instance_interfaces_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_instance_interfaces.rid")
-    )
-    sw_mc_instance_interfaces: Mapped["SwMcInstanceInterfaces"] = relationship(
-        single_parent=True
-    )
+    sw_mc_instance_interfaces_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_instance_interfaces.rid"))
+    sw_mc_instance_interfaces: Mapped["SwMcInstanceInterfaces"] = relationship(single_parent=True)
     # REF
-    sw_cs_history_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_history.rid")
-    )
+    sw_cs_history_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_history.rid"))
     sw_cs_history: Mapped["SwCsHistory"] = relationship(single_parent=True)
     # REF
-    annotations_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("annotations.rid")
-    )
+    annotations_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("annotations.rid"))
     annotations: Mapped["Annotations"] = relationship(single_parent=True)
     # PARENT
-    sw_instance_props_variants_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_instance_props_variants.rid")
-    )
-    sw_instance_props_variants: Mapped["SwInstancePropsVariants"] = relationship(
-        back_populates="sw_instance_props_variant"
-    )
+    sw_instance_props_variants_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_instance_props_variants.rid"))
+    sw_instance_props_variants: Mapped["SwInstancePropsVariants"] = relationship(back_populates="sw_instance_props_variant")
 
 
 class SwMcInterfaceRef(Base):
@@ -23741,12 +21380,8 @@ class SwMcInterfaceSourceRef(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_mc_interface_avl_sources_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_interface_avl_sources.rid")
-    )
-    sw_mc_interface_avl_sources: Mapped["SwMcInterfaceAvlSources"] = relationship(
-        back_populates="sw_mc_interface_source_ref"
-    )
+    sw_mc_interface_avl_sources_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_interface_avl_sources.rid"))
+    sw_mc_interface_avl_sources: Mapped["SwMcInterfaceAvlSources"] = relationship(back_populates="sw_mc_interface_source_ref")
 
 
 class SwMcInterfaceAvlSources(Base):
@@ -23769,9 +21404,7 @@ class SwMcInterfaceAvlSources(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_mc_interface_source_ref: Mapped[list["SwMcInterfaceSourceRef"]] = relationship(
-        back_populates="sw_mc_interface_avl_sources"
-    )
+    sw_mc_interface_source_ref: Mapped[list["SwMcInterfaceSourceRef"]] = relationship(back_populates="sw_mc_interface_avl_sources")
 
 
 class SwMcInterfaceDefaultSource(Base):
@@ -23793,12 +21426,8 @@ class SwMcInterfaceDefaultSource(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_mc_interface_source_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_interface_source_ref.rid")
-    )
-    sw_mc_interface_source_ref: Mapped["SwMcInterfaceSourceRef"] = relationship(
-        single_parent=True
-    )
+    sw_mc_interface_source_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_interface_source_ref.rid"))
+    sw_mc_interface_source_ref: Mapped["SwMcInterfaceSourceRef"] = relationship(single_parent=True)
 
 
 class SwMcKpBlobConts(Base):
@@ -23878,9 +21507,7 @@ class SwMcAddrMappings(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_mc_addr_mapping: Mapped[list["SwMcAddrMapping"]] = relationship(
-        back_populates="sw_mc_addr_mappings"
-    )
+    sw_mc_addr_mapping: Mapped[list["SwMcAddrMapping"]] = relationship(back_populates="sw_mc_addr_mappings")
 
 
 class SwMcInstanceInterface(Base):
@@ -23908,51 +21535,31 @@ class SwMcInstanceInterface(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_mc_interface_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_interface_ref.rid")
-    )
+    sw_mc_interface_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_interface_ref.rid"))
     sw_mc_interface_ref: Mapped["SwMcInterfaceRef"] = relationship(single_parent=True)
     # REF
     sw_mc_interface_default_source_id: Mapped[typing.Optional[int]] = mapped_column(
         ForeignKey("sw_mc_interface_default_source.rid")
     )
-    sw_mc_interface_default_source: Mapped["SwMcInterfaceDefaultSource"] = relationship(
-        single_parent=True
-    )
+    sw_mc_interface_default_source: Mapped["SwMcInterfaceDefaultSource"] = relationship(single_parent=True)
     # REF
-    sw_mc_interface_avl_sources_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_interface_avl_sources.rid")
-    )
-    sw_mc_interface_avl_sources: Mapped["SwMcInterfaceAvlSources"] = relationship(
-        single_parent=True
-    )
+    sw_mc_interface_avl_sources_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_interface_avl_sources.rid"))
+    sw_mc_interface_avl_sources: Mapped["SwMcInterfaceAvlSources"] = relationship(single_parent=True)
     # REF
-    sw_mc_kp_blob_conts_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_kp_blob_conts.rid")
-    )
+    sw_mc_kp_blob_conts_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_kp_blob_conts.rid"))
     sw_mc_kp_blob_conts: Mapped["SwMcKpBlobConts"] = relationship(single_parent=True)
     # REF
-    sw_mc_dp_blob_conts_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_dp_blob_conts.rid")
-    )
+    sw_mc_dp_blob_conts_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_dp_blob_conts.rid"))
     sw_mc_dp_blob_conts: Mapped["SwMcDpBlobConts"] = relationship(single_parent=True)
     # REF
-    sw_mc_pa_blob_conts_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_pa_blob_conts.rid")
-    )
+    sw_mc_pa_blob_conts_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_pa_blob_conts.rid"))
     sw_mc_pa_blob_conts: Mapped["SwMcPaBlobConts"] = relationship(single_parent=True)
     # REF
-    sw_mc_addr_mappings_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_addr_mappings.rid")
-    )
+    sw_mc_addr_mappings_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_addr_mappings.rid"))
     sw_mc_addr_mappings: Mapped["SwMcAddrMappings"] = relationship(single_parent=True)
     # PARENT
-    sw_mc_instance_interfaces_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_instance_interfaces.rid")
-    )
-    sw_mc_instance_interfaces: Mapped["SwMcInstanceInterfaces"] = relationship(
-        back_populates="sw_mc_instance_interface"
-    )
+    sw_mc_instance_interfaces_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_instance_interfaces.rid"))
+    sw_mc_instance_interfaces: Mapped["SwMcInstanceInterfaces"] = relationship(back_populates="sw_mc_instance_interface")
 
 
 class SwMcOriginalAddr(Base):
@@ -24033,29 +21640,17 @@ class SwMcAddrMapping(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_mc_original_addr_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_original_addr.rid")
-    )
+    sw_mc_original_addr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_original_addr.rid"))
     sw_mc_original_addr: Mapped["SwMcOriginalAddr"] = relationship(single_parent=True)
     # REF
-    sw_mc_mapped_addr_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_mapped_addr.rid")
-    )
+    sw_mc_mapped_addr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_mapped_addr.rid"))
     sw_mc_mapped_addr: Mapped["SwMcMappedAddr"] = relationship(single_parent=True)
     # REF
-    sw_mc_addr_mapped_size_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_addr_mapped_size.rid")
-    )
-    sw_mc_addr_mapped_size: Mapped["SwMcAddrMappedSize"] = relationship(
-        single_parent=True
-    )
+    sw_mc_addr_mapped_size_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_addr_mapped_size.rid"))
+    sw_mc_addr_mapped_size: Mapped["SwMcAddrMappedSize"] = relationship(single_parent=True)
     # PARENT
-    sw_mc_addr_mappings_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_addr_mappings.rid")
-    )
-    sw_mc_addr_mappings: Mapped["SwMcAddrMappings"] = relationship(
-        back_populates="sw_mc_addr_mapping"
-    )
+    sw_mc_addr_mappings_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_addr_mappings.rid"))
+    sw_mc_addr_mappings: Mapped["SwMcAddrMappings"] = relationship(back_populates="sw_mc_addr_mapping")
 
 
 class SwUserGroups(Base):
@@ -24078,9 +21673,7 @@ class SwUserGroups(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_user_group: Mapped[list["SwUserGroup"]] = relationship(
-        back_populates="sw_user_groups"
-    )
+    sw_user_group: Mapped[list["SwUserGroup"]] = relationship(back_populates="sw_user_groups")
 
 
 class SwCollectionSpec(Base):
@@ -24117,24 +21710,16 @@ class SwCollectionSpec(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    sw_collections_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_collections.rid")
-    )
+    sw_collections_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_collections.rid"))
     sw_collections: Mapped["SwCollections"] = relationship(single_parent=True)
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
 
 
@@ -24158,9 +21743,7 @@ class SwCollectionRules(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_collection_rule: Mapped[list["SwCollectionRule"]] = relationship(
-        back_populates="sw_collection_rules"
-    )
+    sw_collection_rule: Mapped[list["SwCollectionRule"]] = relationship(back_populates="sw_collection_rules")
 
 
 class SwCollectionRefs(Base):
@@ -24183,9 +21766,7 @@ class SwCollectionRefs(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_collection_ref: Mapped[list["SwCollectionRef"]] = relationship(
-        back_populates="sw_collection_refs"
-    )
+    sw_collection_ref: Mapped[list["SwCollectionRef"]] = relationship(back_populates="sw_collection_refs")
 
 
 class SwCollectionRegexps(Base):
@@ -24208,9 +21789,7 @@ class SwCollectionRegexps(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_collection_regexp: Mapped[list["SwCollectionRegexp"]] = relationship(
-        back_populates="sw_collection_regexps"
-    )
+    sw_collection_regexp: Mapped[list["SwCollectionRegexp"]] = relationship(back_populates="sw_collection_regexps")
 
 
 class SwCollectionWildcards(Base):
@@ -24233,9 +21812,7 @@ class SwCollectionWildcards(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_collection_wildcard: Mapped[list["SwCollectionWildcard"]] = relationship(
-        back_populates="sw_collection_wildcards"
-    )
+    sw_collection_wildcard: Mapped[list["SwCollectionWildcard"]] = relationship(back_populates="sw_collection_wildcards")
 
 
 class SwCollectionRegexp(Base):
@@ -24256,12 +21833,8 @@ class SwCollectionRegexp(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_collection_regexps_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_collection_regexps.rid")
-    )
-    sw_collection_regexps: Mapped["SwCollectionRegexps"] = relationship(
-        back_populates="sw_collection_regexp"
-    )
+    sw_collection_regexps_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_collection_regexps.rid"))
+    sw_collection_regexps: Mapped["SwCollectionRegexps"] = relationship(back_populates="sw_collection_regexp")
 
 
 class SwCollectionScripts(Base):
@@ -24284,9 +21857,7 @@ class SwCollectionScripts(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_collection_script: Mapped[list["SwCollectionScript"]] = relationship(
-        back_populates="sw_collection_scripts"
-    )
+    sw_collection_script: Mapped[list["SwCollectionScript"]] = relationship(back_populates="sw_collection_scripts")
 
 
 class SwCollectionWildcard(Base):
@@ -24307,12 +21878,8 @@ class SwCollectionWildcard(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_collection_wildcards_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_collection_wildcards.rid")
-    )
-    sw_collection_wildcards: Mapped["SwCollectionWildcards"] = relationship(
-        back_populates="sw_collection_wildcard"
-    )
+    sw_collection_wildcards_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_collection_wildcards.rid"))
+    sw_collection_wildcards: Mapped["SwCollectionWildcards"] = relationship(back_populates="sw_collection_wildcard")
 
 
 class SwCollectionRule(Base):
@@ -24360,33 +21927,17 @@ class SwCollectionRule(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_collection_regexps_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_collection_regexps.rid")
-    )
-    sw_collection_regexps: Mapped["SwCollectionRegexps"] = relationship(
-        single_parent=True
-    )
+    sw_collection_regexps_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_collection_regexps.rid"))
+    sw_collection_regexps: Mapped["SwCollectionRegexps"] = relationship(single_parent=True)
     # REF
-    sw_collection_wildcards_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_collection_wildcards.rid")
-    )
-    sw_collection_wildcards: Mapped["SwCollectionWildcards"] = relationship(
-        single_parent=True
-    )
+    sw_collection_wildcards_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_collection_wildcards.rid"))
+    sw_collection_wildcards: Mapped["SwCollectionWildcards"] = relationship(single_parent=True)
     # REF
-    sw_collection_scripts_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_collection_scripts.rid")
-    )
-    sw_collection_scripts: Mapped["SwCollectionScripts"] = relationship(
-        single_parent=True
-    )
+    sw_collection_scripts_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_collection_scripts.rid"))
+    sw_collection_scripts: Mapped["SwCollectionScripts"] = relationship(single_parent=True)
     # PARENT
-    sw_collection_rules_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_collection_rules.rid")
-    )
-    sw_collection_rules: Mapped["SwCollectionRules"] = relationship(
-        back_populates="sw_collection_rule"
-    )
+    sw_collection_rules_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_collection_rules.rid"))
+    sw_collection_rules: Mapped["SwCollectionRules"] = relationship(back_populates="sw_collection_rule")
 
 
 class SwCollectionScript(Base):
@@ -24409,12 +21960,8 @@ class SwCollectionScript(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_collection_scripts_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_collection_scripts.rid")
-    )
-    sw_collection_scripts: Mapped["SwCollectionScripts"] = relationship(
-        back_populates="sw_collection_script"
-    )
+    sw_collection_scripts_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_collection_scripts.rid"))
+    sw_collection_scripts: Mapped["SwCollectionScripts"] = relationship(back_populates="sw_collection_script")
 
 
 class SwFeatureRefs(Base, HasSwFeatureRefs):
@@ -24468,37 +22015,23 @@ class SwCsCollection(Base):
     ti = StdString()
     _view = StdString()
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    sw_feature_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_ref.rid")
-    )
+    sw_feature_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_ref.rid"))
     sw_feature_ref: Mapped["SwFeatureRef"] = relationship(single_parent=True)
     # REF
-    revision_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("revision.rid")
-    )
+    revision_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("revision.rid"))
     revision: Mapped["Revision"] = relationship(single_parent=True)
     # REF
-    sw_collection_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_collection_ref.rid")
-    )
+    sw_collection_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_collection_ref.rid"))
     sw_collection_ref: Mapped["SwCollectionRef"] = relationship(single_parent=True)
     # REF
-    sw_cs_history_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_history.rid")
-    )
+    sw_cs_history_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_history.rid"))
     sw_cs_history: Mapped["SwCsHistory"] = relationship(single_parent=True)
     # PARENT
-    sw_cs_collections_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_collections.rid")
-    )
-    sw_cs_collections: Mapped["SwCsCollections"] = relationship(
-        back_populates="sw_cs_collection"
-    )
+    sw_cs_collections_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_collections.rid"))
+    sw_cs_collections: Mapped["SwCsCollections"] = relationship(back_populates="sw_cs_collection")
 
 
 class SwUnitRefs(Base):
@@ -24632,9 +22165,7 @@ class SwAddrMethodRefs(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_addr_method_ref: Mapped[list["SwAddrMethodRef"]] = relationship(
-        back_populates="sw_addr_method_refs"
-    )
+    sw_addr_method_ref: Mapped[list["SwAddrMethodRef"]] = relationship(back_populates="sw_addr_method_refs")
 
 
 class SwRecordLayoutRefs(Base, HasSwRecordLayoutRefs):
@@ -24679,9 +22210,7 @@ class SwCodeSyntaxRefs(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_code_syntax_ref: Mapped[list["SwCodeSyntaxRef"]] = relationship(
-        back_populates="sw_code_syntax_refs"
-    )
+    sw_code_syntax_ref: Mapped[list["SwCodeSyntaxRef"]] = relationship(back_populates="sw_code_syntax_refs")
 
 
 class SwBaseTypeRefs(Base):
@@ -24704,9 +22233,7 @@ class SwBaseTypeRefs(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_base_type_ref: Mapped[list["SwBaseTypeRef"]] = relationship(
-        back_populates="sw_base_type_refs"
-    )
+    sw_base_type_ref: Mapped[list["SwBaseTypeRef"]] = relationship(back_populates="sw_base_type_refs")
 
 
 class SwDataConstrRefs(Base):
@@ -24729,9 +22256,7 @@ class SwDataConstrRefs(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_data_constr_ref: Mapped[list["SwDataConstrRef"]] = relationship(
-        back_populates="sw_data_constr_refs"
-    )
+    sw_data_constr_ref: Mapped[list["SwDataConstrRef"]] = relationship(back_populates="sw_data_constr_refs")
 
 
 class SwAxisTypeRefs(Base):
@@ -24754,9 +22279,7 @@ class SwAxisTypeRefs(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_axis_type_ref: Mapped[list["SwAxisTypeRef"]] = relationship(
-        back_populates="sw_axis_type_refs"
-    )
+    sw_axis_type_ref: Mapped[list["SwAxisTypeRef"]] = relationship(back_populates="sw_axis_type_refs")
 
 
 class SwCollectionCont(Base):
@@ -24791,78 +22314,46 @@ class SwCollectionCont(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_feature_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_refs.rid")
-    )
+    sw_feature_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_refs.rid"))
     sw_feature_refs: Mapped["SwFeatureRefs"] = relationship(single_parent=True)
     # REF
-    sw_unit_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_unit_refs.rid")
-    )
+    sw_unit_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_unit_refs.rid"))
     sw_unit_refs: Mapped["SwUnitRefs"] = relationship(single_parent=True)
     # REF
-    sw_variable_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variable_refs.rid")
-    )
+    sw_variable_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variable_refs.rid"))
     sw_variable_refs: Mapped["SwVariableRefs"] = relationship(single_parent=True)
     # REF
-    sw_calprm_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_refs.rid")
-    )
+    sw_calprm_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_refs.rid"))
     sw_calprm_refs: Mapped["SwCalprmRefs"] = relationship(single_parent=True)
     # REF
-    sw_instance_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_instance_refs.rid")
-    )
+    sw_instance_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_instance_refs.rid"))
     sw_instance_refs: Mapped["SwInstanceRefs"] = relationship(single_parent=True)
     # REF
-    sw_class_instance_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_class_instance_refs.rid")
-    )
-    sw_class_instance_refs: Mapped["SwClassInstanceRefs"] = relationship(
-        single_parent=True
-    )
+    sw_class_instance_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_class_instance_refs.rid"))
+    sw_class_instance_refs: Mapped["SwClassInstanceRefs"] = relationship(single_parent=True)
     # REF
-    sw_compu_method_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_method_refs.rid")
-    )
+    sw_compu_method_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_method_refs.rid"))
     sw_compu_method_refs: Mapped["SwCompuMethodRefs"] = relationship(single_parent=True)
     # REF
-    sw_addr_method_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_addr_method_refs.rid")
-    )
+    sw_addr_method_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_addr_method_refs.rid"))
     sw_addr_method_refs: Mapped["SwAddrMethodRefs"] = relationship(single_parent=True)
     # REF
-    sw_record_layout_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_record_layout_refs.rid")
-    )
-    sw_record_layout_refs: Mapped["SwRecordLayoutRefs"] = relationship(
-        single_parent=True
-    )
+    sw_record_layout_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_record_layout_refs.rid"))
+    sw_record_layout_refs: Mapped["SwRecordLayoutRefs"] = relationship(single_parent=True)
     # REF
-    sw_code_syntax_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_code_syntax_refs.rid")
-    )
+    sw_code_syntax_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_code_syntax_refs.rid"))
     sw_code_syntax_refs: Mapped["SwCodeSyntaxRefs"] = relationship(single_parent=True)
     # REF
-    sw_base_type_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_base_type_refs.rid")
-    )
+    sw_base_type_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_base_type_refs.rid"))
     sw_base_type_refs: Mapped["SwBaseTypeRefs"] = relationship(single_parent=True)
     # REF
-    sw_systemconst_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_systemconst_refs.rid")
-    )
+    sw_systemconst_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_systemconst_refs.rid"))
     sw_systemconst_refs: Mapped["SwSystemconstRefs"] = relationship(single_parent=True)
     # REF
-    sw_data_constr_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_constr_refs.rid")
-    )
+    sw_data_constr_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_constr_refs.rid"))
     sw_data_constr_refs: Mapped["SwDataConstrRefs"] = relationship(single_parent=True)
     # REF
-    sw_axis_type_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_axis_type_refs.rid")
-    )
+    sw_axis_type_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_axis_type_refs.rid"))
     sw_axis_type_refs: Mapped["SwAxisTypeRefs"] = relationship(single_parent=True)
 
 
@@ -24902,55 +22393,35 @@ class SwCollection(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    annotation_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("annotation.rid")
-    )
+    annotation_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("annotation.rid"))
     annotation: Mapped["Annotation"] = relationship(single_parent=True)
     # REF
-    sw_collection_rules_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_collection_rules.rid")
-    )
+    sw_collection_rules_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_collection_rules.rid"))
     sw_collection_rules: Mapped["SwCollectionRules"] = relationship(single_parent=True)
     # REF
-    sw_collection_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_collection_refs.rid")
-    )
+    sw_collection_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_collection_refs.rid"))
     sw_collection_refs: Mapped["SwCollectionRefs"] = relationship(single_parent=True)
     # REF
-    sw_collection_cont_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_collection_cont.rid")
-    )
+    sw_collection_cont_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_collection_cont.rid"))
     sw_collection_cont: Mapped["SwCollectionCont"] = relationship(single_parent=True)
     # PARENT
-    sw_collections_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_collections.rid")
-    )
-    sw_collections: Mapped["SwCollections"] = relationship(
-        back_populates="sw_collection"
-    )
+    sw_collections_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_collections.rid"))
+    sw_collections: Mapped["SwCollections"] = relationship(back_populates="sw_collection")
 
 
 class SwCpuStandardRecordLayout(Base):
@@ -24972,9 +22443,7 @@ class SwCpuStandardRecordLayout(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_record_layout_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_record_layout_ref.rid")
-    )
+    sw_record_layout_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_record_layout_ref.rid"))
     sw_record_layout_ref: Mapped["SwRecordLayoutRef"] = relationship(single_parent=True)
 
 
@@ -24998,9 +22467,7 @@ class SwUserAccessCases(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_user_access_case: Mapped[list["SwUserAccessCase"]] = relationship(
-        back_populates="sw_user_access_cases"
-    )
+    sw_user_access_case: Mapped[list["SwUserAccessCase"]] = relationship(back_populates="sw_user_access_cases")
 
 
 class SystemUsers(Base):
@@ -25023,9 +22490,7 @@ class SystemUsers(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    system_user: Mapped[list["SystemUser"]] = relationship(
-        back_populates="system_users"
-    )
+    system_user: Mapped[list["SystemUser"]] = relationship(back_populates="system_users")
 
 
 class SwUserGroupRefs(Base):
@@ -25048,9 +22513,7 @@ class SwUserGroupRefs(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_user_group_ref: Mapped[list["SwUserGroupRef"]] = relationship(
-        back_populates="sw_user_group_refs"
-    )
+    sw_user_group_ref: Mapped[list["SwUserGroupRef"]] = relationship(back_populates="sw_user_group_refs")
 
 
 class SystemUser(Base):
@@ -25071,9 +22534,7 @@ class SystemUser(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    system_users_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("system_users.rid")
-    )
+    system_users_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("system_users.rid"))
     system_users: Mapped["SystemUsers"] = relationship(back_populates="system_user")
 
 
@@ -25107,50 +22568,32 @@ class SwUserGroup(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    team_member_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("team_member_refs.rid")
-    )
+    team_member_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("team_member_refs.rid"))
     team_member_refs: Mapped["TeamMemberRefs"] = relationship(single_parent=True)
     # REF
-    system_users_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("system_users.rid")
-    )
+    system_users_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("system_users.rid"))
     system_users: Mapped["SystemUsers"] = relationship(single_parent=True)
     # REF
-    sw_user_group_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_user_group_refs.rid")
-    )
+    sw_user_group_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_user_group_refs.rid"))
     sw_user_group_refs: Mapped["SwUserGroupRefs"] = relationship(single_parent=True)
     # PARENT
-    sw_user_groups_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_user_groups.rid")
-    )
-    sw_user_groups: Mapped["SwUserGroups"] = relationship(
-        back_populates="sw_user_group"
-    )
+    sw_user_groups_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_user_groups.rid"))
+    sw_user_groups: Mapped["SwUserGroups"] = relationship(back_populates="sw_user_group")
 
 
 class SwUserGroupRef(Base):
@@ -25179,12 +22622,8 @@ class SwUserGroupRef(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_user_group_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_user_group_refs.rid")
-    )
-    sw_user_group_refs: Mapped["SwUserGroupRefs"] = relationship(
-        back_populates="sw_user_group_ref"
-    )
+    sw_user_group_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_user_group_refs.rid"))
+    sw_user_group_refs: Mapped["SwUserGroupRefs"] = relationship(back_populates="sw_user_group_ref")
 
 
 class SwUserAccessDefintions(Base):
@@ -25207,9 +22646,7 @@ class SwUserAccessDefintions(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_access_def: Mapped[list["SwAccessDef"]] = relationship(
-        back_populates="sw_user_access_defintions"
-    )
+    sw_access_def: Mapped[list["SwAccessDef"]] = relationship(back_populates="sw_user_access_defintions")
 
 
 class SwUserAccessCaseRefs(Base):
@@ -25232,9 +22669,7 @@ class SwUserAccessCaseRefs(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_user_access_case_ref: Mapped[list["SwUserAccessCaseRef"]] = relationship(
-        back_populates="sw_user_access_case_refs"
-    )
+    sw_user_access_case_ref: Mapped[list["SwUserAccessCaseRef"]] = relationship(back_populates="sw_user_access_case_refs")
 
 
 class SwUserAccessCase(Base):
@@ -25265,42 +22700,26 @@ class SwUserAccessCase(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_user_access_case_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_user_access_case_refs.rid")
-    )
-    sw_user_access_case_refs: Mapped["SwUserAccessCaseRefs"] = relationship(
-        single_parent=True
-    )
+    sw_user_access_case_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_user_access_case_refs.rid"))
+    sw_user_access_case_refs: Mapped["SwUserAccessCaseRefs"] = relationship(single_parent=True)
     # PARENT
-    sw_user_access_cases_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_user_access_cases.rid")
-    )
-    sw_user_access_cases: Mapped["SwUserAccessCases"] = relationship(
-        back_populates="sw_user_access_case"
-    )
+    sw_user_access_cases_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_user_access_cases.rid"))
+    sw_user_access_cases: Mapped["SwUserAccessCases"] = relationship(back_populates="sw_user_access_case")
 
 
 class SwUserAccessCaseRef(Base):
@@ -25329,12 +22748,8 @@ class SwUserAccessCaseRef(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_user_access_case_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_user_access_case_refs.rid")
-    )
-    sw_user_access_case_refs: Mapped["SwUserAccessCaseRefs"] = relationship(
-        back_populates="sw_user_access_case_ref"
-    )
+    sw_user_access_case_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_user_access_case_refs.rid"))
+    sw_user_access_case_refs: Mapped["SwUserAccessCaseRefs"] = relationship(back_populates="sw_user_access_case_ref")
 
 
 class SwUserRightSpec(Base):
@@ -25373,36 +22788,22 @@ class SwUserRightSpec(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    sw_user_groups_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_user_groups.rid")
-    )
+    sw_user_groups_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_user_groups.rid"))
     sw_user_groups: Mapped["SwUserGroups"] = relationship(single_parent=True)
     # REF
-    sw_user_access_cases_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_user_access_cases.rid")
-    )
+    sw_user_access_cases_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_user_access_cases.rid"))
     sw_user_access_cases: Mapped["SwUserAccessCases"] = relationship(single_parent=True)
     # REF
-    sw_user_access_defintions_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_user_access_defintions.rid")
-    )
-    sw_user_access_defintions: Mapped["SwUserAccessDefintions"] = relationship(
-        single_parent=True
-    )
+    sw_user_access_defintions_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_user_access_defintions.rid"))
+    sw_user_access_defintions: Mapped["SwUserAccessDefintions"] = relationship(single_parent=True)
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
 
 
@@ -25427,29 +22828,17 @@ class SwAccessDef(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_user_group_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_user_group_ref.rid")
-    )
+    sw_user_group_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_user_group_ref.rid"))
     sw_user_group_ref: Mapped["SwUserGroupRef"] = relationship(single_parent=True)
     # REF
-    sw_user_access_case_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_user_access_case_ref.rid")
-    )
-    sw_user_access_case_ref: Mapped["SwUserAccessCaseRef"] = relationship(
-        single_parent=True
-    )
+    sw_user_access_case_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_user_access_case_ref.rid"))
+    sw_user_access_case_ref: Mapped["SwUserAccessCaseRef"] = relationship(single_parent=True)
     # REF
-    sw_collection_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_collection_ref.rid")
-    )
+    sw_collection_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_collection_ref.rid"))
     sw_collection_ref: Mapped["SwCollectionRef"] = relationship(single_parent=True)
     # PARENT
-    sw_user_access_defintions_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_user_access_defintions.rid")
-    )
-    sw_user_access_defintions: Mapped["SwUserAccessDefintions"] = relationship(
-        back_populates="sw_access_def"
-    )
+    sw_user_access_defintions_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_user_access_defintions.rid"))
+    sw_user_access_defintions: Mapped["SwUserAccessDefintions"] = relationship(back_populates="sw_access_def")
 
 
 class SwCalibrationMethods(Base):
@@ -25472,9 +22861,7 @@ class SwCalibrationMethods(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_calibration_method: Mapped[list["SwCalibrationMethod"]] = relationship(
-        back_populates="sw_calibration_methods"
-    )
+    sw_calibration_method: Mapped[list["SwCalibrationMethod"]] = relationship(back_populates="sw_calibration_methods")
 
 
 class SwCpuMemSegs(Base):
@@ -25497,9 +22884,7 @@ class SwCpuMemSegs(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_cpu_mem_seg: Mapped[list["SwCpuMemSeg"]] = relationship(
-        back_populates="sw_cpu_mem_segs"
-    )
+    sw_cpu_mem_seg: Mapped[list["SwCpuMemSeg"]] = relationship(back_populates="sw_cpu_mem_segs")
 
 
 class SwCpuEpk(Base):
@@ -25636,9 +23021,7 @@ class SwMemOffsets(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_mem_offset: Mapped[list["SwMemOffset"]] = relationship(
-        back_populates="sw_mem_offsets"
-    )
+    sw_mem_offset: Mapped[list["SwMemOffset"]] = relationship(back_populates="sw_mem_offsets")
 
 
 class SwCpuMemSeg(Base):
@@ -25675,72 +23058,44 @@ class SwCpuMemSeg(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_mem_program_type_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mem_program_type.rid")
-    )
+    sw_mem_program_type_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mem_program_type.rid"))
     sw_mem_program_type: Mapped["SwMemProgramType"] = relationship(single_parent=True)
     # REF
-    sw_mem_type_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mem_type.rid")
-    )
+    sw_mem_type_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mem_type.rid"))
     sw_mem_type: Mapped["SwMemType"] = relationship(single_parent=True)
     # REF
-    sw_mem_attr_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mem_attr.rid")
-    )
+    sw_mem_attr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mem_attr.rid"))
     sw_mem_attr: Mapped["SwMemAttr"] = relationship(single_parent=True)
     # REF
-    sw_mem_base_addr_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mem_base_addr.rid")
-    )
+    sw_mem_base_addr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mem_base_addr.rid"))
     sw_mem_base_addr: Mapped["SwMemBaseAddr"] = relationship(single_parent=True)
     # REF
-    sw_mem_size_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mem_size.rid")
-    )
+    sw_mem_size_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mem_size.rid"))
     sw_mem_size: Mapped["SwMemSize"] = relationship(single_parent=True)
     # REF
-    sw_mem_offsets_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mem_offsets.rid")
-    )
+    sw_mem_offsets_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mem_offsets.rid"))
     sw_mem_offsets: Mapped["SwMemOffsets"] = relationship(single_parent=True)
     # REF
-    sw_mc_instance_interfaces_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_instance_interfaces.rid")
-    )
-    sw_mc_instance_interfaces: Mapped["SwMcInstanceInterfaces"] = relationship(
-        single_parent=True
-    )
+    sw_mc_instance_interfaces_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_instance_interfaces.rid"))
+    sw_mc_instance_interfaces: Mapped["SwMcInstanceInterfaces"] = relationship(single_parent=True)
     # PARENT
-    sw_cpu_mem_segs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cpu_mem_segs.rid")
-    )
-    sw_cpu_mem_segs: Mapped["SwCpuMemSegs"] = relationship(
-        back_populates="sw_cpu_mem_seg"
-    )
+    sw_cpu_mem_segs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cpu_mem_segs.rid"))
+    sw_cpu_mem_segs: Mapped["SwCpuMemSegs"] = relationship(back_populates="sw_cpu_mem_seg")
 
 
 class SwMemOffset(Base):
@@ -25761,12 +23116,8 @@ class SwMemOffset(Base):
     t = StdString()
     si = StdString()
     # PARENT
-    sw_mem_offsets_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mem_offsets.rid")
-    )
-    sw_mem_offsets: Mapped["SwMemOffsets"] = relationship(
-        back_populates="sw_mem_offset"
-    )
+    sw_mem_offsets_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mem_offsets.rid"))
+    sw_mem_offsets: Mapped["SwMemOffsets"] = relationship(back_populates="sw_mem_offset")
 
 
 class SwCpuAddrEpk(Base):
@@ -25788,9 +23139,7 @@ class SwCpuAddrEpk(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_addr_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_addr_info.rid")
-    )
+    sw_addr_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_addr_info.rid"))
     sw_addr_info: Mapped["SwAddrInfo"] = relationship(single_parent=True)
 
 
@@ -25894,75 +23243,43 @@ class SwCpuSpec(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    byte_order_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("byte_order.rid")
-    )
+    byte_order_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("byte_order.rid"))
     byte_order: Mapped["ByteOrder"] = relationship(single_parent=True)
     # REF
-    sw_base_type_size_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_base_type_size.rid")
-    )
+    sw_base_type_size_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_base_type_size.rid"))
     sw_base_type_size: Mapped["SwBaseTypeSize"] = relationship(single_parent=True)
     # REF
-    sw_mem_alignment_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mem_alignment.rid")
-    )
+    sw_mem_alignment_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mem_alignment.rid"))
     sw_mem_alignment: Mapped["SwMemAlignment"] = relationship(single_parent=True)
     # REF
-    sw_cpu_standard_record_layout_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cpu_standard_record_layout.rid")
-    )
-    sw_cpu_standard_record_layout: Mapped["SwCpuStandardRecordLayout"] = relationship(
-        single_parent=True
-    )
+    sw_cpu_standard_record_layout_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cpu_standard_record_layout.rid"))
+    sw_cpu_standard_record_layout: Mapped["SwCpuStandardRecordLayout"] = relationship(single_parent=True)
     # REF
-    sw_cpu_mem_segs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cpu_mem_segs.rid")
-    )
+    sw_cpu_mem_segs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cpu_mem_segs.rid"))
     sw_cpu_mem_segs: Mapped["SwCpuMemSegs"] = relationship(single_parent=True)
     # REF
-    sw_cpu_epk_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cpu_epk.rid")
-    )
+    sw_cpu_epk_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cpu_epk.rid"))
     sw_cpu_epk: Mapped["SwCpuEpk"] = relationship(single_parent=True)
     # REF
-    sw_cpu_addr_epk_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cpu_addr_epk.rid")
-    )
+    sw_cpu_addr_epk_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cpu_addr_epk.rid"))
     sw_cpu_addr_epk: Mapped["SwCpuAddrEpk"] = relationship(single_parent=True)
     # REF
-    sw_cpu_type_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cpu_type.rid")
-    )
+    sw_cpu_type_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cpu_type.rid"))
     sw_cpu_type: Mapped["SwCpuType"] = relationship(single_parent=True)
     # REF
-    sw_cpu_calibration_offset_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cpu_calibration_offset.rid")
-    )
-    sw_cpu_calibration_offset: Mapped["SwCpuCalibrationOffset"] = relationship(
-        single_parent=True
-    )
+    sw_cpu_calibration_offset_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cpu_calibration_offset.rid"))
+    sw_cpu_calibration_offset: Mapped["SwCpuCalibrationOffset"] = relationship(single_parent=True)
     # REF
-    sw_cpu_number_of_interfaces_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cpu_number_of_interfaces.rid")
-    )
-    sw_cpu_number_of_interfaces: Mapped["SwCpuNumberOfInterfaces"] = relationship(
-        single_parent=True
-    )
+    sw_cpu_number_of_interfaces_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cpu_number_of_interfaces.rid"))
+    sw_cpu_number_of_interfaces: Mapped["SwCpuNumberOfInterfaces"] = relationship(single_parent=True)
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
 
 
@@ -25986,9 +23303,7 @@ class SwVcdCriteria(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_vcd_criterion: Mapped[list["SwVcdCriterion"]] = relationship(
-        back_populates="sw_vcd_criteria"
-    )
+    sw_vcd_criterion: Mapped[list["SwVcdCriterion"]] = relationship(back_populates="sw_vcd_criteria")
 
 
 class SwCalibrationMethodSpec(Base):
@@ -26025,26 +23340,16 @@ class SwCalibrationMethodSpec(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    sw_calibration_methods_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calibration_methods.rid")
-    )
-    sw_calibration_methods: Mapped["SwCalibrationMethods"] = relationship(
-        single_parent=True
-    )
+    sw_calibration_methods_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calibration_methods.rid"))
+    sw_calibration_methods: Mapped["SwCalibrationMethods"] = relationship(single_parent=True)
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
 
 
@@ -26068,8 +23373,8 @@ class SwCalibrationMethodVersions(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_calibration_method_version: Mapped[list["SwCalibrationMethodVersion"]] = (
-        relationship(back_populates="sw_calibration_method_versions")
+    sw_calibration_method_version: Mapped[list["SwCalibrationMethodVersion"]] = relationship(
+        back_populates="sw_calibration_method_versions"
     )
 
 
@@ -26102,47 +23407,31 @@ class SwCalibrationMethod(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
     sw_calibration_method_versions_id: Mapped[typing.Optional[int]] = mapped_column(
         ForeignKey("sw_calibration_method_versions.rid")
     )
-    sw_calibration_method_versions: Mapped["SwCalibrationMethodVersions"] = (
-        relationship(single_parent=True)
-    )
+    sw_calibration_method_versions: Mapped["SwCalibrationMethodVersions"] = relationship(single_parent=True)
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
     # PARENT
-    sw_calibration_methods_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calibration_methods.rid")
-    )
-    sw_calibration_methods: Mapped["SwCalibrationMethods"] = relationship(
-        back_populates="sw_calibration_method"
-    )
+    sw_calibration_methods_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calibration_methods.rid"))
+    sw_calibration_methods: Mapped["SwCalibrationMethods"] = relationship(back_populates="sw_calibration_method")
 
 
 class SwCalibrationHandle(Base, HasVfs):
@@ -26190,18 +23479,14 @@ class SwCalibrationMethodVersion(Base):
     label_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("label.rid"))
     label: Mapped["Label"] = relationship(single_parent=True)
     # REF
-    sw_calibration_handle_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calibration_handle.rid")
-    )
-    sw_calibration_handle: Mapped["SwCalibrationHandle"] = relationship(
-        single_parent=True
-    )
+    sw_calibration_handle_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calibration_handle.rid"))
+    sw_calibration_handle: Mapped["SwCalibrationHandle"] = relationship(single_parent=True)
     # PARENT
     sw_calibration_method_versions_id: Mapped[typing.Optional[int]] = mapped_column(
         ForeignKey("sw_calibration_method_versions.rid")
     )
-    sw_calibration_method_versions: Mapped["SwCalibrationMethodVersions"] = (
-        relationship(back_populates="sw_calibration_method_version")
+    sw_calibration_method_versions: Mapped["SwCalibrationMethodVersions"] = relationship(
+        back_populates="sw_calibration_method_version"
     )
 
 
@@ -26239,24 +23524,16 @@ class SwVcdSpec(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    sw_vcd_criteria_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_vcd_criteria.rid")
-    )
+    sw_vcd_criteria_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_vcd_criteria.rid"))
     sw_vcd_criteria: Mapped["SwVcdCriteria"] = relationship(single_parent=True)
     # REF
-    add_info_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_info.rid")
-    )
+    add_info_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_info.rid"))
     add_info: Mapped["AddInfo"] = relationship(single_parent=True)
 
 
@@ -26313,96 +23590,58 @@ class SwSystem(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    sw_architecture_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_architecture.rid")
-    )
+    sw_architecture_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_architecture.rid"))
     sw_architecture: Mapped["SwArchitecture"] = relationship(single_parent=True)
     # REF
-    sw_test_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_test_spec.rid")
-    )
+    sw_test_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_test_spec.rid"))
     sw_test_spec: Mapped["SwTestSpec"] = relationship(single_parent=True)
     # REF
-    sw_data_dictionary_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_data_dictionary_spec.rid")
-    )
-    sw_data_dictionary_spec: Mapped["SwDataDictionarySpec"] = relationship(
-        single_parent=True
-    )
+    sw_data_dictionary_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_data_dictionary_spec.rid"))
+    sw_data_dictionary_spec: Mapped["SwDataDictionarySpec"] = relationship(single_parent=True)
     # REF
-    sw_component_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_component_spec.rid")
-    )
+    sw_component_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_component_spec.rid"))
     sw_component_spec: Mapped["SwComponentSpec"] = relationship(single_parent=True)
     # REF
-    sw_instance_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_instance_spec.rid")
-    )
+    sw_instance_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_instance_spec.rid"))
     sw_instance_spec: Mapped["SwInstanceSpec"] = relationship(single_parent=True)
     # REF
-    sw_collection_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_collection_spec.rid")
-    )
+    sw_collection_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_collection_spec.rid"))
     sw_collection_spec: Mapped["SwCollectionSpec"] = relationship(single_parent=True)
     # REF
-    sw_user_right_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_user_right_spec.rid")
-    )
+    sw_user_right_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_user_right_spec.rid"))
     sw_user_right_spec: Mapped["SwUserRightSpec"] = relationship(single_parent=True)
     # REF
-    sw_cpu_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cpu_spec.rid")
-    )
+    sw_cpu_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cpu_spec.rid"))
     sw_cpu_spec: Mapped["SwCpuSpec"] = relationship(single_parent=True)
     # REF
-    sw_calibration_method_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calibration_method_spec.rid")
-    )
-    sw_calibration_method_spec: Mapped["SwCalibrationMethodSpec"] = relationship(
-        single_parent=True
-    )
+    sw_calibration_method_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calibration_method_spec.rid"))
+    sw_calibration_method_spec: Mapped["SwCalibrationMethodSpec"] = relationship(single_parent=True)
     # REF
-    sw_vcd_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_vcd_spec.rid")
-    )
+    sw_vcd_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_vcd_spec.rid"))
     sw_vcd_spec: Mapped["SwVcdSpec"] = relationship(single_parent=True)
     # REF
-    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("add_spec.rid")
-    )
+    add_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("add_spec.rid"))
     add_spec: Mapped["AddSpec"] = relationship(single_parent=True)
     # PARENT
-    sw_systems_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_systems.rid")
-    )
+    sw_systems_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_systems.rid"))
     sw_systems: Mapped["SwSystems"] = relationship(back_populates="sw_system")
 
 
@@ -26459,57 +23698,37 @@ class SwVcdCriterion(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_calprm_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_calprm_ref.rid")
-    )
+    sw_calprm_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_calprm_ref.rid"))
     sw_calprm_ref: Mapped["SwCalprmRef"] = relationship(single_parent=True)
     # REF
-    sw_variable_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variable_ref.rid")
-    )
+    sw_variable_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variable_ref.rid"))
     sw_variable_ref: Mapped["SwVariableRef"] = relationship(single_parent=True)
     # REF
     sw_vcd_criterion_possible_values_id: Mapped[typing.Optional[int]] = mapped_column(
         ForeignKey("sw_vcd_criterion_possible_values.rid")
     )
-    sw_vcd_criterion_possible_values: Mapped["SwVcdCriterionPossibleValues"] = (
-        relationship(single_parent=True)
-    )
+    sw_vcd_criterion_possible_values: Mapped["SwVcdCriterionPossibleValues"] = relationship(single_parent=True)
     # REF
-    sw_compu_method_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_compu_method_ref.rid")
-    )
+    sw_compu_method_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_compu_method_ref.rid"))
     sw_compu_method_ref: Mapped["SwCompuMethodRef"] = relationship(single_parent=True)
     # PARENT
-    sw_vcd_criteria_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_vcd_criteria.rid")
-    )
-    sw_vcd_criteria: Mapped["SwVcdCriteria"] = relationship(
-        back_populates="sw_vcd_criterion"
-    )
+    sw_vcd_criteria_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_vcd_criteria.rid"))
+    sw_vcd_criteria: Mapped["SwVcdCriteria"] = relationship(back_populates="sw_vcd_criterion")
 
 
 class SwGlossary(Base):
@@ -26545,14 +23764,10 @@ class SwGlossary(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
     ncoi_1_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("ncoi_1.rid"))
@@ -26579,9 +23794,7 @@ class SwMcBaseTypes(Base):
     si = StdString()
     # ARR
     # NO_PA         sw_mc_base_type
-    sw_mc_base_type_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_base_type.rid")
-    )
+    sw_mc_base_type_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_base_type.rid"))
     sw_mc_base_type: Mapped[list["SwMcBaseType"]] = relationship()
 
 
@@ -26703,29 +23916,19 @@ class SwMcBlobLayouts(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_mc_tp_blob_layout_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_tp_blob_layout.rid")
-    )
+    sw_mc_tp_blob_layout_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_tp_blob_layout.rid"))
     sw_mc_tp_blob_layout: Mapped["SwMcTpBlobLayout"] = relationship(single_parent=True)
     # REF
-    sw_mc_qp_blob_layout_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_qp_blob_layout.rid")
-    )
+    sw_mc_qp_blob_layout_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_qp_blob_layout.rid"))
     sw_mc_qp_blob_layout: Mapped["SwMcQpBlobLayout"] = relationship(single_parent=True)
     # REF
-    sw_mc_kp_blob_layout_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_kp_blob_layout.rid")
-    )
+    sw_mc_kp_blob_layout_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_kp_blob_layout.rid"))
     sw_mc_kp_blob_layout: Mapped["SwMcKpBlobLayout"] = relationship(single_parent=True)
     # REF
-    sw_mc_dp_blob_layout_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_dp_blob_layout.rid")
-    )
+    sw_mc_dp_blob_layout_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_dp_blob_layout.rid"))
     sw_mc_dp_blob_layout: Mapped["SwMcDpBlobLayout"] = relationship(single_parent=True)
     # REF
-    sw_mc_pa_blob_layout_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_pa_blob_layout.rid")
-    )
+    sw_mc_pa_blob_layout_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_pa_blob_layout.rid"))
     sw_mc_pa_blob_layout: Mapped["SwMcPaBlobLayout"] = relationship(single_parent=True)
 
 
@@ -26757,40 +23960,26 @@ class SwMcInterface(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_mc_blob_layouts_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_blob_layouts.rid")
-    )
+    sw_mc_blob_layouts_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_blob_layouts.rid"))
     sw_mc_blob_layouts: Mapped["SwMcBlobLayouts"] = relationship(single_parent=True)
     # PARENT
-    sw_mc_interface_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_interface_spec.rid")
-    )
-    sw_mc_interface_spec: Mapped["SwMcInterfaceSpec"] = relationship(
-        back_populates="sw_mc_interface"
-    )
+    sw_mc_interface_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_interface_spec.rid"))
+    sw_mc_interface_spec: Mapped["SwMcInterfaceSpec"] = relationship(back_populates="sw_mc_interface")
 
 
 class SwMcInterfaceImpls(Base):
@@ -26813,9 +24002,7 @@ class SwMcInterfaceImpls(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_mc_interface_impl: Mapped[list["SwMcInterfaceImpl"]] = relationship(
-        back_populates="sw_mc_interface_impls"
-    )
+    sw_mc_interface_impl: Mapped[list["SwMcInterfaceImpl"]] = relationship(back_populates="sw_mc_interface_impls")
 
 
 class SwMcBaseType(Base):
@@ -26850,52 +24037,34 @@ class SwMcBaseType(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_base_type_size_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_base_type_size.rid")
-    )
+    sw_base_type_size_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_base_type_size.rid"))
     sw_base_type_size: Mapped["SwBaseTypeSize"] = relationship(single_parent=True)
     # REF
-    sw_coded_type_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_coded_type.rid")
-    )
+    sw_coded_type_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_coded_type.rid"))
     sw_coded_type: Mapped["SwCodedType"] = relationship(single_parent=True)
     # REF
-    sw_mem_alignment_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mem_alignment.rid")
-    )
+    sw_mem_alignment_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mem_alignment.rid"))
     sw_mem_alignment: Mapped["SwMemAlignment"] = relationship(single_parent=True)
     # REF
-    byte_order_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("byte_order.rid")
-    )
+    byte_order_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("byte_order.rid"))
     byte_order: Mapped["ByteOrder"] = relationship(single_parent=True)
     # REF
-    sw_base_type_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_base_type_ref.rid")
-    )
+    sw_base_type_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_base_type_ref.rid"))
     sw_base_type_ref: Mapped["SwBaseTypeRef"] = relationship(single_parent=True)
 
 
@@ -26934,32 +24103,20 @@ class SwMcCommunicationSpec(Base):
     tbr_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("tbr.rid"))
     tbr: Mapped["Tbr"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    sw_mc_interface_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_interface_spec.rid")
-    )
+    sw_mc_interface_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_interface_spec.rid"))
     sw_mc_interface_spec: Mapped["SwMcInterfaceSpec"] = relationship(single_parent=True)
     # REF
-    sw_mc_base_types_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_base_types.rid")
-    )
+    sw_mc_base_types_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_base_types.rid"))
     sw_mc_base_types: Mapped["SwMcBaseTypes"] = relationship(single_parent=True)
     # REF
-    sw_mc_interface_impls_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_interface_impls.rid")
-    )
-    sw_mc_interface_impls: Mapped["SwMcInterfaceImpls"] = relationship(
-        single_parent=True
-    )
+    sw_mc_interface_impls_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_interface_impls.rid"))
+    sw_mc_interface_impls: Mapped["SwMcInterfaceImpls"] = relationship(single_parent=True)
 
 
 class SwMcBlobValue(Base):
@@ -27001,9 +24158,7 @@ class SwMcGenericInterfaces(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_mc_generic_interface: Mapped[list["SwMcGenericInterface"]] = relationship(
-        back_populates="sw_mc_generic_interfaces"
-    )
+    sw_mc_generic_interface: Mapped[list["SwMcGenericInterface"]] = relationship(back_populates="sw_mc_generic_interfaces")
 
 
 class SwMcBlobEcuDeposit(Base):
@@ -27025,9 +24180,7 @@ class SwMcBlobEcuDeposit(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_instance_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_instance_ref.rid")
-    )
+    sw_instance_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_instance_ref.rid"))
     sw_instance_ref: Mapped["SwInstanceRef"] = relationship(single_parent=True)
 
 
@@ -27051,17 +24204,11 @@ class SwMcTpBlobConts(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_mc_blob_value_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_blob_value.rid")
-    )
+    sw_mc_blob_value_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_blob_value.rid"))
     sw_mc_blob_value: Mapped["SwMcBlobValue"] = relationship(single_parent=True)
     # REF
-    sw_mc_blob_ecu_deposit_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_blob_ecu_deposit.rid")
-    )
-    sw_mc_blob_ecu_deposit: Mapped["SwMcBlobEcuDeposit"] = relationship(
-        single_parent=True
-    )
+    sw_mc_blob_ecu_deposit_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_blob_ecu_deposit.rid"))
+    sw_mc_blob_ecu_deposit: Mapped["SwMcBlobEcuDeposit"] = relationship(single_parent=True)
 
 
 class SwMcInterfaceSources(Base):
@@ -27084,9 +24231,7 @@ class SwMcInterfaceSources(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    sw_mc_interface_source: Mapped[list["SwMcInterfaceSource"]] = relationship(
-        back_populates="sw_mc_interface_sources"
-    )
+    sw_mc_interface_source: Mapped[list["SwMcInterfaceSource"]] = relationship(back_populates="sw_mc_interface_sources")
 
 
 class SwMcGenericInterface(Base):
@@ -27118,9 +24263,7 @@ class SwMcGenericInterface(Base):
     label_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("label.rid"))
     label: Mapped["Label"] = relationship(single_parent=True)
     # REF
-    short_label_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_label.rid")
-    )
+    short_label_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_label.rid"))
     short_label: Mapped["ShortLabel"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
@@ -27129,38 +24272,22 @@ class SwMcGenericInterface(Base):
     sw_mc_interface_default_source_id: Mapped[typing.Optional[int]] = mapped_column(
         ForeignKey("sw_mc_interface_default_source.rid")
     )
-    sw_mc_interface_default_source: Mapped["SwMcInterfaceDefaultSource"] = relationship(
-        single_parent=True
-    )
+    sw_mc_interface_default_source: Mapped["SwMcInterfaceDefaultSource"] = relationship(single_parent=True)
     # REF
-    sw_mc_interface_avl_sources_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_interface_avl_sources.rid")
-    )
-    sw_mc_interface_avl_sources: Mapped["SwMcInterfaceAvlSources"] = relationship(
-        single_parent=True
-    )
+    sw_mc_interface_avl_sources_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_interface_avl_sources.rid"))
+    sw_mc_interface_avl_sources: Mapped["SwMcInterfaceAvlSources"] = relationship(single_parent=True)
     # REF
-    sw_mc_kp_blob_conts_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_kp_blob_conts.rid")
-    )
+    sw_mc_kp_blob_conts_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_kp_blob_conts.rid"))
     sw_mc_kp_blob_conts: Mapped["SwMcKpBlobConts"] = relationship(single_parent=True)
     # REF
-    sw_mc_dp_blob_conts_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_dp_blob_conts.rid")
-    )
+    sw_mc_dp_blob_conts_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_dp_blob_conts.rid"))
     sw_mc_dp_blob_conts: Mapped["SwMcDpBlobConts"] = relationship(single_parent=True)
     # REF
-    sw_mc_pa_blob_conts_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_pa_blob_conts.rid")
-    )
+    sw_mc_pa_blob_conts_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_pa_blob_conts.rid"))
     sw_mc_pa_blob_conts: Mapped["SwMcPaBlobConts"] = relationship(single_parent=True)
     # PARENT
-    sw_mc_generic_interfaces_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_generic_interfaces.rid")
-    )
-    sw_mc_generic_interfaces: Mapped["SwMcGenericInterfaces"] = relationship(
-        back_populates="sw_mc_generic_interface"
-    )
+    sw_mc_generic_interfaces_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_generic_interfaces.rid"))
+    sw_mc_generic_interfaces: Mapped["SwMcGenericInterfaces"] = relationship(back_populates="sw_mc_generic_interface")
 
 
 class SwMcFrames(Base):
@@ -27206,17 +24333,11 @@ class SwMcQpBlobConts(Base):
     t = StdString()
     si = StdString()
     # REF
-    sw_mc_blob_value_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_blob_value.rid")
-    )
+    sw_mc_blob_value_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_blob_value.rid"))
     sw_mc_blob_value: Mapped["SwMcBlobValue"] = relationship(single_parent=True)
     # REF
-    sw_mc_blob_ecu_deposit_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_blob_ecu_deposit.rid")
-    )
-    sw_mc_blob_ecu_deposit: Mapped["SwMcBlobEcuDeposit"] = relationship(
-        single_parent=True
-    )
+    sw_mc_blob_ecu_deposit_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_blob_ecu_deposit.rid"))
+    sw_mc_blob_ecu_deposit: Mapped["SwMcBlobEcuDeposit"] = relationship(single_parent=True)
 
 
 class SwMcInterfaceSource(Base):
@@ -27248,45 +24369,29 @@ class SwMcInterfaceSource(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_refresh_timing_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_refresh_timing.rid")
-    )
+    sw_refresh_timing_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_refresh_timing.rid"))
     sw_refresh_timing: Mapped["SwRefreshTiming"] = relationship(single_parent=True)
     # REF
-    sw_mc_qp_blob_conts_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_qp_blob_conts.rid")
-    )
+    sw_mc_qp_blob_conts_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_qp_blob_conts.rid"))
     sw_mc_qp_blob_conts: Mapped["SwMcQpBlobConts"] = relationship(single_parent=True)
     # PARENT
-    sw_mc_interface_sources_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_interface_sources.rid")
-    )
-    sw_mc_interface_sources: Mapped["SwMcInterfaceSources"] = relationship(
-        back_populates="sw_mc_interface_source"
-    )
+    sw_mc_interface_sources_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_interface_sources.rid"))
+    sw_mc_interface_sources: Mapped["SwMcInterfaceSources"] = relationship(back_populates="sw_mc_interface_source")
 
 
 class SwMcInterfaceImpl(Base):
@@ -27313,46 +24418,26 @@ class SwMcInterfaceImpl(Base):
     t = StdString()
     si = StdString()
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_mc_interface_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_interface_ref.rid")
-    )
+    sw_mc_interface_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_interface_ref.rid"))
     sw_mc_interface_ref: Mapped["SwMcInterfaceRef"] = relationship(single_parent=True)
     # REF
-    sw_mc_tp_blob_conts_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_tp_blob_conts.rid")
-    )
+    sw_mc_tp_blob_conts_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_tp_blob_conts.rid"))
     sw_mc_tp_blob_conts: Mapped["SwMcTpBlobConts"] = relationship(single_parent=True)
     # REF
-    sw_mc_generic_interfaces_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_generic_interfaces.rid")
-    )
-    sw_mc_generic_interfaces: Mapped["SwMcGenericInterfaces"] = relationship(
-        single_parent=True
-    )
+    sw_mc_generic_interfaces_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_generic_interfaces.rid"))
+    sw_mc_generic_interfaces: Mapped["SwMcGenericInterfaces"] = relationship(single_parent=True)
     # REF
-    sw_mc_interface_sources_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_interface_sources.rid")
-    )
-    sw_mc_interface_sources: Mapped["SwMcInterfaceSources"] = relationship(
-        single_parent=True
-    )
+    sw_mc_interface_sources_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_interface_sources.rid"))
+    sw_mc_interface_sources: Mapped["SwMcInterfaceSources"] = relationship(single_parent=True)
     # REF
-    sw_mc_frames_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_frames.rid")
-    )
+    sw_mc_frames_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_frames.rid"))
     sw_mc_frames: Mapped["SwMcFrames"] = relationship(single_parent=True)
     # PARENT
-    sw_mc_interface_impls_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_interface_impls.rid")
-    )
-    sw_mc_interface_impls: Mapped["SwMcInterfaceImpls"] = relationship(
-        back_populates="sw_mc_interface_impl"
-    )
+    sw_mc_interface_impls_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_interface_impls.rid"))
+    sw_mc_interface_impls: Mapped["SwMcInterfaceImpls"] = relationship(back_populates="sw_mc_interface_impl")
 
 
 class SwMcFrame(Base):
@@ -27384,42 +24469,28 @@ class SwMcFrame(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_refresh_timing_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_refresh_timing.rid")
-    )
+    sw_refresh_timing_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_refresh_timing.rid"))
     sw_refresh_timing: Mapped["SwRefreshTiming"] = relationship(single_parent=True)
     # REF
-    sw_variable_refs_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_variable_refs.rid")
-    )
+    sw_variable_refs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_variable_refs.rid"))
     sw_variable_refs: Mapped["SwVariableRefs"] = relationship(single_parent=True)
     # PARENT
-    sw_mc_frames_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_frames.rid")
-    )
+    sw_mc_frames_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_frames.rid"))
     sw_mc_frames: Mapped["SwMcFrames"] = relationship(back_populates="sw_mc_frame")
 
 
@@ -27551,14 +24622,10 @@ class SdgCaption(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
@@ -27620,14 +24687,10 @@ class SwInstanceTreeOrigin(Base):
     ti = StdString()
     _view = StdString()
     # REF
-    symbolic_file_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("symbolic_file.rid")
-    )
+    symbolic_file_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("symbolic_file.rid"))
     symbolic_file: Mapped["SymbolicFile"] = relationship(single_parent=True)
     # REF
-    data_file_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("data_file.rid")
-    )
+    data_file_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("data_file.rid"))
     data_file: Mapped["DataFile"] = relationship(single_parent=True)
 
 
@@ -27666,66 +24729,40 @@ class SwInstanceTree(Base, HasSwInstances):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     desc_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("_desc.rid"))
     _desc: Mapped["Desc"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    sw_instance_tree_origin_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_instance_tree_origin.rid")
-    )
-    sw_instance_tree_origin: Mapped["SwInstanceTreeOrigin"] = relationship(
-        single_parent=True
-    )
+    sw_instance_tree_origin_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_instance_tree_origin.rid"))
+    sw_instance_tree_origin: Mapped["SwInstanceTreeOrigin"] = relationship(single_parent=True)
     # REF
-    sw_cs_collections_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_collections.rid")
-    )
+    sw_cs_collections_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_collections.rid"))
     sw_cs_collections: Mapped["SwCsCollections"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    sw_cs_history_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_cs_history.rid")
-    )
+    sw_cs_history_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_cs_history.rid"))
     sw_cs_history: Mapped["SwCsHistory"] = relationship(single_parent=True)
     # REF
-    sw_vcd_criterion_values_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_vcd_criterion_values.rid")
-    )
-    sw_vcd_criterion_values: Mapped["SwVcdCriterionValues"] = relationship(
-        single_parent=True
-    )
+    sw_vcd_criterion_values_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_vcd_criterion_values.rid"))
+    sw_vcd_criterion_values: Mapped["SwVcdCriterionValues"] = relationship(single_parent=True)
     # REF
-    sw_feature_ref_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_feature_ref.rid")
-    )
+    sw_feature_ref_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_feature_ref.rid"))
     sw_feature_ref: Mapped["SwFeatureRef"] = relationship(single_parent=True)
     # ARR
     # NO_PA         sw_instance
     # PARENT
-    sw_instance_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_instance_spec.rid")
-    )
-    sw_instance_spec: Mapped["SwInstanceSpec"] = relationship(
-        back_populates="sw_instance_tree"
-    )
+    sw_instance_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_instance_spec.rid"))
+    sw_instance_spec: Mapped["SwInstanceSpec"] = relationship(back_populates="sw_instance_tree")
 
     # N-I: Sd
 
@@ -27750,9 +24787,7 @@ class MatchingDcis(Base):
     si = StdString()
     # ARR
     # PARENT-OBJ
-    matching_dci: Mapped[list["MatchingDci"]] = relationship(
-        back_populates="matching_dcis"
-    )
+    matching_dci: Mapped[list["MatchingDci"]] = relationship(back_populates="matching_dcis")
 
 
 class Locs(Base):
@@ -27803,9 +24838,7 @@ class MatchingDci(Base):
     label_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("label.rid"))
     label: Mapped["Label"] = relationship(single_parent=True)
     # REF
-    short_label_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_label.rid")
-    )
+    short_label_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_label.rid"))
     short_label: Mapped["ShortLabel"] = relationship(single_parent=True)
     # REF
     url_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("url.rid"))
@@ -27814,9 +24847,7 @@ class MatchingDci(Base):
     remark_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("remark.rid"))
     remark: Mapped["Remark"] = relationship(single_parent=True)
     # PARENT
-    matching_dcis_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("matching_dcis.rid")
-    )
+    matching_dcis_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("matching_dcis.rid"))
     matching_dcis: Mapped["MatchingDcis"] = relationship(back_populates="matching_dci")
 
 
@@ -27859,68 +24890,40 @@ class Msrsw(Base):
     t = StdString()
     si = StdString()
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
-    category_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("category.rid")
-    )
+    category_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("category.rid"))
     category: Mapped["Category"] = relationship(single_parent=True)
     # REF
-    project_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("project_data.rid")
-    )
+    project_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("project_data.rid"))
     project_data: Mapped["ProjectData"] = relationship(single_parent=True)
     # REF
-    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("admin_data.rid")
-    )
+    admin_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("admin_data.rid"))
     admin_data: Mapped["AdminData"] = relationship(single_parent=True)
     # REF
-    introduction_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("introduction.rid")
-    )
+    introduction_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("introduction.rid"))
     introduction: Mapped["Introduction"] = relationship(single_parent=True)
     # REF
-    general_requirements_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("general_requirements.rid")
-    )
-    general_requirements: Mapped["GeneralRequirements"] = relationship(
-        single_parent=True
-    )
+    general_requirements_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("general_requirements.rid"))
+    general_requirements: Mapped["GeneralRequirements"] = relationship(single_parent=True)
     # REF
-    sw_systems_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_systems.rid")
-    )
+    sw_systems_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_systems.rid"))
     sw_systems: Mapped["SwSystems"] = relationship(single_parent=True)
     # REF
-    sw_mc_communication_spec_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_mc_communication_spec.rid")
-    )
-    sw_mc_communication_spec: Mapped["SwMcCommunicationSpec"] = relationship(
-        single_parent=True
-    )
+    sw_mc_communication_spec_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_mc_communication_spec.rid"))
+    sw_mc_communication_spec: Mapped["SwMcCommunicationSpec"] = relationship(single_parent=True)
     # REF
-    sw_glossary_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("sw_glossary.rid")
-    )
+    sw_glossary_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("sw_glossary.rid"))
     sw_glossary: Mapped["SwGlossary"] = relationship(single_parent=True)
     # REF
-    special_data_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("special_data.rid")
-    )
+    special_data_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("special_data.rid"))
     special_data: Mapped["SpecialData"] = relationship(single_parent=True)
     # REF
-    msr_processing_log_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("msr_processing_log.rid")
-    )
+    msr_processing_log_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("msr_processing_log.rid"))
     msr_processing_log: Mapped["MsrProcessingLog"] = relationship(single_parent=True)
     # REF
-    matching_dcis_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("matching_dcis.rid")
-    )
+    matching_dcis_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("matching_dcis.rid"))
     matching_dcis: Mapped["MatchingDcis"] = relationship(single_parent=True)
     # REF
     locs_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("locs.rid"))
@@ -27984,14 +24987,10 @@ class Nameloc(Base):
     t = StdString()
     si = StdString()
     # REF
-    long_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("long_name.rid")
-    )
+    long_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("long_name.rid"))
     long_name: Mapped["LongName"] = relationship(single_parent=True)
     # REF
-    short_name_id: Mapped[typing.Optional[int]] = mapped_column(
-        ForeignKey("short_name.rid")
-    )
+    short_name_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("short_name.rid"))
     short_name: Mapped["ShortName"] = relationship(single_parent=True)
     # REF
     nmlist_id: Mapped[typing.Optional[int]] = mapped_column(ForeignKey("nmlist.rid"))
@@ -28663,10 +25662,7 @@ ROOT_ELEMENT = "MSRSW"
 
 
 class MSRSWDatabase:
-
-    def __init__(
-        self, filename: Path | str, debug: bool = False, logLevel: str = "INFO"
-    ) -> None:
+    def __init__(self, filename: Path | str, debug: bool = False, logLevel: str = "INFO") -> None:
         if filename == ":memory:":
             self.dbname = ""
         else:
@@ -28676,9 +25672,7 @@ class MSRSWDatabase:
         self._engine = create_engine(
             f"sqlite:///{self.dbname}",
             echo=debug,
-            connect_args={
-                "detect_types": sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
-            },
+            connect_args={"detect_types": sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES},
             native_datetime=True,
         )
 
@@ -28730,12 +25724,9 @@ class MSRSWDatabase:
 
 
 class Parser:
-
     ATTR = re.compile(r"(\\{.*?\\})?(.*)", re.DOTALL)
 
-    def __init__(
-        self, file_name: str, db: MSRSWDatabase, root_elem: str = ROOT_ELEMENT
-    ):
+    def __init__(self, file_name: str, db: MSRSWDatabase, root_elem: str = ROOT_ELEMENT):
         self.logger = logging.getLogger(f"{__name__}.Parser")
         self.validator = create_validator("cdf_v2.0.0.sl.dtd")
         self.schema_version = 0
