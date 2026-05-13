@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Any, TypeAlias
 from uuid import uuid4
 
-from pya2l import DB, model, path_components
+from pya2l import DB, model
+from pya2l.a2lparser import path_components
 from pya2l.api import inspect as a2l_inspect
 from pya2l.api.inspect import (
     AxisPts,
