@@ -171,6 +171,19 @@ class AsamMC:
         self.directory = Directory(self.session)
         self.on_init(self.config, *args, **kws)
 
+    # -- Context-manager protocol ------------------------------------------
+
+    def __enter__(self) -> "AsamMC":
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: Any,
+    ) -> None:
+        self.close()
+
     def __del__(self) -> None:
         self.close()
 
