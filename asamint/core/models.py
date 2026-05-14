@@ -22,6 +22,7 @@ class GeneralConfig:
     master_hexfile_type: str = field(default="ihex")
     mdf_version: str = field(default="4.20")
     output_format: str = field(default="MDF")
+    empty_axis_policy: str = field(default="warn")
     experiments: list[str] = field(default_factory=list)
 
 

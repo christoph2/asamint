@@ -72,6 +72,7 @@ ValueType = Union[float, int, bool, str, CalibrationValue]
 # Constants
 BOOLEAN_MAP = {"true": 1, "false": 0}
 AXES = ("x", "y", "z", "4", "5")
+_EMPTY_AXIS_POLICIES = {"warn", "ignore", "error"}
 
 # Increase recursion limit for complex operations
 sys.setrecursionlimit(2000)  # Required for pyinstrument benchmarks
@@ -272,6 +273,7 @@ class Calibration:
         parameter_cache: Union[dict[str, Any], ParameterCache],
         logger: Logger,
         *,
+        empty_axis_policy: Optional[str] = None,
         preload_characteristics: Optional[Iterable[str]] = None,
         preload_axis_pts: Optional[Iterable[str]] = None,
     ) -> None:
@@ -292,6 +294,15 @@ class Calibration:
         self.logger = logger
         self.mod_common = asam_mc.mod_common
         self.mod_par = asam_mc.mod_par
+        self.empty_axis_policy = self._normalize_empty_axis_policy(
+            empty_axis_policy
+            or getattr(asam_mc, "empty_axis_policy", None)
+            or getattr(
+                getattr(asam_mc, "general_config", None),
+                "empty_axis_policy",
+                None,
+            )
+        )
         self._definition_cache: dict[tuple[str, str], Any] = {}
         self._virtual_store: dict[str, Any] = {}
         self._dep_graph: Optional["DependencyGraph"] = None
@@ -299,6 +310,382 @@ class Calibration:
         self._preload_definitions()
         if preload_characteristics or preload_axis_pts:
             self.preload_selected(characteristics=preload_characteristics, axis_pts=preload_axis_pts)
+
+    def _normalize_empty_axis_policy(self, policy: Optional[str]) -> str:
+        if not policy:
+            return "warn"
+        candidate = str(policy).strip().lower()
+        if candidate not in _EMPTY_AXIS_POLICIES:
+            self.logger.warning(
+                "Unknown empty_axis_policy %r; falling back to 'warn'",
+                policy,
+            )
+            return "warn"
+        return candidate
+
+    def _get_empty_axis_policy(self) -> str:
+        policy = getattr(self, "empty_axis_policy", None)
+        if not policy:
+            return "warn"
+        candidate = str(policy).strip().lower()
+        if candidate not in _EMPTY_AXIS_POLICIES:
+            logger = getattr(self, "logger", None)
+            if logger is not None:
+                logger.warning(
+                    "Unknown empty_axis_policy %r; falling back to 'warn'",
+                    policy,
+                )
+            return "warn"
+        return candidate
+
+    def _handle_empty_axis_values(
+        self,
+        axis_owner: str,
+        axis_label: str,
+        axis_category: str,
+    ) -> None:
+        policy = self._get_empty_axis_policy()
+        if policy == "ignore":
+            return
+        message = f"Axis points '{axis_owner}' {axis_label}-axis " f"({axis_category}) returned no values."
+        if policy == "warn":
+            self.logger.warning(message)
+            return
+        raise CalibrationError(message)
+
+    def _handle_empty_characteristic_values(
+        self,
+        characteristic_name: str,
+        category: str,
+    ) -> None:
+        policy = self._get_empty_axis_policy()
+        if policy == "ignore":
+            return
+        message = f"Characteristic '{characteristic_name}' ({category}) returned no values."
+        if policy == "warn":
+            self.logger.warning(message)
+            return
+        raise CalibrationError(message)
+
+    def _definition_cache_or_init(self) -> dict[tuple[str, str], Any]:
+        cache = getattr(self, "_definition_cache", None)
+        if cache is None:
+            cache = {}
+            self._definition_cache = cache
+        return cache
+
+    def characteristic_category(self, name: str) -> str:
+        cache = self._definition_cache_or_init()
+        cached = cache.get(("TYPE", name))
+        if cached is not None:
+            return cached
+        characteristic = Characteristic.get(self.session, name)
+        if characteristic is None:
+            raise ValueError(f"Characteristic '{name}' not found")
+        cache[("TYPE", name)] = characteristic.type
+        cache[("CHAR", name)] = characteristic
+        return characteristic.type
+
+    def get_characteristic(self, name: str, category: Optional[str], writable: bool) -> Characteristic:
+        cache = self._definition_cache_or_init()
+        cached = cache.get(("CHAR", name))
+        if cached is None:
+            characteristic = Characteristic.get(self.session, name)
+            if characteristic is None:
+                raise ValueError(f"Characteristic '{name}' not found")
+            cache[("CHAR", name)] = characteristic
+            cache[("TYPE", name)] = characteristic.type
+        else:
+            characteristic = cached
+        if category is not None and characteristic.type != category:
+            raise ValueError(f"Characteristic '{name}' is '{characteristic.type}', expected '{category}'")
+        return characteristic
+
+    def get_axis_pts(self, name: str) -> AxisPts:
+        cache = self._definition_cache_or_init()
+        cached = cache.get(("AXIS", name))
+        if cached is None:
+            axis_pts = AxisPts.get(self.session, name)
+            if axis_pts is None:
+                raise ValueError(f"AxisPts '{name}' not found")
+            cache[("AXIS", name)] = axis_pts
+        else:
+            axis_pts = cached
+        return axis_pts
+
+    def get_compu_method(self, current_characteristic: Any) -> CompuMethod:
+        compu_method = getattr(current_characteristic, "compuMethod", None)
+        if compu_method is None or compu_method == "NO_COMPU_METHOD":
+            return CompuMethod.get(self.session, "NO_COMPU_METHOD")
+        if isinstance(compu_method, CompuMethod):
+            return compu_method
+        name = getattr(compu_method, "name", None) or str(compu_method)
+        cache = self._definition_cache_or_init()
+        cached = cache.get(("CM", name))
+        if cached is not None:
+            return cached
+        resolved = CompuMethod.get(self.session, name)
+        cache[("CM", name)] = resolved
+        return resolved
+
+    def is_numeric(self, compu_method: Any) -> bool:
+        if compu_method is None or compu_method == "NO_COMPU_METHOD":
+            return True
+        conversion_type = getattr(compu_method, "conversionType", None)
+        return conversion_type != "TAB_VERB"
+
+    def int_to_physical(self, current_characteristic: Any, raw: Any) -> Any:
+        try:
+            compu_method = self.get_compu_method(current_characteristic)
+            if compu_method is None or (getattr(compu_method, "name", None) == "NO_COMPU_METHOD"):
+                if isinstance(raw, np.ndarray):
+                    return raw.astype(float, copy=False)
+                if np.isscalar(raw):
+                    return float(raw)
+                return raw
+            return compu_method.int_to_physical(raw)
+        except (
+            ValueError,
+            TypeError,
+            AttributeError,
+            ZeroDivisionError,
+            FloatingPointError,
+        ) as exc:
+            name = getattr(current_characteristic, "name", "<unknown>")
+            cm_name = getattr(
+                getattr(current_characteristic, "compuMethod", None),
+                "name",
+                None,
+            )
+            self.logger.warning(f"int_to_physical failed for {name!r} (COMPU_METHOD={cm_name!r}): {exc}")
+            if isinstance(raw, np.ndarray):
+                return raw.astype(float, copy=False)
+            if np.isscalar(raw):
+                return float(raw)
+            return raw
+
+    def physical_to_int(self, current_characteristic: Any, value: Any) -> Any:
+        try:
+            compu_method = self.get_compu_method(current_characteristic)
+            converted = compu_method.physical_to_int(value) if compu_method is not None else value
+        except (
+            ValueError,
+            TypeError,
+            AttributeError,
+            ZeroDivisionError,
+            FloatingPointError,
+        ) as exc:
+            name = getattr(current_characteristic, "name", "<unknown>")
+            raise CalibrationError(f"physical_to_int failed for '{name}': {exc}") from exc
+
+        target_dtype = getattr(current_characteristic, "fnc_np_dtype", None)
+        if target_dtype is None:
+            return converted
+        dtype = np.dtype(target_dtype)
+        array = np.asarray(converted)
+        if np.issubdtype(dtype, np.integer):
+            float_values = array.astype(float, copy=False)
+            fractional = np.isfinite(float_values) & (np.modf(float_values)[0] != 0)
+            if np.any(fractional):
+                self.logger.warning(
+                    "physical_to_int truncates fractional values for %r" % getattr(current_characteristic, "name", "<unknown>")
+                )
+            info = np.iinfo(dtype)
+            if np.any(float_values < info.min) or np.any(float_values > info.max):
+                self.logger.warning(
+                    "physical_to_int overflows %s range for %r" % (dtype.name, getattr(current_characteristic, "name", "<unknown>"))
+                )
+        elif np.issubdtype(dtype, np.floating):
+            float_values = array.astype(float, copy=False)
+            casted = float_values.astype(dtype, copy=False)
+            back_cast = casted.astype(float, copy=False)
+            mask = np.isfinite(float_values) & np.isfinite(back_cast)
+            if np.any(float_values[mask] != back_cast[mask]):
+                self.logger.warning(
+                    "physical_to_int loses floating-point precision for %r" % getattr(current_characteristic, "name", "<unknown>")
+                )
+
+        casted_array = array.astype(dtype, copy=False)
+        if array.shape == () and not isinstance(value, np.ndarray):
+            return casted_array.item()
+        return casted_array
+
+    def read_axes_values(self, obj: Any, axis_label: str) -> dict[str, Any]:
+        axis_info = obj.record_layout_components.get("axes", {}).get(axis_label)
+        if axis_info is None:
+            return {}
+        values: dict[str, Any] = {}
+        for name, element in axis_info.elements.items():
+            if name in {"axis_pts", "axis_rescale"}:
+                continue
+            # fix_no_axis_pts carries a compile-time constant (`number`)
+            # and has no address/data_type – read it directly.
+            if name == "fix_no_axis_pts":
+                values[name] = getattr(element, "number", None)
+                continue
+            try:
+                values[name] = self.image.read_asam_numeric(
+                    addr=element.address,
+                    dtype=element.data_type,
+                    byte_order=self.asam_byte_order(obj),
+                )
+            except InvalidAddressError as exc:
+                self.logger.error(f"{obj.name!r} {axis_label}-axis {name}: {exc}")
+                values[name] = None
+        return values
+
+    def read_axes_arrays(self, obj: Any, axis_label: str) -> dict[str, np.ndarray]:
+        axis_info = obj.record_layout_components.get("axes", {}).get(axis_label)
+        if axis_info is None:
+            return {}
+        arrays: dict[str, np.ndarray] = {}
+        max_count = axis_info.actual_element_count or axis_info.maximum_element_count or getattr(obj, "maxAxisPoints", None)
+        for name in ("axis_pts", "axis_rescale"):
+            element = axis_info.elements.get(name)
+            if element is None or not max_count:
+                continue
+            count = max_count * 2 if name == "axis_rescale" else max_count
+            length = count * asam_type_size(element.data_type)
+            try:
+                arrays[name] = self.image.read_asam_ndarray(
+                    addr=element.address,
+                    length=length,
+                    dtype=element.data_type,
+                    byte_order=self.asam_byte_order(obj),
+                    shape=(count,),
+                    # order="C",
+                )
+            except InvalidAddressError as exc:
+                self.logger.error(f"{obj.name!r} {axis_label}-axis {name}: {exc}")
+                arrays[name] = np.array([])
+        return arrays
+
+    def write_nd_array(
+        self,
+        obj: Any,
+        axis_label: str,
+        element_name: str,
+        values: np.ndarray,
+        index_mode: str | None = None,
+    ) -> None:
+        axis_info = obj.record_layout_components.get("axes", {}).get(axis_label)
+        if axis_info is None:
+            raise ValueError(f"Axis '{axis_label}' not found for {obj.name!r}")
+        element = axis_info.elements.get(element_name)
+        if element is None:
+            raise ValueError(f"Axis element '{element_name}' not found for {obj.name!r}")
+        dtype = getattr(element, "data_type", None) or getattr(axis_info, "data_type", None)
+        if dtype is None:
+            raise ValueError(f"Axis element '{element_name}' has no data type for {obj.name!r}")
+        self.image.write_asam_ndarray(
+            addr=element.address,
+            array=np.asarray(values),
+            dtype=dtype,
+            byte_order=self.asam_byte_order(obj),
+            index_mode=index_mode,
+        )
+
+    def _resolve_fix_axis_values(self, axis_desc: Any) -> list[float]:
+        fix_par = getattr(axis_desc, "fixAxisPar", None)
+        if fix_par is not None and getattr(fix_par, "numberapo", None):
+            return list(
+                fix_axis_par(
+                    fix_par.offset,
+                    fix_par.shift,
+                    fix_par.numberapo,
+                )
+            )
+        fix_dist = getattr(axis_desc, "fixAxisParDist", None)
+        if fix_dist is not None and getattr(fix_dist, "numberapo", None):
+            return list(
+                fix_axis_par_dist(
+                    fix_dist.offset,
+                    fix_dist.distance,
+                    fix_dist.numberapo,
+                )
+            )
+        fix_list = getattr(axis_desc, "fixAxisParList", None)
+        if fix_list:
+            return list(fix_list)
+        return []
+
+    def get_axes(self, characteristic: Characteristic, num_axes: int) -> AxesContainer:
+        axes: list[klasses.AxisContainer] = []
+        shape: list[int] = []
+        flip_axes: list[int] = []
+        axis_descriptions = getattr(characteristic, "axisDescriptions", [])
+
+        for idx in range(num_axes):
+            if idx >= len(axis_descriptions):
+                raise ValueError(f"Characteristic '{characteristic.name}' defines fewer axes than expected")
+            axis_desc = axis_descriptions[idx]
+            axis_label = AXES[idx]
+            category = getattr(axis_desc, "attribute", None) or "STD_AXIS"
+            input_quantity = getattr(axis_desc, "inputQuantity", "")
+            compu_method = getattr(axis_desc, "compuMethod", None)
+            unit = getattr(axis_desc, "physUnit", None) or getattr(compu_method, "unit", None)
+            raw = np.array([])
+            phys = np.array([])
+            reversed_storage = False
+            axis_pts_ref = getattr(axis_desc, "axisPtsRef", None)
+
+            if category in {"COM_AXIS", "RES_AXIS"} and axis_pts_ref is not None:
+                axis_pts = self._cached_axis_pts(axis_pts_ref.name)
+                raw = np.asarray(axis_pts.raw)
+                phys = np.asarray(axis_pts.phys)
+                reversed_storage = bool(getattr(axis_pts, "reversed_storage", False))
+            elif category == "FIX_AXIS":
+                raw = np.asarray(self._resolve_fix_axis_values(axis_desc), dtype=float)
+                phys = raw
+            else:
+                axis_values = self.read_axes_values(characteristic, axis_label)
+                axis_arrays = self.read_axes_arrays(characteristic, axis_label)
+                axis_info = characteristic.record_layout_components.get("axes", {}).get(axis_label)
+                if axis_arrays:
+                    if "axis_pts" in axis_arrays:
+                        raw = axis_arrays["axis_pts"]
+                    else:
+                        raw = axis_arrays.get("axis_rescale", np.array([]))
+                count = axis_values.get("no_axis_pts") or axis_values.get("no_rescale") or axis_values.get("fix_no_axis_pts")
+                if count is None and axis_info is not None:
+                    count = (
+                        axis_info.actual_element_count
+                        or axis_info.maximum_element_count
+                        or getattr(axis_desc, "maxAxisPoints", None)
+                    )
+                if count is not None and raw.size:
+                    raw = raw[:count]
+                if axis_info is not None and getattr(
+                    axis_info,
+                    "reversed_storage",
+                    False,
+                ):
+                    raw = raw[::-1]
+                    reversed_storage = True
+                if raw.size == 0:
+                    owner = axis_pts_ref.name if axis_pts_ref is not None else characteristic.name
+                    self._handle_empty_axis_values(owner, axis_label, category)
+                phys = self.int_to_physical(axis_desc, raw) if raw.size else np.array([])
+
+            if reversed_storage:
+                flip_axes.append(idx)
+            length = int(raw.size) if raw.size else int(getattr(axis_desc, "maxAxisPoints", 0) or 0)
+            shape.append(length)
+            axes.insert(0,  # Insert at the beginning to maintain correct order since we're iterating in reverse
+                klasses.AxisContainer(
+                    name=getattr(axis_pts_ref, "name", axis_label),
+                    input_quantity=input_quantity,
+                    category=category,
+                    unit=unit,
+                    raw=list(raw),
+                    phys=list(phys),
+                    reversed_storage=reversed_storage,
+                    axis_pts_ref=getattr(axis_pts_ref, "name", None),
+                    is_numeric=self.is_numeric(compu_method),
+                )
+            )
+
+        return AxesContainer(axes=axes, shape=tuple(shape), flip_axes=flip_axes)
 
     def _preload_definitions(self) -> None:
         """Preload characteristic types and axis existence to reduce repeated DB hits."""
@@ -755,27 +1142,25 @@ class Calibration:
         # Calculate shape and size
         shape = characteristic.fnc_np_shape
         num_func_values = reduce(operator.mul, shape, 1)
-        length = num_func_values * asam_type_size(characteristic.fnc_asam_dtype)
+
         # Read the array from memory
         try:
             raw = self.image.read_asam_ndarray(
                 addr=characteristic.address,
-                length=length,
+                length=num_func_values,
                 dtype=characteristic.fnc_asam_dtype,
                 byte_order=self.asam_byte_order(characteristic),
                 shape=shape,
-                order=characteristic.fnc_np_order,
+                index_mode = characteristic.deposit.fncValues.indexMode,
                 bit_mask=characteristic.bitMask,
             )
         except (InvalidAddressError, ValueError, AttributeError) as e:
             self.logger.error(f"{characteristic.name!r}: {e}")
         else:
-            # Convert from internal ASAM dimension order (x, y, z) to
-            # user-facing order (z, y, x) and drop trivial dimensions,
-            # consistent with save_value_block which uses fnc_np_shape[::-1].
-            raw = np.squeeze(raw.transpose())
-            # Convert to physical values if read was successful
             phys = self.int_to_physical(characteristic, raw)
+
+        if raw.size == 0 and not getattr(characteristic, "virtual_characteristic", None):
+            self._handle_empty_characteristic_values(characteristic.name, "VAL_BLK")
 
         # External shape matches what save_value_block expects.
         external_shape = tuple(d for d in shape[::-1] if d > 1) or (1,)
@@ -883,7 +1268,7 @@ class Calibration:
                 array=int_vals,
                 dtype=characteristic.fnc_asam_dtype,
                 byte_order=self.asam_byte_order(characteristic),
-                order=characteristic.fnc_np_order,
+                index_mode=characteristic.deposit.fncValues.indexMode,
             )
         except InvalidAddressError as exc:
             return self._address_error_status(characteristic.name, exc)
@@ -1143,6 +1528,28 @@ class Calibration:
             limitsPolicy=limitsPolicy,
         )
 
+    def _cached_axis_pts(self, axis_pts_name: str) -> klasses.AxisPts:
+        """Return axis points from the parameter cache, loading only on cache miss.
+
+        This avoids redundant HEX reads when ``_load_axis_pts()`` has
+        already populated ``parameter_cache["AXIS_PTS"]`` for this name.
+
+        Args:
+            axis_pts_name: Name of the axis points.
+
+        Returns:
+            Cached or freshly-loaded :class:`klasses.AxisPts`.
+        """
+        cache: dict[str, Any] = {}
+        if isinstance(self.parameter_cache, dict):
+            cache = self.parameter_cache.get("AXIS_PTS", {})
+        elif hasattr(self.parameter_cache, "get"):
+            cache = self.parameter_cache.get("AXIS_PTS", {})
+        cached = cache.get(axis_pts_name)
+        if cached is not None:
+            return cached
+        return self.load_axis_pts(axis_pts_name)
+
     def load_axis_pts(self, axis_pts_name: str) -> klasses.AxisPts:
         """Load axis points.
 
@@ -1162,12 +1569,18 @@ class Calibration:
         axis_values = self.read_axes_values(ap, "x")
         axis_arrays = self.read_axes_arrays(ap, "x")
         axes = ap.record_layout_components.get("axes")
+        rescale_count = None
         axis_info = axes.get("x")
 
         # Handle different axis categories
         if axis_info.category == "COM_AXIS":
             raw = axis_arrays.get("axis_pts")
-            no_axis_pts = axis_values.get("no_axis_pts") or (axis_info.actual_element_count or axis_info.maximum_element_count)
+            no_axis_pts = (
+                axis_values.get("no_axis_pts")
+                or axis_values.get("fix_no_axis_pts")
+                or axis_info.actual_element_count
+                or axis_info.maximum_element_count
+            )
         elif axis_info.category == "RES_AXIS":
             raw = axis_arrays.get("axis_rescale")
             rescale_count = axis_values.get("no_rescale")
@@ -1187,8 +1600,19 @@ class Calibration:
             if axis_info.reversed_storage:
                 raw = raw[::-1]
 
-            # Convert to physical values
-            phys = self.int_to_physical(ap, raw)
+            if rescale_count is not None:
+                raw = raw.reshape((rescale_count, 2))   # Pair values for RES_AXIS
+
+            if raw.size == 0:
+                self._handle_empty_axis_values(
+                    ap.name,
+                    "x",
+                    axis_info.category,
+                )
+                phys = np.array([])
+            else:
+                # Convert to physical values
+                phys = self.int_to_physical(ap, raw)
         else:
             raw = np.array([])
             phys = np.array([])
@@ -1200,11 +1624,10 @@ class Calibration:
         return klasses.AxisPts(
             name=ap.name,
             comment=ap.longIdentifier,
-            category="AXIS_PTS",
+            category=axis_info.category,
             _raw=raw,
             _phys=phys,
             displayIdentifier=ap.displayIdentifier,
-            paired=False,  # Will be removed in future versions
             unit=unit,
             reversed_storage=axis_info.reversed_storage,
             is_numeric=self.is_numeric(ap.compuMethod),
@@ -1363,23 +1786,21 @@ class Calibration:
 
         # Calculate size and shape
         num_func_values = reduce(operator.mul, axes_container.shape, 1)
-        length = num_func_values * asam_type_size(fnc_datatype)
 
         # Get function values information
         fnc_values = characteristic.record_layout_components["elements"].get("fnc_values")
         address = fnc_values.address
         data_type = fnc_values.data_type
-        order = characteristic.fnc_np_order
 
         # Read the array from memory
         try:
             raw = self.image.read_asam_ndarray(
                 addr=address,
-                length=length,
+                length=num_func_values,
                 dtype=data_type,
                 byte_order=self.asam_byte_order(characteristic),
                 shape=axes_container.shape,
-                order=order,
+                index_mode=characteristic.deposit.fncValues.indexMode,
             )
         except (InvalidAddressError, ValueError, AttributeError, TypeError) as e:
             self.logger.error(f"{characteristic.name!r}: {e}")
@@ -1393,7 +1814,13 @@ class Calibration:
             # Convert to physical values
             try:
                 phys = chr_cm.int_to_physical(raw)
-            except (ValueError, TypeError, AttributeError, ZeroDivisionError) as e:
+            except (
+                ValueError,
+                TypeError,
+                AttributeError,
+                ZeroDivisionError,
+                FloatingPointError,
+            ) as e:
                 self.logger.error(f"Exception converting values for {characteristic.name!r}: {e}")
                 self.logger.error(f"COMPU_METHOD: {chr_cm.name!r} ==> {chr_cm.evaluator!r}")
                 # Create empty physical values array with same shape as raw
@@ -1401,32 +1828,8 @@ class Calibration:
                     phys = np.zeros_like(raw, dtype=float)
                 else:
                     phys = np.array([])
-        # Evaluate via dependency engine for virtual characteristics
-        if getattr(characteristic, "virtual_characteristic", None):
-            category = f"VIRTUAL_{category}"
-            cached_phys = self._virtual_store.get(characteristic_name)
-            if cached_phys is not None:
-                phys = np.asarray(cached_phys)
-            else:
-                try:
-                    entry = self.dependency_graph.entries.get(characteristic_name)
-                    if entry is not None:
-                        ev = self.dependency_engine.evaluate(entry)
-                        phys = np.asarray(ev.physical_value)
-                        self._virtual_store[characteristic_name] = phys
-                        self.logger.debug(
-                            "Virtual characteristic %r computed %s value",
-                            characteristic_name,
-                            category,
-                        )
-                except (CalibrationError, ValueError, TypeError, KeyError) as exc:
-                    self.logger.warning(
-                        "Could not evaluate virtual characteristic %r: %s",
-                        characteristic_name,
-                        exc,
-                    )
-        elif characteristic.dependent_characteristic:
-            category = f"DEPENDENT_{category}"
+        if raw.size == 0 and not getattr(characteristic, "virtual_characteristic", None):
+            self._handle_empty_characteristic_values(characteristic.name, category)
 
         # Create and return the appropriate calibration object
         return klass(
@@ -1469,16 +1872,21 @@ class Calibration:
         if characteristic is None:
             raise ValueError(f"Characteristic '{characteristic_name}' not found")
 
+        category = getattr(characteristic, "type", None)
+        num_axes_by_category = {
+            "CURVE": 1,
+            "MAP": 2,
+            "CUBOID": 3,
+            "CUBE_4": 4,
+            "CUBE_5": 5,
+        }
+        if category not in num_axes_by_category:
+            raise ValueError(f"Unsupported characteristic type for save_curve_or_map: {category}")
+        num_axes = num_axes_by_category[category]
+
         # Virtual characteristics are runtime-only — never written to image
         if getattr(characteristic, "virtual_characteristic", None):
             raise VirtualWriteError(f"Cannot write to virtual characteristic '{characteristic_name}'")
-
-        # Determine category and number of axes from the characteristic definition
-        category = characteristic.type
-        axes_map = {"CURVE": 1, "MAP": 2, "CUBOID": 3, "CUBE_4": 4, "CUBE_5": 5}
-        num_axes = axes_map.get(category)
-        if num_axes is None:
-            raise ValueError(f"Unsupported characteristic type: {category}")
 
         # Read-only handling
         if getattr(characteristic, "readOnly", False):
@@ -1548,7 +1956,7 @@ class Calibration:
                 array=int_values,
                 dtype=fnc_values.data_type,
                 byte_order=self.asam_byte_order(characteristic),
-                order=characteristic.fnc_np_order,
+                index_mode=characteristic.deposit.fncValues.indexMode,
             )
         except InvalidAddressError as exc:
             return self._address_error_status(characteristic.name, exc)
@@ -2194,30 +2602,6 @@ class OnlineCalibration(Calibration):
     Extends the base ``Calibration`` with transparent ECU synchronisation:
     every ``save_*`` call writes to the local memory image **and** pushes
     the modified bytes to the ECU via XCP.
-
-    Parameters
-    ----------
-    asam_mc
-        An ``AsamMC`` instance (or any object with ``session``,
-        ``mod_common``, ``mod_par``, ``logger`` attributes).
-    xcp_master
-        Active pyXCP ``Master`` connected to the ECU.
-    image
-        Optional pre-built memory ``Image``.  When *None* (default),
-        all calibration parameters are uploaded from the ECU automatically.
-    auto_flush : bool
-        If *True* (default), each ``save_*`` call pushes the changed
-        bytes to the ECU immediately.  Set to *False* and call
-        :meth:`flush` or :meth:`update` manually for batch writes.
-    loglevel : str
-        Logging level for the calibration logger.
-
-    Examples
-    --------
-    >>> from asamint.api import OnlineCalibration
-    >>> cal = OnlineCalibration(asam_mc, xcp_master)
-    >>> val = cal.load_value("MyParam")
-    >>> cal.save_value("MyParam", val.phys * 2)   # writes to image + ECU
     """
 
     __slots__ = ("xcp_master", "_dirty_regions", "_auto_flush")
@@ -2247,10 +2631,6 @@ class OnlineCalibration(Calibration):
                 ctx.logger.debug("Skipping join_sections(): %s", exc)
 
         super().__init__(ctx, image, ParameterCache(), ctx.logger)
-
-    # ------------------------------------------------------------------
-    # Save overrides — mark dirty + optional auto-flush
-    # ------------------------------------------------------------------
 
     def save_value(
         self,
@@ -2312,10 +2692,6 @@ class OnlineCalibration(Calibration):
                 self.flush()
         return status
 
-    # ------------------------------------------------------------------
-    # Recalculation override — batch flushes during dependency chain
-    # ------------------------------------------------------------------
-
     def _trigger_recalculation(self, characteristic_name: str) -> None:
         """Suppress auto-flush during dependency chain; caller flushes."""
         saved = self._auto_flush
@@ -2325,20 +2701,13 @@ class OnlineCalibration(Calibration):
         finally:
             self._auto_flush = saved
 
-    # ------------------------------------------------------------------
-    # Dirty-region tracking + XCP flush
-    # ------------------------------------------------------------------
-
     def _mark_dirty_characteristic(self, name: str) -> None:
-        """Record a characteristic's full memory footprint as dirty.
-
-        Virtual characteristics are runtime-only and have no ECU address,
-        so they are silently skipped.
-        """
+        """Record a characteristic's full memory footprint as dirty."""
         try:
             char = self.get_characteristic(name, None, False)
-            if char is None:
+            if char is None or char.virtual_characteristic:
                 return
+            self._dirty_regions.append((char.address, char.total_allocated_memory))
             if char.virtual_characteristic:
                 return
             self._dirty_regions.append((char.address, char.total_allocated_memory))
@@ -2346,15 +2715,7 @@ class OnlineCalibration(Calibration):
             pass
 
     def flush(self) -> int:
-        """Push all dirty memory regions to the ECU.
-
-        Merges overlapping regions for efficient transfer.
-
-        Returns
-        -------
-        int
-            Total number of bytes written to the ECU.
-        """
+        """Push all dirty memory regions to the ECU."""
         if not self._dirty_regions:
             return 0
 
@@ -2378,15 +2739,8 @@ class OnlineCalibration(Calibration):
         """Push all pending changes to the ECU (alias for :meth:`flush`)."""
         self.flush()
 
-    # ------------------------------------------------------------------
-    # Bulk transfer
-    # ------------------------------------------------------------------
-
     def upload_image(self) -> Image:
-        """Re-upload all calibration parameters from the ECU.
-
-        Replaces the local image and clears all caches.
-        """
+        """Re-upload all calibration parameters from the ECU."""
         self.image = _upload_parameters_xcp(self.session, self.xcp_master, self.logger)
         if hasattr(self.image, "join_sections"):
             try:
@@ -2401,13 +2755,7 @@ class OnlineCalibration(Calibration):
         return self.image
 
     def download_image(self) -> int:
-        """Push the entire local memory image to the ECU.
-
-        Returns
-        -------
-        int
-            Total number of bytes written.
-        """
+        """Push the entire local memory image to the ECU."""
         total = 0
         for section in self.image.sections:
             data = bytes(section.data)
@@ -2526,6 +2874,27 @@ class _CalibrationContext:
     mod_common: Any
     mod_par: Any
     logger: logging.Logger
+    empty_axis_policy: str
+
+
+def _resolve_empty_axis_policy(a2l_db: Any) -> str:
+    candidates = [
+        getattr(a2l_db, "empty_axis_policy", None),
+        getattr(
+            getattr(a2l_db, "general_config", None),
+            "empty_axis_policy",
+            None,
+        ),
+        getattr(
+            getattr(getattr(a2l_db, "config", None), "general", None),
+            "empty_axis_policy",
+            None,
+        ),
+    ]
+    for candidate in candidates:
+        if isinstance(candidate, str) and candidate:
+            return candidate
+    return "warn"
 
 
 def _build_calibration_context(a2l_db: Any, loglevel: str) -> _CalibrationContext:
@@ -2544,7 +2913,14 @@ def _build_calibration_context(a2l_db: Any, loglevel: str) -> _CalibrationContex
     if not isinstance(level, int):
         level = logging.INFO
     logger = getattr(a2l_db, "logger", None) or configure_logging(name="asamint.calibration.offline", level=level)
-    return _CalibrationContext(session=session, mod_common=mod_common, mod_par=mod_par, logger=logger)
+    empty_axis_policy = _resolve_empty_axis_policy(a2l_db)
+    return _CalibrationContext(
+        session=session,
+        mod_common=mod_common,
+        mod_par=mod_par,
+        logger=logger,
+        empty_axis_policy=empty_axis_policy,
+    )
 
 
 class OfflineCalibration(Calibration):
