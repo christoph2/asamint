@@ -1,10 +1,14 @@
 #!/usr/bin/env python
-""" """
+"""ASAMint — Simplified AUTOSAR-Toolkit for Python.
+
+Top-level package.  For fine-grained convenience functions import from
+:mod:`asamint.api` instead.
+"""
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020-2025 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2020-2026 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -29,7 +33,9 @@ from rich.console import Console
 from rich.traceback import install as tb_install
 
 from asamint.asam import AsamMC
-from asamint.calibration.api import Calibration, ExecutionPolicy, OfflineCalibration, OnlineCalibration, ParameterCache, Status
+from asamint.calibration.api import (Calibration, ExecutionPolicy,
+                                     OfflineCalibration, OnlineCalibration,
+                                     ParameterCache, Status)
 
 pretty.install()
 
