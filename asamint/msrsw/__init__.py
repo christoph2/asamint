@@ -1,10 +1,17 @@
 #!/usr/bin/env python
-""" """
+"""ASAM MSR-SW XML mixin for building CDF/DCM/MDX XML documents.
+
+Provides ``MSRMixIn``, a cooperative mixin that adds XML scaffolding methods
+(header generation, 1-D array serialisation, SDG elements, DTD validation)
+required by the various ASAM XML export formats (CDF20, DCM, …).
+"""
+
+from __future__ import annotations
 
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2021-2024 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2021-2026 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -28,108 +35,182 @@ __copyright__ = """
 __author__ = """Christoph Schueler"""
 __email__ = "cpu12.gems@googlemail.com"
 
-from pprint import pprint
+import logging
+from collections.abc import Sequence
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
-import numpy as np
 from lxml import etree  # nosec
 
+if TYPE_CHECKING:
+    import numpy as np
+
 from asamint.adapters.a2l import model
-from asamint.utils import slicer
 from asamint.utils.xml import create_elem
+
+__all__ = ["MSRMixIn"]
 
 
 class MSRMixIn:
-    """ """
+    """Cooperative mixin that provides ASAM MSR-SW XML generation helpers.
 
-    DOCTYPE = None
-    DTD = None
-    EXTENSION = None
+    Subclasses (e.g. ``CDFCreator``, ``MDXCreator``) must also inherit from
+    a class that supplies ``logger``, ``query``, ``generate_filename`` and
+    ``sub_dir`` (typically :class:`~asamint.calibration.CalibrationData`).
+    """
 
-    def __init__(self, *args, **kws) -> None:
-        self.sub_trees = {}
+    DOCTYPE: str | None = None
+    DTD: str | None = None
+    EXTENSION: str | None = None
+
+    # Populated by subclass or __init__; declared here for type-checkers.
+    sub_trees: dict[str, etree._Element]
+    root: etree._Element
+    logger: logging.Logger
+
+    def __init__(self, *args: Any, **kws: Any) -> None:
+        self.sub_trees: dict[str, etree._Element] = {}
         super().__init__(*args, **kws)
 
-    def write_tree(self, file_name) -> None:
-        """ """
-        # print("validating...", file_name)
-        # self.validate()
-        file_name = self.generate_filename(self.EXTENSION)
-        file_name = self.sub_dir("parameters") / file_name
-        self.logger.info(f"Saving tree to {file_name}")
-        with open(file_name, "wb") as of:
-            of.write(
-                etree.tostring(
-                    self.root,
-                    encoding="UTF-8",
-                    pretty_print=True,
-                    xml_declaration=True,
-                    doctype=self.DOCTYPE,
-                )
+    # ------------------------------------------------------------------
+    # Serialisation
+    # ------------------------------------------------------------------
+
+    def write_tree(self, file_name: str | None = None) -> None:
+        """Serialise the XML tree to disk.
+
+        Args:
+            file_name: **Deprecated** – ignored.  The filename is derived
+                from :meth:`generate_filename` and :meth:`sub_dir`.
+        """
+        if file_name is not None:
+            import warnings
+
+            warnings.warn(
+                "The 'file_name' parameter of write_tree() is ignored and "
+                "will be removed in a future version.",
+                DeprecationWarning,
+                stacklevel=2,
             )
+        resolved_name: str = self.generate_filename(self.EXTENSION)
+        output_path: Path = self.sub_dir("parameters") / resolved_name
+        self.logger.info("Saving tree to %s", output_path)
+        xml_bytes = etree.tostring(
+            self.root,
+            encoding="UTF-8",
+            pretty_print=True,
+            xml_declaration=True,
+            doctype=self.DOCTYPE,
+        )
+        output_path.write_bytes(xml_bytes)
 
-    def validate(self) -> None:
-        """ """
+    # ------------------------------------------------------------------
+    # Validation
+    # ------------------------------------------------------------------
+
+    def validate(self) -> bool:
+        """Validate the current XML tree against the configured DTD.
+
+        Returns:
+            ``True`` if valid, ``False`` otherwise.  Validation errors are
+            written to the logger at *error* level.
+        """
+        if self.DTD is None:
+            self.logger.warning("No DTD configured – skipping validation.")
+            return True
         dtd = etree.DTD(self.DTD)
-        if not dtd.validate(self.root):
-            pprint(dtd.error_log)
+        if dtd.validate(self.root):
+            return True
+        for error in dtd.error_log.filter_from_errors():
+            self.logger.error("DTD validation error: %s", error)
+        return False
 
-    def output_1darray(self, elem, name=None, values=None, numeric=True, paired=False) -> None:
-        """ """
+    # ------------------------------------------------------------------
+    # Array / element helpers
+    # ------------------------------------------------------------------
+
+    def output_1darray(
+        self,
+        elem: etree._Element,
+        name: str | None = None,
+        values: np.ndarray | Sequence[Any] | None = None,
+        numeric: bool = True,
+    ) -> None:
+        """Write a one-dimensional value array into the XML tree.
+
+        Args:
+            elem: Parent XML element.
+            name: Optional child-element name wrapping the values.
+            values: Array-like of values to write.
+            numeric: If ``True`` use ``<V>`` tags, otherwise ``<VT>``.
+        """
         if values is None:
             values = []
-        if name:
-            cont = create_elem(elem, name)
-        else:
-            cont = elem
-        if numeric:
-            tag = "V"
-        else:
-            tag = "VT"
-        if paired:
-            if isinstance(values, np.ndarray):
-                parts = np.split(values, values.size // 2)
-            else:
-                parts = slicer(values, 2)
-            for part in parts:
+        cont: etree._Element = create_elem(elem, name) if name else elem
+        tag: str = "V" if numeric else "VT"
+        is_pair: bool = hasattr(values, "ndim") and values.ndim == 2
+        if is_pair:
+            for lhs, rhs in values:
                 vg = create_elem(cont, "VG")
-                create_elem(vg, tag, text=str(part[0]))
-                create_elem(vg, tag, text=str(part[1]))
+                create_elem(vg, tag, text=str(lhs))
+                create_elem(vg, tag, text=str(rhs))
         else:
             for value in values:
                 create_elem(cont, tag, text=str(value))
 
-    def sdg(self, parent, name, *elements) -> None:
-        """Create a Special Data Group.
+    def sdg(self, parent: etree._Element, name: str, *elements: tuple[str, str]) -> None:
+        """Create a Special Data Group (SDG) element.
 
-        Parameters
-        ----------
-        parent: `etree.Element`
-
-        name: str
-            Name of SDG
-
-        elements: list of tuples (tag, text)
+        Args:
+            parent: Parent XML element.
+            name: GID attribute value for the SDG.
+            elements: Sequence of ``(tag, text)`` tuples; each becomes an
+                ``<SD GID="tag">text</SD>`` child.
         """
-        sdg = create_elem(parent, "SDG", attrib={"GID": name})
+        sdg_elem: etree._Element = create_elem(parent, "SDG", attrib={"GID": name})
         for tag, text in elements:
-            create_elem(sdg, "SD", text=text, attrib={"GID": tag})
+            create_elem(sdg_elem, "SD", text=text, attrib={"GID": tag})
 
     @staticmethod
-    def common_elements(elem, short_name, long_name=None, category=None) -> None:
-        """ """
+    def common_elements(
+        elem: etree._Element,
+        short_name: str,
+        long_name: str | None = None,
+        category: str | None = None,
+    ) -> None:
+        """Append common MSRSW child elements (SHORT-NAME, LONG-NAME, CATEGORY).
+
+        Args:
+            elem: Parent XML element.
+            short_name: Value for ``<SHORT-NAME>``.
+            long_name: Optional value for ``<LONG-NAME>``.
+            category: Optional value for ``<CATEGORY>``.
+        """
         create_elem(elem, "SHORT-NAME", short_name)
         if long_name:
             create_elem(elem, "LONG-NAME", long_name)
         if category:
             create_elem(elem, "CATEGORY", category)
 
-    def msrsw_header(self, category, suffix) -> etree._Element:
-        """ """
-        proj = self.query(model.Project).first()
-        project_name = proj.name
-        project_comment = proj.longIdentifier
+    # ------------------------------------------------------------------
+    # Header
+    # ------------------------------------------------------------------
 
-        root = etree.Element("MSRSW")
+    def msrsw_header(self, category: str, suffix: str) -> etree._Element:
+        """Build the top-level ``<MSRSW>`` / ``<SW-SYSTEM>`` scaffold.
+
+        Args:
+            category: CDF category string (e.g. ``"CDF20"``).
+            suffix: Suffix appended to the project short-name.
+
+        Returns:
+            Root ``<MSRSW>`` element.
+        """
+        proj = self.query(model.Project).first()
+        project_name: str = proj.name
+        project_comment: str = proj.longIdentifier
+
+        root: etree._Element = etree.Element("MSRSW")
         create_elem(root, "SHORT-NAME", text=f"{project_name}_{suffix}")
         create_elem(root, "CATEGORY", category)
         sw_systems = create_elem(root, "SW-SYSTEMS")
