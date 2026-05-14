@@ -25,6 +25,7 @@ from asamint.calibration.msrsw_db import (
     SymbolicFile,
     UnitDisplayName,
 )
+from asamint.core.exceptions import CalibrationError
 from asamint.model.calibration import klasses
 
 from .cdf_importer import CDFImporter, import_cdf_to_db
@@ -161,7 +162,7 @@ class DBImporter:
 
         try:
             self.hdf_db.import_map_curve(value)
-        except (AttributeError, ValueError, KeyError) as e:
+        except (AttributeError, ValueError, KeyError, CalibrationError) as e:
             self.logger.error(f"map_curve({value.name}): {e} value: {value}")
         return inst
 
