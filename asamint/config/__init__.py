@@ -64,6 +64,11 @@ class General(Configurable):
         default_value="MDF",
         help="Default output format for measurements.",
     ).tag(config=True)
+    empty_axis_policy = Enum(
+        values=["warn", "ignore", "error"],
+        default_value="warn",
+        help="How to handle empty axis arrays (warn, ignore, error).",
+    ).tag(config=True)
     experiments = List(
         trait=Unicode(),
         default_value=[],
@@ -419,6 +424,7 @@ def snapshot_general_config(app: Asamint) -> GeneralConfig:
         master_hexfile_type=getattr(general, "master_hexfile_type", "ihex"),
         mdf_version=getattr(general, "mdf_version", "4.20"),
         output_format=getattr(general, "output_format", "MDF"),
+        empty_axis_policy=getattr(general, "empty_axis_policy", "warn"),
         experiments=list(getattr(general, "experiments", []) or []),
     )
 
