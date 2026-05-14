@@ -531,6 +531,7 @@ class CalibrationData:
         img = Image(sections=sections, join=False)
 
         page_label = self._format_page_label(selected_pages)
+        ext = "hex" if file_type == "ihex" else "srec"
         file_name = self.asam_mc.sub_dir("hexfiles") / f"CalRAM{current_timestamp()}_P{page_label}.{ext}"
         with file_name.open("wb") as outf:
             dump(file_type, outf, img, row_length=32)

@@ -347,7 +347,7 @@ class Calibration:
         policy = self._get_empty_axis_policy()
         if policy == "ignore":
             return
-        message = f"Axis points '{axis_owner}' {axis_label}-axis " f"({axis_category}) returned no values."
+        message = f"Axis points '{axis_owner}' {axis_label}-axis ({axis_category}) returned no values."
         if policy == "warn":
             self.logger.warning(message)
             return
@@ -1262,13 +1262,22 @@ class Calibration:
         # Restore internal ASAM dimension order for write_asam_ndarray
         int_vals = self.physical_to_int(characteristic, phys_vals)
         int_vals = np.squeeze(int_vals.transpose()).reshape(characteristic.fnc_np_shape)
+        index_mode = getattr(getattr(characteristic, "deposit", None), "fncValues", SimpleNamespace(indexMode=None)).indexMode
+        order = getattr(characteristic, "fnc_np_order", "C")
+        if order == "F":
+            index_mode = "COLUMN_DIR"
+        elif order == "C":
+            index_mode = "ROW_DIR"
+        else:
+            index_mode = None
+
         try:
             self.image.write_asam_ndarray(
-                addr=characteristic.address,
-                array=int_vals,
-                dtype=characteristic.fnc_asam_dtype,
-                byte_order=self.asam_byte_order(characteristic),
-                index_mode=characteristic.deposit.fncValues.indexMode,
+                characteristic.address,
+                int_vals,
+                characteristic.fnc_asam_dtype,
+                self.asam_byte_order(characteristic),
+                index_mode,
             )
         except InvalidAddressError as exc:
             return self._address_error_status(characteristic.name, exc)
@@ -1600,9 +1609,6 @@ class Calibration:
             if axis_info.reversed_storage:
                 raw = raw[::-1]
 
-            if rescale_count is not None:
-                raw = raw.reshape((rescale_count, 2))   # Pair values for RES_AXIS
-
             if raw.size == 0:
                 self._handle_empty_axis_values(
                     ap.name,
@@ -1610,9 +1616,13 @@ class Calibration:
                     axis_info.category,
                 )
                 phys = np.array([])
+            elif rescale_count is not None:
+                raw_to_phys = raw.reshape((rescale_count, 2))
+                phys = self.int_to_physical(ap, raw_to_phys)
+                phys = phys.flatten()
             else:
-                # Convert to physical values
-                phys = self.int_to_physical(ap, raw)
+                raw_to_phys = raw
+                phys = self.int_to_physical(ap, raw_to_phys)
         else:
             raw = np.array([])
             phys = np.array([])
@@ -1950,13 +1960,22 @@ class Calibration:
         elements = characteristic.record_layout_components.get("elements")
         fnc_values = elements.get("fnc_values")
         address = fnc_values.address
+
+        order = getattr(characteristic, "fnc_np_order", "F")
+        if order == "F":
+            index_mode = "COLUMN_DIR"
+        elif order == "C":
+            index_mode = "ROW_DIR"
+        else:
+            index_mode = None
+
         try:
             self.image.write_asam_ndarray(
-                addr=address,
-                array=int_values,
-                dtype=fnc_values.data_type,
-                byte_order=self.asam_byte_order(characteristic),
-                index_mode=characteristic.deposit.fncValues.indexMode,
+                address,
+                int_values,
+                fnc_values.data_type,
+                self.asam_byte_order(characteristic),
+                index_mode,
             )
         except InvalidAddressError as exc:
             return self._address_error_status(characteristic.name, exc)
@@ -2142,7 +2161,12 @@ class Calibration:
             Physical values
         """
         cm = self.get_compu_method(characteristic)
-        return cm.int_to_physical(int_values)
+        try:
+            return cm.int_to_physical(int_values)
+        except Exception as exc:
+            name = getattr(characteristic, "name", "<unnamed>")
+            self.logger.warning(f"int_to_physical failed for {name!r}: {exc}")
+            return np.asarray(int_values).astype(np.float64)
 
     def physical_to_int(
         self,
@@ -2159,7 +2183,11 @@ class Calibration:
             Internal values with the appropriate data type
         """
         cm = self.get_compu_method(characteristic)
-        value = cm.physical_to_int(physical_values)
+        name = getattr(characteristic, "name", "<unnamed>")
+        try:
+            value = cm.physical_to_int(physical_values)
+        except Exception as exc:
+            raise CalibrationError(f"physical_to_int failed for {name!r}: {exc}") from exc
         source_values = np.asarray(value)
         target_dtype = np.dtype(characteristic.fnc_np_dtype)
         cast_values = source_values.astype(target_dtype)
@@ -2343,7 +2371,14 @@ class Calibration:
 
     def asam_byte_order(self, obj: Union[AxisPts, Characteristic]) -> str:
         """Get the canonical ASAM byte-order name for an A2L element."""
-        return core.byte_order(obj, getattr(self, "mod_common", None))
+        try:
+            from asamint import core
+            return core.byte_order(obj, getattr(self, "mod_common", None))
+        except (AttributeError, TypeError, ImportError):
+            bo = getattr(obj, "byteOrder", "MSB_LAST")
+            if bo is None:
+                return "MSB_LAST"
+            return bo
 
     def update_record_layout(  # noqa: C901
         self, obj: Union[AxisPts, Characteristic]
@@ -2706,9 +2741,6 @@ class OnlineCalibration(Calibration):
         try:
             char = self.get_characteristic(name, None, False)
             if char is None or char.virtual_characteristic:
-                return
-            self._dirty_regions.append((char.address, char.total_allocated_memory))
-            if char.virtual_characteristic:
                 return
             self._dirty_regions.append((char.address, char.total_allocated_memory))
         except (ValueError, AttributeError):

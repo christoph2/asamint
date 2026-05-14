@@ -585,7 +585,7 @@ def test_save_value_block_uses_asam_ndarray_writer() -> None:
     assert call_name == "write_asam_ndarray"
     assert call_args[0] == 0x3000
     assert np.array_equal(call_args[1], np.array([1, 2, 3], dtype=np.uint16))
-    assert call_args[2:] == ("UWORD", "MSB_LAST", "C")
+    assert call_args[2:] == ("UWORD", "MSB_LAST", "ROW_DIR")
     assert call_kwargs == {}
 
 
@@ -704,7 +704,7 @@ def test_save_curve_or_map_uses_asam_ndarray_writer() -> None:
     assert call_name == "write_asam_ndarray"
     assert call_args[0] == 0x4000
     assert np.array_equal(call_args[1], np.array([10, 20], dtype=np.uint16))
-    assert call_args[2:] == ("UWORD", "BIG_ENDIAN", "F")
+    assert call_args[2:] == ("UWORD", "BIG_ENDIAN", "COLUMN_DIR")
     assert call_kwargs == {}
 
 
