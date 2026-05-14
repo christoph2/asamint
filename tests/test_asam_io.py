@@ -18,6 +18,7 @@ from asamint.calibration.api import (
     Status,
 )
 from asamint.core import byte_order as resolve_byte_order
+from asamint.core.exceptions import CalibrationError
 from asamint.core.logging import configure_logging
 
 
@@ -191,6 +192,29 @@ def _make_axis_pts(
                     elements=elements,
                     data_type="SWORD",
                     reversed_storage=False,
+                )
+            }
+        },
+    )
+
+
+def _make_empty_axis_pts(category: str = "COM_AXIS") -> SimpleNamespace:
+    return SimpleNamespace(
+        name="AXIS_PTS_CHAR",
+        longIdentifier="Axis points",
+        displayIdentifier="DI_AXIS_PTS_CHAR",
+        compuMethod=SimpleNamespace(
+            conversionType="LINEAR",
+            refUnit="rpm",
+        ),
+        record_layout_components={
+            "axes": {
+                "x": SimpleNamespace(
+                    category=category,
+                    elements={"axis_pts": SimpleNamespace(address=0x5000)},
+                    reversed_storage=False,
+                    actual_element_count=0,
+                    maximum_element_count=0,
                 )
             }
         },
@@ -1093,3 +1117,269 @@ def test_physical_to_int_does_not_warn_on_exact_cast() -> None:
 
     assert np.array_equal(result, np.array([1, 2, 3], dtype=np.uint16))
     assert warnings == []
+
+
+def test_int_to_physical_falls_back_on_exception() -> None:
+    warnings: list[str] = []
+    calibration = _make_conversion_calibration(warnings)
+    calibration.get_compu_method = lambda characteristic: SimpleNamespace(
+        name="CM_FAIL",
+        int_to_physical=lambda value: ((_ for _ in ()).throw(FloatingPointError("divide by zero"))),
+    )
+    characteristic = SimpleNamespace(name="VALUE_CHAR")
+
+    result = Calibration.int_to_physical(
+        calibration,
+        characteristic,
+        np.array([1, 2], dtype=np.uint8),
+    )
+
+    assert np.array_equal(result, np.array([1, 2], dtype=np.float64))
+    assert any("int_to_physical failed" in warning for warning in warnings)
+
+
+def test_physical_to_int_raises_calibration_error_on_exception() -> None:
+    warnings: list[str] = []
+    calibration = _make_conversion_calibration(warnings)
+    calibration.get_compu_method = lambda characteristic: SimpleNamespace(
+        name="CM_FAIL",
+        physical_to_int=lambda value: ((_ for _ in ()).throw(FloatingPointError("divide by zero"))),
+    )
+    characteristic = SimpleNamespace(name="VALUE_CHAR", fnc_np_dtype=np.dtype("uint8"))
+
+    with pytest.raises(CalibrationError, match="physical_to_int failed"):
+        Calibration.physical_to_int(
+            calibration,
+            characteristic,
+            np.array([1.0], dtype=np.float64),
+        )
+
+    assert warnings == []
+
+
+def test_load_axis_pts_warns_on_empty_array() -> None:
+    axis_pts = _make_empty_axis_pts()
+    warnings: list[str] = []
+    calibration = Calibration.__new__(Calibration)
+    calibration.logger = SimpleNamespace(
+        warning=warnings.append,
+        info=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+    )
+    calibration.empty_axis_policy = "warn"
+    calibration.get_axis_pts = lambda name: axis_pts
+    calibration.read_axes_values = lambda ap, axis_name: {"no_axis_pts": 0}
+    calibration.read_axes_arrays = lambda ap, axis_name: {"axis_pts": np.array([], dtype=np.int16)}
+    calibration.int_to_physical = lambda current_axis_pts, raw: raw.astype(np.float64)
+    calibration.is_numeric = lambda compu_method: True
+
+    value = Calibration.load_axis_pts(calibration, "AXIS_PTS_CHAR")
+
+    assert value.raw.size == 0
+    assert value.phys.size == 0
+    assert any("returned no values" in warning for warning in warnings)
+
+
+def test_load_axis_pts_raises_on_empty_array_policy_error() -> None:
+    axis_pts = _make_empty_axis_pts()
+    calibration = Calibration.__new__(Calibration)
+    calibration.logger = configure_logging(
+        name="asamint.calibration.tests.empty_axis.error",
+        level=logging.DEBUG,
+    )
+    calibration.empty_axis_policy = "error"
+    calibration.get_axis_pts = lambda name: axis_pts
+    calibration.read_axes_values = lambda ap, axis_name: {"no_axis_pts": 0}
+    calibration.read_axes_arrays = lambda ap, axis_name: {"axis_pts": np.array([], dtype=np.int16)}
+    calibration.int_to_physical = lambda current_axis_pts, raw: raw.astype(np.float64)
+    calibration.is_numeric = lambda compu_method: True
+
+    with pytest.raises(CalibrationError, match="returned no values"):
+        Calibration.load_axis_pts(calibration, "AXIS_PTS_CHAR")
+
+
+def test_load_curve_or_map_warns_on_empty_array(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    warnings: list[str] = []
+    image = _RecordingImage()
+    image.ndarray_result = np.array([], dtype=np.uint16)
+    characteristic = SimpleNamespace(
+        type="CURVE",
+        name="CURVE_CHAR",
+        compuMethod=SimpleNamespace(name="CM_LINEAR"),
+        record_layout_components={"elements": {"fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")}},
+        fnc_np_order="C",
+        displayIdentifier="DI_CURVE_CHAR",
+        longIdentifier="Curve characteristic",
+        dependent_characteristic=False,
+        virtual_characteristic=None,
+    )
+
+    def _fake_compu_get(session: Any, name: str) -> SimpleNamespace:
+        return SimpleNamespace(
+            name=name,
+            unit="u",
+            int_to_physical=lambda values: values,
+            evaluator="linear",
+        )
+
+    monkeypatch.setattr(
+        "asamint.calibration.api.CompuMethod.get",
+        _fake_compu_get,
+    )
+
+    calibration = Calibration.__new__(Calibration)
+    calibration.image = image
+    calibration.session = SimpleNamespace()
+    calibration.logger = SimpleNamespace(
+        warning=warnings.append,
+        info=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+    )
+    calibration.empty_axis_policy = "warn"
+    calibration.get_characteristic = lambda name, category, writable: characteristic
+    calibration.get_axes = lambda current_characteristic, num_axes: AxesContainer(
+        axes=[],
+        shape=(0,),
+        flip_axes=[],
+    )
+    calibration.asam_byte_order = lambda obj: "MSB_LAST"
+    calibration.is_numeric = lambda compu_method: True
+
+    value = Calibration.load_curve_or_map(calibration, "CURVE_CHAR", "CURVE", 1)
+
+    assert value.raw.size == 0
+    assert value.phys.size == 0
+    assert any("returned no values" in warning for warning in warnings)
+
+
+def test_load_curve_or_map_raises_on_empty_array_policy_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    image = _RecordingImage()
+    image.ndarray_result = np.array([], dtype=np.uint16)
+    characteristic = SimpleNamespace(
+        type="CURVE",
+        name="CURVE_CHAR",
+        compuMethod=SimpleNamespace(name="CM_LINEAR"),
+        record_layout_components={"elements": {"fnc_values": SimpleNamespace(address=0x4000, data_type="UWORD")}},
+        fnc_np_order="C",
+        displayIdentifier="DI_CURVE_CHAR",
+        longIdentifier="Curve characteristic",
+        dependent_characteristic=False,
+        virtual_characteristic=None,
+    )
+
+    def _fake_compu_get(session: Any, name: str) -> SimpleNamespace:
+        return SimpleNamespace(
+            name=name,
+            unit="u",
+            int_to_physical=lambda values: values,
+            evaluator="linear",
+        )
+
+    monkeypatch.setattr(
+        "asamint.calibration.api.CompuMethod.get",
+        _fake_compu_get,
+    )
+
+    calibration = Calibration.__new__(Calibration)
+    calibration.image = image
+    calibration.session = SimpleNamespace()
+    calibration.logger = SimpleNamespace(
+        warning=lambda *args, **kwargs: None,
+        info=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+    )
+    calibration.empty_axis_policy = "error"
+    calibration.get_characteristic = lambda name, category, writable: characteristic
+    calibration.get_axes = lambda current_characteristic, num_axes: AxesContainer(
+        axes=[],
+        shape=(0,),
+        flip_axes=[],
+    )
+    calibration.asam_byte_order = lambda obj: "MSB_LAST"
+    calibration.is_numeric = lambda compu_method: True
+
+    with pytest.raises(CalibrationError, match="returned no values"):
+        Calibration.load_curve_or_map(calibration, "CURVE_CHAR", "CURVE", 1)
+
+
+def test_load_value_block_warns_on_empty_array() -> None:
+    warnings: list[str] = []
+    image = _RecordingImage()
+    image.ndarray_result = np.array([], dtype=np.uint16)
+    characteristic = SimpleNamespace(
+        name="VALUE_BLOCK",
+        fnc_asam_dtype="UWORD",
+        fnc_np_shape=(0,),
+        fnc_np_order="C",
+        bitMask=None,
+        displayIdentifier="DI_VALUE_BLOCK",
+        longIdentifier="Value block",
+        physUnit="",
+        compuMethod=SimpleNamespace(conversionType="LINEAR"),
+        dependent_characteristic=False,
+        virtual_characteristic=None,
+        address=0x3000,
+    )
+
+    calibration = Calibration.__new__(Calibration)
+    calibration.image = image
+    calibration.logger = SimpleNamespace(
+        warning=warnings.append,
+        info=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+    )
+    calibration.empty_axis_policy = "warn"
+    calibration.get_characteristic = lambda name, category, writable: characteristic
+    calibration.int_to_physical = lambda current_characteristic, raw: raw
+    calibration.asam_byte_order = lambda obj: "MSB_LAST"
+    calibration.is_numeric = lambda compu_method: True
+
+    value = Calibration.load_value_block(calibration, "VALUE_BLOCK")
+
+    assert value.raw.size == 0
+    assert value.phys.size == 0
+    assert any("returned no values" in warning for warning in warnings)
+
+
+def test_load_value_block_raises_on_empty_array_policy_error() -> None:
+    image = _RecordingImage()
+    image.ndarray_result = np.array([], dtype=np.uint16)
+    characteristic = SimpleNamespace(
+        name="VALUE_BLOCK",
+        fnc_asam_dtype="UWORD",
+        fnc_np_shape=(0,),
+        fnc_np_order="C",
+        bitMask=None,
+        displayIdentifier="DI_VALUE_BLOCK",
+        longIdentifier="Value block",
+        physUnit="",
+        compuMethod=SimpleNamespace(conversionType="LINEAR"),
+        dependent_characteristic=False,
+        virtual_characteristic=None,
+        address=0x3000,
+    )
+
+    calibration = Calibration.__new__(Calibration)
+    calibration.image = image
+    calibration.logger = SimpleNamespace(
+        warning=lambda *args, **kwargs: None,
+        info=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+    )
+    calibration.empty_axis_policy = "error"
+    calibration.get_characteristic = lambda name, category, writable: characteristic
+    calibration.int_to_physical = lambda current_characteristic, raw: raw
+    calibration.asam_byte_order = lambda obj: "MSB_LAST"
+    calibration.is_numeric = lambda compu_method: True
+
+    with pytest.raises(CalibrationError, match="returned no values"):
+        Calibration.load_value_block(calibration, "VALUE_BLOCK")
