@@ -30,7 +30,7 @@ from collections.abc import Iterator, Mapping
 import logging
 from typing import Any, Optional
 
-from asamint.adapters.a2l import DB, model
+from asamint.adapters.a2l import model
 
 logger = logging.getLogger(__name__)
 
@@ -128,10 +128,12 @@ def getCM(session: Any, name: str) -> Optional[Any]:
 
 
 if __name__ == "__main__":
+    import pya2l  # noqa: E402 — only used in standalone script mode
+
     _logger = logging.getLogger(__name__)
     logging.basicConfig(level=logging.DEBUG)
 
-    db = DB()
+    db = pya2l.DB()
     session = db.open_existing("ASAP2_Demo_V161")
     measurements = session.query(model.Measurement).order_by(model.Measurement.name).all()
 
