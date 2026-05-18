@@ -2,13 +2,29 @@
 ASAM Integration Package
 ========================
 
+.. image:: https://github.com/christoph2/asamint/actions/workflows/pythonapp.yml/badge.svg
+   :target: https://github.com/christoph2/asamint/actions/workflows/pythonapp.yml
+   :alt: CI Status
+
+.. image:: https://img.shields.io/pypi/v/asamint.svg
+   :target: https://pypi.org/project/asamint/
+   :alt: PyPI Version
+
+.. image:: https://img.shields.io/pypi/pyversions/asamint.svg
+   :target: https://pypi.org/project/asamint/
+   :alt: Supported Python Versions
+
+.. image:: https://codecov.io/gh/christoph2/asamint/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/christoph2/asamint
+   :alt: Code Coverage
+
 .. image:: http://img.shields.io/badge/license-GPL-blue.svg
    :target: http://opensource.org/licenses/GPL-2.0
+   :alt: License: GPL-2.0
 
 .. image:: https://img.shields.io/badge/code%20style-ruff-261230.svg
-    :target: https://github.com/astral-sh/ruff
-
-
+   :target: https://github.com/astral-sh/ruff
+   :alt: Code Style: ruff
 
 **asamint** (ASAM integration package) integrates several automotive related opensource projects.
 

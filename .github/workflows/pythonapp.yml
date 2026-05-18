@@ -45,6 +45,9 @@ jobs:
       - name: Run pre-commit hooks
         run: poetry run pre-commit run --all-files
 
+      - name: Build Sphinx documentation
+        run: poetry run sphinx-build docs/ docs/_build/html -W --keep-going
+
   # ---------------------------------------------------------------------------
   # Test matrix: Python 3.10–3.13, Ubuntu + Windows + macOS
   # ---------------------------------------------------------------------------

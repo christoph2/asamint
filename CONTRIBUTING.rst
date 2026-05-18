@@ -38,8 +38,8 @@ and "help wanted" is open to whoever wants to implement it.
 Write Documentation
 ~~~~~~~~~~~~~~~~~~~
 
-ASAM Integration Package could always use more documentation, whether as part of the
-official ASAM Integration Package docs, in docstrings, or even on the web in blog posts,
+asamint could always use more documentation, whether as part of the
+official docs, in docstrings, or even on the web in blog posts,
 articles, and such.
 
 Submit Feedback
@@ -57,88 +57,181 @@ If you are proposing a feature:
 Get Started!
 ------------
 
-Ready to contribute? Here's how to set up `asamint` for local development.
+Ready to contribute? Here's how to set up ``asamint`` for local development.
 
-1. Fork the `asamint` repo on GitHub.
+1. Fork the ``asamint`` repo on GitHub.
+
 2. Clone your fork locally::
 
     $ git clone git@github.com:your_name_here/asamint.git
 
-3. Install your local copy into a virtual environment. This is how you set up your fork for local development::
+3. Install your local copy into a virtual environment using Poetry::
 
     $ cd asamint/
     $ poetry install
 
-4. Create a branch for local development::
+   This installs all runtime **and** development dependencies (pytest, ruff,
+   mypy, bandit, sphinx, …) into an isolated virtual environment.
+
+4. Install the pre-commit hooks so they run automatically before each commit::
+
+    $ poetry run pre-commit install
+
+5. Create a branch for local development::
 
     $ git checkout -b name-of-your-bugfix-or-feature
 
    Now you can make your changes locally.
 
-5. When you're done making changes, check that your changes pass ruff and the
-   tests, including testing other Python versions with tox::
+6. When you're done making changes, run the full quality suite::
 
-    $ ruff check .
-    $ ruff format .
-    $ python setup.py test or py.test
-    $ tox
+    $ poetry run ruff check .               # lint
+    $ poetry run ruff format .              # format (auto-fix)
+    $ poetry run mypy asamint/              # type checking
+    $ poetry run bandit -r asamint/ -c bandit.yml -q   # security scan
+    $ poetry run pytest                     # tests + coverage
+    $ poetry run sphinx-build docs/ docs/_build/html -W  # docs
 
-   To get ruff and tox, just pip install them into your virtualenv.
+   You can also run all of the above via pre-commit::
 
-6. Commit your changes and push your branch to GitHub::
+    $ poetry run pre-commit run --all-files
+
+7. Commit your changes and push your branch to GitHub::
 
     $ git add .
-    $ git commit -m "Your detailed description of your changes."
+    $ git commit -m "feat: your detailed description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
 
-7. Submit a pull request through the GitHub website.
+8. Submit a pull request through the GitHub website.
 
 Pull Request Guidelines
 -----------------------
 
 Before you submit a pull request, check that it meets these guidelines:
 
-1. The pull request should include tests.
-2. If the pull request adds functionality, the docs should be updated. Put
-   your new functionality into a function with a docstring, and add the
-   feature to the list in README.rst.
-3. If you rename or remove public API names, add a deprecated alias in
-   ``asamint.api._DEPRECATED_ALIASES`` and cover it in
-   ``tests/test_api_stability.py``.
-4. The pull request should work for Python 3.10 and newer. Check
-   https://github.com/christoph2/asamint/pull_requests
-   and make sure that the tests pass for all supported Python versions.
+1. **Tests**: The pull request must include tests.  Place new test fixtures
+   under ``tests/`` and register shared fixtures in ``tests/conftest.py``
+   instead of duplicating them across test modules.
+
+2. **Documentation**: If the pull request adds public API, add a docstring
+   and update ``docs/api.rst`` or ``docs/usage.rst``.  Put new public
+   functions into a function with a complete docstring.
+
+3. **API stability**: If you rename or remove a public API symbol, add a
+   deprecated alias in ``asamint.api._DEPRECATED_ALIASES`` and cover it in
+   ``tests/test_api_stability.py`` (see lines 105–107 in this file).
+
+4. **Python versions**: The pull request must work for Python 3.10 and newer.
+   The CI matrix covers Python 3.10–3.13 on Ubuntu, Windows, and macOS.
+
+5. **Adapter boundary**: External libraries (``pya2l``, ``pyxcp``,
+   ``objutils``, ``asammdf``) must **only** be imported inside
+   ``asamint/adapters/``.  Production code and tests must use the adapter
+   re-exports (e.g. ``from asamint.adapters.a2l import inspect``).
+
+6. **No global side-effects**: Library modules must not call
+   ``sys.setrecursionlimit()``, ``logging.basicConfig()``, or similar
+   process-wide mutations at module level.
+
+7. **CI must pass**: All jobs in ``.github/workflows/pythonapp.yml`` must be
+   green — this includes ``quality`` (lint, format, mypy, bandit, pre-commit)
+   and ``test`` (pytest with coverage on all platforms).
+
+Architecture Conventions
+------------------------
+
+Adapter Layer
+~~~~~~~~~~~~~
+
+``asamint/adapters/`` is the **only** place that may import external libraries
+directly:
+
+.. code-block:: text
+
+    asamint/adapters/
+        a2l.py        ← pya2l imports
+        xcp.py        ← pyxcp imports
+        objutils.py   ← objutils imports
+        mdf.py        ← asammdf imports
+        parsers.py    ← antlr4 / parserlib imports
+
+All other modules (including tests) must import these symbols from the adapter
+modules.  Examples::
+
+    # ✅ correct
+    from asamint.adapters.a2l import inspect, model, open_a2l_database
+    from asamint.adapters.objutils import load, Image
+
+    # ❌ wrong — breaks the adapter boundary
+    import pya2l
+    from objutils import load
+
+Public API
+~~~~~~~~~~
+
+External users import everything from ``asamint.api``::
+
+    from asamint.api import Calibration, OfflineCalibration, export_to_cdf
+
+Never expose internal symbols at the top-level without routing them through
+``asamint.api`` first.
 
 Testing Strategy
 ----------------
 
-- Default commands: ``poetry run pytest`` (addopts via ``setup.cfg``), ``poetry run ruff check .``, ``poetry run ruff format .``. Legacy fallbacks: ``tox``/``flake8``/``black`` as declared.
+- Default commands::
+
+    $ poetry run pytest                               # full test suite
+    $ poetry run pytest --cov=asamint --cov-report=term-missing  # with coverage
+    $ poetry run pytest tests/test_calibration.py -v  # single module
+    $ poetry run pytest -k "test_load" --tb=short      # keyword filter
+
 - Test layers:
 
-  - **Core/unit**: ``asamint.core`` helpers and DTOs; no external I/O. Prefer fast, parametrized cases.
-  - **Adapters**: use fakes/fixtures; do not hit real hardware/network. Keep external libs behind adapter boundaries.
-  - **Calibration/measurement integration**: reuse fixtures under ``tests/*.a2l``/``*.hex``/``*.msrswdb`` and do not relocate them. Offline calibration relies on CDF20demo A2L/HEX; measurement/HDF5 uses DAQ CSV/HDF5 synthesizers.
-  - **CLI/API surface**: validate entrypoints via public ``asamint.api`` exports (e.g., ``finalize_daq_csv``, ``run``) without importing deep internals.
+  - **Core/unit** (``asamint.core``): fast, parametrized, no external I/O.
+  - **Adapter tests**: use mocks/fakes; never hit real hardware or the network.
+    External libraries stay behind the adapter boundary.
+  - **Calibration/measurement integration**: reuse fixtures under
+    ``tests/*.a2l`` / ``*.hex`` / ``*.msrswdb`` — **do not move them**.
+    Shared fixtures live in ``tests/conftest.py``;
+    use ``calibration_context``, ``hex_image``, ``cdf20demo_session``, etc.
+  - **API surface** (``tests/test_api_stability.py``): imports only from
+    ``asamint.api``; validates all ``__all__`` exports and deprecation hooks.
 
-- General rules: no network calls; prefer ``pathlib`` over ``os.path``; use project exceptions rather than bare ``Exception``; keep logs via ``asamint.core.logging.configure_logging``. When adding fixtures, place them under ``tests/`` and reference with ``Path``.
+- General rules:
+
+  * No network/hardware calls in tests.
+  * Use ``pathlib.Path``, never ``os.path``.
+  * Raise and catch project-specific exceptions from ``asamint.core.exceptions``.
+  * Log via ``asamint.core.logging.configure_logging``, never ``print()``.
 
 Tips
 ----
 
-To run a subset of tests::
+Run the full quality gate (same as CI) in a single command::
 
-$ py.test tests.test_asamint
+    $ poetry run pre-commit run --all-files
 
+Build the HTML documentation locally::
 
-Deploying
----------
+    $ poetry run sphinx-build docs/ docs/_build/html -W
 
-A reminder for the maintainers on how to deploy.
-Make sure all your changes are committed (including an entry in HISTORY.rst).
-Then run::
+Deploying (maintainers only)
+----------------------------
 
-$ bumpversion patch # possible: major / minor / patch
-$ git push
-$ git push --tags
+1. Make sure all changes are committed, including an entry in ``HISTORY.rst``.
 
-Travis will then deploy to PyPI if tests pass.
+2. Bump the version with ``bumpver``::
+
+    $ poetry run bumpver update --patch   # or --minor / --major
+
+   This updates ``pyproject.toml`` and ``asamint/version.py`` in one commit.
+
+3. Push the commit and create a tag::
+
+    $ git push
+    $ git tag v0.2.3          # use the new version
+    $ git push --tags
+
+   The CI pipeline will automatically build wheels + sdist and publish to
+   PyPI via OIDC Trusted Publisher when a version tag is pushed.

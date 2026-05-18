@@ -41,6 +41,8 @@ pretty.install()
 console = Console()
 tb_install(show_locals=True, max_frames=3)  # Install custom exception handler.
 
+from asamint.version import __version__
+
 __all__ = [
     "AsamMC",
     "Calibration",
@@ -49,6 +51,6 @@ __all__ = [
     "ParameterCache",
     "ExecutionPolicy",
     "Status",
+    "__version__",
 ]
 
-__version__ = "0.1.5"
