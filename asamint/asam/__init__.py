@@ -26,8 +26,10 @@ __copyright__ = """
 """
 __author__ = "Christoph Schueler"
 
+import bisect
 import os
 import time
+from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import IntEnum
 from pathlib import Path
@@ -56,6 +58,8 @@ from asamint.core import byte_order as core_byte_order
 from asamint.core import get_data_type
 from asamint.utils import current_timestamp
 
+from pya2l.api import inspect
+
 
 def create_xcp_master() -> Any:
     """Create an XCP master via the adapter layer."""
@@ -69,6 +73,19 @@ def create_xcp_master() -> Any:
 class Group:
     name: str
     sub_groups: list[Group] = field(default_factory=list)
+
+
+@dataclass
+class MemoryRange:
+    name: str
+    address: int
+    length: int
+    prg_type: inspect.PrgTypeSegment
+    memory_type: inspect.MemoryType
+    characteristics: list[str] = field(default_factory=list)
+
+    def __contains__(self, address) -> bool:
+        return self.address <= address < (self.address + self.length)
 
 
 class Directory:
@@ -168,21 +185,34 @@ class AsamMC:
         self.variant_coding = (
             VariantCoding.get(self.session, module_name=self.mod_par.modpar.module.name) if self.mod_par is not None else None
         )
+        self.calibration_memory_map = self.create_calibration_memory_map()
         self.directory = Directory(self.session)
         self.on_init(self.config, *args, **kws)
 
-    # -- Context-manager protocol ------------------------------------------
+    def create_calibration_memory_map(self) -> list[MemoryRange]:
+        memory_ranges = []
+        for segment in self.mod_par.memorySegments:
+            mr = MemoryRange(
+                segment.name,
+                segment.address,
+                segment.size,
+                segment.prgType,
+                segment.memoryType,
+            )
+            memory_ranges.append(mr)
 
-    def __enter__(self) -> "AsamMC":
-        return self
+        memory_ranges = sorted(memory_ranges, key=lambda k: k.address)
+        keys = [r.address for r in memory_ranges]
 
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: Any,
-    ) -> None:
-        self.close()
+        for chs in self.session.query(model.Characteristic).all():
+            idx = bisect.bisect_right(keys, chs.address)
+            if idx > 0:
+                mr = memory_ranges[idx - 1]
+                if chs.address in mr:
+                    mr.characteristics.append(chs.name)
+        for mr in memory_ranges:
+            mr.characteristics.sort()
+        return memory_ranges
 
     def __del__(self) -> None:
         self.close()

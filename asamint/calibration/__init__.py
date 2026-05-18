@@ -482,24 +482,24 @@ class CalibrationData:
             self._parameters,
             self.logger,
         )
-        # Load the hex file or get data from XCP slave (same as load_hex_file)
-        if xcp_master:
-            # Get data from XCP slave
-            self.check_epk_xcp(xcp_master)
-            self.image = self.upload_parameters(xcp_master)
-            self.logger.info("Using image from XCP slave.")
-        else:
-            # Load from hex file
-            if not hexfile:
-                # Use default from configuration
-                hexfile = Path(self.config.general.master_hexfile).absolute()
-                hexfile_type = self.config.general.master_hexfile_type
-
-            # Open and load the hex file
-            with open(f"{hexfile}", "rb") as inf:
-                self.logger.info(f"Loading characteristics from {str(hexfile)!r}.")
-                self.image = load(hexfile_type, inf)
-                self.image.join_sections()
+        # # Load the hex file or get data from XCP slave (same as load_hex_file)
+        # if xcp_master:
+        #     # Get data from XCP slave
+        #     self.check_epk_xcp(xcp_master)
+        #     self.image = self.upload_parameters(xcp_master)
+        #     self.logger.info("Using image from XCP slave.")
+        # else:
+        #     # Load from hex file
+        #     if not hexfile:
+        #         # Use default from configuration
+        #         hexfile = Path(self.config.general.master_hexfile).absolute()
+        #         hexfile_type = self.config.general.master_hexfile_type
+        #
+        #     # Open and load the hex file
+        #     with open(f"{hexfile}", "rb") as inf:
+        #         self.logger.info(f"Loading characteristics from {str(hexfile)!r}.")
+        #         self.image = load(hexfile_type, inf)
+        #         self.image.join_sections()
 
         # Validate the image
         if not self.image:
@@ -799,9 +799,18 @@ class CalibrationData:
 
                         # If the referenced curve appears after this curve, swap them
                         if ref_pos > curr_pos:
-                            curves[ins_pos], curves[ref_pos] = curves[ref_pos], curves[ins_pos]
-                            curves_by_name[curves[ins_pos].name] = (ins_pos, curves[ins_pos])
-                            curves_by_name[curves[ref_pos].name] = (ref_pos, curves[ref_pos])
+                            curves[ins_pos], curves[ref_pos] = (
+                                curves[ref_pos],
+                                curves[ins_pos],
+                            )
+                            curves_by_name[curves[ins_pos].name] = (
+                                ins_pos,
+                                curves[ins_pos],
+                            )
+                            curves_by_name[curves[ref_pos].name] = (
+                                ref_pos,
+                                curves[ref_pos],
+                            )
                             ins_pos += 1
             if ins_pos == 0:
                 break
