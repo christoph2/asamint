@@ -41,10 +41,15 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, Callable, Optional, Union, cast
 
 if TYPE_CHECKING:
-    from asamint.calibration.dependent import DependencyEngine, DependencyGraph, EvaluationResult
+    from asamint.calibration.dependent import (
+        DependencyEngine,
+        DependencyGraph,
+        EvaluationResult,
+    )
 
 import numpy as np
 
+from pya2l.api import inspect
 from asamint import core
 from asamint.adapters.a2l import (
     AxisPts,
@@ -78,7 +83,7 @@ _EMPTY_AXIS_POLICIES = {"warn", "ignore", "error"}
 sys.setrecursionlimit(2000)  # Required for pyinstrument benchmarks
 
 
-@dataclass
+@dataclass(slots=True)
 class AxesContainer:
     """Container for axis information in calibration data.
 
@@ -724,7 +729,11 @@ class Calibration:
                 try:
                     cm = self.get_compu_method(characteristic)
                     self._definition_cache[("CM", cm.name)] = cm
-                except (AttributeError, ValueError, KeyError) as exc:  # pragma: no cover - best effort
+                except (
+                    AttributeError,
+                    ValueError,
+                    KeyError,
+                ) as exc:  # pragma: no cover - best effort
                     self.logger.debug("Skipping compu preload for %s: %s", name, exc)
 
         if axis_pts:
@@ -738,7 +747,11 @@ class Calibration:
                 try:
                     cm = self.get_compu_method(axis)
                     self._definition_cache[("CM", cm.name)] = cm
-                except (AttributeError, ValueError, KeyError) as exc:  # pragma: no cover - best effort
+                except (
+                    AttributeError,
+                    ValueError,
+                    KeyError,
+                ) as exc:  # pragma: no cover - best effort
                     self.logger.debug("Skipping compu preload for axis %s: %s", name, exc)
 
     # ------------------------------------------------------------------
@@ -1156,9 +1169,24 @@ class Calibration:
                 bit_mask=characteristic.bitMask,
             )
         except (InvalidAddressError, ValueError, AttributeError) as e:
-            self.logger.error(f"{characteristic.name!r}: {e}")
-        else:
+            raw = np.zeros(shape)
             phys = self.int_to_physical(characteristic, raw)
+        else:
+            # Read the array from memory
+            try:
+                raw = self.image.read_asam_ndarray(
+                    addr=characteristic.address,
+                    length=num_func_values,
+                    dtype=characteristic.fnc_asam_dtype,
+                    byte_order=self.asam_byte_order(characteristic),
+                    shape=shape,
+                    index_mode=characteristic.deposit.fncValues.indexMode,
+                    bit_mask=characteristic.bitMask,
+                )
+            except (InvalidAddressError, ValueError, AttributeError) as e:
+                self.logger.error(f"{characteristic.name!r}: {e}")
+            else:
+                phys = self.int_to_physical(characteristic, raw)
 
         if raw.size == 0 and not getattr(characteristic, "virtual_characteristic", None):
             self._handle_empty_characteristic_values(characteristic.name, "VAL_BLK")
@@ -1263,7 +1291,11 @@ class Calibration:
         # Restore internal ASAM dimension order for write_asam_ndarray
         int_vals = self.physical_to_int(characteristic, phys_vals)
         int_vals = np.squeeze(int_vals.transpose()).reshape(characteristic.fnc_np_shape)
-        index_mode = getattr(getattr(characteristic, "deposit", None), "fncValues", SimpleNamespace(indexMode=None)).indexMode
+        index_mode = getattr(
+            getattr(characteristic, "deposit", None),
+            "fncValues",
+            SimpleNamespace(indexMode=None),
+        ).indexMode
         order = getattr(characteristic, "fnc_np_order", "C")
         if order == "F":
             index_mode = "COLUMN_DIR"
@@ -1271,6 +1303,13 @@ class Calibration:
             index_mode = "ROW_DIR"
         else:
             index_mode = None
+
+        if not self._is_in_hex_file(characteristic):
+            self.logger.debug(
+                f"{characteristic.name!r}: Address 0x{characteristic.address:08x} not in hex file (RAM or excluded). Skipping write."
+            )
+            self._trigger_recalculation(characteristic_name)
+            return Status.OK
 
         try:
             self.image.write_asam_ndarray(
@@ -1284,6 +1323,27 @@ class Calibration:
             return self._address_error_status(characteristic.name, exc)
         self._trigger_recalculation(characteristic_name)
         return Status.OK
+
+    def _is_in_hex_file(self, obj: Union[Characteristic, AxisPts]) -> bool:
+        """Check if the object's address falls into a range that is in the hex file."""
+        if not hasattr(self.asam_mc, "calibration_memory_map"):
+            return True
+
+        address = getattr(obj, "address", None)
+        if address is None:
+            return True
+
+        # Find the memory range for this address
+        for mr in self.asam_mc.calibration_memory_map:
+            if address in mr:
+                # PrgType CALIBRATION_VARIABLES and MemoryType RAM are NOT in the hex file
+                if mr.prg_type == inspect.PrgTypeSegment.CALIBRATION_VARIABLES and mr.memory_type == inspect.MemoryType.RAM:
+                    return False
+                # EXCLUDE_FROM_FLASH is NOT in the hex file
+                if mr.prg_type == inspect.PrgTypeSegment.EXCLUDE_FROM_FLASH:
+                    return False
+                break
+        return True
 
     def load_value(self, characteristic_name: str) -> klasses.Value:  # noqa: C901
         """Load a scalar value characteristic.
@@ -1306,9 +1366,16 @@ class Calibration:
         # Read raw value from image (even for virtual — serves as reference)
         raw = 0
         is_virtual = bool(getattr(characteristic, "virtual_characteristic", None))
+        in_hex = self._is_in_hex_file(characteristic)
 
+        if not in_hex:
+            self.logger.debug(
+                f"{characteristic.name!r}: Address 0x{characteristic.address:08x} not in hex file (RAM or excluded). Skipping read."
+            )
+            raw = 0
+            is_bool = (characteristic.bitMask in SINGLE_BITS) if characteristic.bitMask else False
         # Handle bit-masked values
-        if characteristic.bitMask:
+        elif characteristic.bitMask:
             try:
                 raw = self.image.read_asam_numeric(
                     characteristic.address,
@@ -1324,7 +1391,6 @@ class Calibration:
             raw >>= ffs(characteristic.bitMask)
             is_bool = characteristic.bitMask in SINGLE_BITS
         else:
-            # Read normal values
             try:
                 raw = self.image.read_asam_numeric(
                     characteristic.address,
@@ -1488,6 +1554,14 @@ class Calibration:
             phys = int(phys)
             phys <<= ffs(characteristic.bitMask)
 
+        # Check if the characteristic's address is in the hex file
+        if not self._is_in_hex_file(characteristic):
+            self.logger.debug(
+                f"{characteristic.name!r}: Address 0x{characteristic.address:08x} not in hex file (RAM or excluded). Skipping write."
+            )
+            self._trigger_recalculation(characteristic_name)
+            return Status.OK
+
         # Write to memory
         try:
             self.image.write_asam_numeric(
@@ -1575,9 +1649,19 @@ class Calibration:
         # Get the axis points definition
         ap = self.get_axis_pts(axis_pts_name)
 
+        # Check if the axis points are in the hex file
+        in_hex = self._is_in_hex_file(ap)
+
         # Read axis values and arrays
-        axis_values = self.read_axes_values(ap, "x")
-        axis_arrays = self.read_axes_arrays(ap, "x")
+        if not in_hex:
+            self.logger.debug(
+                f"Axis-points {ap.name!r}: Address 0x{ap.address:08x} not in hex file (RAM or excluded). Skipping read."
+            )
+            axis_values = {}
+            axis_arrays = {}
+        else:
+            axis_values = self.read_axes_values(ap, "x")
+            axis_arrays = self.read_axes_arrays(ap, "x")
         axes = ap.record_layout_components.get("axes")
         rescale_count = None
         axis_info = axes.get("x")
@@ -1682,6 +1766,13 @@ class Calibration:
             phys_vals = np.asarray(values.phys)
         else:
             phys_vals = np.asarray(values)
+
+        # Check if the axis points are in the hex file
+        if not self._is_in_hex_file(ap):
+            self.logger.debug(
+                f"Axis-points {ap.name!r}: Address 0x{ap.address:08x} not in hex file (RAM or excluded). Skipping write."
+            )
+            return Status.OK
 
         # Read axis values and info
         axes = ap.record_layout_components.get("axes")
@@ -1804,41 +1895,47 @@ class Calibration:
         data_type = fnc_values.data_type
 
         # Read the array from memory
-        try:
-            raw = self.image.read_asam_ndarray(
-                addr=address,
-                length=num_func_values,
-                dtype=data_type,
-                byte_order=self.asam_byte_order(characteristic),
-                shape=axes_container.shape,
-                index_mode=characteristic.deposit.fncValues.indexMode,
-            )
-        except (InvalidAddressError, ValueError, AttributeError, TypeError) as e:
-            self.logger.error(f"{characteristic.name!r}: {e}")
-            raw = np.array([])
-            phys = np.array([])
+        in_hex = self._is_in_hex_file(characteristic)
+        if not in_hex:
+            self.logger.debug(f"{characteristic.name!r}: Address 0x{address:08x} not in hex file (RAM or excluded). Skipping read.")
+            raw = np.zeros(axes_container.shape)
+            phys = chr_cm.int_to_physical(raw)
         else:
-            # Flip axes if needed
-            if axes_container.flip_axes:
-                raw = np.flip(raw, axis=axes_container.flip_axes)
-
-            # Convert to physical values
             try:
-                phys = chr_cm.int_to_physical(raw)
-            except (
-                ValueError,
-                TypeError,
-                AttributeError,
-                ZeroDivisionError,
-                FloatingPointError,
-            ) as e:
-                self.logger.error(f"Exception converting values for {characteristic.name!r}: {e}")
-                self.logger.error(f"COMPU_METHOD: {chr_cm.name!r} ==> {chr_cm.evaluator!r}")
-                # Create empty physical values array with same shape as raw
-                if raw.size > 0:
-                    phys = np.zeros_like(raw, dtype=float)
-                else:
-                    phys = np.array([])
+                raw = self.image.read_asam_ndarray(
+                    addr=address,
+                    length=num_func_values,
+                    dtype=data_type,
+                    byte_order=self.asam_byte_order(characteristic),
+                    shape=axes_container.shape,
+                    index_mode=characteristic.deposit.fncValues.indexMode,
+                )
+            except (InvalidAddressError, ValueError, AttributeError, TypeError) as e:
+                self.logger.error(f"{characteristic.name!r}: {e}")
+                raw = np.array([])
+                phys = np.array([])
+            else:
+                # Flip axes if needed
+                if axes_container.flip_axes:
+                    raw = np.flip(raw, axis=axes_container.flip_axes)
+
+                # Convert to physical values
+                try:
+                    phys = chr_cm.int_to_physical(raw)
+                except (
+                    ValueError,
+                    TypeError,
+                    AttributeError,
+                    ZeroDivisionError,
+                    FloatingPointError,
+                ) as e:
+                    self.logger.error(f"Exception converting values for {characteristic.name!r}: {e}")
+                    self.logger.error(f"COMPU_METHOD: {chr_cm.name!r} ==> {chr_cm.evaluator!r}")
+                    # Create empty physical values array with same shape as raw
+                    if raw.size > 0:
+                        phys = np.zeros_like(raw, dtype=float)
+                    else:
+                        phys = np.array([])
         if raw.size == 0 and not getattr(characteristic, "virtual_characteristic", None):
             self._handle_empty_characteristic_values(characteristic.name, category)
 
@@ -1961,6 +2058,14 @@ class Calibration:
         elements = characteristic.record_layout_components.get("elements")
         fnc_values = elements.get("fnc_values")
         address = fnc_values.address
+
+        # Check if the characteristic's address is in the hex file
+        if not self._is_in_hex_file(characteristic):
+            self.logger.debug(
+                f"{characteristic.name!r}: Address 0x{address:08x} not in hex file (RAM or excluded). Skipping write."
+            )
+            self._trigger_recalculation(characteristic_name)
+            return Status.OK
 
         order = getattr(characteristic, "fnc_np_order", "F")
         if order == "F":
@@ -2902,7 +3007,7 @@ def _merge_regions(regions: list[tuple[int, int]]) -> list[tuple[int, int]]:
     return merged
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class _CalibrationContext:
     session: Any
     mod_common: Any
