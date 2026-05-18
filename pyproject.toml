@@ -1,7 +1,7 @@
 [tool.poetry]
 
 name = "asamint"
-version = "0.1.5"
+version = "0.2.2"
 description = "Integration package for ASAM related projects"
 authors = ["Christoph Schueler <cpu12.gems@googlemail.com>"]
 license = "GPL-2.0-or-later"
@@ -174,7 +174,7 @@ archs = ["x86_64", "aarch64"]
 manylinux-x86_64-image = "manylinux_2_28"
 
 [tool.bumpver]
-current_version = "0.1.5"
+current_version = "0.2.2"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "bump version {old_version} -> {new_version}"
 commit = true
