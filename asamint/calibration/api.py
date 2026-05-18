@@ -30,7 +30,6 @@ __copyright__ = """
 
 import logging
 import operator
-import sys
 from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -49,7 +48,6 @@ if TYPE_CHECKING:
 
 import numpy as np
 
-from pya2l.api import inspect
 from asamint import core
 from asamint.adapters.a2l import (
     AxisPts,
@@ -61,6 +59,7 @@ from asamint.adapters.a2l import (
     asam_type_size,
     fix_axis_par,
     fix_axis_par_dist,
+    inspect,
     model,
 )
 from asamint.adapters.objutils import Image, InvalidAddressError, Section
@@ -79,8 +78,6 @@ BOOLEAN_MAP = {"true": 1, "false": 0}
 AXES = ("x", "y", "z", "4", "5")
 _EMPTY_AXIS_POLICIES = {"warn", "ignore", "error"}
 
-# Increase recursion limit for complex operations
-sys.setrecursionlimit(2000)  # Required for pyinstrument benchmarks
 
 
 @dataclass(slots=True)
