@@ -134,3 +134,40 @@ cython_debug/
 /asamint/data/dtds/cdf.json
 .codegpt
 .flake8
+
+# =========================
+# Dev/scratch files in source tree
+# =========================
+# Scratch scripts with hard-coded paths or ad-hoc experiments
+asamint/measurement/mdf_tester.py
+asamint/measurement/test_grp.py
+
+# Jupyter notebooks (use docs/ or a dedicated notebooks/ folder instead)
+**/*.ipynb
+!docs/**/*.ipynb
+
+# CalibrationDB debug/exploration scripts
+asamint/calibration/explan_query_plan.py
+asamint/calibration/jsonschema2sql.py
+asamint/calibration/stochi.py
+
+# Root-level leftover dev files
+/msrsw_db.py
+/Untitled.ipynb
+
+# =========================
+# Root-level binary/document clutter
+# =========================
+/*.pdf
+/*.html
+/Volvo-Binary-Format*/
+/*.png
+/*.zip
+
+# Temporary A2L parser output files
+/*.tmp
+
+# Generated database caches in project root (not in tests/)
+/*.a2ldb
+/*.msrswdb
+
