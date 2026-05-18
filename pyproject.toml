@@ -53,6 +53,9 @@ pre-commit = "^4.0.1"
 pre-commit-hooks = "^5.0.0"
 ruff = "^0.5.5"
 bumpver = "^2024.1130"
+pytest-cov = "^6.0.0"
+mypy = "^1.10.0"
+bandit = { version = "^1.7.9", extras = ["toml"] }
 
 [build-system]
 requires = ["poetry-core>=1.9.0"]
@@ -188,3 +191,34 @@ push = false
 "asamint/version.py" = [
     '__version__ = "{version}"',
 ]
+
+# ---------------------------------------------------------------------------
+# Coverage
+# ---------------------------------------------------------------------------
+
+[tool.coverage.run]
+branch = true
+source = ["asamint"]
+omit = [
+    "asamint/parsers/*",
+    "asamint/damos/parsers/*",
+    "asamint/examples/*",
+    "asamint/AUTOSAR_CP_EXP_ModelingShowCases/*",
+    "asamint/scripts/*",
+    "asamint/tests/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+    "@abstractmethod",
+    "raise NotImplementedError",
+]
+
+[tool.coverage.xml]
+output = "coverage.xml"
+

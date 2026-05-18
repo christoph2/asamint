@@ -1,6 +1,5 @@
-
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+# asamint CI — Tests, Linting, Type-Checking, Security, Coverage, Wheels
+# Dokumentation: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
 name: asamint
 
@@ -11,29 +10,80 @@ on:
     branches: [master, develop]
 
 jobs:
+  # ---------------------------------------------------------------------------
+  # Quality gate: lint + format + type-check + security
+  # ---------------------------------------------------------------------------
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Lint with ruff
+        run: poetry run ruff check .
+
+      - name: Check formatting with ruff
+        run: poetry run ruff format --check .
+
+      - name: Type check with mypy
+        run: poetry run mypy asamint/
+
+      - name: Security scan with bandit
+        run: poetry run bandit -r asamint/ -c bandit.yml -q
+
+      - name: Run pre-commit hooks
+        run: poetry run pre-commit run --all-files
+
+  # ---------------------------------------------------------------------------
+  # Test matrix: Python 3.10–3.13, Ubuntu + Windows + macOS
+  # ---------------------------------------------------------------------------
   test:
     name: Test (Python ${{ matrix.python-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    needs: [quality]
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+
       - name: Install Poetry
         run: pip install poetry
+
       - name: Install dependencies
         run: poetry install
-      - name: Lint with ruff
-        run: poetry run ruff check .
-      - name: Run tests
-        run: poetry run pytest
 
+      - name: Run tests with coverage
+        run: poetry run pytest --cov=asamint --cov-report=xml --cov-report=term-missing
+
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
+
+  # ---------------------------------------------------------------------------
+  # Wheel and source distribution builds (only on version tags)
+  # ---------------------------------------------------------------------------
   build_wheels:
     name: Build wheels on ${{ matrix.os }}
     needs: [test]
@@ -43,13 +93,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
+
       - name: Build wheel
         uses: pypa/cibuildwheel@v2.22
         env:
           CIBW_ARCHS_LINUX: x86_64
+          CIBW_TEST_COMMAND: "pytest {package}/tests -q --no-header"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -75,10 +127,20 @@ jobs:
           include-hidden-files: true
           retention-days: 1
 
+  # ---------------------------------------------------------------------------
+  # PyPI publish via OIDC Trusted Publisher (no token secret required)
+  # Configure at https://pypi.org/manage/project/asamint/settings/publishing/
+  # ---------------------------------------------------------------------------
   upload_pypi:
+    name: Publish to PyPI
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    environment:
+      name: pypi
+      url: https://pypi.org/p/asamint
+    permissions:
+      id-token: write  # required for OIDC trusted publisher
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -86,6 +148,4 @@ jobs:
           merge-multiple: true
 
       - uses: pypa/gh-action-pypi-publish@v1.13.0
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_PASSWORD }}
+        # No user/password needed — uses OIDC trusted publisher
