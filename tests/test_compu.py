@@ -5,9 +5,9 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-import pya2l.model as model
 import pytest
 
+from asamint.adapters.a2l import model
 from asamint.compu import CompuMethods, Measurement, getCM
 
 # ---------------------------------------------------------------------------

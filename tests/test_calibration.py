@@ -5,10 +5,10 @@ from types import SimpleNamespace
 
 import numpy as np
 import pytest
-from objutils import load
 
 from asamint import calibration
 from asamint.adapters.a2l import ModCommon, ModPar, open_a2l_database
+from asamint.adapters.objutils import load
 from asamint.core.logging import configure_logging
 
 FIXTURE_DIR = Path(__file__).parent

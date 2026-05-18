@@ -68,6 +68,8 @@ cover/
 # Generated databases / temp files
 # =========================
 *.a2ldb
+*.a2ldb-wal
+*.a2ldb-shm
 *.msrswdb
 A2L.tmp
 AML.tmp
