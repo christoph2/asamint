@@ -671,7 +671,8 @@ class Calibration:
                 flip_axes.append(idx)
             length = int(raw.size) if raw.size else int(getattr(axis_desc, "maxAxisPoints", 0) or 0)
             shape.append(length)
-            axes.insert(0,  # Insert at the beginning to maintain correct order since we're iterating in reverse
+            axes.insert(
+                0,  # Insert at the beginning to maintain correct order since we're iterating in reverse
                 klasses.AxisContainer(
                     name=getattr(axis_pts_ref, "name", axis_label),
                     input_quantity=input_quantity,
@@ -682,7 +683,7 @@ class Calibration:
                     reversed_storage=reversed_storage,
                     axis_pts_ref=getattr(axis_pts_ref, "name", None),
                     is_numeric=self.is_numeric(compu_method),
-                )
+                ),
             )
 
         return AxesContainer(axes=axes, shape=tuple(shape), flip_axes=flip_axes)
@@ -1151,7 +1152,7 @@ class Calibration:
                 dtype=characteristic.fnc_asam_dtype,
                 byte_order=self.asam_byte_order(characteristic),
                 shape=shape,
-                index_mode = characteristic.deposit.fncValues.indexMode,
+                index_mode=characteristic.deposit.fncValues.indexMode,
                 bit_mask=characteristic.bitMask,
             )
         except (InvalidAddressError, ValueError, AttributeError) as e:
@@ -2373,6 +2374,7 @@ class Calibration:
         """Get the canonical ASAM byte-order name for an A2L element."""
         try:
             from asamint import core
+
             return core.byte_order(obj, getattr(self, "mod_common", None))
         except (AttributeError, TypeError, ImportError):
             bo = getattr(obj, "byteOrder", "MSB_LAST")

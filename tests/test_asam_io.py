@@ -1124,7 +1124,7 @@ def test_int_to_physical_falls_back_on_exception() -> None:
     calibration = _make_conversion_calibration(warnings)
     calibration.get_compu_method = lambda characteristic: SimpleNamespace(
         name="CM_FAIL",
-        int_to_physical=lambda value: ((_ for _ in ()).throw(FloatingPointError("divide by zero"))),
+        int_to_physical=lambda value: (_ for _ in ()).throw(FloatingPointError("divide by zero")),
     )
     characteristic = SimpleNamespace(name="VALUE_CHAR")
 
@@ -1143,7 +1143,7 @@ def test_physical_to_int_raises_calibration_error_on_exception() -> None:
     calibration = _make_conversion_calibration(warnings)
     calibration.get_compu_method = lambda characteristic: SimpleNamespace(
         name="CM_FAIL",
-        physical_to_int=lambda value: ((_ for _ in ()).throw(FloatingPointError("divide by zero"))),
+        physical_to_int=lambda value: (_ for _ in ()).throw(FloatingPointError("divide by zero")),
     )
     characteristic = SimpleNamespace(name="VALUE_CHAR", fnc_np_dtype=np.dtype("uint8"))
 

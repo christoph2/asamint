@@ -124,9 +124,7 @@ def export_cdf(
     log: logging.Logger = logger or configure_logging(__name__)
     db_file = Path(db_path)
     output = Path(output_path)
-    h5_db: CalibrationDB | None = (
-        CalibrationDB(str(h5_db_path), mode="r", logger=log) if h5_db_path else None
-    )
+    h5_db: CalibrationDB | None = CalibrationDB(str(h5_db_path), mode="r", logger=log) if h5_db_path else None
     db = MSRSWDatabase(db_file)
     try:
         exporter = CDFExporter(
@@ -289,9 +287,7 @@ class DB:
                     elif "phys" in ax_items:
                         phys = np.array(ax_items["phys"])
                     else:
-                        raise KeyError(
-                            f"CURVE_AXIS {ax_name!r} has neither 'reference' nor 'phys'"
-                        )
+                        raise KeyError(f"CURVE_AXIS {ax_name!r} has neither 'reference' nor 'phys'")
                 case "FIX_AXIS" | "STD_AXIS":
                     phys = np.array(ax_items["phys"])
                 case _:
@@ -348,8 +344,7 @@ class CDFCreator(msrsw.MSRMixIn, CalibrationData):
     """
 
     DOCTYPE: str = (
-        '<!DOCTYPE MSRSW PUBLIC "-//ASAM//DTD CALIBRATION DATA FORMAT:V2.0.0'
-        ':LAI:IAI:XML:CDF200.XSD//EN" "cdf_v2.0.0.sl.dtd">'
+        '<!DOCTYPE MSRSW PUBLIC "-//ASAM//DTD CALIBRATION DATA FORMAT:V2.0.0:LAI:IAI:XML:CDF200.XSD//EN" "cdf_v2.0.0.sl.dtd">'
     )
     EXTENSION: str = ".cdfx"
 
