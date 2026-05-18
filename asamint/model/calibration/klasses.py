@@ -115,7 +115,7 @@ def dump_characteristics(chs: dict[str, dict[str, Any]]) -> bytes:
 # ---------------------------------------------------------------------------
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, slots=True)
 class CalibratedObject:
     """Base dataclass for all calibration parameter types.
 
@@ -175,7 +175,11 @@ class CalibratedObject:
             value = getattr(self, key)
             if isinstance(value, AxisContainer):
                 result[key] = asdict(value)
-            elif isinstance(value, list) and value and isinstance(value[0], AxisContainer):
+            elif (
+                isinstance(value, list)
+                and value
+                and isinstance(value[0], AxisContainer)
+            ):
                 result[key] = [asdict(v) for v in value]
             else:
                 output_key = key.lstrip("_") if key.startswith("_") else key
@@ -184,12 +188,12 @@ class CalibratedObject:
 
 
 # Vereinheitlichte Ableitungen verwenden CalibratedObject ohne redundante Felder
-@dataclass
+@dataclass(slots=True)
 class Ascii(CalibratedObject):
     """ASCII string characteristic."""
 
 
-@dataclass
+@dataclass(slots=True)
 class AxisPts(CalibratedObject):
     """Axis-points characteristic.
 
@@ -200,37 +204,37 @@ class AxisPts(CalibratedObject):
     reversed_storage: bool | None = None
 
 
-@dataclass
+@dataclass(slots=True)
 class Cube4(CalibratedObject):
     """4-dimensional cube characteristic."""
 
 
-@dataclass
+@dataclass(slots=True)
 class Cube5(CalibratedObject):
     """5-dimensional cube characteristic."""
 
 
-@dataclass
+@dataclass(slots=True)
 class Cuboid(CalibratedObject):
     """3-dimensional cuboid characteristic."""
 
 
-@dataclass
+@dataclass(slots=True)
 class Curve(CalibratedObject):
     """1-dimensional curve characteristic."""
 
 
-@dataclass
+@dataclass(slots=True)
 class Map(CalibratedObject):
     """2-dimensional map characteristic."""
 
 
-@dataclass
+@dataclass(slots=True)
 class NDimContainer(CalibratedObject):
     """Generic n-dimensional container (CURVE, MAP, CUBOID, CUBE_4, CUBE_5, VAL_BLK)."""
 
 
-@dataclass
+@dataclass(slots=True)
 class Value(CalibratedObject):
     """Scalar value characteristic."""
 
