@@ -44,6 +44,7 @@ from asamint.adapters.a2l import (
     ModPar,
     VariantCoding,
     asam_type_size,
+    inspect,
     model,
     open_a2l_database,
 )
@@ -58,7 +59,6 @@ from asamint.core import byte_order as core_byte_order
 from asamint.core import get_data_type
 from asamint.utils import current_timestamp
 
-from pya2l.api import inspect
 
 
 def create_xcp_master() -> Any:
