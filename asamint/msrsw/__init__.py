@@ -87,8 +87,7 @@ class MSRMixIn:
             import warnings
 
             warnings.warn(
-                "The 'file_name' parameter of write_tree() is ignored and "
-                "will be removed in a future version.",
+                "The 'file_name' parameter of write_tree() is ignored and will be removed in a future version.",
                 DeprecationWarning,
                 stacklevel=2,
             )

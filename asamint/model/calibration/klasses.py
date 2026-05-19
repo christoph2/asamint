@@ -107,9 +107,7 @@ def dump_characteristics(chs: dict[str, dict[str, Any]]) -> bytes:
     Returns:
         UTF-8 encoded JSON bytes.
     """
-    return json.dumps(
-        chs, cls=JSONEncoder, indent=4, separators=(",", ": "), ensure_ascii=False
-    ).encode("utf-8")
+    return json.dumps(chs, cls=JSONEncoder, indent=4, separators=(",", ": "), ensure_ascii=False).encode("utf-8")
 
 
 # ---------------------------------------------------------------------------

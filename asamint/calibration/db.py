@@ -21,16 +21,18 @@ from asamint.core.exceptions import CalibrationError
 from asamint.model.calibration import klasses
 
 #: Categories that are stored without axis sub-groups.
-_SCALAR_LIKE_CATEGORIES: frozenset[str] = frozenset({
-    "VALUE",
-    "DEPENDENT_VALUE",
-    "BOOLEAN",
-    "ASCII",
-    "TEXT",
-    "VAL_BLK",
-    "COM_AXIS",
-    "AXIS_PTS",
-})
+_SCALAR_LIKE_CATEGORIES: frozenset[str] = frozenset(
+    {
+        "VALUE",
+        "DEPENDENT_VALUE",
+        "BOOLEAN",
+        "ASCII",
+        "TEXT",
+        "VAL_BLK",
+        "COM_AXIS",
+        "AXIS_PTS",
+    }
+)
 
 #: Union of all multi-dimensional calibration object types.
 _NDimValue = klasses.Curve | klasses.Map | klasses.Cuboid | klasses.Cube4 | klasses.Cube5
@@ -51,9 +53,7 @@ class CalibrationDB:
         logger: Optional logger; falls back to a module-level logger.
     """
 
-    def __init__(
-        self, file_name: str, mode: str = "r", logger: Optional[logging.Logger] = None
-    ) -> None:
+    def __init__(self, file_name: str, mode: str = "r", logger: Optional[logging.Logger] = None) -> None:
         self.opened: bool = False
         self.logger: logging.Logger = logger or logging.getLogger(__name__)
         db_path = Path(file_name).with_suffix(".h5")
@@ -185,9 +185,7 @@ class CalibrationDB:
 
             self.logger.debug("Imported scalar value: %s", value.name)
         except (TypeError, ValueError, OSError) as exc:
-            raise CalibrationError(
-                f"Error importing scalar value {value.name!r}: {exc}"
-            ) from exc
+            raise CalibrationError(f"Error importing scalar value {value.name!r}: {exc}") from exc
 
     def import_value_block(self, value: klasses.ValueBlock) -> None:
         """Import a value block (n-dimensional array).
@@ -209,9 +207,7 @@ class CalibrationDB:
 
             self.logger.debug("Imported value block: %s", value.name)
         except (TypeError, ValueError, OSError) as exc:
-            raise CalibrationError(
-                f"Error importing value block {value.name!r}: {exc}"
-            ) from exc
+            raise CalibrationError(f"Error importing value block {value.name!r}: {exc}") from exc
 
     def import_axis_pts(self, value: klasses.AxisPts) -> None:
         """Import axis-points data.
@@ -242,9 +238,7 @@ class CalibrationDB:
 
             self.logger.debug("Imported axis points: %s", value.name)
         except (TypeError, ValueError, OSError) as exc:
-            raise CalibrationError(
-                f"Error importing axis points {value.name!r}: {exc}"
-            ) from exc
+            raise CalibrationError(f"Error importing axis points {value.name!r}: {exc}") from exc
 
     def import_map_curve(self, value: _NDimValue) -> None:
         """Import a curve, map, cuboid, or higher-dimensional cube.
@@ -278,9 +272,7 @@ class CalibrationDB:
 
             self.logger.debug("Imported %s: %s", value.category.lower(), value.name)
         except (TypeError, ValueError, OSError) as exc:
-            raise CalibrationError(
-                f"Error importing {value.category.lower()} {value.name!r}: {exc}"
-            ) from exc
+            raise CalibrationError(f"Error importing {value.category.lower()} {value.name!r}: {exc}") from exc
 
     def _import_axis(
         self,
@@ -320,7 +312,9 @@ class CalibrationDB:
             case _ as unknown:
                 self.logger.warning(
                     "%s: unknown axis category %r for axis %d – stored inline",
-                    value_name, unknown, idx,
+                    value_name,
+                    unknown,
+                    idx,
                 )
                 self._store_inline_axis(ax, axis)
 
@@ -360,20 +354,14 @@ class CalibrationDB:
             CalibrationError: If the reference is missing or invalid.
         """
         if not axis_pts_ref:
-            raise CalibrationError(
-                f"{value_name}: {axis_category} axis requires a non-empty axis_pts_ref"
-            )
+            raise CalibrationError(f"{value_name}: {axis_category} axis requires a non-empty axis_pts_ref")
         reference_path = f"/{axis_pts_ref}"
         try:
             referenced = self.db[reference_path]
         except KeyError as exc:
-            raise CalibrationError(
-                f"{value_name}: {axis_category} references missing AXIS_PTS {axis_pts_ref!r}"
-            ) from exc
+            raise CalibrationError(f"{value_name}: {axis_category} references missing AXIS_PTS {axis_pts_ref!r}") from exc
         if referenced.attrs.get("category") != "AXIS_PTS":
-            raise CalibrationError(
-                f"{value_name}: {axis_category} reference {axis_pts_ref!r} is not an AXIS_PTS entry"
-            )
+            raise CalibrationError(f"{value_name}: {axis_category} reference {axis_pts_ref!r} is not an AXIS_PTS entry")
         return reference_path
 
     # -- Load methods ------------------------------------------------------
@@ -463,9 +451,7 @@ class CalibrationDB:
                 return self._read_referenced_axis_values(axis_group, axis_category)
             if "phys" in axis_group:
                 return np.array(axis_group["phys"])
-            raise KeyError(
-                f"{axis_category} axis {axis_group.name!r} has neither 'reference' nor 'phys'"
-            )
+            raise KeyError(f"{axis_category} axis {axis_group.name!r} has neither 'reference' nor 'phys'")
         if axis_category in ("FIX_AXIS", "STD_AXIS"):
             return np.array(axis_group["phys"])
         raise TypeError(f"Unsupported axis category: {axis_category!r}")
@@ -489,22 +475,16 @@ class CalibrationDB:
         """
         reference_link = axis_group.get("reference", getlink=True)
         if not isinstance(reference_link, h5py.SoftLink):
-            raise KeyError(
-                f"{axis_category} axis {axis_group.name!r} is missing a soft-link reference"
-            )
+            raise KeyError(f"{axis_category} axis {axis_group.name!r} is missing a soft-link reference")
         reference_path: str = reference_link.path
         try:
             referenced = axis_group.file[reference_path]
         except KeyError as exc:
-            raise KeyError(
-                f"Broken {axis_category} reference {reference_path!r} for axis {axis_group.name!r}"
-            ) from exc
+            raise KeyError(f"Broken {axis_category} reference {reference_path!r} for axis {axis_group.name!r}") from exc
         try:
             return np.array(referenced["phys"])
         except KeyError as exc:
-            raise KeyError(
-                f"Referenced axis {reference_path!r} does not provide 'phys' values"
-            ) from exc
+            raise KeyError(f"Referenced axis {reference_path!r} does not provide 'phys' values") from exc
 
     def _load_axis_metadata(
         self,
@@ -556,13 +536,13 @@ class CalibrationDB:
             try:
                 return values.reshape(target_shape)
             except ValueError:
-                self.logger.error(
-                    "Cannot reshape %s from %s to %s", name, values.shape, target_shape
-                )
+                self.logger.error("Cannot reshape %s from %s to %s", name, values.shape, target_shape)
                 return np.zeros(target_shape)
         self.logger.error(
             "Size mismatch for %s: %d != %d – using zero-filled array",
-            name, values.size, int(np.prod(shape)),
+            name,
+            values.size,
+            int(np.prod(shape)),
         )
         return np.zeros(target_shape)
 
@@ -593,7 +573,8 @@ class CalibrationDB:
         except ValueError as exc:
             self.logger.error(
                 "Failed to create DataArray for %s: %s – falling back to zero-filled array",
-                name, exc,
+                name,
+                exc,
             )
             zero_values = np.zeros(tuple(shape))
             return xr.DataArray(data=zero_values, dims=dims, coords=coords, attrs=attrs, name=name)

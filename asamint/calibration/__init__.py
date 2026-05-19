@@ -85,6 +85,7 @@ class CalibrationState(IntEnum):
 # Convenience accessors
 # ---------------------------------------------------------------------------
 
+
 def dimension(obj: Any, axis: str = "X") -> int:
     """Get the dimension of a calibration object along a specific axis.
 
@@ -194,9 +195,7 @@ class CalibrationData:
         self.asam_mc = asam_mc
         self.config = asam_mc.config
         self.logger = self.config.log
-        self._parameters: dict[str, dict[str, Any]] = {
-            k: {} for k in _PARAMETER_CATEGORIES
-        }
+        self._parameters: dict[str, dict[str, Any]] = {k: {} for k in _PARAMETER_CATEGORIES}
         self.memory_map: defaultdict[int, list[MemoryObject]] = defaultdict(list)
         self.memory_errors: defaultdict[int, list[MemoryObject]] = defaultdict(list)
         self.epk = Epk(self)
@@ -287,7 +286,10 @@ class CalibrationData:
                 equal = checksum == xcp_checksum.checksum
                 self.logger.info(
                     "Address: 0x%08X XCPChecksum %s Checksum: %s ==> %s",
-                    address, xcp_checksum.checksum, checksum, equal,
+                    address,
+                    xcp_checksum.checksum,
+                    checksum,
+                    equal,
                 )
                 offset += cs_length
 
@@ -301,7 +303,10 @@ class CalibrationData:
                 equal = checksum == xcp_checksum.checksum
                 self.logger.info(
                     "Address: 0x%08X XCPChecksum %s Checksum: %s ==> %s",
-                    address, xcp_checksum.checksum, checksum, equal,
+                    address,
+                    xcp_checksum.checksum,
+                    checksum,
+                    equal,
                 )
 
     # Backward-compatible typo alias.
@@ -320,7 +325,8 @@ class CalibrationData:
 
         total_size = sum(b.length for b in blocks)
         self.logger.info(
-            "Fetching %.2f KBytes calibration data from XCP slave.", total_size / 1024,
+            "Fetching %.2f KBytes calibration data from XCP slave.",
+            total_size / 1024,
         )
 
         sections: list[Section] = []
@@ -440,7 +446,10 @@ class CalibrationData:
         """
         self.image = self._prepare_image(xcp_master, hexfile, hexfile_type)
         self.api = api.Calibration(
-            self.asam_mc, self.image, self._parameters, self.logger,
+            self.asam_mc,
+            self.image,
+            self._parameters,
+            self.logger,
         )
 
     def load_characteristics(
@@ -462,10 +471,16 @@ class CalibrationData:
             CalibrationError: If the resulting image is empty.
         """
         self.image = self._prepare_image(
-            xcp_master, hexfile, hexfile_type, join_sections=True,
+            xcp_master,
+            hexfile,
+            hexfile_type,
+            join_sections=True,
         )
         self.api = api.Calibration(
-            self.asam_mc, self.image, self._parameters, self.logger,
+            self.asam_mc,
+            self.image,
+            self._parameters,
+            self.logger,
         )
         # Load the hex file or get data from XCP slave (same as load_hex_file)
         if xcp_master:
@@ -558,11 +573,7 @@ class CalibrationData:
 
     @classmethod
     def _get_calram_segments(cls, mod_par: Any) -> list[Any]:
-        return [
-            segment
-            for segment in getattr(mod_par, "memorySegments", [])
-            if cls._is_calram_segment(segment)
-        ]
+        return [segment for segment in getattr(mod_par, "memorySegments", []) if cls._is_calram_segment(segment)]
 
     @staticmethod
     def _extract_segment_pages(segment: Any) -> list[tuple[int, list[Any]]]:
@@ -700,7 +711,7 @@ class CalibrationData:
         img = Image(sections=sections, join=True)
 
         if save_to_file:
-            file_name = f'CalParams{current_timestamp()}.{"hex" if hexfile_type == "ihex" else "srec"}'
+            file_name = f"CalParams{current_timestamp()}.{'hex' if hexfile_type == 'ihex' else 'srec'}"
             file_name = self.asam_mc.sub_dir("hexfiles") / file_name
             with open(f"{file_name}", "wb") as outf:
                 dump(hexfile_type, outf, img, row_length=32)
@@ -775,9 +786,7 @@ class CalibrationData:
             Topologically sorted list.
         """
         curves = list(curves)[::1]
-        curves_by_name: dict[str, tuple[int, Characteristic]] = {
-            c.name: (pos, c) for pos, c in enumerate(curves)
-        }
+        curves_by_name: dict[str, tuple[int, Characteristic]] = {c.name: (pos, c) for pos, c in enumerate(curves)}
 
         while True:
             ins_pos = 0
