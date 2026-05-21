@@ -15,7 +15,9 @@ class Epk:
         epk_len = len(self.asam_mc.mod_par.epk)
         return epk_addr, epk_len
 
-    def from_hexfile(self, file_name: str = "", hexfile_type: str = "") -> Optional[str]:
+    def from_hexfile(
+        self, file_name: str = "", hexfile_type: str = ""
+    ) -> Optional[str]:
         """Read EPK from given file.
 
         Parameters
@@ -53,16 +55,20 @@ class Epk:
             - None:     EPK not configured in MOD_COMMON.
         """
         res = self.epk_address_and_length()
-        if res is None:
+        if res is None or len(res) != 2:
             return None
         epk_addr, epk_len = res
-        epk_a2l = self.mod_par.epk
+        epk_a2l = self.asam_mc.mod_par.epk
         xcp_master.setMta(epk_addr)
         epk_xcp = xcp_master.pull(epk_len)
         epk_xcp = epk_xcp[:epk_len].decode("ascii")
         ok = epk_xcp == epk_a2l
         if not ok:
-            self.logger.warning(f"EPK is invalid -- A2L: '{self.mod_par.epk}' XCP: '{epk_xcp}'.")
+            self.calibration.logger.warning(
+                f"EPK is invalid -- A2L: '{self.asam_mc.mod_par.epk}' XCP: '{epk_xcp}'."
+            )
         else:
-            self.logger.info("OK, matching EPKs.")
+            self.calibration.logger.info(
+                f"OK, matching EPKs. EPK/XCP={epk_xcp!r} EPK/A2L={epk_a2l!r}"
+            )
         return ok
