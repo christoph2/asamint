@@ -60,13 +60,11 @@ from asamint.core import get_data_type
 from asamint.utils import current_timestamp
 
 
-
 def create_xcp_master() -> Any:
     """Create an XCP master via the adapter layer."""
 
     app = get_application()
-    xcp_config = app.xcp
-    return create_master(xcp_config)
+    return create_master(app.xcp)
 
 
 @dataclass

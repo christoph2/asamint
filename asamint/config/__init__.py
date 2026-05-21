@@ -34,7 +34,7 @@ from pyxcp import config as pyxcp_config
 from rich.logging import RichHandler
 from rich.prompt import Confirm
 from traitlets import Bool, Dict, Enum, List, Unicode
-from traitlets.config import Application, Configurable, Instance, default
+from traitlets.config import Application, Config, Configurable, Instance, default
 from traitlets.config.loader import PyFileConfigLoader
 
 from asamint.core.logging import configure_logging
@@ -151,7 +151,7 @@ class XCP(Configurable):
                 sys.stderr.write(f"Warning: Failed to load external pyXCP configuration: {exc}\n")
         # Now create the pyxcp config sections using the merged config
         self.general = pyxcp_config.General(config=self.config, parent=self)
-        self.transport = pyxcp_config.Transport(parent=self)
+        self.transport = pyxcp_config.Transport(config=self.config, parent=self)
 
     def _merge_external_pyxcp_config_into_self_config(self) -> None:  # noqa: C901
         """
@@ -163,6 +163,16 @@ class XCP(Configurable):
         This enables using the same pyXCP config both standalone and within asamint,
         avoiding duplication in asamint example configs.
         """
+
+        def deep_merge(target, source):
+            for k, v in source.items():
+                if isinstance(v, dict):
+                    if k not in target:
+                        target[k] = Config()
+                    deep_merge(target[k], v)
+                else:
+                    target[k] = v
+
         # Expecting parent to be the Asamint application
         parent = getattr(self, "parent", None)
         if parent is None or not hasattr(parent, "general"):
@@ -189,20 +199,24 @@ class XCP(Configurable):
         cfg = loader.load_config()
 
         # Merge sections into our Config so instances pick them up via traitlets
-        if "General" in cfg:
-            # Ensure sub-config exists
-            if not hasattr(self.config, "General"):
-                self.config.General = {}
-            for k, v in cfg["General"].items():
-                # Do not override values already provided by asamint config
-                if k not in self.config.General:
-                    self.config.General[k] = v
-        if "Transport" in cfg:
-            if not hasattr(self.config, "Transport"):
-                self.config.Transport = {}
-            for k, v in cfg["Transport"].items():
-                if k not in self.config.Transport:
-                    self.config.Transport[k] = v
+        # Note: We merge into the root of self.config because pyXCP's Configurable
+        # classes (General/Transport) expect their values there.
+        # We also merge into Asamint.XCP to keep things in sync if accessed via that path.
+        for section in ["General", "Transport"]:
+            if section in cfg:
+                # 1. Root level (for pyXCP construction)
+                if not hasattr(self.config, section):
+                    setattr(self.config, section, Config())
+                deep_merge(getattr(self.config, section), cfg[section])
+
+                # 2. Asamint.XCP level (for consistency within asamint)
+                if not hasattr(self.config, "Asamint"):
+                    self.config.Asamint = Config()
+                if not hasattr(self.config.Asamint, "XCP"):
+                    self.config.Asamint.XCP = Config()
+                if not hasattr(self.config.Asamint.XCP, section):
+                    setattr(self.config.Asamint.XCP, section, Config())
+                deep_merge(getattr(self.config.Asamint.XCP, section), cfg[section])
 
 
 class Asamint(Application):

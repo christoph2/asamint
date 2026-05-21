@@ -35,8 +35,9 @@ __copyright__ = """
 from collections import defaultdict
 from collections.abc import Generator
 from enum import IntEnum
+from functools import reduce
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from asamint.adapters.a2l import AxisPts, Characteristic, ModPar, model
 from asamint.adapters.objutils import Image, InvalidAddressError, Section, dump, load
@@ -347,6 +348,10 @@ class CalibrationData:
         return Image(sections)
 
     # -- HEX loading -------------------------------------------------------
+
+    def check_epk_xcp(self, xcp_master: Any) -> bool | None:
+        """Compare EPK from A2L with EPK from ECU."""
+        return self.epk.check_epk_xcp(xcp_master)
 
     def _prepare_image(
         self,
@@ -680,11 +685,6 @@ class CalibrationData:
 
         result: list[McObject] = []
 
-        a2l_epk = self.epk.from_a2l()
-        if a2l_epk:
-            epk, address = a2l_epk
-            result.append(McObject("EPK", address, 0, len(epk), ""))
-
         for a in self.query(model.AxisPts).order_by(model.AxisPts.address).all():
             ax = AxisPts.get(self.session, a.name)
             result.append(McObject(ax.name, ax.address, 0, ax.total_allocated_memory, ""))
@@ -699,7 +699,7 @@ class CalibrationData:
         blocks = make_continuous_blocks(result)
 
         # Calculate total size for logging
-        total_size = functools.reduce(lambda a, s: s.length + a, blocks, 0)
+        total_size = reduce(lambda a, s: s.length + a, blocks, 0)
         self.logger.info(f"Fetching a total of {total_size / 1024:.2f} KBytes from XCP slave")
 
         sections: list[Section] = []

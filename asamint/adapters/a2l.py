@@ -108,6 +108,7 @@ def _a2l_database_paths(a2l_file: str | Path, *, local: bool) -> tuple[Path, Pat
 def _open_managed(db_path: Path) -> ManagedA2LSession:
     """Wrap an existing ``.a2ldb`` file in a :class:`ManagedA2LSession`."""
     database = model.A2LDatabase(str(db_path))
+    database.session.setup_ifdata_parser()
     return ManagedA2LSession(database)
 
 
