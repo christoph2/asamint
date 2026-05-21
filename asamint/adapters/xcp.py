@@ -55,12 +55,20 @@ except ImportError:  # pragma: no cover - provide minimal fallback
 McObject = PyxcpMcObject
 
 
-def create_master(xcp_config: Any) -> Any:
+def create_master(config: Any) -> Any:
     """Instantiate a pyXCP Master using the provided configuration."""
 
     from pyxcp.master import Master
 
-    return Master(xcp_config.transport.layer, config=xcp_config)
+    if hasattr(config, "transport"):
+        layer = config.transport.layer
+    else:
+        # If it's a traitlets Config object, we need to extract the layer from the Transport section
+        layer = config.Transport.layer
+
+    mst = Master(layer, config=config)
+    mst.__enter__()
+    return mst
 
 
 def compute_checksum(block: bytes | bytearray, checksum_type: str) -> int:
