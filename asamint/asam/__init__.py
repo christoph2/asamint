@@ -91,8 +91,12 @@ class Directory:
 
     def __init__(self, session) -> None:
         self.session = session
-        self.group_by_name = {g.groupName: g for g in self.session.query(model.Group).all()}
-        self.function_by_name = {f.name: f for f in self.session.query(model.Function).all()}
+        self.group_by_name = {
+            g.groupName: g for g in self.session.query(model.Group).all()
+        }
+        self.function_by_name = {
+            f.name: f for f in self.session.query(model.Function).all()
+        }
 
     def get_group(self, name: str) -> Any:
         return self.group_by_name.get(name)
@@ -181,7 +185,9 @@ class AsamMC:
         self.mod_common = ModCommon.get(self.session)
         self.mod_par = ModPar.get(self.session) if ModPar.exists(self.session) else None
         self.variant_coding = (
-            VariantCoding.get(self.session, module_name=self.mod_par.modpar.module.name) if self.mod_par is not None else None
+            VariantCoding.get(self.session, module_name=self.mod_par.modpar.module.name)
+            if self.mod_par is not None
+            else None
         )
         self.calibration_memory_map = self.create_calibration_memory_map()
         self.directory = Directory(self.session)
@@ -259,6 +265,68 @@ class AsamMC:
                 self.xcp_master = create_xcp_master()
             self.xcp_master.connect()
             self.xcp_connected = True
+
+    def setup_paging(self) -> None:
+        """Retrieve paging geometry from both XCP (live) and A2L, merge them, and return
+        an authoritative :class:`~asamint.asam.paging.PagingGeometry`.
+
+        Comparison rules (per ASAM XCP specification):
+          - Segments are matched by **base address**.
+          - XCP values always take precedence when A2L and XCP disagree.
+          - A2L enriches the result with ``name`` and ``long_identifier``.
+          - All discrepancies are recorded as WARNING-level log messages.
+
+        Returns
+        -------
+        PagingGeometry | None:
+            Merged geometry, or ``None`` if neither XCP nor A2L data is available.
+        """
+        from asamint.asam.paging import (
+            PagingGeometry,
+            merge_paging_geometry,
+            paging_geometry_from_a2l,
+            paging_geometry_from_xcp,
+        )
+
+        if self.mod_par is None:
+            self.logger.warning("setup_paging: no MOD_PAR found in A2L — cannot determine segment geometry.")
+            return None
+
+        memory_segments = self.mod_par.memorySegments
+        if not memory_segments:
+            self.logger.warning("setup_paging: MOD_PAR contains no MEMORY_SEGMENTs.")
+            return None
+
+        a2l_geometry: PagingGeometry = paging_geometry_from_a2l(memory_segments)
+
+        if self.xcp_master is None:
+            self.logger.info("setup_paging: no XCP master available — returning A2L-only geometry.")
+            return a2l_geometry
+
+        try:
+            pag_info: dict = self.xcp_master.getPagInfo()
+        except Exception as exc:  # noqa: BLE001
+            self.logger.error("setup_paging: getPagInfo() failed (%s) — falling back to A2L geometry.", exc)
+            return a2l_geometry
+
+        xcp_geometry: PagingGeometry = paging_geometry_from_xcp(pag_info)
+        merged: PagingGeometry = merge_paging_geometry(xcp_geometry, a2l_geometry)
+
+        self.logger.info(
+            "setup_paging: merged geometry — %d segment(s), freeze_supported=%s.",
+            len(merged.segments),
+            merged.freeze_supported,
+        )
+        for seg in merged.segments:
+            self.logger.debug(
+                "  Segment[%d] %r  addr=0x%08X  length=%d  pages=%d",
+                seg.index,
+                seg.name,
+                seg.address,
+                seg.length,
+                len(seg.pages),
+            )
+        return merged
 
     def close(self) -> None:
         if getattr(self, "xcp_connected", False) and self.xcp_master:
@@ -339,7 +407,9 @@ class AsamMC:
         {"TIMESTAMPS": np.ndarray, <meas_name>: np.ndarray, ...}
         """
         if not hasattr(self, "measurement_variables") or not self.measurement_variables:
-            raise ValueError("No measurements selected - call add_measurements() or set MEASUREMENTS in config.")
+            raise ValueError(
+                "No measurements selected - call add_measurements() or set MEASUREMENTS in config."
+            )
 
         if (duration_s is None) == (samples is None):
             raise ValueError("Provide either duration_s or samples, but not both")
@@ -348,7 +418,10 @@ class AsamMC:
         meas_info: list[dict[str, Any]] = []
         for m in self.measurement_variables:
             try:
-                bo = core_byte_order(m, getattr(self, "mod_common", None)) or ByteOrder.MSB_LAST
+                bo = (
+                    core_byte_order(m, getattr(self, "mod_common", None))
+                    or ByteOrder.MSB_LAST
+                )
                 dtype = self._numpy_dtype_for_asam(m.dataType, bo)
                 nbytes = int(asam_type_size(m.dataType))
                 addr = m.address
@@ -363,7 +436,9 @@ class AsamMC:
                 }
                 meas_info.append(info)
             except (AttributeError, TypeError, ValueError, KeyError) as e:
-                self.logger.error(f"Cannot prepare measurement '{getattr(m, 'name', '?')}': {e}")
+                self.logger.error(
+                    f"Cannot prepare measurement '{getattr(m, 'name', '?')}': {e}"
+                )
 
         # Determine number of samples
         if samples is None:
