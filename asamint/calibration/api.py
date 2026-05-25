@@ -2139,11 +2139,11 @@ class Calibration:
 
                     # Determine number of axis points
                     if "fix_no_axis_pts" in axis_values:
-                        no_axis_points = axis_values.get("fix_no_axis_pts")
+                        no_axis_points = int(axis_values.get("fix_no_axis_pts") or 0)
                     elif "no_axis_pts" in axis_values:
-                        no_axis_points = axis_values.get("no_axis_pts")
+                        no_axis_points = int(axis_values.get("no_axis_pts") or 0)
                     else:
-                        no_axis_points = max_axis_points
+                        no_axis_points = int(max_axis_points or 0)
 
                     # Get and process axis values
                     raw_axis_values = axis_arrays.get("axis_pts")
@@ -2170,6 +2170,7 @@ class Calibration:
                     )
                     if not no_axis_points:
                         no_axis_points = getattr(axis_descr, "maxAxisPoints", 0)
+                    no_axis_points = int(no_axis_points or 0)
                     raw_axis_values = np.arange(no_axis_points, dtype=np.float64)
                     converted_axis_values = np.asarray(ref_obj.phys, dtype=np.float64)
                     axis_unit = None
@@ -2249,7 +2250,7 @@ class Calibration:
             )
 
         # Create and return axes container
-        return AxesContainer(axes, shape=tuple(shape), flip_axes=flipper)
+        return AxesContainer(axes, shape=tuple(int(d) for d in shape), flip_axes=flipper)
 
     def int_to_physical(self, characteristic: Union[Characteristic, AxisPts], int_values: np.ndarray) -> np.ndarray:
         """Convert ECU internal values to physical representation.
@@ -2581,10 +2582,15 @@ class Calibration:
                             value = None
                             self.logger.error(f"{obj.name!r} {ax_name}-axis: {e}")
                         else:
-                            # Update actual element count for adjustable axes
+                            # Update actual element count for adjustable axes.
+                            # Cast to int: ECU may store counts as FLOAT32_IEEE.
                             if axis_info.adjustable:
-                                if name == "no_axis_pts" or name == "no_rescale":
-                                    axis_info.actual_element_count = value
+                                if name in ("no_axis_pts", "no_rescale"):
+                                    axis_info.actual_element_count = int(value) if value is not None else value
+
+                    # Count-type fields must always be int (ECU may return float).
+                    if name in ("no_axis_pts", "no_rescale", "fix_no_axis_pts") and value is not None:
+                        value = int(value)
 
                     # Store the value in the result
                     result[ax_name][name] = value
