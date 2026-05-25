@@ -19,7 +19,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13"
 ]
-# build = "build_ext.py"
+build = "build_ext.py"
 include = [
     { path = "asamint/data/*.*", format = "wheel" },
     { path = "asamint/data/*.*", format = "sdist" },
@@ -36,8 +36,7 @@ pyxcp = "^0.29.2"
 sortedcontainers = "^2.4.0"
 lxml = ">=5.3,<7.0"
 babel = "^2.16.0"
-antlr4-python3-runtime = "^4.13.2"
-antlr4-tools = "^0.2.1"
+pybind11 = "^2.13"
 objutils = "^0.10.3"
 numexpr = "^2.10.2"
 pya2ldb = "^1.0.331"
@@ -63,7 +62,7 @@ sphinx-copybutton = "^0.5.2"
 myst-parser = "^4.0.0"
 
 [build-system]
-requires = ["poetry-core>=1.9.0"]
+requires = ["poetry-core>=1.9.0", "pybind11>=2.13", "setuptools"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
@@ -108,7 +107,6 @@ module = [
     "objutils.*",
     "pyxcp.*",
     "asammdf.*",
-    "antlr4.*",
     "traitlets.*",
     "lxml.*",
     "numexpr.*",
