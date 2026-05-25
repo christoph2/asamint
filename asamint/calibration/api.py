@@ -56,7 +56,6 @@ from asamint.adapters.a2l import (
     Formula,
     ModCommon,
     ModPar,
-    asam_type_size,
     fix_axis_par,
     fix_axis_par_dist,
     inspect,
@@ -546,12 +545,11 @@ class Calibration:
             element = axis_info.elements.get(name)
             if element is None or not max_count:
                 continue
-            count = max_count * 2 if name == "axis_rescale" else max_count
-            length = count * asam_type_size(element.data_type)
+            count = int(max_count * 2) if name == "axis_rescale" else int(max_count)
             try:
                 arrays[name] = self.image.read_asam_ndarray(
                     addr=element.address,
-                    length=length,
+                    length=count,
                     dtype=element.data_type,
                     byte_order=self.asam_byte_order(obj),
                     shape=(count,),
@@ -1151,8 +1149,8 @@ class Calibration:
         phys: np.ndarray = np.array([])
 
         # Calculate shape and size
-        shape = characteristic.fnc_np_shape
-        num_func_values = reduce(operator.mul, shape, 1)
+        shape = tuple(int(d) for d in characteristic.fnc_np_shape)
+        num_func_values = int(reduce(operator.mul, shape, 1))
 
         # Read the array from memory
         try:
@@ -1884,7 +1882,7 @@ class Calibration:
         axes_container = self.get_axes(characteristic, num_axes)
 
         # Calculate size and shape
-        num_func_values = reduce(operator.mul, axes_container.shape, 1)
+        num_func_values = int(reduce(operator.mul, (int(d) for d in axes_container.shape), 1))
 
         # Get function values information
         fnc_values = characteristic.record_layout_components["elements"].get("fnc_values")
@@ -1904,7 +1902,7 @@ class Calibration:
                     length=num_func_values,
                     dtype=data_type,
                     byte_order=self.asam_byte_order(characteristic),
-                    shape=axes_container.shape,
+                    shape=tuple(int(d) for d in axes_container.shape),
                     index_mode=characteristic.deposit.fncValues.indexMode,
                 )
             except (InvalidAddressError, ValueError, AttributeError, TypeError) as e:
@@ -2632,7 +2630,7 @@ class Calibration:
                     try:
                         values = self.image.read_asam_ndarray(
                             addr=attr.address,
-                            length=number_of_elements * asam_type_size(attr.data_type),
+                            length=int(number_of_elements),
                             dtype=attr.data_type,
                             byte_order=self.asam_byte_order(obj),
                         )
@@ -2678,7 +2676,7 @@ class Calibration:
         address = component.address
 
         # Calculate length in bytes
-        length = no_elements * asam_type_size(data_type)
+        length = int(no_elements)
 
         # Read array from memory
         np_arr = self.image.read_asam_ndarray(
@@ -2686,7 +2684,7 @@ class Calibration:
             length=length,
             dtype=data_type,
             byte_order=self.asam_byte_order(axis_pts),
-            shape=shape,
+            shape=tuple(int(d) for d in shape) if shape else None,
             order=order,
         )
 
