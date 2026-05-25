@@ -31,9 +31,7 @@ from pathlib import Path
 from typing import Any
 
 from .dcm_exporter import DcmExporter, export_to_dcm
-from .dcm_listener import Dcm20Listener
 from asamint.calibration import CalibrationData
-from asamint.parserlib import ParserWrapper
 from asamint.utils.data import read_resource_file
 from asamint.utils.templates import do_template_from_text
 
@@ -53,16 +51,16 @@ def import_dcm(source: str | Path, *, encoding: str = "latin-1") -> dict[str, An
     Returns
     -------
     dict
-        Nested dictionary with keys ``"kopf"``, ``"rumpf"``, and
-        ``"version"`` as produced by :class:`Dcm20Listener`.
+        Nested dictionary with keys ``"kopf"``, ``"rumpf"``, and ``"version"``.
     """
-    parser = ParserWrapper("dcm20", "konservierung", Dcm20Listener)
+    from asamint.damos._dcm_parser import parse_string  # noqa: PLC0415
+
     path = Path(source) if not isinstance(source, Path) else source
     if path.exists():
-        listener = parser.parseFromFile(path, encoding=encoding)
+        text = path.read_text(encoding=encoding)
     else:
-        listener = parser.parseFromString(str(source), encoding=encoding)
-    return listener.result or {}
+        text = str(source)
+    return parse_string(text) or {}
 
 
 class DCMCreator(CalibrationData):

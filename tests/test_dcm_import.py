@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 """Integration tests for DCM 2.0 import pipeline.
 
-Tests the full parsing chain: DCM text → ANTLR lexer/parser → Dcm20Listener → dict.
-Unit tests for individual exit* methods live in ``test_dcm_listener.py``.
+Tests the full parsing chain: DCM text → C++ parser → dict.
 """
 
 from __future__ import annotations
@@ -13,8 +12,6 @@ from pathlib import Path
 import pytest
 
 from asamint.damos import import_dcm
-from asamint.damos.dcm_listener import Dcm20Listener
-from asamint.parserlib import ParserWrapper
 
 EXAMPLES_DIR = Path(__file__).resolve().parent.parent / "asamint" / "examples"
 
@@ -358,37 +355,6 @@ END
         assert items[1]["gst"] is not None  # STUETZSTELLENVERTEILUNG
         assert items[2]["kl"] is not None  # KENNLINIE
         assert items[3]["kt"] is not None  # TEXTSTRING
-
-
-# ---------------------------------------------------------------------------
-# ParserWrapper.result attribute
-# ---------------------------------------------------------------------------
-
-
-class TestParserWrapperResult:
-    """Verify that ParserWrapper stores result on listener."""
-
-    def test_listener_has_result_attribute(self) -> None:
-        parser = ParserWrapper("dcm20", "konservierung", Dcm20Listener)
-        listener = parser.parseFromString("KONSERVIERUNG_FORMAT 2.0\n")
-        assert hasattr(listener, "result")
-        assert isinstance(listener.result, dict)
-        assert "version" in listener.result
-
-    def test_result_matches_tree_phys(self) -> None:
-        parser = ParserWrapper("dcm20", "konservierung", Dcm20Listener)
-        text = """\
-KONSERVIERUNG_FORMAT 2.0
-
-FESTWERT X
-  EINHEIT_W "-"
-  WERT 7.0
-END
-"""
-        listener = parser.parseFromString(text)
-        assert listener.result["version"] == 2.0
-        assert len(listener.result["rumpf"]) == 1
-        assert listener.result["rumpf"][0]["kw"]["name"] == "X"
 
 
 # ---------------------------------------------------------------------------
