@@ -25,6 +25,9 @@ include = [
     { path = "asamint/data/*.*", format = "sdist" },
     { path = "asamint/py.typed", format = "wheel" },
     { path = "asamint/py.typed", format = "sdist" },
+    { path = "CMakeLists.txt", format = "sdist" },
+    { path = "build_ext.py", format = "sdist" },
+    { path = "asamint/damos/dcm_parser.cpp", format = "sdist" },
 ]
 
 
@@ -132,6 +135,7 @@ exclude = [
     "docs",
     "dist",
     "experimental",
+    "build_ext.py",
     "asamint/parsers/*",
     "asamint/damos/parsers/*",
     "asamint/examples/*",
@@ -224,4 +228,3 @@ exclude_lines = [
 
 [tool.coverage.xml]
 output = "coverage.xml"
-
