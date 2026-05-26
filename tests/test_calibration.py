@@ -25,8 +25,6 @@ class Boolean:
         return "true" if self.value else "false"
 
     __repr__ = __str__
-    # def __repr__(self):
-    #    return f"bool({self.value})"
 
 
 def test_boolean():

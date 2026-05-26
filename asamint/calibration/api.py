@@ -32,7 +32,7 @@ import logging
 import operator
 from collections import defaultdict
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import IntEnum
 from functools import partialmethod, reduce
 from logging import Logger
@@ -1321,7 +1321,11 @@ class Calibration:
 
     def _is_in_hex_file(self, obj: Union[Characteristic, AxisPts]) -> bool:
         """Check if the object's address falls into a range that is in the hex file."""
-        if not hasattr(self.asam_mc, "calibration_memory_map"):
+        asam_mc = getattr(self, "asam_mc", None)
+        if asam_mc is None:
+            return True
+        cal_map = getattr(asam_mc, "calibration_memory_map", None)
+        if not cal_map:
             return True
 
         address = getattr(obj, "address", None)
@@ -1329,7 +1333,7 @@ class Calibration:
             return True
 
         # Find the memory range for this address
-        for mr in self.asam_mc.calibration_memory_map:
+        for mr in cal_map:
             if address in mr:
                 # PrgType CALIBRATION_VARIABLES and MemoryType RAM are NOT in the hex file
                 if mr.prg_type == inspect.PrgTypeSegment.CALIBRATION_VARIABLES and mr.memory_type == inspect.MemoryType.RAM:
@@ -1364,7 +1368,7 @@ class Calibration:
         in_hex = self._is_in_hex_file(characteristic)
 
         if not in_hex:
-            self.logger.debug(
+            self.logger.warning(
                 f"{characteristic.name!r}: Address 0x{characteristic.address:08x} not in hex file (RAM or excluded). Skipping read."
             )
             raw = 0
@@ -3015,6 +3019,7 @@ class _CalibrationContext:
     mod_par: Any
     logger: logging.Logger
     empty_axis_policy: str
+    calibration_memory_map: list[Any] = field(default_factory=list)
 
 
 def _resolve_empty_axis_policy(a2l_db: Any) -> str:
@@ -3052,14 +3057,24 @@ def _build_calibration_context(a2l_db: Any, loglevel: str) -> _CalibrationContex
     level = logging.getLevelName(loglevel) if isinstance(loglevel, str) else loglevel
     if not isinstance(level, int):
         level = logging.INFO
-    logger = getattr(a2l_db, "logger", None) or configure_logging(name="asamint.calibration.offline", level=level)
-    empty_axis_policy = _resolve_empty_axis_policy(a2l_db)
+    _candidate_logger = getattr(a2l_db, "logger", None)
+    if not isinstance(_candidate_logger, (logging.Logger, logging.LoggerAdapter)):
+        _candidate_logger = None
+    if _candidate_logger is None:
+        # Use a propagating logger so pytest caplog can capture log records.
+        _log_name = "asamint.calibration.offline"
+        _candidate_logger = logging.getLogger(_log_name)
+        _candidate_logger.setLevel(level)
+    logger = _candidate_logger    
+    empty_axis_policy = _resolve_empty_axis_policy(a2l_db)    
+    calibration_memory_map = list(getattr(a2l_db, "calibration_memory_map", []) or [])
     return _CalibrationContext(
         session=session,
         mod_common=mod_common,
         mod_par=mod_par,
         logger=logger,
         empty_axis_policy=empty_axis_policy,
+        calibration_memory_map=calibration_memory_map,
     )
 
 

@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
-from operator import itemgetter
+from operator import attrgetter, itemgetter
 
 from asamint.model.calibration.klasses import MemoryType
-
 
 MT_ABBREVS = {
     MemoryType.AXIS_PTS: "AX",
@@ -43,7 +42,7 @@ class MapFile:
 
     def memory_objects(self, mem_objs) -> None:
         prev_address = None
-        for address, objs in sorted(mem_objs.items(), key=itemgetter(0)):
+        for address, objs in sorted(mem_objs, key=attrgetter("address")):
             length = max(o.length for o in objs)
             names = ", ".join([o.name for o in objs])
             mt = MT_ABBREVS.get(objs[0].memory_type, "UNKNOWN")

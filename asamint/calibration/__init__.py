@@ -440,7 +440,8 @@ class CalibrationData:
 
         # Memory map file
         map_name = self.asam_mc.generate_filename(".map")
-        mm = MapFile(map_name, self.memory_map, self.memory_errors)
+
+        mm = MapFile(map_name, self.asam_mc.calibration_memory_map, self.memory_errors)
         mm.run()
 
     def load_hex_file(
