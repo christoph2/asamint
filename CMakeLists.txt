@@ -81,17 +81,17 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/asamint/damos)
 
-pybind11_add_module(hexfiles_ext ${CMAKE_CURRENT_SOURCE_DIR}/asamint/damos/dcm_parser.cpp)
+pybind11_add_module(_dcm_parser ${CMAKE_CURRENT_SOURCE_DIR}/asamint/damos/dcm_parser.cpp)
 
-target_compile_options(hexfiles_ext PUBLIC "-DEXTENSION_NAME=dcm_parser_ext" PUBLIC $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:MSVC>>:/utf-8>)
+target_compile_options(_dcm_parser PUBLIC "-DEXTENSION_NAME=dcm_parser_ext" PUBLIC $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:MSVC>>:/utf-8>)
 
-set(LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/asamint")
+set(LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/asamint/damos")
 
 IF (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_N_CLANG_BASE_OPTIONS} ${GCC_N_CLANG_EXTRA_OPTIONS}")
-	target_link_options(hexfiles_ext PUBLIC -flto=auto)
+	target_link_options(_dcm_parser PUBLIC -flto=auto)
 ELSEIF (CMAKE_C_COMPILER_ID MATCHES "MSVC")
 	SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${MSVC_BASE_OPTIONS} ${MSVC_EXTRA_OPTIONS}")
 ENDIF()
 
-install(TARGETS hexfiles_ext LIBRARY DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/asamint)
+install(TARGETS _dcm_parser LIBRARY DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/asamint/damos)
