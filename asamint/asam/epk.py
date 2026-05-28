@@ -6,7 +6,7 @@ from asamint.adapters.objutils import load
 class Epk:
     def __init__(self, calibration) -> None:
         self.calibration = calibration
-        self.asam_mc = calibration.asam_mc
+        self.asam_mc = calibration
 
     def epk_address_and_length(self) -> Optional[tuple[int, int]]:
         if self.asam_mc.mod_par is None or self.asam_mc.mod_par.epk is None:
@@ -15,9 +15,7 @@ class Epk:
         epk_len = len(self.asam_mc.mod_par.epk)
         return epk_addr, epk_len
 
-    def from_hexfile(
-        self, file_name: str = "", hexfile_type: str = ""
-    ) -> Optional[str]:
+    def from_hexfile(self, file_name: str = "", hexfile_type: str = "") -> Optional[str]:
         """Read EPK from given file.
 
         Parameters
@@ -64,11 +62,7 @@ class Epk:
         epk_xcp = epk_xcp[:epk_len].decode("ascii")
         ok = epk_xcp == epk_a2l
         if not ok:
-            self.calibration.logger.warning(
-                f"EPK is invalid -- A2L: '{self.asam_mc.mod_par.epk}' XCP: '{epk_xcp}'."
-            )
+            self.calibration.logger.warning(f"EPK is invalid -- A2L: '{self.asam_mc.mod_par.epk}' XCP: '{epk_xcp}'.")
         else:
-            self.calibration.logger.info(
-                f"OK, matching EPKs. EPK/XCP={epk_xcp!r} EPK/A2L={epk_a2l!r}"
-            )
+            self.calibration.logger.info(f"OK, matching EPKs. EPK/XCP={epk_xcp!r} EPK/A2L={epk_a2l!r}")
         return ok
