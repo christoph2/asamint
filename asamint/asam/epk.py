@@ -10,7 +10,10 @@ class Epk:
 
     def epk_address_and_length(self) -> Optional[tuple[int, int]]:
         if self.asam_mc.mod_par is None or self.asam_mc.mod_par.epk is None:
-            return None
+            return (
+                0,
+                0,
+            )
         epk_addr = self.asam_mc.mod_par.addrEpk[0]
         epk_len = len(self.asam_mc.mod_par.epk)
         return epk_addr, epk_len

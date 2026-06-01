@@ -24,6 +24,7 @@ class GeneralConfig:
     output_format: str = field(default="MDF")
     empty_axis_policy: str = field(default="warn")
     experiments: list[str] = field(default_factory=list)
+    filename_policies: list[dict] = field(default_factory=list)
 
 
 @dataclass(slots=True)
