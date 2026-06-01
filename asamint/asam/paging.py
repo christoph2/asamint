@@ -75,7 +75,10 @@ def _map_ecu_access(keyword: str) -> tuple[bool, bool]:
     """Map an A2L ``ECU_ACCESS_*`` keyword to ``(with_xcp, without_xcp)`` booleans."""
     result = _ECU_ACCESS_MAP.get(keyword)
     if result is None:
-        logger.warning("Unknown ECU_ACCESS keyword %r; defaulting to DONT_CARE (True, True).", keyword)
+        logger.warning(
+            "Unknown ECU_ACCESS keyword %r; defaulting to DONT_CARE (True, True).",
+            keyword,
+        )
         return (True, True)
     return result
 
@@ -84,7 +87,10 @@ def _map_xcp_read_access(keyword: str) -> tuple[bool, bool]:
     """Map an A2L ``XCP_READ_ACCESS_*`` keyword to ``(with_ecu, without_ecu)`` booleans."""
     result = _XCP_READ_MAP.get(keyword)
     if result is None:
-        logger.warning("Unknown XCP_READ_ACCESS keyword %r; defaulting to DONT_CARE (True, True).", keyword)
+        logger.warning(
+            "Unknown XCP_READ_ACCESS keyword %r; defaulting to DONT_CARE (True, True).",
+            keyword,
+        )
         return (True, True)
     return result
 
@@ -93,7 +99,10 @@ def _map_xcp_write_access(keyword: str) -> tuple[bool, bool]:
     """Map an A2L ``XCP_WRITE_ACCESS_*`` keyword to ``(with_ecu, without_ecu)`` booleans."""
     result = _XCP_WRITE_MAP.get(keyword)
     if result is None:
-        logger.warning("Unknown XCP_WRITE_ACCESS keyword %r; defaulting to DONT_CARE (True, True).", keyword)
+        logger.warning(
+            "Unknown XCP_WRITE_ACCESS keyword %r; defaulting to DONT_CARE (True, True).",
+            keyword,
+        )
         return (True, True)
     return result
 
@@ -239,8 +248,8 @@ def paging_geometry_from_xcp(pag_info: dict[str, Any]) -> PagingGeometry:
         segments.append(
             SegmentInfo(
                 index=int(seg["index"]),
-                address=int(seg["address"]),
-                length=int(seg["length"]),
+                address=seg["address"],
+                length=seg["length"],
                 address_extension=int(seg.get("addressExtension", 0)),
                 compression_method=int(seg.get("compressionMethod", 0)),
                 encryption_method=int(seg.get("encryptionMethod", 0)),
@@ -337,7 +346,9 @@ def paging_geometry_from_a2l(memory_segments: list[Any]) -> PagingGeometry:
         comp_method = int(seg_data[2])
         enc_method = int(seg_data[3])
         max_mapping = int(seg_data[4])
-        detail: dict[str, Any] = seg_data[5] if len(seg_data) > 5 and isinstance(seg_data[5], dict) else {}
+        detail: dict[str, Any] = (
+            seg_data[5] if len(seg_data) > 5 and isinstance(seg_data[5], dict) else {}
+        )
 
         pages: list[PageInfo] = []
         for pg in detail.get("PAGE", []):
@@ -456,7 +467,9 @@ def _compare_segment_pages(xcp_seg: SegmentInfo, a2l_seg: SegmentInfo) -> None:
                 xcp_page.index,
             )
             continue
-        _compare_page_properties(xcp_seg.index, xcp_page.index, xcp_page.properties, a2l_page.properties)
+        _compare_page_properties(
+            xcp_seg.index, xcp_page.index, xcp_page.properties, a2l_page.properties
+        )
 
     xcp_page_indices: set[int] = {p.index for p in xcp_seg.pages}
     for a2l_page in a2l_seg.pages:
@@ -515,12 +528,12 @@ def merge_paging_geometry(
     merged_segments: list[SegmentInfo] = []
 
     for xcp_seg in xcp.segments:
-        a2l_seg = a2l_by_address.get(xcp_seg.address)
+        a2l_seg = None
+        if xcp_seg.address is not None:
+            a2l_seg = a2l_by_address.get(xcp_seg.address)
         if a2l_seg is None:
             logger.warning(
-                "Segment idx=%d (addr=0x%08X) exists in XCP but not in A2L; using XCP data as-is.",
-                xcp_seg.index,
-                xcp_seg.address,
+                f"Segment idx={xcp_seg.index} exists in XCP but not in A2L; using XCP data as-is."
             )
             merged_segments.append(xcp_seg)
             continue
@@ -541,7 +554,7 @@ def merge_paging_geometry(
             encryption_method=xcp_seg.encryption_method,
             max_pages=xcp_seg.max_pages,
             max_mapping=xcp_seg.max_mapping,
-            pages=xcp_seg.pages,   # incl. initSegment flags not present in A2L
+            pages=xcp_seg.pages,  # incl. initSegment flags not present in A2L
             name=a2l_seg.name,
             long_identifier=a2l_seg.long_identifier,
         )
@@ -561,4 +574,3 @@ def merge_paging_geometry(
         freeze_supported=xcp.freeze_supported,
         segments=merged_segments,
     )
-
