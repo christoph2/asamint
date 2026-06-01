@@ -31,9 +31,7 @@ class MapFile:
             during the calibration scan.
     """
 
-    def __init__(
-        self, session, filename: Union[str, Path], memory_map: list, memory_errors: dict
-    ) -> None:
+    def __init__(self, session, filename: Union[str, Path], memory_map: list, memory_errors: dict) -> None:
         self.session = session
         self.memory_map = memory_map
         self.memory_errors = memory_errors
@@ -79,9 +77,7 @@ class MapFile:
     # ------------------------------------------------------------------
 
     def _segment_header(self) -> None:
-        self._writeln(
-            f"{'Segment':<30s}  {'Address':>12s}  {'Length (bytes)':>14s}  {'PrgType':<28s}  {'MemType':<12s}"
-        )
+        self._writeln(f"{'Segment':<30s}  {'Address':>12s}  {'Length (bytes)':>14s}  {'PrgType':<28s}  {'MemType':<12s}")
         self._separator()
 
     def _allocated_objects(self) -> None:
@@ -91,9 +87,7 @@ class MapFile:
             # Print gap between segments
             if prev_end is not None and mr.address > prev_end:
                 gap = mr.address - prev_end
-                self._writeln(
-                    f"    {'<gap>':<28s}  {'':>9s}  {gap:>14d}  {'':28s}  {'':<12s}"
-                )
+                self._writeln(f"    {'<gap>':<28s}  {'':>9s}  {gap:>14d}  {'':28s}  {'':<12s}")
 
             # Segment line
             self._writeln(
@@ -104,6 +98,10 @@ class MapFile:
             if mr.characteristics:
                 for char_name in mr.characteristics:
                     chs = inspect.Characteristic.get(self.session, char_name)
+                    if chs is None:
+                        # self.logger.warning("Characteristic %s not found", chs.name)
+                        print(f"Characteristic {char_name!r} not found")
+                        continue
                     size = chs.total_allocated_memory
                     entries.append((char_name, chs.address, size, chs.type))
 
@@ -115,9 +113,7 @@ class MapFile:
                     entries.append((ax_name, ax.address, size, "AXIS_PTS"))
             entries.sort(key=lambda x: x[1])
             for name, address, size, category in entries:
-                self._writeln(
-                    f"    {name:<63s}  0x{address:010X}  {size:>8d}  {category}"
-                )
+                self._writeln(f"    {name:<63s}  0x{address:010X}  {size:>8d}  {category}")
 
             prev_end = mr.address + mr.length
 
@@ -132,9 +128,7 @@ class MapFile:
             self._writeln("  <no errors>")
             return
 
-        self._writeln(
-            f"  {'Parameter':<50s}  {'Address':>12s}  {'Length':>8s}  {'Type':<6s}"
-        )
+        self._writeln(f"  {'Parameter':<50s}  {'Address':>12s}  {'Length':>8s}  {'Type':<6s}")
         self._separator("-")
 
         prev_address: int | None = None
