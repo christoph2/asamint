@@ -195,7 +195,7 @@ def normalize_asam_byte_order(value: Any) -> str | None:
         # Strip the "BYTE_ORDER_" prefix emitted by the A2L parser for PROTOCOL_LAYER entries,
         # e.g. "BYTE_ORDER_MSB_LAST" → "MSB_LAST".
         if key.startswith("BYTE_ORDER_"):
-            key = key[len("BYTE_ORDER_"):]
+            key = key[len("BYTE_ORDER_") :]
         key = ASAM_BYTEORDER_ALIASES.get(key, key)
         if key in _ASAM_BYTEORDER_BASES:
             return key

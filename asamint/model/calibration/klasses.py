@@ -175,11 +175,7 @@ class CalibratedObject:
             value = getattr(self, key)
             if isinstance(value, AxisContainer):
                 result[key] = asdict(value)
-            elif (
-                isinstance(value, list)
-                and value
-                and isinstance(value[0], AxisContainer)
-            ):
+            elif isinstance(value, list) and value and isinstance(value[0], AxisContainer):
                 result[key] = [asdict(v) for v in value]
             else:
                 output_key = key.lstrip("_") if key.startswith("_") else key

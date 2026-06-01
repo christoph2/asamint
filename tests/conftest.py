@@ -125,4 +125,3 @@ def hex_image() -> Any:
     :class:`~asamint.calibration.api.OfflineCalibration`.
     """
     return load("ihex", str(FIXTURE_DIR / "CDF20demo.hex"))
-
