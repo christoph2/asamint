@@ -34,6 +34,7 @@ __copyright__ = """
 
 from collections import defaultdict
 from collections.abc import Generator
+from dataclasses import dataclass
 from enum import IntEnum
 from functools import reduce
 from pathlib import Path
@@ -41,7 +42,18 @@ from typing import Any, Optional
 
 from asamint.adapters.a2l import AxisPts, Characteristic, ModPar, model
 from asamint.adapters.objutils import Image, InvalidAddressError, Section, dump, load
-from asamint.adapters.xcp import McObject, compute_checksum, make_continuous_blocks
+from asamint.adapters.xcp import (
+    CAL_PAGE_MODE_ALL,
+    CAL_PAGE_MODE_ECU,
+    CAL_PAGE_MODE_XCP,
+    McObject,
+    PagePropertiesInfo,
+    XcpCalibration,
+    XcpPage,
+    XcpSegment,
+    compute_checksum,
+    make_continuous_blocks,
+)
 from asamint.asam import AsamMC
 from asamint.calibration import api
 from asamint.calibration.api import (
@@ -58,7 +70,8 @@ from asamint.calibration.mapfile import MapFile
 from asamint.core.exceptions import CalibrationError
 from asamint.model.calibration import klasses
 from asamint.model.calibration.klasses import MemoryObject, MemoryType
-from asamint.utils import adjust_to_word_boundary, current_timestamp
+from asamint.utils import adjust_to_word_boundary, current_timestamp, flatten
+from pya2l.api.inspect import PrgTypeSegment, MemoryType, SegmentAttributeType
 
 
 class CalibrationState(IntEnum):
@@ -174,6 +187,79 @@ _PARAMETER_CATEGORIES: tuple[str, ...] = (
     "CUBE_4",
     "CUBE_5",
 )
+
+
+# ---------------------------------------------------------------------------
+# A2L page-access helpers
+# ---------------------------------------------------------------------------
+
+
+def _a2l_access_to_flags(access_str: Any) -> tuple[bool, bool]:
+    """Convert an A2L page-access string to ``(with_counterpart, without_counterpart)`` flags.
+
+    A2L uses tokens such as ``ECU_ACCESS_DONT_CARE``, ``XCP_WRITE_ACCESS_WITH_ECU_ONLY``
+    and ``XCP_READ_ACCESS_NOT_ALLOWED``.  This function maps them to the two boolean fields
+    used by :class:`~asamint.adapters.xcp.PagePropertiesInfo`.
+
+    Args:
+        access_str: Raw A2L access token (case-insensitive).
+
+    Returns:
+        Tuple ``(with_counterpart, without_counterpart)`` suitable for a
+        :class:`~asamint.adapters.xcp.PagePropertiesInfo` pair of fields.
+    """
+    token = str(access_str).upper()
+    if "NOT_ALLOWED" in token:
+        return False, False
+    if "WITHOUT" in token:
+        return False, True
+    if "WITH_" in token:  # WITH_ECU_ONLY / WITH_XCP_ONLY (but not WITHOUT)
+        return True, False
+    # DONT_CARE or unrecognised → allow both
+    return True, True
+
+
+def page_properties_from_a2l(
+    ecu_access: Any,
+    xcp_read: Any,
+    xcp_write: Any,
+) -> PagePropertiesInfo:
+    """Build a :class:`~asamint.adapters.xcp.PagePropertiesInfo` from A2L IF_DATA access tokens.
+
+    Args:
+        ecu_access: A2L ``ECU_ACCESS_*`` token (e.g. ``"ECU_ACCESS_DONT_CARE"``).
+        xcp_read:   A2L ``XCP_READ_ACCESS_*`` token.
+        xcp_write:  A2L ``XCP_WRITE_ACCESS_*`` token.
+
+    Returns:
+        :class:`~asamint.adapters.xcp.PagePropertiesInfo` with all six boolean flags set.
+    """
+    ecu_with, ecu_without = _a2l_access_to_flags(ecu_access)
+    read_with, read_without = _a2l_access_to_flags(xcp_read)
+    write_with, write_without = _a2l_access_to_flags(xcp_write)
+    return PagePropertiesInfo(
+        ecu_access_with_xcp=ecu_with,
+        ecu_access_without_xcp=ecu_without,
+        xcp_read_access_with_ecu=read_with,
+        xcp_read_access_without_ecu=read_without,
+        xcp_write_access_with_ecu=write_with,
+        xcp_write_access_without_ecu=write_without,
+    )
+
+
+@dataclass(slots=True)
+class A2lPageEntry:
+    """Structured representation of a single PAGE entry from A2L IF_DATA/XCP/SEGMENT/PAGE.
+
+    Attributes:
+        logical_segment: XCP logical segment number (address extension of the SEGMENT block).
+        page_number:     XCP page number within the segment.
+        properties:      Decoded access-flag flags as :class:`~asamint.adapters.xcp.PagePropertiesInfo`.
+    """
+
+    logical_segment: int
+    page_number: int
+    properties: PagePropertiesInfo
 
 
 class CalibrationData:
@@ -528,7 +614,7 @@ class CalibrationData:
         for segment in calram_segments:
             logical_segment, page = self._select_cal_page(segment, prefer_write=True)
             selected_pages.append(page)
-            xcp_master.setCalPage(0x83, logical_segment, page)
+            xcp_master.setCalPage(0x03, logical_segment, page)
             xcp_master.setMta(segment.address)
             mem = xcp_master.pull(segment.size)
             sections.append(Section(start_address=segment.address, data=mem))
@@ -566,46 +652,160 @@ class CalibrationData:
         return [segment for segment in getattr(mod_par, "memorySegments", []) if cls._is_calram_segment(segment)]
 
     @staticmethod
-    def _extract_segment_pages(segment: Any) -> list[tuple[int, list[Any]]]:
-        """Parse IF_DATA/XCP/SEGMENT/PAGE entries from a segment."""
+    def _extract_segment_pages(segment: Any) -> list[A2lPageEntry]:
+        """Parse ``IF_DATA/XCP/SEGMENT/PAGE`` entries from an A2L memory segment.
+
+        Handles two formats:
+
+        * **pya2l model format** – ``segment.if_data`` carries a ``.flatmap`` attribute.
+        * **Plain list/dict format** – used by unit tests and raw IF_DATA structures.
+
+        Args:
+            segment: A2L memory segment object (real pya2l model or test stub).
+
+        Returns:
+            List of :class:`A2lPageEntry` objects, one per PAGE definition.
+        """
         if_data = getattr(segment, "if_data", None) or []
-        result: list[tuple[int, list[Any]]] = []
-        for section in if_data:
-            if not isinstance(section, dict):
+
+        if hasattr(if_data, "flatmap"):
+            return CalibrationData._entries_from_flatmap(if_data)
+
+        if isinstance(if_data, list):
+            return CalibrationData._entries_from_dict(if_data)
+
+        return []
+
+    @staticmethod
+    def _entries_from_flatmap(if_data: Any) -> list[A2lPageEntry]:
+        """Build :class:`A2lPageEntry` list from a pya2l ORM flatmap object.
+
+        The pya2l flatmap ``PAGE`` value is a list-of-lists where each inner entry
+        has the form ``(logical_segment, page_num, ecu_access, xcp_read[, xcp_write])``.
+        """
+        entries: list[A2lPageEntry] = []
+        raw_segment: list[Any] = if_data.flatmap.get("SEGMENT") or []
+        raw_pages: list[Any] = if_data.flatmap.get("PAGE") or []
+        if not raw_segment or not raw_pages:
+            return entries
+        segment = raw_segment[0]
+        logical_seg = segment[0] if len(segment) > 0 else 0
+        for raw in raw_pages[0]:
+            if not isinstance(raw, (list, tuple)) or len(raw) < 4:
                 continue
-            for xcp_section in section.get("XCP", []):
-                segment_data = xcp_section.get("SEGMENT")
-                if not isinstance(segment_data, list) or len(segment_data) < 6:
+            # logical_seg = 0
+            page_num, ecu_acc, xcp_r, xcp_w = raw[:4]
+            # logical_seg = int(raw[0])
+            page_num = int(raw[0])
+            ecu_acc = raw[1]
+            xcp_r = raw[2]
+            xcp_w = raw[3]
+            entries.append(
+                A2lPageEntry(
+                    logical_segment=logical_seg,
+                    page_number=page_num,
+                    properties=page_properties_from_a2l(ecu_acc, xcp_r, xcp_w),
+                )
+            )
+        return entries
+
+    @staticmethod
+    def _entries_from_dict(if_data: list[Any]) -> list[A2lPageEntry]:
+        """Build :class:`A2lPageEntry` list from a plain list/dict IF_DATA structure.
+
+        Expected structure::
+
+            [{"XCP": [{"SEGMENT": [seg_num, addr_ext, ..., {"PAGE": [...]}]}]}]
+        """
+        entries: list[A2lPageEntry] = []
+        for item in if_data:
+            if not isinstance(item, dict):
+                continue
+            for xcp_block in item.get("XCP") or []:
+                if not isinstance(xcp_block, dict):
                     continue
-                logical_segment = segment_data[1]
-                page_section = segment_data[5]
-                if not isinstance(page_section, dict):
-                    continue
-                for page_entry in page_section.get("PAGE", []):
-                    if isinstance(page_entry, list) and page_entry:
-                        result.append((int(logical_segment), page_entry))
-        return result
+                entries.extend(CalibrationData._entries_from_segment_block(xcp_block))
+        return entries
+
+    @staticmethod
+    def _entries_from_segment_block(xcp_block: dict[str, Any]) -> list[A2lPageEntry]:
+        """Parse one ``SEGMENT`` block within an XCP IF_DATA dict."""
+        entries: list[A2lPageEntry] = []
+        seg_data = xcp_block.get("SEGMENT")
+        if not isinstance(seg_data, (list, tuple)) or len(seg_data) < 2:
+            return entries
+        # SEGMENT layout: [seg_number, address_extension, compress, encrypt, max_map, {"PAGE": [...]}]
+        logical_seg = int(seg_data[1])
+        for part in seg_data:
+            if not isinstance(part, dict) or "PAGE" not in part:
+                continue
+            for page_entry in part["PAGE"]:
+                entry = CalibrationData._parse_page_entry(logical_seg, page_entry)
+                if entry is not None:
+                    entries.append(entry)
+        return entries
+
+    @staticmethod
+    def _parse_page_entry(logical_seg: int, page_entry: Any) -> A2lPageEntry | None:
+        """Convert a raw PAGE list ``[num, ecu, xcp_read, xcp_write]`` to :class:`A2lPageEntry`."""
+        if not isinstance(page_entry, (list, tuple)) or not page_entry:
+            return None
+        page_num = int(page_entry[0])
+        ecu_acc = page_entry[1] if len(page_entry) > 1 else "ECU_ACCESS_DONT_CARE"
+        xcp_r = page_entry[2] if len(page_entry) > 2 else "XCP_READ_ACCESS_DONT_CARE"
+        xcp_w = page_entry[3] if len(page_entry) > 3 else "XCP_WRITE_ACCESS_DONT_CARE"
+        return A2lPageEntry(
+            logical_segment=logical_seg,
+            page_number=page_num,
+            properties=page_properties_from_a2l(ecu_acc, xcp_r, xcp_w),
+        )
 
     @staticmethod
     def _page_access_allowed(access: Any) -> bool:
-        """Check whether a page access flag permits the operation."""
+        """Check whether a raw A2L page-access flag string permits the operation.
+
+        .. deprecated::
+            Prefer :func:`page_properties_from_a2l` and the
+            :class:`~asamint.adapters.xcp.PagePropertiesInfo` helper properties.
+        """
         return "NOT_ALLOWED" not in str(access)
 
     @classmethod
     def _select_cal_page(cls, segment: Any, *, prefer_write: bool) -> tuple[int, int]:
-        """Choose the best calibration page from a segment."""
+        """Choose the best calibration page from an A2L memory segment.
+
+        Selection priority (when *prefer_write* is ``True``):
+
+        1. First page whose :attr:`~asamint.adapters.xcp.PagePropertiesInfo.xcp_write_access`
+           is ``True``.
+        2. First page whose :attr:`~asamint.adapters.xcp.PagePropertiesInfo.xcp_read_access`
+           is ``True``.
+        3. The first page defined in the segment (fallback).
+
+        When *prefer_write* is ``False``, step 1 is skipped.
+
+        Args:
+            segment:      A2L memory segment object.
+            prefer_write: If ``True``, prefer a page that allows XCP write access.
+
+        Returns:
+            ``(logical_segment, page_number)`` tuple for use with ``SET_CAL_PAGE``.
+        """
         pages = cls._extract_segment_pages(segment)
         if not pages:
             return 0, 0
+
         if prefer_write:
-            for logical_segment, page_entry in pages:
-                if len(page_entry) > 3 and cls._page_access_allowed(page_entry[3]):
-                    return logical_segment, int(page_entry[0])
-        for logical_segment, page_entry in pages:
-            if len(page_entry) > 2 and cls._page_access_allowed(page_entry[2]):
-                return logical_segment, int(page_entry[0])
-        logical_segment, page_entry = pages[0]
-        return logical_segment, int(page_entry[0])
+            for entry in pages:
+                if entry.properties.xcp_write_access:
+                    return entry.logical_segment, entry.page_number
+
+        for entry in pages:
+            if entry.properties.xcp_read_access:
+                return entry.logical_segment, entry.page_number
+
+        first = pages[0]
+        return first.logical_segment, first.page_number
 
     @staticmethod
     def _format_page_label(selected_pages: list[int]) -> str:
@@ -614,6 +814,87 @@ class CalibrationData:
             return "0"
         unique_pages = list(dict.fromkeys(selected_pages))
         return "-".join(str(p) for p in unique_pages)
+
+    def create_xcp_calibration(self, xcp_master: Any) -> Any:
+        """Create an XCP :class:`~pyxcp.master.calibration.Calibration` paging manager.
+
+        The returned object provides a high-level interface for segment/page
+        management (``set_page``, ``get_page``, ``copy_page``, ``set_freeze_mode``,
+        ``save_all``, …) backed by the pyXCP ``Calibration`` class.
+
+        The manager is **pre-populated** from the A2L IF_DATA SEGMENT/PAGE
+        definitions so that access-flag validation (via
+        :class:`~asamint.adapters.xcp.PagePropertiesInfo`) works even before a
+        live ``refresh()`` call against the ECU.  If you want up-to-date ECU
+        state, call ``manager.refresh()`` afterwards.
+
+        Args:
+            xcp_master: A connected pyXCP ``Master`` instance.
+
+        Returns:
+            A :class:`~pyxcp.master.calibration.Calibration` instance seeded with
+            A2L segment data.  Returns ``None`` when the installed pyxcp version
+            does not provide the ``Calibration`` class.
+
+        Example::
+
+            with create_master(config) as master:
+                cal = calibration_data.create_xcp_calibration(master)
+                cal.set_xcp_page(segment=0, page=1)
+                # …work on the RAM page…
+                cal.save_all()
+        """
+        if XcpCalibration is None or XcpPage is None or XcpSegment is None:
+            self.logger.warning(
+                "XcpCalibration is not available in the installed pyxcp version; upgrade pyxcp to use the full paging API."
+            )
+            return None
+
+        cal: Any = XcpCalibration(xcp_master)
+
+        mod_par = getattr(self.asam_mc, "mod_par", None)
+        if mod_par is None:
+            return cal
+
+        for segment in getattr(mod_par, "memorySegments", []):
+            page_entries = self._extract_segment_pages(segment)
+            if not page_entries:
+                continue
+
+            logical_seg = page_entries[0].logical_segment
+
+            xcp_pages: dict[int, Any] = {
+                entry.page_number: XcpPage(
+                    segment_number=logical_seg,
+                    page_number=entry.page_number,
+                    properties=entry.properties,
+                )
+                for entry in page_entries
+            }
+
+            xcp_segment: Any = XcpSegment(
+                number=logical_seg,
+                max_pages=len(xcp_pages),
+                address_extension=logical_seg,
+                max_mapping=0,
+                compression_method=0,
+                encryption_method=0,
+                pages=xcp_pages,
+                address=getattr(segment, "address", None),
+                length=getattr(segment, "size", None),
+            )
+            cal.segments[logical_seg] = xcp_segment
+            self.logger.debug(
+                "A2L segment → XCP segment %d: %d page(s) pre-loaded from IF_DATA.",
+                logical_seg,
+                len(xcp_pages),
+            )
+
+        if cal.segments:
+            cal.max_segments = len(cal.segments)
+            cal._initialized = True
+
+        return cal
 
     def download_calram(
         self,
@@ -649,6 +930,22 @@ class CalibrationData:
         else:
             self.logger.warning(f"Segment {segment.name} is not RAM type, skipping download")
 
+    def upload_segments(self) -> Optional[Path]:
+        result = []
+        segments = self.asam_mc.mod_par.memorySegments
+        if not segments:
+            return None
+        for segment in segments:
+            if segment.prgType == PrgTypeSegment.CODE:
+                continue
+            address = segment.address
+            name = segment.name
+            self.asam_mc.xcp_master.setMta(address)
+            print(f"Fetching segment {name} at address 0x{address:X} {segment.size} bytes")
+            data = self.asam_mc.xcp_master.pull(segment.size)
+            result.append((name, data))
+        return result
+
     def upload_parameters(self, xcp_master: Any, save_to_file: bool = True, hexfile_type: str = "ihex") -> Image:
         """Upload all calibration parameters from the ECU.
 
@@ -678,6 +975,10 @@ class CalibrationData:
         characteristics = self.query(model.Characteristic).order_by(model.Characteristic.type, model.Characteristic.address).all()
         for c in characteristics:
             characteristic = Characteristic.get(self.session, c.name)
+            if characteristic is None:
+                self.logger.warning("Characteristic %s not found", c.name)
+                continue
+            result.append(McObject(characteristic.name, characteristic.address, 0, characteristic.total_allocated_memory, ""))
             mem_size = characteristic.total_allocated_memory
             result.append(McObject(characteristic.name, characteristic.address, 0, mem_size, ""))
 

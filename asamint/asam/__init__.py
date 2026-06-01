@@ -4,7 +4,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2020-2025 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2020-2026 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -42,22 +42,31 @@ from asamint.adapters.a2l import (
     Group,
     ModCommon,
     ModPar,
+    Project,
     VariantCoding,
     asam_type_size,
     inspect,
     model,
     open_a2l_database,
 )
-from asamint.adapters.xcp import create_master
+from asamint.adapters.xcp import (
+    CommunicationModeSupported,
+    EcuState,
+    XcpProtocolLayerParameters,
+    XcpTimeouts,
+    create_master,
+    ecu_states_from_raw,
+)
+from asamint.asam.epk import Epk
 from asamint.config import (
     get_application,
     snapshot_general_config,
     snapshot_logging_config,
 )
-from asamint.core import ByteOrder
+from asamint.core import ByteOrder, get_data_type
 from asamint.core import byte_order as core_byte_order
-from asamint.core import get_data_type
 from asamint.utils import current_timestamp
+import ufilename
 
 
 def create_xcp_master() -> Any:
@@ -81,6 +90,7 @@ class MemoryRange:
     prg_type: inspect.PrgTypeSegment
     memory_type: inspect.MemoryType
     characteristics: list[str] = field(default_factory=list)
+    axis_pts: list[str] = field(default_factory=list)
 
     def __contains__(self, address) -> bool:
         return self.address <= address < (self.address + self.length)
@@ -91,12 +101,8 @@ class Directory:
 
     def __init__(self, session) -> None:
         self.session = session
-        self.group_by_name = {
-            g.groupName: g for g in self.session.query(model.Group).all()
-        }
-        self.function_by_name = {
-            f.name: f for f in self.session.query(model.Function).all()
-        }
+        self.group_by_name = {g.groupName: g for g in self.session.query(model.Group).all()}
+        self.function_by_name = {f.name: f for f in self.session.query(model.Function).all()}
 
     def get_group(self, name: str) -> Any:
         return self.group_by_name.get(name)
@@ -159,7 +165,7 @@ class AsamMC:
         # This replaces the old external experiment_config dict and provides reasonable defaults
         # sourced from the new traitlets-based config where possible.
         try:
-            default_subject = f"SUBJ_{self.shortname}" if self.shortname else ""
+            default_subject = f"{self.shortname}" if self.shortname else ""
         except (TypeError, AttributeError):
             default_subject = ""
         self.experiment_config = {
@@ -182,16 +188,81 @@ class AsamMC:
                 encoding=self.a2l_encoding,
             )
         self.cond_create_directories()
-        self.mod_common = ModCommon.get(self.session)
-        self.mod_par = ModPar.get(self.session) if ModPar.exists(self.session) else None
-        self.variant_coding = (
-            VariantCoding.get(self.session, module_name=self.mod_par.modpar.module.name)
-            if self.mod_par is not None
-            else None
-        )
+        self.a2l_project = Project(self.session)
+        # elf.mod_common = ModCommon.get(self.session)
+        # self.mod_par = ModPar.get(self.session) if ModPar.exists(self.session) else None
+        # self.variant_coding = (
+        #    VariantCoding.get(self.session, module_name=self.mod_par.modpar.module.name) if self.mod_par is not None else None
+        # )
+        self.epk = Epk(self)
+        self.protocol_layer_parameters: XcpProtocolLayerParameters = self.load_protocol_layer_parameters()
         self.calibration_memory_map = self.create_calibration_memory_map()
         self.directory = Directory(self.session)
         self.on_init(self.config, *args, **kws)
+
+    @property
+    def module(self):
+        return self.a2l_project.module[0]
+
+    @property
+    def mod_par(self):
+        return self.module.mod_par
+
+    @property
+    def mod_common(self):
+        return self.module.mod_common
+
+    @property
+    def variant_coding(self):
+        return self.module.variant_coding
+
+    def load_protocol_layer_parameters(self) -> XcpProtocolLayerParameters | None:
+        if self.module.if_data is not None:
+            flatmap = self.module.if_data.flatmap
+            protocol_layer = flatmap.get("PROTOCOL_LAYER")
+            if protocol_layer:
+                protocol_layer = protocol_layer[0]
+                if len(protocol_layer) >= 10:
+                    protocol_layer_version = protocol_layer[0]
+                    timeouts = XcpTimeouts(*protocol_layer[1:8])
+                    max_cto = protocol_layer[8]
+                    max_dto = protocol_layer[9]
+                    byte_order = protocol_layer[10]
+                    address_granularity = protocol_layer[11]
+                    if len(protocol_layer) == 13:
+                        optional_stuff = protocol_layer[12]
+                        optional_cmds = set(optional_stuff.get("OPTIONAL_CMD", set()))
+                        optional_level1_cmds = set(optional_stuff.get("OPTIONAL_LEVEL1_CMD", set()))
+                        seed_and_key_external_function = optional_stuff.get("SEED_AND_KEY_EXTERNAL_FUNCTION", "")
+                        ecu_states_raw = optional_stuff.get("ECU_STATES", [])
+                        ecu_states = ecu_states_from_raw(ecu_states_raw) if ecu_states_raw else []
+                        communication_mode_supported_raw = optional_stuff.get("COMMUNICATION_MODE_SUPPORTED")
+                        communication_mode_supported = (
+                            CommunicationModeSupported.from_dict(communication_mode_supported_raw)
+                            if communication_mode_supported_raw is not None
+                            else None
+                        )
+                    else:
+                        optional_cmds = set()
+                        optional_level1_cmds = set()
+                        seed_and_key_external_function = ""
+                        ecu_states = []
+                        communication_mode_supported = None
+                    result: XcpProtocolLayerParameters = XcpProtocolLayerParameters(
+                        f"{(protocol_layer_version & 0xFF00) >> 8}.{protocol_layer_version & 0xFF}",
+                        timeouts,
+                        max_cto,
+                        max_dto,
+                        byte_order,
+                        address_granularity,
+                        optional_cmds,
+                        optional_level1_cmds,
+                        seed_and_key_external_function,
+                        ecu_states,
+                        communication_mode_supported,
+                    )
+                    return result
+        return None
 
     def create_calibration_memory_map(self) -> list[MemoryRange]:
         memory_ranges = []
@@ -214,8 +285,20 @@ class AsamMC:
                 mr = memory_ranges[idx - 1]
                 if chs.address in mr:
                     mr.characteristics.append(chs.name)
+
+        for ax in self.session.query(model.AxisPts).all():
+            idx = bisect.bisect_right(keys, ax.address)
+            if idx > 0:
+                mr = memory_ranges[idx - 1]
+                if ax.address in mr:
+                    mr.axis_pts.append(ax.name)
+
+        epk_addr, epk_len = self.epk.epk_address_and_length()
+
         for mr in memory_ranges:
             mr.characteristics.sort()
+            mr.axis_pts.sort()
+
         return memory_ranges
 
     def __del__(self) -> None:
@@ -250,14 +333,33 @@ class AsamMC:
     def sub_dir(self, name) -> Path:
         return Path(self.SUB_DIRS.get(name))
 
-    def generate_filename(self, extension, extra=None) -> str:
+    def generate_filename(self, extension, extra="") -> str:
         """Automatically generate filename from configuration plus timestamp."""
-        project = self.shortname
-        subject = f"SUBJ_{self.shortname}"  # self.experiment_config.get("SHORTNAME")
-        if extra:
-            return f"{project}_{subject}{current_timestamp()}_{extra}{extension}"
-        else:
-            return f"{project}_{subject}{current_timestamp()}{extension}"
+        general = snapshot_general_config(get_application())
+        policies = general.filename_policies
+        if not policies:
+            # Fallback for empty policies
+            project = self.shortname
+            subject = f"_{self.shortname}"
+            if extra:
+                return f"{project}_{subject}{current_timestamp()}_{extra}{extension}"
+            else:
+                return f"{project}_{subject}{current_timestamp()}{extension}"
+
+        try:
+            policy_objects = [ufilename.policy_from_dict(p) for p in policies]
+            if extra:
+                policy_objects.append(ufilename.SuffixPolicy(f"_{extra}"))
+            composite = ufilename.CompositePolicy(policy_objects)
+            return ufilename.build_filename(composite, self.shortname, extension)
+        except Exception as exc:
+            self.logger.warning(f"Failed to generate filename using ufilename policies: {exc}. Falling back to default.")
+            project = self.shortname
+            subject = f"SUBJ_{self.shortname}"
+            if extra:
+                return f"{project}_{subject}{current_timestamp()}_{extra}{extension}"
+            else:
+                return f"{project}_{subject}{current_timestamp()}{extension}"
 
     def xcp_connect(self) -> None:
         if not self.xcp_connected:
@@ -306,7 +408,10 @@ class AsamMC:
         try:
             pag_info: dict = self.xcp_master.getPagInfo()
         except Exception as exc:  # noqa: BLE001
-            self.logger.error("setup_paging: getPagInfo() failed (%s) — falling back to A2L geometry.", exc)
+            self.logger.error(
+                "setup_paging: getPagInfo() failed (%s) — falling back to A2L geometry.",
+                exc,
+            )
             return a2l_geometry
 
         xcp_geometry: PagingGeometry = paging_geometry_from_xcp(pag_info)
@@ -407,9 +512,7 @@ class AsamMC:
         {"TIMESTAMPS": np.ndarray, <meas_name>: np.ndarray, ...}
         """
         if not hasattr(self, "measurement_variables") or not self.measurement_variables:
-            raise ValueError(
-                "No measurements selected - call add_measurements() or set MEASUREMENTS in config."
-            )
+            raise ValueError("No measurements selected - call add_measurements() or set MEASUREMENTS in config.")
 
         if (duration_s is None) == (samples is None):
             raise ValueError("Provide either duration_s or samples, but not both")
@@ -418,10 +521,7 @@ class AsamMC:
         meas_info: list[dict[str, Any]] = []
         for m in self.measurement_variables:
             try:
-                bo = (
-                    core_byte_order(m, getattr(self, "mod_common", None))
-                    or ByteOrder.MSB_LAST
-                )
+                bo = core_byte_order(m, getattr(self, "mod_common", None)) or ByteOrder.MSB_LAST
                 dtype = self._numpy_dtype_for_asam(m.dataType, bo)
                 nbytes = int(asam_type_size(m.dataType))
                 addr = m.address
@@ -436,9 +536,7 @@ class AsamMC:
                 }
                 meas_info.append(info)
             except (AttributeError, TypeError, ValueError, KeyError) as e:
-                self.logger.error(
-                    f"Cannot prepare measurement '{getattr(m, 'name', '?')}': {e}"
-                )
+                self.logger.error(f"Cannot prepare measurement '{getattr(m, 'name', '?')}': {e}")
 
         # Determine number of samples
         if samples is None:

@@ -3,7 +3,7 @@
 __copyright__ = """
    pySART - Simplified AUTOSAR-Toolkit for Python.
 
-   (C) 2024-2025 by Christoph Schueler <cpu12.gems.googlemail.com>
+   (C) 2024-2026 by Christoph Schueler <cpu12.gems.googlemail.com>
 
    All Rights Reserved
 
@@ -75,6 +75,14 @@ class General(Configurable):
         allow_none=True,
         help="""
     Measurement and calibration experiments associated with this project (configuration file names).""",
+    ).tag(config=True)
+    filename_policies = List(
+        trait=Dict(),
+        default_value=[
+            {"type": "suffix", "suffix": "_SUBJ"},
+            {"type": "timestamp", "fmt": "_%Y%m%d_%H%M%S"},
+        ],
+        help="List of ufilename policies for filename generation.",
     ).tag(config=True)
 
 
@@ -440,6 +448,7 @@ def snapshot_general_config(app: Asamint) -> GeneralConfig:
         output_format=getattr(general, "output_format", "MDF"),
         empty_axis_policy=getattr(general, "empty_axis_policy", "warn"),
         experiments=list(getattr(general, "experiments", []) or []),
+        filename_policies=list(getattr(general, "filename_policies", []) or []),
     )
 
 

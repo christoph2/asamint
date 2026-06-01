@@ -177,13 +177,25 @@ def get_data_type(datatype: str, byte_order: ByteOrder) -> str:
 
 
 def normalize_asam_byte_order(value: Any) -> str | None:
-    """Normalize byte-order values to canonical ASAM string names."""
+    """Normalize byte-order values to canonical ASAM string names.
+
+    Handles:
+    - ``ByteOrder`` enum instances
+    - ASAM canonical strings: ``"MSB_LAST"``, ``"MSB_FIRST"``, …
+    - Legacy aliases: ``"LITTLE_ENDIAN"``, ``"BIG_ENDIAN"``
+    - A2L PROTOCOL_LAYER prefix: ``"BYTE_ORDER_MSB_LAST"`` → ``"MSB_LAST"``
+    - Integer-coercible values (mapped via :class:`ByteOrder`)
+    """
 
     if isinstance(value, ByteOrder):
         return "MSB_FIRST" if value == ByteOrder.MSB_FIRST else "MSB_LAST"
 
     if isinstance(value, str):
         key = value.strip().upper().replace("-", "_").replace(" ", "_")
+        # Strip the "BYTE_ORDER_" prefix emitted by the A2L parser for PROTOCOL_LAYER entries,
+        # e.g. "BYTE_ORDER_MSB_LAST" → "MSB_LAST".
+        if key.startswith("BYTE_ORDER_"):
+            key = key[len("BYTE_ORDER_"):]
         key = ASAM_BYTEORDER_ALIASES.get(key, key)
         if key in _ASAM_BYTEORDER_BASES:
             return key
@@ -195,24 +207,102 @@ def normalize_asam_byte_order(value: Any) -> str | None:
         return None
 
 
-def byte_order(obj: Any, mod_common: Any | None = None) -> str:  # noqa: C901
-    """Ermittle die Byte-Order eines A2L-Objekts (optional Fallback mod_common)."""
+def byte_order(
+    obj: Any,
+    mod_common: Any | None = None,
+    protocol_layer_parameters: Any | None = None,
+) -> str:
+    """Ermittle die Byte-Order eines A2L-Objekts.
+
+    Priorität:
+    1. ``obj.byteOrder`` (A2L Characteristic / Measurement)
+    2. ``mod_common.byteOrder`` (A2L MOD_COMMON)
+    3. ``protocol_layer_parameters.byte_order`` (XCP PROTOCOL_LAYER — Fallback)
+    4. Default ``"MSB_LAST"``
+    """
 
     obj_byte_order: str | None = obj.byteOrder if hasattr(obj, "byteOrder") else None
     if obj_byte_order is not None:
         return obj_byte_order
-    obj_byte_order = mod_common.byteOrder if mod_common is not None else None
+
+    obj_byte_order = mod_common.byteOrder if mod_common is not None and hasattr(mod_common, "byteOrder") else None
     if obj_byte_order is not None:
         return obj_byte_order
-    else:
-        return "MSB_LAST"
+
+    if protocol_layer_parameters is not None and hasattr(protocol_layer_parameters, "byte_order"):
+        normalized = normalize_asam_byte_order(protocol_layer_parameters.byte_order)
+        if normalized is not None:
+            return normalized
+
+    return "MSB_LAST"
+
+
+def resolve_byte_order(
+    obj: Any | None = None,
+    mod_common: Any | None = None,
+    protocol_layer_parameters: Any | None = None,
+) -> "ByteOrder":
+    """Resolve the effective :class:`ByteOrder` from any available context.
+
+    This is a free-standing helper that requires no calibration object and can
+    be used wherever raw memory images are processed independently of the A2L
+    characteristic hierarchy.
+
+    Priority (first non-``None`` result wins):
+
+    1. ``obj.byteOrder`` — A2L Characteristic / Measurement object.
+    2. ``mod_common.byteOrder`` — A2L ``MOD_COMMON`` section.
+    3. ``protocol_layer_parameters.byte_order`` — XCP ``PROTOCOL_LAYER``
+       (handles the ``"BYTE_ORDER_MSB_LAST"`` prefix automatically).
+    4. Default: :attr:`ByteOrder.MSB_LAST`.
+
+    Args:
+        obj: An A2L pya2l model object with an optional ``byteOrder`` attribute.
+        mod_common: The ``MOD_COMMON`` section object, or ``None``.
+        protocol_layer_parameters: An :class:`~asamint.adapters.xcp.XcpProtocolLayerParameters`
+            instance, or any object with a ``byte_order`` string attribute, or ``None``.
+
+    Returns:
+        The resolved :class:`ByteOrder`.
+
+    Example::
+
+        from asamint.core import resolve_byte_order
+
+        bo = resolve_byte_order(
+            mod_common=mc.mod_common,
+            protocol_layer_parameters=mc.protocol_layer_parameters,
+        )
+    """
+
+    # 1. A2L object level
+    if obj is not None and hasattr(obj, "byteOrder") and obj.byteOrder is not None:
+        normalized = normalize_asam_byte_order(obj.byteOrder)
+        if normalized is not None:
+            return _ASAM_BYTEORDER_BASES.get(normalized, ByteOrder.MSB_LAST)
+
+    # 2. MOD_COMMON
+    if mod_common is not None and hasattr(mod_common, "byteOrder") and mod_common.byteOrder is not None:
+        normalized = normalize_asam_byte_order(mod_common.byteOrder)
+        if normalized is not None:
+            return _ASAM_BYTEORDER_BASES.get(normalized, ByteOrder.MSB_LAST)
+
+    # 3. XCP PROTOCOL_LAYER
+    if protocol_layer_parameters is not None and hasattr(protocol_layer_parameters, "byte_order"):
+        normalized = normalize_asam_byte_order(protocol_layer_parameters.byte_order)
+        if normalized is not None:
+            return _ASAM_BYTEORDER_BASES.get(normalized, ByteOrder.MSB_LAST)
+
+    return ByteOrder.MSB_LAST
 
 
 __all__ = [
     "ByteOrder",
+    "ECUByteOrder",
     "get_data_type",
     "normalize_asam_byte_order",
     "byte_order",
+    "resolve_byte_order",
     "AdapterError",
     "AsamIntError",
     "CalibrationError",
