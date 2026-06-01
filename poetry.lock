@@ -4191,6 +4191,18 @@ files = [
 ]
 
 [[package]]
+name = "ufilename"
+version = "0.1.1"
+description = "A flexible filename generation library with various policies."
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "ufilename-0.1.1-py3-none-any.whl", hash = "sha256:5072a7a610032b1c5b5051eac459c35b51db987556596e40e24b50fcd4cc7039"},
+    {file = "ufilename-0.1.1.tar.gz", hash = "sha256:0f496e00fc6a55fc9028fc60fbcad17d6547a8a8457066c4e5ecd60a1a49880d"},
+]
+
+[[package]]
 name = "urllib3"
 version = "2.7.0"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
@@ -4561,4 +4573,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "b720f7fd2e9910a4e3ed913c16016e1ba2cae68ae1756f7751e7a902786f4280"
+content-hash = "eca635d8ed4443cf165fb6313f4a2244e44f53ab6b41eaa7f2959d2ca91374b9"
