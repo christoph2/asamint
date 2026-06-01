@@ -40,6 +40,8 @@ from functools import reduce
 from pathlib import Path
 from typing import Any, Optional
 
+from pya2l.api.inspect import PrgTypeSegment, SegmentAttributeType
+
 from asamint.adapters.a2l import AxisPts, Characteristic, ModPar, model
 from asamint.adapters.objutils import Image, InvalidAddressError, Section, dump, load
 from asamint.adapters.xcp import (
@@ -71,7 +73,6 @@ from asamint.core.exceptions import CalibrationError
 from asamint.model.calibration import klasses
 from asamint.model.calibration.klasses import MemoryObject, MemoryType
 from asamint.utils import adjust_to_word_boundary, current_timestamp, flatten
-from pya2l.api.inspect import PrgTypeSegment, MemoryType, SegmentAttributeType
 
 
 class CalibrationState(IntEnum):
@@ -614,7 +615,7 @@ class CalibrationData:
         for segment in calram_segments:
             logical_segment, page = self._select_cal_page(segment, prefer_write=True)
             selected_pages.append(page)
-            xcp_master.setCalPage(0x03, logical_segment, page)
+            xcp_master.setCalPage(0x83, logical_segment, page)
             xcp_master.setMta(segment.address)
             mem = xcp_master.pull(segment.size)
             sections.append(Section(start_address=segment.address, data=mem))

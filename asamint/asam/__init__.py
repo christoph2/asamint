@@ -206,7 +206,13 @@ class AsamMC:
 
     @property
     def mod_par(self):
+        if hasattr(self, "_mod_par"):
+            return self._mod_par
         return self.module.mod_par
+
+    @mod_par.setter
+    def mod_par(self, value) -> None:
+        self._mod_par = value
 
     @property
     def mod_common(self):
@@ -340,7 +346,7 @@ class AsamMC:
         if not policies:
             # Fallback for empty policies
             project = self.shortname
-            subject = f"_{self.shortname}"
+            subject = f"SUBJ_{self.shortname}"
             if extra:
                 return f"{project}_{subject}{current_timestamp()}_{extra}{extension}"
             else:
