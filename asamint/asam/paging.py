@@ -346,9 +346,7 @@ def paging_geometry_from_a2l(memory_segments: list[Any]) -> PagingGeometry:
         comp_method = int(seg_data[2])
         enc_method = int(seg_data[3])
         max_mapping = int(seg_data[4])
-        detail: dict[str, Any] = (
-            seg_data[5] if len(seg_data) > 5 and isinstance(seg_data[5], dict) else {}
-        )
+        detail: dict[str, Any] = seg_data[5] if len(seg_data) > 5 and isinstance(seg_data[5], dict) else {}
 
         pages: list[PageInfo] = []
         for pg in detail.get("PAGE", []):
@@ -467,9 +465,7 @@ def _compare_segment_pages(xcp_seg: SegmentInfo, a2l_seg: SegmentInfo) -> None:
                 xcp_page.index,
             )
             continue
-        _compare_page_properties(
-            xcp_seg.index, xcp_page.index, xcp_page.properties, a2l_page.properties
-        )
+        _compare_page_properties(xcp_seg.index, xcp_page.index, xcp_page.properties, a2l_page.properties)
 
     xcp_page_indices: set[int] = {p.index for p in xcp_seg.pages}
     for a2l_page in a2l_seg.pages:
@@ -532,9 +528,7 @@ def merge_paging_geometry(
         if xcp_seg.address is not None:
             a2l_seg = a2l_by_address.get(xcp_seg.address)
         if a2l_seg is None:
-            logger.warning(
-                f"Segment idx={xcp_seg.index} exists in XCP but not in A2L; using XCP data as-is."
-            )
+            logger.warning(f"Segment idx={xcp_seg.index} exists in XCP but not in A2L; using XCP data as-is.")
             merged_segments.append(xcp_seg)
             continue
 

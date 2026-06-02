@@ -101,4 +101,3 @@ A skeleton for an online measurement session over XCP:
    * :ref:`measurement_guide` — measurement and DAQ guide
    * :ref:`data_formats` — CDF / CVX / DCM import & export
    * :ref:`config_reference` — complete configuration reference
-

@@ -78,7 +78,6 @@ AXES = ("x", "y", "z", "4", "5")
 _EMPTY_AXIS_POLICIES = {"warn", "ignore", "error"}
 
 
-
 @dataclass(slots=True)
 class AxesContainer:
     """Container for axis information in calibration data.
@@ -1163,7 +1162,7 @@ class Calibration:
                 index_mode=characteristic.deposit.fncValues.indexMode,
                 bit_mask=characteristic.bitMask,
             )
-        except (InvalidAddressError, ValueError, AttributeError) as e:
+        except (InvalidAddressError, ValueError, AttributeError):
             raw = np.zeros(shape)
             phys = self.int_to_physical(characteristic, raw)
         else:
@@ -3065,8 +3064,8 @@ def _build_calibration_context(a2l_db: Any, loglevel: str) -> _CalibrationContex
         _log_name = "asamint.calibration.offline"
         _candidate_logger = logging.getLogger(_log_name)
         _candidate_logger.setLevel(level)
-    logger = _candidate_logger    
-    empty_axis_policy = _resolve_empty_axis_policy(a2l_db)    
+    logger = _candidate_logger
+    empty_axis_policy = _resolve_empty_axis_policy(a2l_db)
     calibration_memory_map = list(getattr(a2l_db, "calibration_memory_map", []) or [])
     return _CalibrationContext(
         session=session,

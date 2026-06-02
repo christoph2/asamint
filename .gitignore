@@ -172,4 +172,3 @@ asamint/calibration/stochi.py
 # Generated database caches in project root (not in tests/)
 /*.a2ldb
 /*.msrswdb
-

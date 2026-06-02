@@ -13,4 +13,3 @@ Each section builds on the :ref:`getting_started` chapter.
    measurement
    data_formats
    configuration
-
